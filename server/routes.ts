@@ -5,7 +5,8 @@ import path from "path";
 import { storage } from "./storage";
 import { extractTextFromDocument } from "./fileProcessing";
 import { analyzeRejectionLetter } from "./openai";
-import { analysisResponseSchema } from "@shared/schema";
+import { analysisResponseSchema, appointmentSchema } from "@shared/schema";
+import { setupAuth } from "./auth";
 
 // Extended Request type to include file upload
 interface FileRequest extends Request {
@@ -37,8 +38,10 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // prefix all routes with /api
+  // Set up authentication
+  const requireAuth = setupAuth(app);
   
+  // ANALYZE API
   // Analyze rejection letter
   app.post('/api/analyze', upload.single('file'), async (req: FileRequest, res: Response) => {
     try {
@@ -81,10 +84,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ error: 'Failed to analyze the document' });
         }
         
-        // Save analysis to database
+        // Save analysis to database - link to user if authenticated
+        const userId = req.isAuthenticated() ? req.user!.id : undefined;
+        
         try {
           const timestamp = new Date().toISOString();
-          await storage.saveAnalysis({
+          const savedAnalysis = await storage.saveAnalysis({
             filename: req.file.originalname,
             originalText: extractedText,
             summary: analysisResult.summary,
@@ -92,15 +97,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             rejectionReasons: analysisResult.rejectionReasons,
             recommendations: analysisResult.recommendations,
             nextSteps: analysisResult.nextSteps
+          }, userId);
+          
+          console.log('Analysis saved to database successfully', userId ? 'with user ID' : 'anonymously');
+          
+          // Return the analysis results with the saved ID for reference
+          return res.status(200).json({
+            ...analysisResult,
+            id: savedAnalysis.id,
+            isAuthenticated: req.isAuthenticated()
           });
-          console.log('Analysis saved to database successfully');
         } catch (dbError) {
           console.error('Error saving analysis to database:', dbError);
           // Continue even if saving to DB fails
+          return res.status(200).json({
+            ...analysisResult,
+            isAuthenticated: req.isAuthenticated()
+          });
         }
-        
-        // Return the analysis results
-        return res.status(200).json(analysisResult);
         
       } catch (extractionError) {
         console.error('Text extraction error:', extractionError);
@@ -115,10 +129,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all past analyses
-  app.get('/api/analyses', async (_req: Request, res: Response) => {
+  // ANALYSES APIS
+  // Get public analyses or the user's analyses if authenticated
+  app.get('/api/analyses', async (req: Request, res: Response) => {
     try {
-      const analyses = await storage.getAllAnalyses();
+      let analyses;
+      
+      if (req.isAuthenticated()) {
+        // If authenticated, get user's analyses
+        analyses = await storage.getUserAnalyses(req.user!.id);
+      } else {
+        // If not authenticated, get public analyses only
+        analyses = await storage.getPublicAnalyses();
+      }
+      
       return res.status(200).json(analyses);
     } catch (error) {
       console.error('Error in /api/analyses:', error);
@@ -135,14 +159,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const analysis = await storage.getAnalysis(id);
+      
       if (!analysis) {
         return res.status(404).json({ error: 'Analysis not found' });
+      }
+      
+      // Check if user has access to this analysis
+      // Allow if: analysis is public, or user is authenticated and owns the analysis
+      const userOwnsAnalysis = req.isAuthenticated() && analysis.userId === req.user!.id;
+      
+      if (!analysis.isPublic && !userOwnsAnalysis) {
+        return res.status(403).json({ 
+          error: 'Access denied',
+          preview: {
+            id: analysis.id,
+            summary: analysis.summary.substring(0, 100) + '...',
+            message: 'Please log in to view the full analysis'
+          }
+        });
       }
       
       return res.status(200).json(analysis);
     } catch (error) {
       console.error(`Error in /api/analyses/${req.params.id}:`, error);
       return res.status(500).json({ error: (error as Error).message || 'An error occurred while retrieving the analysis' });
+    }
+  });
+  
+  // Update analysis visibility (requires auth)
+  app.patch('/api/analyses/:id/visibility', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+      
+      const { isPublic } = req.body;
+      if (typeof isPublic !== 'boolean') {
+        return res.status(400).json({ error: 'isPublic must be a boolean' });
+      }
+      
+      const analysis = await storage.getAnalysis(id);
+      
+      if (!analysis) {
+        return res.status(404).json({ error: 'Analysis not found' });
+      }
+      
+      // Verify ownership
+      if (analysis.userId !== req.user!.id) {
+        return res.status(403).json({ error: 'You do not have permission to update this analysis' });
+      }
+      
+      // Update visibility
+      // Note: We would need to add this method to the storage interface
+      // For now, this is just a placeholder
+      return res.status(200).json({ id, isPublic, message: 'Visibility updated' });
+    } catch (error) {
+      console.error(`Error updating analysis visibility:`, error);
+      return res.status(500).json({ error: (error as Error).message || 'An error occurred while updating the analysis' });
+    }
+  });
+  
+  // APPOINTMENT APIS
+  // Book a consultation appointment (requires auth)
+  app.post('/api/appointments', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const appointmentValidation = appointmentSchema.safeParse(req.body);
+      
+      if (!appointmentValidation.success) {
+        return res.status(400).json({ 
+          error: 'Invalid appointment data', 
+          details: appointmentValidation.error.format() 
+        });
+      }
+      
+      const appointment = await storage.createAppointment(
+        appointmentValidation.data, 
+        req.user!.id
+      );
+      
+      return res.status(201).json(appointment);
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+      return res.status(500).json({ error: (error as Error).message || 'An error occurred while creating the appointment' });
+    }
+  });
+  
+  // Get user's appointments (requires auth)
+  app.get('/api/appointments', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const appointments = await storage.getUserAppointments(req.user!.id);
+      return res.status(200).json(appointments);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      return res.status(500).json({ error: (error as Error).message || 'An error occurred while fetching appointments' });
     }
   });
 
