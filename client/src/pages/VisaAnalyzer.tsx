@@ -102,6 +102,11 @@ export default function VisaAnalyzer() {
                 <h1 className="ml-2 text-xl font-semibold text-gray-900 dark:text-white">Visa Rejection Analyzer</h1>
               </div>
             </Link>
+            <div className="flex space-x-4">
+              <Link href="/history">
+                <Button variant="outline">View Analysis History</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>

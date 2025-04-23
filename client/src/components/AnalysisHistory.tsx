@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { Analysis } from '@shared/schema';
@@ -22,11 +22,27 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CalendarIcon, FileText, Search } from 'lucide-react';
 import { format } from 'date-fns';
 
+type RejectionReason = {
+  title: string;
+  description: string;
+  severity: 'high' | 'medium' | 'low';
+};
+
+type Recommendation = {
+  title: string;
+  description: string;
+};
+
+type NextStep = {
+  title: string;
+  description: string;
+};
+
 export default function AnalysisHistory() {
   const { toast } = useToast();
   const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis | null>(null);
 
-  const { data: analyses, isLoading, error } = useQuery({
+  const { data: analyses, isLoading, error } = useQuery<Analysis[]>({
     queryKey: ['/api/analyses'],
     refetchOnWindowFocus: false
   });
@@ -56,7 +72,7 @@ export default function AnalysisHistory() {
       .catch(err => {
         toast({
           title: "Error fetching analysis",
-          description: err.message,
+          description: (err as Error).message,
           variant: "destructive"
         });
       });
@@ -184,7 +200,7 @@ export default function AnalysisHistory() {
               <div>
                 <h3 className="text-lg font-medium mb-2">Rejection Reasons</h3>
                 <div className="space-y-4">
-                  {selectedAnalysis.rejectionReasons.map((reason, index) => (
+                  {(selectedAnalysis.rejectionReasons as RejectionReason[]).map((reason, index) => (
                     <div 
                       key={index} 
                       className={`border-l-4 ${
@@ -203,7 +219,7 @@ export default function AnalysisHistory() {
               <div>
                 <h3 className="text-lg font-medium mb-2">Recommendations</h3>
                 <div className="space-y-3">
-                  {selectedAnalysis.recommendations.map((rec, index) => (
+                  {(selectedAnalysis.recommendations as Recommendation[]).map((rec, index) => (
                     <div key={index} className="bg-primary-50 dark:bg-gray-700 p-3 rounded">
                       <h4 className="font-medium">{rec.title}</h4>
                       <p className="text-gray-600 dark:text-gray-400">{rec.description}</p>
@@ -215,7 +231,7 @@ export default function AnalysisHistory() {
               <div>
                 <h3 className="text-lg font-medium mb-2">Next Steps</h3>
                 <ol className="list-decimal list-inside space-y-2 pl-2">
-                  {selectedAnalysis.nextSteps.map((step, index) => (
+                  {(selectedAnalysis.nextSteps as NextStep[]).map((step, index) => (
                     <li key={index}>
                       <span className="font-medium">{step.title}</span>
                       <p className="text-gray-600 dark:text-gray-400 ml-6">{step.description}</p>

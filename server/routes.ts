@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import path from "path";
@@ -6,6 +6,11 @@ import { storage } from "./storage";
 import { extractTextFromDocument } from "./fileProcessing";
 import { analyzeRejectionLetter } from "./openai";
 import { analysisResponseSchema } from "@shared/schema";
+
+// Extended Request type to include file upload
+interface FileRequest extends Request {
+  file?: Express.Multer.File;
+}
 
 // Set up multer for file upload
 const upload = multer({
@@ -35,7 +40,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // prefix all routes with /api
   
   // Analyze rejection letter
-  app.post('/api/analyze', upload.single('file'), async (req: Request, res: Response) => {
+  app.post('/api/analyze', upload.single('file'), async (req: FileRequest, res: Response) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
@@ -83,7 +88,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(200).json(analysisResult);
     } catch (error) {
       console.error('Error in /api/analyze:', error);
-      return res.status(500).json({ error: error.message || 'An error occurred during analysis' });
+      return res.status(500).json({ error: (error as Error).message || 'An error occurred during analysis' });
     }
   });
 
@@ -94,7 +99,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(200).json(analyses);
     } catch (error) {
       console.error('Error in /api/analyses:', error);
-      return res.status(500).json({ error: error.message || 'An error occurred while retrieving analyses' });
+      return res.status(500).json({ error: (error as Error).message || 'An error occurred while retrieving analyses' });
     }
   });
 
@@ -114,7 +119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(200).json(analysis);
     } catch (error) {
       console.error(`Error in /api/analyses/${req.params.id}:`, error);
-      return res.status(500).json({ error: error.message || 'An error occurred while retrieving the analysis' });
+      return res.status(500).json({ error: (error as Error).message || 'An error occurred while retrieving the analysis' });
     }
   });
 
