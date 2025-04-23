@@ -62,11 +62,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: 'Failed to analyze the document' });
       }
       
+      // Save analysis to database
+      try {
+        const timestamp = new Date().toISOString();
+        await storage.saveAnalysis({
+          filename: req.file.originalname,
+          originalText: extractedText,
+          summary: analysisResult.summary,
+          createdAt: timestamp,
+          rejectionReasons: analysisResult.rejectionReasons,
+          recommendations: analysisResult.recommendations,
+          nextSteps: analysisResult.nextSteps
+        });
+      } catch (dbError) {
+        console.error('Error saving analysis to database:', dbError);
+        // Continue even if saving to DB fails
+      }
+      
       // Return the analysis results
       return res.status(200).json(analysisResult);
     } catch (error) {
       console.error('Error in /api/analyze:', error);
       return res.status(500).json({ error: error.message || 'An error occurred during analysis' });
+    }
+  });
+
+  // Get all past analyses
+  app.get('/api/analyses', async (_req: Request, res: Response) => {
+    try {
+      const analyses = await storage.getAllAnalyses();
+      return res.status(200).json(analyses);
+    } catch (error) {
+      console.error('Error in /api/analyses:', error);
+      return res.status(500).json({ error: error.message || 'An error occurred while retrieving analyses' });
+    }
+  });
+
+  // Get a single analysis by ID
+  app.get('/api/analyses/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+      
+      const analysis = await storage.getAnalysis(id);
+      if (!analysis) {
+        return res.status(404).json({ error: 'Analysis not found' });
+      }
+      
+      return res.status(200).json(analysis);
+    } catch (error) {
+      console.error(`Error in /api/analyses/${req.params.id}:`, error);
+      return res.status(500).json({ error: error.message || 'An error occurred while retrieving the analysis' });
     }
   });
 
