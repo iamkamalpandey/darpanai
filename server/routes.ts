@@ -46,46 +46,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'No file uploaded' });
       }
       
+      console.log(`Processing file: ${req.file.originalname}, size: ${req.file.size} bytes, mimetype: ${req.file.mimetype}`);
+      
       // Extract text from the document
-      const extractedText = await extractTextFromDocument(
-        req.file.buffer, 
-        path.extname(req.file.originalname).toLowerCase()
-      );
+      const fileExtension = path.extname(req.file.originalname).toLowerCase();
+      console.log(`File extension detected: ${fileExtension}`);
       
-      if (!extractedText) {
-        return res.status(400).json({ error: 'Failed to extract text from the document' });
-      }
-      
-      // Analyze the extracted text using OpenAI
-      const analysisResult = await analyzeRejectionLetter(extractedText);
-      
-      // Validate response schema
-      const validationResult = analysisResponseSchema.safeParse(analysisResult);
-      
-      if (!validationResult.success) {
-        console.error('Invalid analysis result:', validationResult.error);
-        return res.status(500).json({ error: 'Failed to analyze the document' });
-      }
-      
-      // Save analysis to database
       try {
-        const timestamp = new Date().toISOString();
-        await storage.saveAnalysis({
-          filename: req.file.originalname,
-          originalText: extractedText,
-          summary: analysisResult.summary,
-          createdAt: timestamp,
-          rejectionReasons: analysisResult.rejectionReasons,
-          recommendations: analysisResult.recommendations,
-          nextSteps: analysisResult.nextSteps
+        // Extract text from the document with enhanced error handling
+        const extractedText = await extractTextFromDocument(
+          req.file.buffer, 
+          fileExtension
+        );
+        
+        if (!extractedText || extractedText.trim().length < 10) {
+          console.error('Text extraction returned insufficient content');
+          return res.status(400).json({ 
+            error: 'Failed to extract meaningful text from the document. Please ensure your document contains readable text.'
+          });
+        }
+        
+        console.log(`Successfully extracted ${extractedText.length} characters of text`);
+        console.log('Extracted text sample:', extractedText.substring(0, 100) + '...');
+        
+        // Analyze the extracted text using OpenAI
+        console.log('Sending text to OpenAI for analysis...');
+        const analysisResult = await analyzeRejectionLetter(extractedText);
+        
+        // Validate response schema
+        const validationResult = analysisResponseSchema.safeParse(analysisResult);
+        
+        if (!validationResult.success) {
+          console.error('Invalid analysis result:', validationResult.error);
+          return res.status(500).json({ error: 'Failed to analyze the document' });
+        }
+        
+        // Save analysis to database
+        try {
+          const timestamp = new Date().toISOString();
+          await storage.saveAnalysis({
+            filename: req.file.originalname,
+            originalText: extractedText,
+            summary: analysisResult.summary,
+            createdAt: timestamp,
+            rejectionReasons: analysisResult.rejectionReasons,
+            recommendations: analysisResult.recommendations,
+            nextSteps: analysisResult.nextSteps
+          });
+          console.log('Analysis saved to database successfully');
+        } catch (dbError) {
+          console.error('Error saving analysis to database:', dbError);
+          // Continue even if saving to DB fails
+        }
+        
+        // Return the analysis results
+        return res.status(200).json(analysisResult);
+        
+      } catch (extractionError) {
+        console.error('Text extraction error:', extractionError);
+        return res.status(400).json({ 
+          error: `Text extraction failed: ${(extractionError as Error).message}. Please ensure your document is not corrupted and contains readable text.`
         });
-      } catch (dbError) {
-        console.error('Error saving analysis to database:', dbError);
-        // Continue even if saving to DB fails
       }
       
-      // Return the analysis results
-      return res.status(200).json(analysisResult);
     } catch (error) {
       console.error('Error in /api/analyze:', error);
       return res.status(500).json({ error: (error as Error).message || 'An error occurred during analysis' });
