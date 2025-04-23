@@ -1,11 +1,6 @@
 import { createWorker } from 'tesseract.js';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
-import { promisify } from 'util';
-import { exec } from 'child_process';
-
-const execPromise = promisify(exec);
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * Extracts text from an uploaded document (PDF, JPG, PNG)
@@ -20,10 +15,9 @@ export async function extractTextFromDocument(
   try {
     // Handle based on file type
     if (fileExtension === '.pdf') {
-      // For PDF files, we'll convert to text directly
-      // Simple approach: For now, return a default message and extract the first 100 characters for preview
-      const previewText = fileBuffer.toString('utf-8', 0, 1000).replace(/[^\x20-\x7E]/g, ' ');
-      return `This appears to be a PDF document. Here's a preview of its content:\n\n${previewText}\n\nPlease note that complex PDF extraction is limited in this environment.`;
+      // For PDFs, we'll apply basic extraction logic
+      // This just extracts readable text portions from the PDF buffer
+      return extractBasicTextFromPdf(fileBuffer);
     } else if (['.jpg', '.jpeg', '.png'].includes(fileExtension)) {
       return extractTextFromImage(fileBuffer);
     } else {
@@ -32,6 +26,46 @@ export async function extractTextFromDocument(
   } catch (error) {
     console.error('Error extracting text from document:', error);
     throw new Error('Failed to extract text from the document');
+  }
+}
+
+/**
+ * Extracts basic text from a PDF document
+ * This method doesn't require additional libraries but has limited capabilities
+ * @param pdfBuffer The PDF file buffer
+ * @returns Extracted text
+ */
+function extractBasicTextFromPdf(pdfBuffer: Buffer): string {
+  try {
+    // Convert buffer to string and filter out non-printable characters
+    let text = pdfBuffer.toString('utf-8');
+    
+    // Extract text that looks like readable content
+    // This is a basic approach that works for some PDFs but not all
+    const textLines: string[] = [];
+    
+    // Regular expression to match potential text content
+    // This pattern looks for sequences of printable ASCII characters
+    const textPattern = /([A-Za-z0-9 .,;:'"()\[\]{}\-+*/\\&%$#@!?<>|=_]){4,}/g;
+    
+    // Find all matches
+    const matches = text.match(textPattern);
+    
+    if (matches && matches.length > 0) {
+      // Join and clean up the extracted text
+      text = matches.join(' ')
+        .replace(/\\n/g, '\n')       // Convert \n to actual newlines
+        .replace(/\s+/g, ' ')        // Replace multiple whitespace with a single space
+        .trim();
+      
+      return text;
+    }
+    
+    return "The PDF file has been processed, but readable text extraction was limited. " +
+           "Please ensure your document contains selectable text rather than scanned images of text.";
+  } catch (error) {
+    console.error('Error extracting text from PDF:', error);
+    return "Unable to process this PDF file. It may be corrupted or password-protected.";
   }
 }
 
