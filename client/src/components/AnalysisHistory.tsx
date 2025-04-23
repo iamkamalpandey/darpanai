@@ -44,7 +44,8 @@ export default function AnalysisHistory() {
 
   const { data: analyses, isLoading, error } = useQuery<Analysis[]>({
     queryKey: ['/api/analyses'],
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    refetchInterval: 5000
   });
 
   const formatDate = (dateString: string) => {
@@ -117,6 +118,9 @@ export default function AnalysisHistory() {
     );
   }
 
+  // Log data for debugging
+  console.log("Analysis data:", analyses);
+  
   return (
     <div>
       <Card className="mb-8">
