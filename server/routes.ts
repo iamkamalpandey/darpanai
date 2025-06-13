@@ -333,6 +333,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user role (admin only)
+  app.patch('/api/admin/users/:id/role', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { role } = req.body;
+
+      if (isNaN(userId) || !role || !['user', 'admin'].includes(role)) {
+        return res.status(400).json({ error: 'Invalid user ID or role value' });
+      }
+
+      const updatedUser = await storage.updateUserRole(userId, role);
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const { password, ...safeUser } = updatedUser;
+      return res.status(200).json(safeUser);
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      return res.status(500).json({ error: 'Failed to update user role' });
+    }
+  });
+
   // Get user details with analyses (admin only)
   app.get('/api/admin/users/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
