@@ -135,15 +135,30 @@ export default function AdminDashboard() {
   };
 
   const handleViewAnalysisDetails = (analysis: any) => {
+    console.log('Analysis data:', analysis);
+    
+    // Parse analysis results if they're stored as string
+    let parsedResults = analysis.analysisResults || analysis.results;
+    if (typeof parsedResults === 'string') {
+      try {
+        parsedResults = JSON.parse(parsedResults);
+      } catch (e) {
+        console.error('Failed to parse analysis results:', e);
+        parsedResults = null;
+      }
+    }
+    
     // Convert the analysis data to match the expected format
     const formattedAnalysis: Analysis = {
       id: analysis.id,
       userId: analysis.userId || selectedUser?.id || 0,
       fileName: analysis.filename || analysis.fileName || 'Unknown File',
-      analysisResults: analysis.analysisResults || JSON.parse(analysis.results || '{}'),
+      analysisResults: parsedResults,
       createdAt: analysis.createdAt,
       isPublic: analysis.isPublic || false,
     };
+    
+    console.log('Formatted analysis:', formattedAnalysis);
     setSelectedAnalysis(formattedAnalysis);
     setAnalysisDetailsOpen(true);
   };
@@ -379,14 +394,17 @@ export default function AdminDashboard() {
                         <TableBody>
                           {userDetails.analyses.map((analysis) => (
                             <TableRow key={analysis.id}>
-                              <TableCell className="font-medium">{analysis.filename}</TableCell>
+                              <TableCell className="font-medium">{analysis.filename || analysis.fileName || 'Unknown File'}</TableCell>
                               <TableCell>{new Date(analysis.createdAt).toLocaleDateString()}</TableCell>
-                              <TableCell className="max-w-xs truncate">{analysis.summary}</TableCell>
+                              <TableCell className="max-w-xs truncate">
+                                {analysis.summary || 'No summary available'}
+                              </TableCell>
                               <TableCell>
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleViewAnalysisDetails(analysis)}
+                                  disabled={!analysis.analysisResults && !analysis.results}
                                 >
                                   <Eye className="h-4 w-4 mr-1" />
                                   View
