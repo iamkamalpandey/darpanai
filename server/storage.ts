@@ -4,7 +4,7 @@ import {
   type Appointment, type InsertAppointment, type LoginUser
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, isNull, isNotNull } from "drizzle-orm";
+import { eq, desc, and, isNull, isNotNull, sql } from "drizzle-orm";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 
@@ -108,9 +108,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async incrementUserAnalysisCount(userId: number): Promise<User | undefined> {
+    const currentUser = await this.getUser(userId);
+    if (!currentUser) return undefined;
+    
     const [updatedUser] = await db
       .update(users)
-      .set({ analysisCount: sql`${users.analysisCount} + 1` })
+      .set({ analysisCount: currentUser.analysisCount + 1 })
       .where(eq(users.id, userId))
       .returning();
     return updatedUser || undefined;

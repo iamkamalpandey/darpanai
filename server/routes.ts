@@ -84,8 +84,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ error: 'Failed to analyze the document' });
         }
         
-        // Save analysis to database - link to user if authenticated
+        // Check usage limits for authenticated users
         const userId = req.isAuthenticated() ? req.user!.id : undefined;
+        if (userId) {
+          const user = await storage.getUser(userId);
+          if (user && user.analysisCount >= user.maxAnalyses) {
+            return res.status(403).json({ 
+              error: 'Analysis limit reached',
+              message: `You have reached your analysis limit of ${user.maxAnalyses}. Please contact admin for additional analyses.`,
+              analysisCount: user.analysisCount,
+              maxAnalyses: user.maxAnalyses
+            });
+          }
+        }
         
         try {
           const timestamp = new Date().toISOString();
@@ -100,6 +111,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }, userId);
           
           console.log('Analysis saved to database successfully', userId ? 'with user ID' : 'anonymously');
+          
+          // Increment user's analysis count if authenticated
+          if (userId) {
+            await storage.incrementUserAnalysisCount(userId);
+          }
           
           // Return the analysis results with the saved ID for reference
           return res.status(200).json({
@@ -263,6 +279,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching appointments:', error);
       return res.status(500).json({ error: (error as Error).message || 'An error occurred while fetching appointments' });
+    }
+  });
+
+  // ADMIN ROUTES
+  // Helper function to check if user is admin
+  const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    if (req.user!.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    next();
+  };
+
+  // Get all users (admin only)
+  app.get('/api/admin/users', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const users = await storage.getAllUsers();
+      // Remove password from response for security
+      const safeUsers = users.map(user => {
+        const { password, ...safeUser } = user;
+        return safeUser;
+      });
+      return res.status(200).json(safeUsers);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      return res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  });
+
+  // Update user's max analyses (admin only)
+  app.patch('/api/admin/users/:id/max-analyses', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { maxAnalyses } = req.body;
+
+      if (isNaN(userId) || typeof maxAnalyses !== 'number' || maxAnalyses < 0) {
+        return res.status(400).json({ error: 'Invalid user ID or max analyses value' });
+      }
+
+      const updatedUser = await storage.updateUserMaxAnalyses(userId, maxAnalyses);
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const { password, ...safeUser } = updatedUser;
+      return res.status(200).json(safeUser);
+    } catch (error) {
+      console.error('Error updating user max analyses:', error);
+      return res.status(500).json({ error: 'Failed to update user' });
+    }
+  });
+
+  // Get user details with analyses (admin only)
+  app.get('/api/admin/users/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.id);
+      if (isNaN(userId)) {
+        return res.status(400).json({ error: 'Invalid user ID' });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const analyses = await storage.getUserAnalyses(userId);
+      const appointments = await storage.getUserAppointments(userId);
+
+      const { password, ...safeUser } = user;
+      return res.status(200).json({
+        ...safeUser,
+        analyses,
+        appointments
+      });
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      return res.status(500).json({ error: 'Failed to fetch user details' });
     }
   });
 

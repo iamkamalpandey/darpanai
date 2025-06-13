@@ -7,8 +7,9 @@ import {
   Home,
   LogOut,
   Phone,
-  Settings,
   User,
+  Users,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
