@@ -313,14 +313,10 @@ export default function AdminSettings() {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Button variant="outline" className="h-20 flex-col gap-2">
                 <RefreshCw className="h-6 w-6" />
                 <span>Refresh System Cache</span>
-              </Button>
-              <Button variant="outline" className="h-20 flex-col gap-2">
-                <Download className="h-6 w-6" />
-                <span>Generate System Report</span>
               </Button>
               <Button variant="outline" className="h-20 flex-col gap-2">
                 <Shield className="h-6 w-6" />
