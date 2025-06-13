@@ -2,12 +2,11 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { appointmentSchema } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
-import { CalendarIcon, Check, Loader2 } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -45,8 +44,14 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 
-// Extend the appointment schema for the form
-const formSchema = appointmentSchema.extend({
+// Form schema specifically for the consultation form
+const formSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  phoneNumber: z.string().min(1, "Phone number is required"),
+  preferredContact: z.enum(["phone", "whatsapp", "viber"]),
+  subject: z.string().min(1, "Subject is required"),
+  message: z.string().optional(),
   requestedDate: z.date({
     required_error: "Please select a preferred date for the consultation",
   }),
@@ -80,7 +85,7 @@ export function ConsultationForm({
     name: user?.fullName || "",
     email: user?.email || "",
     phoneNumber: user?.phoneNumber || "",
-    preferredContact: "",
+    preferredContact: undefined,
     subject: subject || "Visa Application Consultation",
     message: "",
     requestedDate: new Date(),
@@ -93,7 +98,12 @@ export function ConsultationForm({
 
   const mutation = useMutation({
     mutationFn: async (data: FormValues) => {
-      const res = await apiRequest("POST", "/api/appointments", data);
+      // Convert Date to ISO string for the API
+      const apiData = {
+        ...data,
+        requestedDate: data.requestedDate.toISOString()
+      };
+      const res = await apiRequest("POST", "/api/appointments", apiData);
       return res.json();
     },
     onSuccess: () => {

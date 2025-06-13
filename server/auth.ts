@@ -75,7 +75,13 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      done(null, user || undefined);
+      if (user) {
+        // Remove password from deserialized user
+        const { password, ...safeUser } = user;
+        done(null, safeUser);
+      } else {
+        done(null, undefined);
+      }
     } catch (error) {
       done(error);
     }

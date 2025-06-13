@@ -64,11 +64,14 @@ export const insertAnalysisSchema = createInsertSchema(analyses).omit({
   id: true,
 });
 
-export const appointmentSchema = createInsertSchema(appointments).omit({
-  id: true,
-  userId: true,
-  status: true,
-  createdAt: true,
+export const appointmentSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  phoneNumber: z.string().min(1, "Phone number is required"),
+  preferredContact: z.enum(["phone", "whatsapp", "viber"]),
+  subject: z.string().min(1, "Subject is required"),
+  message: z.string().optional(),
+  requestedDate: z.string().datetime("Invalid date format"),
 });
 
 // FileUpload schema
@@ -104,6 +107,9 @@ export type InsertAnalysis = z.infer<typeof insertAnalysisSchema>;
 
 export type Appointment = typeof appointments.$inferSelect;
 export type InsertAppointment = z.infer<typeof appointmentSchema>;
+export type AppointmentFormData = Omit<InsertAppointment, 'requestedDate'> & {
+  requestedDate: string;
+};
 
 export type FileUpload = z.infer<typeof fileUploadSchema>;
 export type AnalysisResponse = z.infer<typeof analysisResponseSchema>;

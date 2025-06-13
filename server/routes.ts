@@ -5,7 +5,7 @@ import path from "path";
 import { storage } from "./storage";
 import { extractTextFromDocument } from "./fileProcessing";
 import { analyzeRejectionLetter } from "./openai";
-import { analysisResponseSchema, appointmentSchema } from "@shared/schema";
+import { analysisResponseSchema } from "@shared/schema";
 import { setupAuth } from "./auth";
 
 // Extended Request type to include file upload
@@ -224,17 +224,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Book a consultation appointment (requires auth)
   app.post('/api/appointments', requireAuth, async (req: Request, res: Response) => {
     try {
-      const appointmentValidation = appointmentSchema.safeParse(req.body);
+      // Simple validation without strict schema parsing for dates
+      const { name, email, phoneNumber, preferredContact, subject, message, requestedDate } = req.body;
       
-      if (!appointmentValidation.success) {
+      if (!name || !email || !phoneNumber || !preferredContact || !subject) {
         return res.status(400).json({ 
-          error: 'Invalid appointment data', 
-          details: appointmentValidation.error.format() 
+          error: 'Missing required fields: name, email, phoneNumber, preferredContact, subject'
         });
       }
       
+      const appointmentData = {
+        name,
+        email, 
+        phoneNumber,
+        preferredContact,
+        subject,
+        message: message || null,
+        requestedDate: requestedDate ? new Date(requestedDate) : new Date()
+      };
+      
       const appointment = await storage.createAppointment(
-        appointmentValidation.data, 
+        appointmentData, 
         req.user!.id
       );
       

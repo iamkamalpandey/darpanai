@@ -41,7 +41,7 @@ export interface IStorage {
   getPublicAnalyses(): Promise<Analysis[]>;
   
   // Appointment methods
-  createAppointment(appointment: InsertAppointment, userId: number): Promise<Appointment>;
+  createAppointment(appointment: any, userId: number): Promise<Appointment>;
   getUserAppointments(userId: number): Promise<Appointment[]>;
   updateAppointmentStatus(id: number, status: string): Promise<Appointment | undefined>;
 }
@@ -127,7 +127,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Appointment methods
-  async createAppointment(appointmentData: InsertAppointment, userId: number): Promise<Appointment> {
+  async createAppointment(appointmentData: any, userId: number): Promise<Appointment> {
     const [appointment] = await db
       .insert(appointments)
       .values({
