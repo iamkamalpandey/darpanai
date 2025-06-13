@@ -8,6 +8,8 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   email: text("email").notNull().unique(),
+  emailVerified: boolean("email_verified").default(false).notNull(),
+  emailVerificationToken: text("email_verification_token"),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   phoneNumber: text("phone_number").notNull(),
@@ -22,7 +24,7 @@ export const users = pgTable("users", {
   allowContact: boolean("allow_contact").default(false).notNull(),
   receiveUpdates: boolean("receive_updates").default(false).notNull(),
   role: text("role").default("user").notNull(),
-  status: text("status").default("active").notNull(),
+  status: text("status").default("pending").notNull(), // pending until email verified
   analysisCount: integer("analysis_count").default(0).notNull(),
   maxAnalyses: integer("max_analyses").default(3).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
