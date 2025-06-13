@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { loginUserSchema, insertUserSchema } from "@shared/schema";
 import { useAuth } from "@/hooks/use-auth";
+import { AlertTriangle, CheckCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<string>("login");
@@ -161,7 +163,29 @@ export default function AuthPage() {
             </TabsContent>
 
             {/* Register Tab */}
-            <TabsContent value="register">
+            <TabsContent value="register" className="space-y-6">
+              {/* Error Alert for Registration */}
+              {registerMutation.isError && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Account Creation Failed</AlertTitle>
+                  <AlertDescription>
+                    We were unable to create your account. Please verify all information is correct and ensure your username and email are unique. If the problem persists, contact our support team.
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {/* Success Alert for Registration */}
+              {registerMutation.isSuccess && (
+                <Alert className="border-green-200 bg-green-50 text-green-800">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <AlertTitle>Account Created Successfully</AlertTitle>
+                  <AlertDescription>
+                    Welcome! Your account has been created. Redirecting you to your dashboard...
+                  </AlertDescription>
+                </Alert>
+              )}
+
               <Card>
                 <CardHeader>
                   <CardTitle>Register</CardTitle>
