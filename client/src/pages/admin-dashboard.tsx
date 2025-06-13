@@ -49,7 +49,8 @@ interface UserData {
   id: number;
   username: string;
   email: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   qualification: string;
   graduationYear: string;
   phoneNumber: string;
@@ -206,7 +207,7 @@ export default function AdminDashboard() {
       if (!user) return false;
 
       // Search filter
-      const fullName = user.fullName || '';
+      const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
       const username = user.username || '';
       const email = user.email || '';
       const matchesSearch = searchTerm === "" || 
@@ -509,7 +510,7 @@ export default function AdminDashboard() {
                     <TableRow key={user.id}>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{user.fullName || 'Unknown'}</div>
+                          <div className="font-medium">{`${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown'}</div>
                           <div className="text-sm text-muted-foreground">@{user.username || 'unknown'}</div>
                         </div>
                       </TableCell>
@@ -573,7 +574,7 @@ export default function AdminDashboard() {
                             <DialogHeader>
                               <DialogTitle>Update Analysis Limit</DialogTitle>
                               <DialogDescription>
-                                Change the maximum number of analyses for {user.fullName}
+                                Change the maximum number of analyses for {`${user.firstName} ${user.lastName}`}
                               </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4">
@@ -616,7 +617,7 @@ export default function AdminDashboard() {
         <Dialog open={userDetailsOpen} onOpenChange={setUserDetailsOpen}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>User Details: {selectedUser?.fullName}</DialogTitle>
+              <DialogTitle>User Details: {selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : 'Unknown User'}</DialogTitle>
               <DialogDescription>
                 Complete user information, analysis history, and appointments
               </DialogDescription>
@@ -628,7 +629,7 @@ export default function AdminDashboard() {
                   <div>
                     <h4 className="font-medium mb-2">Personal Information</h4>
                     <div className="space-y-1 text-sm">
-                      <p><strong>Full Name:</strong> {userDetails.fullName}</p>
+                      <p><strong>Full Name:</strong> {`${userDetails.firstName || ''} ${userDetails.lastName || ''}`.trim()}</p>
                       <p><strong>Email:</strong> {userDetails.email}</p>
                       <p><strong>Phone:</strong> {userDetails.phoneNumber || 'Not provided'}</p>
                       <p><strong>Qualification:</strong> {userDetails.qualification || 'Not provided'}</p>
