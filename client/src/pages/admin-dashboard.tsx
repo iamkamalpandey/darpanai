@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { DashboardLayout } from "@/components/DashboardLayout";
+import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -58,7 +58,7 @@ interface UserDetails extends UserData {
   appointments: any[];
 }
 
-export default function AdminPanel() {
+export default function AdminDashboard() {
   const { toast } = useToast();
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [newMaxAnalyses, setNewMaxAnalyses] = useState<number>(0);
@@ -131,22 +131,22 @@ export default function AdminPanel() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
+      <AdminLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading admin panel...</div>
+          <div className="text-lg">Loading admin dashboard...</div>
         </div>
-      </DashboardLayout>
+      </AdminLayout>
     );
   }
 
   return (
-    <DashboardLayout>
+    <AdminLayout>
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Admin Panel</h1>
+            <h1 className="text-3xl font-bold">Admin Dashboard</h1>
             <p className="text-muted-foreground">
-              Manage users, view analytics, and control system settings
+              System overview and user management
             </p>
           </div>
         </div>
@@ -404,6 +404,6 @@ export default function AdminPanel() {
           </DialogContent>
         </Dialog>
       </div>
-    </DashboardLayout>
+    </AdminLayout>
   );
 }
