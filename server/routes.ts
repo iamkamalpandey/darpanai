@@ -356,6 +356,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user status (admin only)
+  app.patch('/api/admin/users/:id/status', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { status } = req.body;
+
+      if (isNaN(userId) || !status || !['active', 'inactive', 'suspended'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid user ID or status value' });
+      }
+
+      const updatedUser = await storage.updateUserStatus(userId, status);
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const { password, ...safeUser } = updatedUser;
+      return res.status(200).json(safeUser);
+    } catch (error) {
+      console.error('Error updating user status:', error);
+      return res.status(500).json({ error: 'Failed to update user status' });
+    }
+  });
+
   // Get all analyses with user info (admin only)
   app.get('/api/admin/analyses', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {

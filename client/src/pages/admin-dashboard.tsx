@@ -54,6 +54,7 @@ interface UserData {
   graduationYear: string;
   phoneNumber: string;
   role: string;
+  status: string;
   analysisCount: number;
   maxAnalyses: number;
   createdAt: string;

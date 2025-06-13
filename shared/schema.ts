@@ -13,6 +13,7 @@ export const users = pgTable("users", {
   graduationYear: text("graduation_year"),
   phoneNumber: text("phone_number"),
   role: text("role").default("user").notNull(),
+  status: text("status").default("active").notNull(), // active, inactive, suspended
   analysisCount: integer("analysis_count").default(0).notNull(),
   maxAnalyses: integer("max_analyses").default(3).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

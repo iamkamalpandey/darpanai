@@ -45,6 +45,7 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   updateUserMaxAnalyses(userId: number, maxAnalyses: number): Promise<User | undefined>;
   updateUserRole(userId: number, role: string): Promise<User | undefined>;
+  updateUserStatus(userId: number, status: string): Promise<User | undefined>;
   incrementUserAnalysisCount(userId: number): Promise<User | undefined>;
   
   // Analysis methods
@@ -122,6 +123,15 @@ export class DatabaseStorage implements IStorage {
     const [updatedUser] = await db
       .update(users)
       .set({ role })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser || undefined;
+  }
+
+  async updateUserStatus(userId: number, status: string): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ status })
       .where(eq(users.id, userId))
       .returning();
     return updatedUser || undefined;
