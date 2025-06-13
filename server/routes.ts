@@ -371,6 +371,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'User not found' });
       }
 
+      // Invalidate cache when user data changes
+      invalidateCache('admin:users');
+      
       const { password, ...safeUser } = updatedUser;
       return res.status(200).json(safeUser);
     } catch (error) {
@@ -394,6 +397,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'User not found' });
       }
 
+      // Invalidate cache when user data changes
+      invalidateCache('admin:users');
+      
       const { password, ...safeUser } = updatedUser;
       return res.status(200).json(safeUser);
     } catch (error) {
@@ -417,6 +423,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'User not found' });
       }
 
+      // Invalidate cache when user data changes
+      invalidateCache('admin:users');
+      
       const { password, ...safeUser } = updatedUser;
       return res.status(200).json(safeUser);
     } catch (error) {
@@ -428,7 +437,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all analyses with user info (admin only)
   app.get('/api/admin/analyses', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
+      const cacheKey = 'admin:analyses';
+      const cached = getCachedData(cacheKey);
+      
+      if (cached) {
+        return res.status(200).json(cached);
+      }
+      
       const analyses = await storage.getAllAnalysesWithUsers();
+      setCacheData(cacheKey, analyses, 2); // Cache for 2 minutes
       return res.status(200).json(analyses);
     } catch (error) {
       console.error('Error fetching analyses:', error);
@@ -439,7 +456,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all appointments with user info (admin only)
   app.get('/api/admin/appointments', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
+      const cacheKey = 'admin:appointments';
+      const cached = getCachedData(cacheKey);
+      
+      if (cached) {
+        return res.status(200).json(cached);
+      }
+      
       const appointments = await storage.getAllAppointmentsWithUsers();
+      setCacheData(cacheKey, appointments, 2); // Cache for 2 minutes
       return res.status(200).json(appointments);
     } catch (error) {
       console.error('Error fetching appointments:', error);
@@ -462,6 +487,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Appointment not found' });
       }
 
+      // Invalidate cache when appointment data changes
+      invalidateCache('admin:appointments');
+      
       return res.status(200).json(updatedAppointment);
     } catch (error) {
       console.error('Error updating appointment status:', error);
