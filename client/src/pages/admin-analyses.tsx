@@ -20,9 +20,10 @@ interface Analysis {
   isPublic: boolean;
   user: {
     username: string;
-    fullName: string;
+    firstName: string;
+    lastName: string;
     email: string;
-  };
+  } | null;
 }
 
 export default function AdminAnalyses() {
@@ -36,8 +37,8 @@ export default function AdminAnalyses() {
 
   const filteredAnalyses = analyses.filter(analysis =>
     analysis.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    analysis.user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    analysis.user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+    (analysis.user?.username || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    `${analysis.user?.firstName || ""} ${analysis.user?.lastName || ""}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalAnalyses = analyses.length;
@@ -169,8 +170,12 @@ export default function AdminAnalyses() {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{analysis.user.fullName}</div>
-                        <div className="text-sm text-muted-foreground">@{analysis.user.username}</div>
+                        <div className="font-medium">
+                          {analysis.user ? `${analysis.user.firstName} ${analysis.user.lastName}` : 'Unknown User'}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          @{analysis.user?.username || 'N/A'}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>

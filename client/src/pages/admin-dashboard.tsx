@@ -753,7 +753,8 @@ export default function AdminDashboard() {
                     ...selectedAnalysis,
                     user: {
                       username: selectedUser?.username || 'Unknown',
-                      fullName: selectedUser?.fullName || 'Unknown User',
+                      firstName: selectedUser?.firstName || 'Unknown',
+                      lastName: selectedUser?.lastName || 'User',
                       email: selectedUser?.email || 'Unknown'
                     }
                   }} 

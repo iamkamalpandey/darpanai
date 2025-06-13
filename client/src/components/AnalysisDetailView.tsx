@@ -14,9 +14,10 @@ interface AnalysisDetailProps {
     isPublic: boolean;
     user?: {
       username: string;
-      fullName: string;
+      firstName: string;
+      lastName: string;
       email: string;
-    };
+    } | null;
   };
   showUserInfo?: boolean;
 }
@@ -84,7 +85,7 @@ export function AnalysisDetailView({ analysis, showUserInfo = false }: AnalysisD
             <div className="flex items-center gap-2 mt-4 p-3 bg-muted rounded-lg">
               <User className="h-4 w-4 text-muted-foreground" />
               <div className="text-sm">
-                <span className="font-medium">{analysis.user.fullName}</span>
+                <span className="font-medium">{`${analysis.user.firstName} ${analysis.user.lastName}`}</span>
                 <span className="text-muted-foreground"> (@{analysis.user.username})</span>
                 <span className="text-muted-foreground"> • {analysis.user.email}</span>
               </div>
