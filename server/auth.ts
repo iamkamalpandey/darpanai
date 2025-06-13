@@ -11,8 +11,18 @@ import { pool } from "./db";
 // Extend Express.User interface without recursion
 declare global {
   namespace Express {
-    interface User extends Omit<User, 'password'> {
+    interface User {
       id: number;
+      username: string;
+      email: string;
+      fullName: string;
+      qualification: string;
+      graduationYear: string;
+      phoneNumber: string;
+      role: string;
+      analysisCount: number;
+      maxAnalyses: number;
+      createdAt: Date;
     }
   }
 }

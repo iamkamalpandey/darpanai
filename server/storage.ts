@@ -116,6 +116,15 @@ export class DatabaseStorage implements IStorage {
     return updatedUser || undefined;
   }
 
+  async updateUserRole(userId: number, role: string): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ role })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser || undefined;
+  }
+
   async incrementUserAnalysisCount(userId: number): Promise<User | undefined> {
     const currentUser = await this.getUser(userId);
     if (!currentUser) return undefined;
