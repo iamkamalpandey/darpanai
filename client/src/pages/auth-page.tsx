@@ -84,7 +84,7 @@ export default function AuthPage() {
 
   const onRegisterSubmit = (values: RegisterFormData) => {
     const { confirmPassword, ...registerData } = values;
-    registerMutation.mutate(registerData, {
+    registerMutation.mutate({ ...registerData, confirmPassword }, {
       onSuccess: () => {
         setLocation("/");
       },
