@@ -8,6 +8,43 @@ import { analyzeRejectionLetter } from "./openai";
 import { analysisResponseSchema } from "@shared/schema";
 import { setupAuth } from "./auth";
 
+// Simple in-memory cache for performance optimization
+const cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+
+function getCachedData(key: string) {
+  const item = cache.get(key);
+  if (!item) return null;
+  
+  if (Date.now() - item.timestamp > item.ttl) {
+    cache.delete(key);
+    return null;
+  }
+  
+  return item.data;
+}
+
+function setCacheData(key: string, data: any, ttlMinutes = 2) {
+  cache.set(key, {
+    data,
+    timestamp: Date.now(),
+    ttl: ttlMinutes * 60 * 1000
+  });
+}
+
+function invalidateCache(pattern?: string) {
+  if (!pattern) {
+    cache.clear();
+    return;
+  }
+  
+  const keys = Array.from(cache.keys());
+  for (const key of keys) {
+    if (key.includes(pattern)) {
+      cache.delete(key);
+    }
+  }
+}
+
 // Extended Request type to include file upload
 interface FileRequest extends Request {
   file?: Express.Multer.File;
@@ -297,12 +334,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all users (admin only)
   app.get('/api/admin/users', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
+      const cacheKey = 'admin:users';
+      const cached = getCachedData(cacheKey);
+      
+      if (cached) {
+        return res.status(200).json(cached);
+      }
+      
       const users = await storage.getAllUsers();
       // Remove password from response for security
       const safeUsers = users.map(user => {
         const { password, ...safeUser } = user;
         return safeUser;
       });
+      
+      setCacheData(cacheKey, safeUsers, 3); // Cache for 3 minutes
       return res.status(200).json(safeUsers);
     } catch (error) {
       console.error('Error fetching users:', error);

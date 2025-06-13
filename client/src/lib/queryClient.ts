@@ -45,8 +45,9 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
-      refetchOnWindowFocus: true,
-      staleTime: 30000, // 30 seconds
+      refetchOnWindowFocus: false, // Prevent unnecessary refetches
+      staleTime: 5 * 60 * 1000, // 5 minutes for better caching
+      gcTime: 10 * 60 * 1000, // 10 minutes cache retention (TanStack Query v5)
       retry: 1,
     },
     mutations: {
