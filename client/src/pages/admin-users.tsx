@@ -9,9 +9,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Shield, Users, Plus, Settings, Search } from "lucide-react";
+import { Shield, Users, Plus, Settings, Search, Eye } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { StudentDetailView } from "@/components/StudentDetailView";
 
 interface User {
   id: number;
@@ -39,6 +40,7 @@ export default function AdminUsers() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isGrantDialogOpen, setIsGrantDialogOpen] = useState(false);
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
+  const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
   const [grantAmount, setGrantAmount] = useState("5");
   const [newRole, setNewRole] = useState("");
   const { toast } = useToast();
@@ -256,6 +258,19 @@ export default function AdminUsers() {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setIsDetailViewOpen(true);
+                          }}
+                          className="flex items-center gap-1"
+                        >
+                          <Eye className="h-3 w-3" />
+                          View Details
+                        </Button>
+                        
                         <Dialog open={isGrantDialogOpen && selectedUser?.id === user.id} onOpenChange={setIsGrantDialogOpen}>
                           <DialogTrigger asChild>
                             <Button
@@ -327,7 +342,7 @@ export default function AdminUsers() {
                             </DialogHeader>
                             <div className="space-y-4">
                               <div>
-                                <Label>User: {selectedUser?.fullName}</Label>
+                                <Label>User: {selectedUser?.firstName} {selectedUser?.lastName}</Label>
                                 <p className="text-sm text-muted-foreground">
                                   Current Role: {selectedUser?.role}
                                 </p>
@@ -373,6 +388,16 @@ export default function AdminUsers() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Student Detail View Modal */}
+      <StudentDetailView
+        user={selectedUser}
+        isOpen={isDetailViewOpen}
+        onClose={() => {
+          setIsDetailViewOpen(false);
+          setSelectedUser(null);
+        }}
+      />
     </AdminLayout>
   );
 }
