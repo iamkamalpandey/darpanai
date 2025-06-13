@@ -82,7 +82,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   <Shield className="h-5 w-5" />
                 </div>
                 <div className="flex flex-1 flex-col overflow-hidden">
-                  <span className="text-sm font-medium text-foreground truncate">{user.fullName}</span>
+                  <span className="text-sm font-medium text-foreground truncate">{user.firstName ? `${user.firstName} ${user.lastName}` : user.username}</span>
                   <span className="text-xs text-muted-foreground truncate">Administrator</span>
                 </div>
               </div>

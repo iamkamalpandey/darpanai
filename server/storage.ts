@@ -206,7 +206,8 @@ export class DatabaseStorage implements IStorage {
         isPublic: analyses.isPublic,
         user: {
           username: users.username,
-          fullName: users.fullName,
+          firstName: users.firstName,
+          lastName: users.lastName,
           email: users.email,
         }
       })
@@ -258,7 +259,8 @@ export class DatabaseStorage implements IStorage {
         createdAt: appointments.createdAt,
         user: {
           username: users.username,
-          fullName: users.fullName,
+          firstName: users.firstName,
+          lastName: users.lastName,
           email: users.email,
           analysisCount: users.analysisCount,
           maxAnalyses: users.maxAnalyses,
