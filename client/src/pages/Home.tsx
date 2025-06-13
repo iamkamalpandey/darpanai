@@ -21,7 +21,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-2xl font-bold tracking-tight">
-                Welcome, {user?.fullName || "User"}!
+                Welcome, {user?.firstName ? `${user.firstName} ${user.lastName}` : "User"}!
               </h1>
               <p className="text-muted-foreground mt-1">
                 Upload your visa rejection letter and get personalized recommendations

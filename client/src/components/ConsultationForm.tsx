@@ -82,7 +82,7 @@ export function ConsultationForm({
   
   // If we have a logged-in user, pre-fill their information
   const defaultValues: Partial<FormValues> = {
-    name: user?.fullName || "",
+    name: user?.firstName ? `${user.firstName} ${user.lastName}` : "",
     email: user?.email || "",
     phoneNumber: user?.phoneNumber || "",
     preferredContact: undefined,
