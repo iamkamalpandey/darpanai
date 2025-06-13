@@ -12,6 +12,9 @@ export const users = pgTable("users", {
   qualification: text("qualification"),
   graduationYear: text("graduation_year"),
   phoneNumber: text("phone_number"),
+  role: text("role").default("user").notNull(),
+  analysisCount: integer("analysis_count").default(0).notNull(),
+  maxAnalyses: integer("max_analyses").default(3).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

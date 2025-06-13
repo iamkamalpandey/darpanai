@@ -33,6 +33,11 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   authenticateUser(credentials: LoginUser): Promise<User | null>;
   
+  // Admin methods
+  getAllUsers(): Promise<User[]>;
+  updateUserMaxAnalyses(userId: number, maxAnalyses: number): Promise<User | undefined>;
+  incrementUserAnalysisCount(userId: number): Promise<User | undefined>;
+  
   // Analysis methods
   saveAnalysis(analysis: InsertAnalysis, userId?: number): Promise<Analysis>;
   getAnalysis(id: number): Promise<Analysis | undefined>;
@@ -86,6 +91,29 @@ export class DatabaseStorage implements IStorage {
     
     const passwordValid = await comparePasswords(credentials.password, user.password);
     return passwordValid ? user : null;
+  }
+
+  // Admin methods
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(users.createdAt);
+  }
+
+  async updateUserMaxAnalyses(userId: number, maxAnalyses: number): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ maxAnalyses })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser || undefined;
+  }
+
+  async incrementUserAnalysisCount(userId: number): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ analysisCount: sql`${users.analysisCount} + 1` })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser || undefined;
   }
   
   // Analysis methods
