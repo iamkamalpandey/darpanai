@@ -468,18 +468,31 @@ export default function AdminDashboard() {
                 Detailed visa rejection analysis results
               </DialogDescription>
             </DialogHeader>
-            {selectedAnalysis && (
-              <AnalysisDetailView 
-                analysis={{
-                  ...selectedAnalysis,
-                  user: {
-                    username: selectedUser?.username || 'Unknown',
-                    fullName: selectedUser?.fullName || 'Unknown User',
-                    email: selectedUser?.email || 'Unknown'
-                  }
-                }} 
-                showUserInfo={true} 
-              />
+            {selectedAnalysis && selectedAnalysis.analysisResults && (
+              <div className="space-y-4">
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <h4 className="font-medium mb-2">Analysis for: {selectedAnalysis.fileName}</h4>
+                  <p className="text-sm text-muted-foreground">
+                    User: {selectedUser?.fullName || 'Unknown User'} (@{selectedUser?.username || 'Unknown'})
+                  </p>
+                </div>
+                <AnalysisDetailView 
+                  analysis={{
+                    ...selectedAnalysis,
+                    user: {
+                      username: selectedUser?.username || 'Unknown',
+                      fullName: selectedUser?.fullName || 'Unknown User',
+                      email: selectedUser?.email || 'Unknown'
+                    }
+                  }} 
+                  showUserInfo={false} 
+                />
+              </div>
+            )}
+            {selectedAnalysis && !selectedAnalysis.analysisResults && (
+              <div className="p-8 text-center">
+                <p className="text-muted-foreground">No detailed analysis results available for this file.</p>
+              </div>
             )}
           </DialogContent>
         </Dialog>

@@ -123,9 +123,9 @@ export function AnalysisDetailView({ analysis, showUserInfo = false }: AnalysisD
                       {reason.severity.toUpperCase()}
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <div className="text-sm text-muted-foreground leading-relaxed">
                     {reason.description}
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -146,9 +146,9 @@ export function AnalysisDetailView({ analysis, showUserInfo = false }: AnalysisD
             <div key={index} className="border rounded-lg p-4 bg-green-50/50">
               <div className="space-y-2">
                 <h4 className="font-medium text-green-900">{recommendation.title}</h4>
-                <p className="text-sm text-green-700 leading-relaxed">
+                <div className="text-sm text-green-700 leading-relaxed">
                   {recommendation.description}
-                </p>
+                </div>
               </div>
             </div>
           ))}
@@ -172,9 +172,9 @@ export function AnalysisDetailView({ analysis, showUserInfo = false }: AnalysisD
                 </div>
                 <div className="space-y-2">
                   <h4 className="font-medium text-blue-900">{step.title}</h4>
-                  <p className="text-sm text-blue-700 leading-relaxed">
+                  <div className="text-sm text-blue-700 leading-relaxed">
                     {step.description}
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>
