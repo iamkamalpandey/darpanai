@@ -17,8 +17,18 @@ interface User {
   id: number;
   username: string;
   email: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  studyDestination: string;
+  studyLevel: string;
+  startDate: string;
+  city: string;
+  country: string;
+  counsellingMode: string;
+  fundingSource: string;
   role: string;
+  status: string;
   analysisCount: number;
   maxAnalyses: number;
   createdAt: string;
@@ -90,7 +100,9 @@ export default function AdminUsers() {
   const filteredUsers = users.filter(user =>
     user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+    `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.studyDestination.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.country.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleGrantQuota = () => {
@@ -219,9 +231,12 @@ export default function AdminUsers() {
                   <TableRow key={user.id}>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{user.fullName}</div>
+                        <div className="font-medium">{user.firstName} {user.lastName}</div>
                         <div className="text-sm text-muted-foreground">
                           @{user.username} • {user.email}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {user.studyDestination} • {user.studyLevel}
                         </div>
                       </div>
                     </TableCell>
@@ -257,7 +272,7 @@ export default function AdminUsers() {
                             </DialogHeader>
                             <div className="space-y-4">
                               <div>
-                                <Label>User: {selectedUser?.fullName}</Label>
+                                <Label>User: {selectedUser?.firstName} {selectedUser?.lastName}</Label>
                                 <p className="text-sm text-muted-foreground">
                                   Current: {selectedUser?.analysisCount}/{selectedUser?.maxAnalyses}
                                 </p>
