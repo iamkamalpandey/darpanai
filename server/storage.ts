@@ -169,6 +169,32 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(analyses).orderBy(desc(analyses.id));
   }
   
+  async getAllAnalysesWithUsers(): Promise<any[]> {
+    const result = await db
+      .select({
+        id: analyses.id,
+        userId: analyses.userId,
+        fileName: analyses.filename,
+        analysisResults: {
+          summary: analyses.summary,
+          rejectionReasons: analyses.rejectionReasons,
+          recommendations: analyses.recommendations,
+          nextSteps: analyses.nextSteps,
+        },
+        createdAt: analyses.createdAt,
+        isPublic: analyses.isPublic,
+        user: {
+          username: users.username,
+          fullName: users.fullName,
+          email: users.email,
+        }
+      })
+      .from(analyses)
+      .leftJoin(users, eq(analyses.userId, users.id))
+      .orderBy(desc(analyses.createdAt));
+    return result;
+  }
+
   async getPublicAnalyses(): Promise<Analysis[]> {
     return await db
       .select()
@@ -195,6 +221,32 @@ export class DatabaseStorage implements IStorage {
       .from(appointments)
       .where(eq(appointments.userId, userId))
       .orderBy(desc(appointments.createdAt));
+  }
+
+  async getAllAppointmentsWithUsers(): Promise<any[]> {
+    const result = await db
+      .select({
+        id: appointments.id,
+        userId: appointments.userId,
+        fullName: appointments.name,
+        email: appointments.email,
+        phoneNumber: appointments.phoneNumber,
+        preferredDate: appointments.requestedDate,
+        message: appointments.message,
+        status: appointments.status,
+        createdAt: appointments.createdAt,
+        user: {
+          username: users.username,
+          fullName: users.fullName,
+          email: users.email,
+          analysisCount: users.analysisCount,
+          maxAnalyses: users.maxAnalyses,
+        }
+      })
+      .from(appointments)
+      .leftJoin(users, eq(appointments.userId, users.id))
+      .orderBy(desc(appointments.createdAt));
+    return result;
   }
   
   async updateAppointmentStatus(id: number, status: string): Promise<Appointment | undefined> {

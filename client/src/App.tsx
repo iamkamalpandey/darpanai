@@ -13,6 +13,9 @@ import AnalysisHistory from "@/pages/AnalysisHistory";
 import AuthPage from "@/pages/auth-page";
 import ConsultationsPage from "@/pages/consultations";
 import AdminDashboard from "@/pages/admin-dashboard";
+import AdminAnalyses from "@/pages/admin-analyses";
+import AdminAppointments from "@/pages/admin-appointments";
+import AdminUsers from "@/pages/admin-users";
 
 function Router() {
   return (
@@ -28,6 +31,9 @@ function Router() {
       
       {/* Admin Routes - Only accessible by admin users */}
       <AdminProtectedRoute path="/admin" component={AdminDashboard} />
+      <AdminProtectedRoute path="/admin/users" component={AdminUsers} />
+      <AdminProtectedRoute path="/admin/analyses" component={AdminAnalyses} />
+      <AdminProtectedRoute path="/admin/appointments" component={AdminAppointments} />
       
       {/* 404 Route */}
       <Route component={NotFound} />
