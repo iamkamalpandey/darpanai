@@ -188,21 +188,28 @@ export default function AdminAnalyses() {
             <h1 className="text-3xl font-bold tracking-tight">Analysis Reports</h1>
             <p className="text-gray-600">Monitor and manage all visa rejection analysis reports</p>
           </div>
-          <Button onClick={exportAnalyses} variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export Reports
-          </Button>
+          <div className="flex space-x-2">
+            <Button onClick={exportAnalysesCSV} variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+            <Button onClick={exportAnalyses} variant="secondary">
+              <Download className="h-4 w-4 mr-2" />
+              Export All
+            </Button>
+          </div>
         </div>
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
+              <CardTitle className="text-sm font-medium">Filtered Reports</CardTitle>
               <FileText className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{analyses.length}</div>
+              <div className="text-2xl font-bold">{filteredAnalyses.length}</div>
+              <p className="text-xs text-gray-600 mt-1">of {analyses.length} total</p>
             </CardContent>
           </Card>
           <Card>
@@ -212,7 +219,7 @@ export default function AdminAnalyses() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {analyses.filter(a => a.isPublic).length}
+                {filteredAnalyses.filter(a => a.isPublic).length}
               </div>
             </CardContent>
           </Card>
@@ -223,7 +230,7 @@ export default function AdminAnalyses() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {analyses.filter(a => !a.isPublic).length}
+                {filteredAnalyses.filter(a => !a.isPublic).length}
               </div>
             </CardContent>
           </Card>
@@ -234,7 +241,7 @@ export default function AdminAnalyses() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {analyses.filter(a => {
+                {filteredAnalyses.filter(a => {
                   const analysisDate = new Date(a.createdAt);
                   const now = new Date();
                   return analysisDate.getMonth() === now.getMonth() && 
@@ -248,11 +255,14 @@ export default function AdminAnalyses() {
         {/* Filters */}
         <Card>
           <CardHeader>
-            <CardTitle>Filters</CardTitle>
+            <CardTitle className="flex items-center">
+              <Filter className="h-4 w-4 mr-2" />
+              Filters & Search
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
                 <Label htmlFor="search" className="text-sm font-medium">Search</Label>
                 <Input
                   id="search"
@@ -262,7 +272,7 @@ export default function AdminAnalyses() {
                   className="mt-1"
                 />
               </div>
-              <div className="w-full sm:w-48">
+              <div>
                 <Label htmlFor="status" className="text-sm font-medium">Visibility</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="mt-1">
@@ -272,6 +282,21 @@ export default function AdminAnalyses() {
                     <SelectItem value="all">All Reports</SelectItem>
                     <SelectItem value="public">Public Only</SelectItem>
                     <SelectItem value="private">Private Only</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="date" className="text-sm font-medium">Analysis Date</Label>
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Time</SelectItem>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="week">This Week</SelectItem>
+                    <SelectItem value="month">This Month</SelectItem>
+                    <SelectItem value="year">This Year</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

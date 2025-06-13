@@ -14,8 +14,8 @@ import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Calendar, Clock, User, Mail, Phone, MapPin, Edit, Download, CheckCircle, XCircle, AlertCircle, Eye } from "lucide-react";
-import { format } from "date-fns";
+import { Calendar, Clock, User, Mail, Phone, MapPin, Edit, Download, CheckCircle, XCircle, AlertCircle, Eye, Filter } from "lucide-react";
+import { format, isAfter, parseISO, subDays, subMonths, subYears } from "date-fns";
 
 interface AppointmentData {
   id: number;
@@ -45,6 +45,7 @@ export default function AdminAppointments() {
   const [appointmentDetailsOpen, setAppointmentDetailsOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [dateFilter, setDateFilter] = useState<string>("all");
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
 
@@ -70,7 +71,83 @@ export default function AdminAppointments() {
     },
   });
 
-  // Export appointments data
+  // Filter appointments based on all criteria
+  const filteredAppointments = appointments.filter(appointment => {
+    const matchesStatus = statusFilter === "all" || appointment.status === statusFilter;
+    
+    const matchesSearch = searchTerm === "" ||
+      appointment.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      appointment.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      appointment.consultationType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      appointment.user?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      appointment.user?.lastName?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Date filter
+    const appointmentDate = parseISO(appointment.createdAt);
+    const now = new Date();
+    let matchesDate = true;
+
+    switch (dateFilter) {
+      case "today":
+        matchesDate = format(appointmentDate, "yyyy-MM-dd") === format(now, "yyyy-MM-dd");
+        break;
+      case "week":
+        matchesDate = isAfter(appointmentDate, subDays(now, 7));
+        break;
+      case "month":
+        matchesDate = isAfter(appointmentDate, subMonths(now, 1));
+        break;
+      case "year":
+        matchesDate = isAfter(appointmentDate, subYears(now, 1));
+        break;
+      case "all":
+      default:
+        matchesDate = true;
+    }
+
+    return matchesStatus && matchesSearch && matchesDate;
+  });
+
+  // CSV export functionality
+  const exportAppointmentsCSV = () => {
+    const csvData = filteredAppointments.map(appointment => ({
+      ID: appointment.id,
+      'Client Name': appointment.fullName,
+      Email: appointment.email,
+      'Phone Number': appointment.phoneNumber,
+      'Preferred Date': format(new Date(appointment.preferredDate), "yyyy-MM-dd"),
+      'Preferred Time': appointment.preferredTime,
+      'Consultation Type': appointment.consultationType,
+      Message: appointment.message || 'N/A',
+      Status: appointment.status,
+      'User ID': appointment.userId,
+      'Username': appointment.user?.username || 'N/A',
+      'User Name': appointment.user ? `${appointment.user.firstName} ${appointment.user.lastName}` : 'N/A',
+      'User Email': appointment.user?.email || 'N/A',
+      'User Location': appointment.user ? `${appointment.user.city}, ${appointment.user.country}` : 'N/A',
+      'Booked At': format(new Date(appointment.createdAt), "yyyy-MM-dd HH:mm:ss")
+    }));
+
+    const csvHeaders = Object.keys(csvData[0] || {});
+    const csvContent = [
+      csvHeaders.join(','),
+      ...csvData.map(row => csvHeaders.map(header => `"${row[header as keyof typeof row]}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `appointments-export-${format(new Date(), "yyyy-MM-dd")}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({ title: "Success", description: `Exported ${csvData.length} appointments to CSV` });
+  };
+
+  // Export appointments data (legacy endpoint)
   const exportAppointments = () => {
     window.open("/api/admin/export/appointments", "_blank");
   };
@@ -97,20 +174,6 @@ export default function AdminAppointments() {
     setEditingField(null);
     setEditValue("");
   };
-
-  // Filter appointments based on status and search term
-  const filteredAppointments = appointments.filter(appointment => {
-    const matchesStatus = statusFilter === "all" || appointment.status === statusFilter;
-    
-    const matchesSearch = searchTerm === "" ||
-      appointment.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.consultationType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.user?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.user?.lastName?.toLowerCase().includes(searchTerm.toLowerCase());
-
-    return matchesStatus && matchesSearch;
-  });
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
@@ -154,10 +217,16 @@ export default function AdminAppointments() {
             <h1 className="text-3xl font-bold tracking-tight">Appointment Management</h1>
             <p className="text-gray-600">Manage consultation bookings and user appointments</p>
           </div>
-          <Button onClick={exportAppointments} variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export Appointments
-          </Button>
+          <div className="flex space-x-2">
+            <Button onClick={exportAppointmentsCSV} variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+            <Button onClick={exportAppointments} variant="secondary">
+              <Download className="h-4 w-4 mr-2" />
+              Export All
+            </Button>
+          </div>
         </div>
 
         {/* Statistics Cards */}
@@ -213,11 +282,14 @@ export default function AdminAppointments() {
         {/* Filters */}
         <Card>
           <CardHeader>
-            <CardTitle>Filters</CardTitle>
+            <CardTitle className="flex items-center">
+              <Filter className="h-4 w-4 mr-2" />
+              Filters & Search
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
                 <Label htmlFor="search" className="text-sm font-medium">Search</Label>
                 <Input
                   id="search"
@@ -227,7 +299,7 @@ export default function AdminAppointments() {
                   className="mt-1"
                 />
               </div>
-              <div className="w-full sm:w-48">
+              <div>
                 <Label htmlFor="status" className="text-sm font-medium">Status</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="mt-1">
@@ -239,6 +311,21 @@ export default function AdminAppointments() {
                     <SelectItem value="confirmed">Confirmed</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
                     <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="date" className="text-sm font-medium">Booking Date</Label>
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Time</SelectItem>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="week">This Week</SelectItem>
+                    <SelectItem value="month">This Month</SelectItem>
+                    <SelectItem value="year">This Year</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
