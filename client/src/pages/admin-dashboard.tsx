@@ -134,6 +134,30 @@ export default function AdminDashboard() {
     },
   });
 
+  // Update user status mutation
+  const updateUserStatusMutation = useMutation({
+    mutationFn: async ({ userId, status }: { userId: number; status: string }) => {
+      const res = await apiRequest("PATCH", `/api/admin/users/${userId}/status`, {
+        status,
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "User status updated successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update user status",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Export users data mutation
   const exportUsersMutation = useMutation({
     mutationFn: async () => {
@@ -193,12 +217,14 @@ export default function AdminDashboard() {
       // Role filter
       const matchesRole = roleFilter === "all" || user.role === roleFilter;
 
-      // Status filter (based on analysis usage)
+      // Status filter (based on user status and analysis usage)
       const analysisCount = user.analysisCount || 0;
       const maxAnalyses = user.maxAnalyses || 0;
+      const userStatus = user.status || 'active';
       const matchesStatus = statusFilter === "all" || 
-        (statusFilter === "active" && analysisCount > 0) ||
-        (statusFilter === "inactive" && analysisCount === 0) ||
+        (statusFilter === "active" && userStatus === 'active') ||
+        (statusFilter === "inactive" && userStatus === 'inactive') ||
+        (statusFilter === "suspended" && userStatus === 'suspended') ||
         (statusFilter === "limit_reached" && analysisCount >= maxAnalyses);
 
       // Date filter
@@ -419,6 +445,7 @@ export default function AdminDashboard() {
                         <SelectItem value="all">All Users</SelectItem>
                         <SelectItem value="active">Active</SelectItem>
                         <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="suspended">Suspended</SelectItem>
                         <SelectItem value="limit_reached">Limit Reached</SelectItem>
                       </SelectContent>
                     </Select>
@@ -467,6 +494,7 @@ export default function AdminDashboard() {
                   <TableHead>User</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Analyses Used</TableHead>
                   <TableHead>Limit</TableHead>
                   <TableHead>Joined</TableHead>
@@ -487,6 +515,21 @@ export default function AdminDashboard() {
                       <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
                         {user.role}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={user.status || 'active'}
+                        onValueChange={(status) => updateUserStatusMutation.mutate({ userId: user.id, status })}
+                      >
+                        <SelectTrigger className="w-24">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                          <SelectItem value="suspended">Suspended</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell>
                       <span className={user.analysisCount >= user.maxAnalyses ? 'text-red-600 font-medium' : ''}>
