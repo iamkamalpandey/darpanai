@@ -745,7 +745,7 @@ export default function AdminDashboard() {
                 <div className="p-4 bg-muted/50 rounded-lg">
                   <h4 className="font-medium mb-2">Analysis for: {selectedAnalysis.fileName}</h4>
                   <p className="text-sm text-muted-foreground">
-                    User: {selectedUser?.fullName || 'Unknown User'} (@{selectedUser?.username || 'Unknown'})
+                    User: {selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : 'Unknown User'} (@{selectedUser?.username || 'Unknown'})
                   </p>
                 </div>
                 <AnalysisDetailView 

@@ -25,11 +25,12 @@ interface Appointment {
   createdAt: string;
   user: {
     username: string;
-    fullName: string;
+    firstName: string;
+    lastName: string;
     email: string;
     analysisCount: number;
     maxAnalyses: number;
-  };
+  } | null;
 }
 
 export default function AdminAppointments() {
@@ -70,7 +71,7 @@ export default function AdminAppointments() {
     const matchesSearch = 
       appointment.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       appointment.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.user.username.toLowerCase().includes(searchTerm.toLowerCase());
+      (appointment.user?.username || "").toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || appointment.status === statusFilter;
     
@@ -226,7 +227,7 @@ export default function AdminAppointments() {
                       <div>
                         <div className="font-medium">{appointment.fullName}</div>
                         <div className="text-sm text-muted-foreground">
-                          @{appointment.user.username} • {appointment.user.analysisCount}/{appointment.user.maxAnalyses} analyses
+                          @{appointment.user?.username || 'N/A'} • {appointment.user?.analysisCount || 0}/{appointment.user?.maxAnalyses || 0} analyses
                         </div>
                       </div>
                     </TableCell>
@@ -309,7 +310,7 @@ export default function AdminAppointments() {
                       <p><strong>Name:</strong> {selectedAppointment.fullName}</p>
                       <p><strong>Email:</strong> {selectedAppointment.email}</p>
                       <p><strong>Phone:</strong> {selectedAppointment.phoneNumber}</p>
-                      <p><strong>Username:</strong> @{selectedAppointment.user.username}</p>
+                      <p><strong>Username:</strong> @{selectedAppointment.user?.username || 'N/A'}</p>
                     </div>
                   </div>
                   <div>
@@ -318,7 +319,7 @@ export default function AdminAppointments() {
                       <p><strong>Preferred Date:</strong> {format(new Date(selectedAppointment.preferredDate), 'PPP')}</p>
                       <p><strong>Status:</strong> {getStatusBadge(selectedAppointment.status)}</p>
                       <p><strong>Booked:</strong> {format(new Date(selectedAppointment.createdAt), 'PPpp')}</p>
-                      <p><strong>User Analyses:</strong> {selectedAppointment.user.analysisCount}/{selectedAppointment.user.maxAnalyses}</p>
+                      <p><strong>User Analyses:</strong> {selectedAppointment.user?.analysisCount || 0}/{selectedAppointment.user?.maxAnalyses || 0}</p>
                     </div>
                   </div>
                 </div>
