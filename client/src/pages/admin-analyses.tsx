@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, Search, Eye, Download, TrendingUp, Clock, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
+import { AnalysisDetailView } from "@/components/AnalysisDetailView";
 
 interface Analysis {
   id: number;
@@ -203,42 +204,12 @@ export default function AdminAnalyses() {
 
         {/* Analysis Details Dialog */}
         <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Analysis Details</DialogTitle>
             </DialogHeader>
             {selectedAnalysis && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="font-semibold mb-2">File Information</h3>
-                    <p><strong>Filename:</strong> {selectedAnalysis.fileName}</p>
-                    <p><strong>Analyzed:</strong> {format(new Date(selectedAnalysis.createdAt), 'PPpp')}</p>
-                    <p><strong>Status:</strong> 
-                      <Badge className="ml-2" variant={selectedAnalysis.analysisResults ? 'default' : 'destructive'}>
-                        {selectedAnalysis.analysisResults ? 'Completed' : 'Failed'}
-                      </Badge>
-                    </p>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-2">User Information</h3>
-                    <p><strong>Name:</strong> {selectedAnalysis.user.fullName}</p>
-                    <p><strong>Username:</strong> @{selectedAnalysis.user.username}</p>
-                    <p><strong>Email:</strong> {selectedAnalysis.user.email}</p>
-                  </div>
-                </div>
-                
-                {selectedAnalysis.analysisResults && (
-                  <div>
-                    <h3 className="font-semibold mb-4">Analysis Results</h3>
-                    <div className="bg-muted rounded-lg p-4">
-                      <pre className="whitespace-pre-wrap text-sm">
-                        {JSON.stringify(selectedAnalysis.analysisResults, null, 2)}
-                      </pre>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <AnalysisDetailView analysis={selectedAnalysis} showUserInfo={true} />
             )}
           </DialogContent>
         </Dialog>

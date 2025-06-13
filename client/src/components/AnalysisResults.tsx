@@ -1,7 +1,8 @@
 import { AnalysisResponse } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Lightbulb } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Download, RotateCcw } from "lucide-react";
+import { AnalysisDetailView } from "./AnalysisDetailView";
 
 interface AnalysisResultsProps {
   results: AnalysisResponse;
@@ -9,7 +10,15 @@ interface AnalysisResultsProps {
 }
 
 export default function AnalysisResults({ results, onStartOver }: AnalysisResultsProps) {
-  const { summary, rejectionReasons, recommendations, nextSteps } = results;
+  // Convert results to the format expected by AnalysisDetailView
+  const analysisData = {
+    id: 0,
+    userId: 0,
+    fileName: "Your Analysis Results",
+    analysisResults: results,
+    createdAt: new Date().toISOString(),
+    isPublic: false,
+  };
 
   const handleDownloadReport = () => {
     // Format the analysis results as text
@@ -17,16 +26,16 @@ export default function AnalysisResults({ results, onStartOver }: AnalysisResult
 VISA REJECTION ANALYSIS REPORT
 
 SUMMARY:
-${summary}
+${results.summary}
 
 REJECTION REASONS:
-${rejectionReasons.map((reason, index) => `${index + 1}. ${reason.title}\n   ${reason.description}`).join('\n\n')}
+${results.rejectionReasons.map((reason, index) => `${index + 1}. ${reason.title}\n   ${reason.description}`).join('\n\n')}
 
 RECOMMENDATIONS:
-${recommendations.map((rec, index) => `${index + 1}. ${rec.title}\n   ${rec.description}`).join('\n\n')}
+${results.recommendations.map((rec, index) => `${index + 1}. ${rec.title}\n   ${rec.description}`).join('\n\n')}
 
 NEXT STEPS:
-${nextSteps.map((step, index) => `${index + 1}. ${step.title}\n   ${step.description}`).join('\n\n')}
+${results.nextSteps.map((step, index) => `${index + 1}. ${step.title}\n   ${step.description}`).join('\n\n')}
 `;
 
     // Create a Blob with the text content
@@ -42,23 +51,38 @@ ${nextSteps.map((step, index) => `${index + 1}. ${step.title}\n   ${step.descrip
   };
 
   return (
-    <div>
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden mb-8">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white">Analysis Results</h2>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleDownloadReport}
-              className="inline-flex items-center"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-              Download Report
-            </Button>
+    <div className="space-y-6">
+      {/* Action Buttons */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Analysis Complete</CardTitle>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleDownloadReport}
+                className="inline-flex items-center"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download Report
+              </Button>
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={onStartOver}
+                className="inline-flex items-center"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Analyze Another File
+              </Button>
+            </div>
           </div>
+        </CardHeader>
+      </Card>
+
+      {/* Analysis Results */}
+      <AnalysisDetailView analysis={analysisData} showUserInfo={false} />
           
           {/* Summary Section */}
           <div className="mb-6 bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
