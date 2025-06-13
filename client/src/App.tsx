@@ -16,6 +16,7 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import AdminAnalyses from "@/pages/admin-analyses";
 import AdminAppointments from "@/pages/admin-appointments";
 import AdminUsers from "@/pages/admin-users";
+import AdminSettings from "@/pages/admin-settings";
 
 function Router() {
   return (
@@ -34,6 +35,7 @@ function Router() {
       <AdminProtectedRoute path="/admin/users" component={AdminUsers} />
       <AdminProtectedRoute path="/admin/analyses" component={AdminAnalyses} />
       <AdminProtectedRoute path="/admin/appointments" component={AdminAppointments} />
+      <AdminProtectedRoute path="/admin/settings" component={AdminSettings} />
       
       {/* 404 Route */}
       <Route component={NotFound} />
