@@ -31,10 +31,14 @@ export default function AuthPage() {
   const [, navigate] = useLocation();
   const { user, loginMutation, registerMutation } = useAuth();
 
-  // Redirect if already logged in
+  // Redirect if already logged in based on role
   useEffect(() => {
     if (user) {
-      navigate("/");
+      if (user.role === 'admin') {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     }
   }, [user, navigate]);
 

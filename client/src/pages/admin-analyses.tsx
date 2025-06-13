@@ -152,6 +152,7 @@ export default function AdminAnalyses() {
                   <TableHead>File</TableHead>
                   <TableHead>User</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Analysis Summary</TableHead>
                   <TableHead>Visibility</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Actions</TableHead>
@@ -176,6 +177,33 @@ export default function AdminAnalyses() {
                       <Badge variant={analysis.analysisResults ? 'default' : 'destructive'}>
                         {analysis.analysisResults ? 'Completed' : 'Failed'}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="max-w-md">
+                      {analysis.analysisResults ? (
+                        <div className="space-y-1">
+                          <p className="text-sm text-muted-foreground truncate">
+                            {analysis.analysisResults.summary?.substring(0, 120)}...
+                          </p>
+                          <div className="flex gap-1">
+                            {analysis.analysisResults.rejectionReasons?.slice(0, 3).map((reason: any, idx: number) => (
+                              <Badge 
+                                key={idx} 
+                                variant={reason.severity === 'high' ? 'destructive' : reason.severity === 'medium' ? 'secondary' : 'outline'}
+                                className="text-xs"
+                              >
+                                {reason.severity}
+                              </Badge>
+                            ))}
+                            {analysis.analysisResults.rejectionReasons?.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{analysis.analysisResults.rejectionReasons.length - 3}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">No analysis available</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge variant={analysis.isPublic ? 'secondary' : 'outline'}>

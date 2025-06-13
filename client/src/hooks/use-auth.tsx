@@ -39,14 +39,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: (user) => {
       queryClient.setQueryData(["/api/user"], user);
       toast({
-        title: "Login successful",
-        description: `Welcome back, ${user.username}!`,
+        title: "Authentication Successful",
+        description: `Welcome back, ${user.fullName || user.username}!`,
       });
+      
+      // Redirect based on user role
+      if (user.role === 'admin') {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/';
+      }
     },
     onError: (error: Error) => {
       toast({
-        title: "Login failed",
-        description: error.message,
+        title: "Authentication Failed",
+        description: "Please check your username and password and try again. If you continue to experience issues, contact support.",
         variant: "destructive",
       });
     },
@@ -60,14 +67,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: (user) => {
       queryClient.setQueryData(["/api/user"], user);
       toast({
-        title: "Registration successful",
-        description: `Welcome, ${user.username}!`,
+        title: "Account Created Successfully",
+        description: `Welcome to Visa Analyzer, ${user.fullName || user.username}!`,
       });
+      
+      // Redirect based on user role (new users are typically regular users)
+      if (user.role === 'admin') {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/';
+      }
     },
     onError: (error: Error) => {
       toast({
-        title: "Registration failed",
-        description: error.message,
+        title: "Account Creation Failed",
+        description: "Unable to create your account. Please verify all information is correct and try again. Contact support if the issue persists.",
         variant: "destructive",
       });
     },
