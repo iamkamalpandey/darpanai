@@ -7,6 +7,7 @@ import { AnalysisResponse } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { ConsultationForm } from "@/components/ConsultationForm";
+import { UsageLimitDisplay } from "@/components/UsageLimitDisplay";
 import ProcessSteps from "@/components/ProcessSteps";
 import FileUpload from "@/components/FileUpload";
 import AnalysisResults from "@/components/AnalysisResults";
@@ -165,6 +166,9 @@ export default function VisaAnalyzer() {
             )}
           </div>
         )}
+
+        {/* Usage Limit Display */}
+        <UsageLimitDisplay />
 
         {/* Process Steps */}
         <ProcessSteps currentStep={currentStep} />
