@@ -11,10 +11,14 @@ export function UsageLimitDisplay() {
 
   if (!user) return null;
 
-  const usagePercentage = (user.analysisCount / user.maxAnalyses) * 100;
-  const remainingAnalyses = user.maxAnalyses - user.analysisCount;
+  // Ensure we have valid numbers with fallbacks
+  const analysisCount = user.analysisCount || 0;
+  const maxAnalyses = user.maxAnalyses || 3;
+  
+  const usagePercentage = maxAnalyses > 0 ? (analysisCount / maxAnalyses) * 100 : 0;
+  const remainingAnalyses = maxAnalyses - analysisCount;
   const isNearLimit = usagePercentage >= 80;
-  const isAtLimit = user.analysisCount >= user.maxAnalyses;
+  const isAtLimit = analysisCount >= maxAnalyses;
 
   return (
     <Card className={`mb-6 ${isAtLimit ? 'border-red-200 bg-red-50' : isNearLimit ? 'border-orange-200 bg-orange-50' : ''}`}>
@@ -39,7 +43,7 @@ export function UsageLimitDisplay() {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span>Used: {user.analysisCount} / {user.maxAnalyses}</span>
+            <span>Used: {analysisCount} / {maxAnalyses}</span>
             <span>{remainingAnalyses} remaining</span>
           </div>
           <Progress 
@@ -55,7 +59,7 @@ export function UsageLimitDisplay() {
               <div className="flex-1">
                 <h4 className="font-medium text-red-900 mb-1">Analysis Limit Reached</h4>
                 <p className="text-sm text-red-700 mb-3">
-                  You have used all {user.maxAnalyses} of your available analyses. Contact our admin team to request additional analysis credits.
+                  You have used all {maxAnalyses} of your available analyses. Contact our admin team to request additional analysis credits.
                 </p>
                 <ConsultationForm
                   buttonText="Contact Admin"
