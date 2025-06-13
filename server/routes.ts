@@ -356,6 +356,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all analyses with user info (admin only)
+  app.get('/api/admin/analyses', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const analyses = await storage.getAllAnalysesWithUsers();
+      return res.status(200).json(analyses);
+    } catch (error) {
+      console.error('Error fetching analyses:', error);
+      return res.status(500).json({ error: 'Failed to fetch analyses' });
+    }
+  });
+
+  // Get all appointments with user info (admin only)
+  app.get('/api/admin/appointments', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const appointments = await storage.getAllAppointmentsWithUsers();
+      return res.status(200).json(appointments);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      return res.status(500).json({ error: 'Failed to fetch appointments' });
+    }
+  });
+
+  // Update appointment status (admin only)
+  app.patch('/api/admin/appointments/:id/status', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const appointmentId = parseInt(req.params.id);
+      const { status } = req.body;
+
+      if (isNaN(appointmentId) || !status) {
+        return res.status(400).json({ error: 'Invalid appointment ID or status' });
+      }
+
+      const updatedAppointment = await storage.updateAppointmentStatus(appointmentId, status);
+      if (!updatedAppointment) {
+        return res.status(404).json({ error: 'Appointment not found' });
+      }
+
+      return res.status(200).json(updatedAppointment);
+    } catch (error) {
+      console.error('Error updating appointment status:', error);
+      return res.status(500).json({ error: 'Failed to update appointment status' });
+    }
+  });
+
   // Get user details with analyses (admin only)
   app.get('/api/admin/users/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {

@@ -52,11 +52,13 @@ export interface IStorage {
   getAnalysis(id: number): Promise<Analysis | undefined>;
   getUserAnalyses(userId: number): Promise<Analysis[]>;
   getAllAnalyses(): Promise<Analysis[]>;
+  getAllAnalysesWithUsers(): Promise<any[]>;
   getPublicAnalyses(): Promise<Analysis[]>;
   
   // Appointment methods
   createAppointment(appointment: any, userId: number): Promise<Appointment>;
   getUserAppointments(userId: number): Promise<Appointment[]>;
+  getAllAppointmentsWithUsers(): Promise<any[]>;
   updateAppointmentStatus(id: number, status: string): Promise<Appointment | undefined>;
 }
 

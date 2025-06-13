@@ -10,6 +10,7 @@ import {
   LogOut,
   Shield,
   FileText,
+  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -106,6 +107,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               label="Analysis Reports"
               href="/admin/analyses"
               active={location === "/admin/analyses"}
+            />
+            <AdminSidebarItem
+              icon={<Calendar className="h-5 w-5" />}
+              label="Appointments"
+              href="/admin/appointments"
+              active={location === "/admin/appointments"}
             />
             <AdminSidebarItem
               icon={<Settings className="h-5 w-5" />}
