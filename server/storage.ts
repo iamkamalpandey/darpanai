@@ -158,11 +158,22 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getUserAnalyses(userId: number): Promise<Analysis[]> {
-    return await db
+    const results = await db
       .select()
       .from(analyses)
       .where(eq(analyses.userId, userId))
       .orderBy(desc(analyses.id));
+    
+    // Structure the analysis results for frontend consumption
+    return results.map(analysis => ({
+      ...analysis,
+      results: {
+        summary: analysis.summary,
+        rejectionReasons: analysis.rejectionReasons,
+        recommendations: analysis.recommendations,
+        nextSteps: analysis.nextSteps
+      }
+    }));
   }
   
   async getAllAnalyses(): Promise<Analysis[]> {

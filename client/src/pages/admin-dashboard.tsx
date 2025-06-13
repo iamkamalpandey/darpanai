@@ -137,30 +137,26 @@ export default function AdminDashboard() {
   const handleViewAnalysisDetails = (analysis: any) => {
     console.log('Raw analysis data:', analysis);
     
-    // The analysis results are stored in the `results` field as a JSON string
-    let parsedResults = null;
+    // The analysis now includes a structured 'results' field from the backend
+    let analysisResults = null;
     
-    // Try multiple field names where analysis results might be stored
-    const resultsSource = analysis.results || analysis.analysisResults;
-    
-    if (resultsSource) {
-      if (typeof resultsSource === 'string') {
-        try {
-          parsedResults = JSON.parse(resultsSource);
-          console.log('Parsed results from string:', parsedResults);
-        } catch (e) {
-          console.error('Failed to parse analysis results from string:', e);
-        }
-      } else if (typeof resultsSource === 'object') {
-        parsedResults = resultsSource;
-        console.log('Using object results directly:', parsedResults);
-      }
-    }
-    
-    if (!parsedResults) {
-      console.error('No valid analysis results found in:', analysis);
-      alert('No detailed analysis data available for this file.');
-      return;
+    if (analysis.results) {
+      // Use the structured results from the backend
+      analysisResults = analysis.results;
+      console.log('Using structured results from backend:', analysisResults);
+    } else if (analysis.analysisResults) {
+      // Fallback to analysisResults field
+      analysisResults = analysis.analysisResults;
+      console.log('Using analysisResults field:', analysisResults);
+    } else {
+      // Build basic structure from individual fields if structured data isn't available
+      analysisResults = {
+        summary: analysis.summary || 'Analysis not available',
+        rejectionReasons: analysis.rejectionReasons || [],
+        recommendations: analysis.recommendations || [],
+        nextSteps: analysis.nextSteps || []
+      };
+      console.log('Built results from individual fields:', analysisResults);
     }
     
     // Convert the analysis data to match the expected format
@@ -168,7 +164,7 @@ export default function AdminDashboard() {
       id: analysis.id,
       userId: analysis.userId || selectedUser?.id || 0,
       fileName: analysis.filename || analysis.fileName || 'Unknown File',
-      analysisResults: parsedResults,
+      analysisResults: analysisResults,
       createdAt: analysis.createdAt,
       isPublic: analysis.isPublic || false,
     };
