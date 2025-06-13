@@ -140,12 +140,17 @@ FRONTEND_URL=your_domain_url
 - Added progress tracking, quick actions, and expert support cards
 - Integrated trust indicators and multiple consultation booking CTAs
 - Enhanced user experience with clean, functional layout optimized for conversions
+- Replaced generic severity levels with meaningful rejection categories (financial, documentation, eligibility, academic, immigration_history, ties_to_home, credibility, general)
+- Removed analysis ID references from user detail reports for cleaner presentation
+- Clarified admin access to all user analyses regardless of privacy settings
 
 **Technical Improvements:**
 - Integrated date-fns library for proper date filtering logic
 - Fixed TypeScript button variant compatibility issues
 - Maintained firstName/lastName structure across all components
 - Implemented real-time statistics updates based on applied filters
+- Updated schema to support category-based rejection analysis with backward compatibility
+- Enhanced OpenAI prompt structure for meaningful categorization
 
 **June 13, 2025 - Comprehensive Performance Optimization:**
 - Reduced ResizeObserver error suppression from 99 lines to 4 lines (95% reduction)

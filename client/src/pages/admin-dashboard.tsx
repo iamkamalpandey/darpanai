@@ -694,7 +694,7 @@ DETAILED ANALYSIS HISTORY
 `;
                             
                             userDetails.analyses.forEach((analysis, index) => {
-                              reportContent += `${index + 1}. Analysis #${analysis.id}
+                              reportContent += `${index + 1}. Document Analysis
    File: ${analysis.filename || analysis.fileName || 'Unknown File'}
    Date: ${new Date(analysis.createdAt).toLocaleDateString()}
    Summary: ${analysis.summary || 'No summary available'}
