@@ -4,6 +4,7 @@ import {
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { User, InsertUser, LoginUser } from "@shared/schema";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +22,7 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   
   const {
     data: user,
@@ -29,6 +31,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useQuery<Omit<User, "password"> | null, Error>({
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
+    staleTime: 10 * 60 * 1000, // 10 minutes for auth data
+    gcTime: 15 * 60 * 1000, // 15 minutes cache retention
+    refetchOnWindowFocus: false, // Prevent unnecessary auth checks
+    retry: 1, // Reduce retry attempts for faster failure handling
   });
 
   const loginMutation = useMutation({
@@ -38,16 +44,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user) => {
       queryClient.setQueryData(["/api/user"], user);
+      
+      // Pre-warm common data based on user role for faster navigation
+      if (user.role === 'admin') {
+        queryClient.prefetchQuery({ queryKey: ["/api/admin/users"] });
+        queryClient.prefetchQuery({ queryKey: ["/api/admin/system-stats"] });
+      } else {
+        queryClient.prefetchQuery({ queryKey: ["/api/analyses"] });
+      }
+      
       toast({
         title: "Authentication Successful",
-        description: `Welcome back, ${user.fullName || user.username}!`,
+        description: `Welcome back, ${user.firstName ? `${user.firstName} ${user.lastName}` : user.username}!`,
       });
       
-      // Redirect based on user role
+      // Smooth navigation based on user role
       if (user.role === 'admin') {
-        window.location.href = '/admin';
+        setLocation('/admin');
       } else {
-        window.location.href = '/';
+        setLocation('/');
       }
     },
     onError: (error: Error) => {
@@ -66,16 +81,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: (user) => {
       queryClient.setQueryData(["/api/user"], user);
+      
+      // Pre-warm data for new users for faster dashboard access
+      if (user.role === 'admin') {
+        queryClient.prefetchQuery({ queryKey: ["/api/admin/users"] });
+        queryClient.prefetchQuery({ queryKey: ["/api/admin/system-stats"] });
+      } else {
+        queryClient.prefetchQuery({ queryKey: ["/api/analyses"] });
+      }
+      
       toast({
         title: "Account Created Successfully",
-        description: `Welcome to Visa Analyzer, ${user.fullName || user.username}!`,
+        description: `Welcome to Visa Analyzer, ${user.firstName ? `${user.firstName} ${user.lastName}` : user.username}!`,
       });
       
-      // Redirect based on user role (new users are typically regular users)
+      // Smooth navigation based on user role (new users are typically regular users)
       if (user.role === 'admin') {
-        window.location.href = '/admin';
+        setLocation('/admin');
       } else {
-        window.location.href = '/';
+        setLocation('/');
       }
     },
     onError: (error: Error) => {
