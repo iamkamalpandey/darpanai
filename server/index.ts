@@ -1,6 +1,23 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { pool } from "./db";
+
+// Enhanced logging function with error level support
+function logWithLevel(message: string, level: 'info' | 'error' = 'info', source = "express") {
+  const formattedTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+
+  if (level === "error") {
+    console.error(`${formattedTime} [ERROR] [${source}] ${message}`);
+  } else {
+    console.log(`${formattedTime} [INFO] [${source}] ${message}`);
+  }
+}
 
 const app = express();
 app.use(express.json());
@@ -36,35 +53,149 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
-  const server = await registerRoutes(app);
-
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
-  });
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
+// Validate required environment variables at startup
+function validateEnvironmentVariables() {
+  const requiredEnvVars = ['DATABASE_URL'];
+  const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+  
+  if (missingVars.length > 0) {
+    throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
   }
+  
+  logWithLevel('Environment variables validated successfully');
+}
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
+// Test database connection
+async function testDatabaseConnection() {
+  try {
+    const client = await pool.connect();
+    await client.query('SELECT 1');
+    client.release();
+    logWithLevel('Database connection test successful');
+  } catch (error) {
+    logWithLevel(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+    throw new Error(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// Health check endpoint
+function setupHealthCheck(app: express.Application) {
+  app.get('/api/health', async (_req: Request, res: Response) => {
+    try {
+      // Test database connection
+      const client = await pool.connect();
+      await client.query('SELECT 1');
+      client.release();
+      
+      res.status(200).json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        database: 'connected',
+        environment: process.env.NODE_ENV || 'development'
+      });
+    } catch (error) {
+      res.status(503).json({
+        status: 'unhealthy',
+        timestamp: new Date().toISOString(),
+        database: 'disconnected',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        environment: process.env.NODE_ENV || 'development'
+      });
+    }
   });
+}
+
+// Graceful shutdown handler
+function setupGracefulShutdown(server: any) {
+  const shutdown = async (signal: string) => {
+    logWithLevel(`Received ${signal}. Starting graceful shutdown...`);
+    
+    server.close(async () => {
+      logWithLevel('HTTP server closed');
+      
+      try {
+        await pool.end();
+        logWithLevel('Database pool closed');
+      } catch (error) {
+        logWithLevel(`Error closing database pool: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+      }
+      
+      logWithLevel('Graceful shutdown completed');
+      process.exit(0);
+    });
+    
+    // Force close after 30 seconds
+    setTimeout(() => {
+      logWithLevel('Forced shutdown after timeout', 'error');
+      process.exit(1);
+    }, 30000);
+  };
+  
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+}
+
+// Main application startup with comprehensive error handling
+(async () => {
+  try {
+    logWithLevel('Starting application initialization...');
+    
+    // Step 1: Validate environment variables
+    validateEnvironmentVariables();
+    
+    // Step 2: Test database connection
+    await testDatabaseConnection();
+    
+    // Step 3: Setup health check endpoint first
+    setupHealthCheck(app);
+    
+    // Step 4: Register all routes
+    logWithLevel('Registering application routes...');
+    const server = await registerRoutes(app);
+    
+    // Step 5: Setup error handling middleware
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+      
+      logWithLevel(`Error: ${status} - ${message}`, 'error');
+      res.status(status).json({ message });
+    });
+    
+    // Step 6: Setup Vite in development or static serving in production
+    logWithLevel('Setting up client serving...');
+    if (app.get("env") === "development") {
+      await setupVite(app, server);
+    } else {
+      serveStatic(app);
+    }
+    
+    // Step 7: Setup graceful shutdown
+    setupGracefulShutdown(server);
+    
+    // Step 8: Start the server
+    const port = 5000;
+    server.listen({
+      port,
+      host: "0.0.0.0",
+      reusePort: true,
+    }, () => {
+      logWithLevel(`Application successfully started on port ${port}`);
+      logWithLevel(`Health check available at: http://localhost:${port}/api/health`);
+    });
+    
+    // Handle server startup errors
+    server.on('error', (error: any) => {
+      logWithLevel(`Server startup error: ${error.message}`, 'error');
+      process.exit(1);
+    });
+    
+  } catch (error) {
+    logWithLevel(`Application startup failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+    logWithLevel('Stack trace:', 'error');
+    if (error instanceof Error && error.stack) {
+      logWithLevel(error.stack, 'error');
+    }
+    process.exit(1);
+  }
 })();
