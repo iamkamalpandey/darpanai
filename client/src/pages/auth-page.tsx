@@ -289,7 +289,11 @@ export default function AuthPage() {
                             <FormControl>
                               <Input 
                                 placeholder="e.g., Bachelor's in Computer Science" 
-                                {...field} 
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                onBlur={field.onBlur}
+                                name={field.name}
+                                ref={field.ref}
                               />
                             </FormControl>
                             <FormMessage />
@@ -307,7 +311,11 @@ export default function AuthPage() {
                               <FormControl>
                                 <Input 
                                   placeholder="e.g., 2022" 
-                                  {...field} 
+                                  value={field.value || ""}
+                                  onChange={field.onChange}
+                                  onBlur={field.onBlur}
+                                  name={field.name}
+                                  ref={field.ref}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -323,7 +331,11 @@ export default function AuthPage() {
                               <FormControl>
                                 <Input 
                                   placeholder="Your phone number" 
-                                  {...field} 
+                                  value={field.value || ""}
+                                  onChange={field.onChange}
+                                  onBlur={field.onBlur}
+                                  name={field.name}
+                                  ref={field.ref}
                                 />
                               </FormControl>
                               <FormMessage />
