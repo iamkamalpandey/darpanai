@@ -135,17 +135,32 @@ export default function AdminDashboard() {
   };
 
   const handleViewAnalysisDetails = (analysis: any) => {
-    console.log('Analysis data:', analysis);
+    console.log('Raw analysis data:', analysis);
     
-    // Parse analysis results if they're stored as string
-    let parsedResults = analysis.analysisResults || analysis.results;
-    if (typeof parsedResults === 'string') {
-      try {
-        parsedResults = JSON.parse(parsedResults);
-      } catch (e) {
-        console.error('Failed to parse analysis results:', e);
-        parsedResults = null;
+    // The analysis results are stored in the `results` field as a JSON string
+    let parsedResults = null;
+    
+    // Try multiple field names where analysis results might be stored
+    const resultsSource = analysis.results || analysis.analysisResults;
+    
+    if (resultsSource) {
+      if (typeof resultsSource === 'string') {
+        try {
+          parsedResults = JSON.parse(resultsSource);
+          console.log('Parsed results from string:', parsedResults);
+        } catch (e) {
+          console.error('Failed to parse analysis results from string:', e);
+        }
+      } else if (typeof resultsSource === 'object') {
+        parsedResults = resultsSource;
+        console.log('Using object results directly:', parsedResults);
       }
+    }
+    
+    if (!parsedResults) {
+      console.error('No valid analysis results found in:', analysis);
+      alert('No detailed analysis data available for this file.');
+      return;
     }
     
     // Convert the analysis data to match the expected format
@@ -158,7 +173,7 @@ export default function AdminDashboard() {
       isPublic: analysis.isPublic || false,
     };
     
-    console.log('Formatted analysis:', formattedAnalysis);
+    console.log('Formatted analysis for modal:', formattedAnalysis);
     setSelectedAnalysis(formattedAnalysis);
     setAnalysisDetailsOpen(true);
   };
@@ -403,8 +418,12 @@ export default function AdminDashboard() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => handleViewAnalysisDetails(analysis)}
-                                  disabled={!analysis.analysisResults && !analysis.results}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    console.log('View button clicked for analysis:', analysis);
+                                    handleViewAnalysisDetails(analysis);
+                                  }}
                                 >
                                   <Eye className="h-4 w-4 mr-1" />
                                   View
