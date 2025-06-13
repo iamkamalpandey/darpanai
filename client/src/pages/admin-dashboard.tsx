@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -6,6 +6,8 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -37,6 +39,9 @@ import {
   TrendingUp,
   Edit,
   Eye,
+  Download,
+  Filter,
+  X,
 } from "lucide-react";
 import { AnalysisDetailView } from "@/components/AnalysisDetailView";
 
@@ -75,6 +80,14 @@ export default function AdminDashboard() {
   const [userDetailsOpen, setUserDetailsOpen] = useState(false);
   const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis | null>(null);
   const [analysisDetailsOpen, setAnalysisDetailsOpen] = useState(false);
+
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFromFilter, setDateFromFilter] = useState("");
+  const [dateToFilter, setDateToFilter] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   // Fetch all users
   const { data: users, isLoading } = useQuery<UserData[]>({
@@ -119,6 +132,83 @@ export default function AdminDashboard() {
       });
     },
   });
+
+  // Export users data mutation
+  const exportUsersMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/admin/export/users?format=csv', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'text/csv',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Export failed: ${response.statusText}`);
+      }
+      
+      return response.blob();
+    },
+    onSuccess: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `users-export-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast({
+        title: "Success",
+        description: "Users data exported successfully as CSV",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Export Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Filtered users based on search and filters
+  const filteredUsers = useMemo(() => {
+    if (!users) return [];
+
+    return users.filter(user => {
+      // Search filter
+      const matchesSearch = searchTerm === "" || 
+        user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Role filter
+      const matchesRole = roleFilter === "all" || user.role === roleFilter;
+
+      // Status filter (based on analysis usage)
+      const matchesStatus = statusFilter === "all" || 
+        (statusFilter === "active" && user.analysisCount > 0) ||
+        (statusFilter === "inactive" && user.analysisCount === 0) ||
+        (statusFilter === "limit_reached" && user.analysisCount >= user.maxAnalyses);
+
+      // Date filter
+      const userDate = new Date(user.createdAt);
+      const matchesDateFrom = !dateFromFilter || userDate >= new Date(dateFromFilter);
+      const matchesDateTo = !dateToFilter || userDate <= new Date(dateToFilter + 'T23:59:59');
+
+      return matchesSearch && matchesRole && matchesStatus && matchesDateFrom && matchesDateTo;
+    });
+  }, [users, searchTerm, roleFilter, statusFilter, dateFromFilter, dateToFilter]);
+
+  const clearAllFilters = () => {
+    setSearchTerm("");
+    setRoleFilter("all");
+    setStatusFilter("all");
+    setDateFromFilter("");
+    setDateToFilter("");
+  };
 
   const handleUpdateMaxAnalyses = () => {
     if (selectedUser && newMaxAnalyses >= 0) {
@@ -251,12 +341,114 @@ export default function AdminDashboard() {
         {/* Users Table */}
         <Card>
           <CardHeader>
-            <CardTitle>User Management</CardTitle>
-            <CardDescription>
-              View and manage all registered users, their usage, and permissions
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>
+                  View and manage all registered users, their usage, and permissions
+                </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2"
+                >
+                  <Filter className="h-4 w-4" />
+                  Filters
+                </Button>
+                <Button
+                  onClick={() => exportUsersMutation.mutate()}
+                  disabled={exportUsersMutation.isPending}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  {exportUsersMutation.isPending ? "Exporting..." : "Export CSV"}
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
+            {/* Search and Filters */}
+            <div className="space-y-4 mb-6">
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Search by name, username, or email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {showFilters && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/50">
+                  <div>
+                    <Label htmlFor="role-filter">Role</Label>
+                    <Select value={roleFilter} onValueChange={setRoleFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Roles</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="user">User</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="status-filter">Status</Label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Users</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="limit_reached">Limit Reached</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="date-from">From Date</Label>
+                    <Input
+                      id="date-from"
+                      type="date"
+                      value={dateFromFilter}
+                      onChange={(e) => setDateFromFilter(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="date-to">To Date</Label>
+                    <Input
+                      id="date-to"
+                      type="date"
+                      value={dateToFilter}
+                      onChange={(e) => setDateToFilter(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="md:col-span-4 flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">
+                      Showing {filteredUsers.length} of {users?.length || 0} users
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearAllFilters}
+                      className="flex items-center gap-2"
+                    >
+                      <X className="h-4 w-4" />
+                      Clear Filters
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -270,7 +462,7 @@ export default function AdminDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users?.map((user) => (
+                {filteredUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>
                       <div>
