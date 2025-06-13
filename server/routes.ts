@@ -571,6 +571,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get system statistics (admin only)
+  app.get('/api/admin/system-stats', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const users = await storage.getAllUsers();
+      const analyses = await storage.getAllAnalyses();
+      const appointments = await storage.getAllAppointmentsWithUsers();
+
+      const stats = {
+        totalUsers: users.length,
+        totalAnalyses: analyses.length,
+        totalAppointments: appointments.length,
+        adminUsers: users.filter(user => user.role === 'admin').length,
+        activeUsers: users.filter(user => user.status === 'active' || !user.status).length,
+        recentAnalyses: analyses.filter(analysis => {
+          const analysisDate = new Date(analysis.createdAt);
+          const lastWeek = new Date();
+          lastWeek.setDate(lastWeek.getDate() - 7);
+          return analysisDate >= lastWeek;
+        }).length,
+        systemAnnouncement: process.env.SYSTEM_ANNOUNCEMENT || '',
+        defaultMaxAnalyses: parseInt(process.env.DEFAULT_MAX_ANALYSES || '3')
+      };
+
+      return res.status(200).json(stats);
+    } catch (error) {
+      console.error('Error fetching system stats:', error);
+      return res.status(500).json({ error: 'Failed to fetch system statistics' });
+    }
+  });
+
+  // Update system settings (admin only)
+  app.patch('/api/admin/system-settings', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { defaultMaxAnalyses, systemAnnouncement } = req.body;
+
+      // Validate input
+      if (defaultMaxAnalyses !== undefined && (typeof defaultMaxAnalyses !== 'number' || defaultMaxAnalyses < 1)) {
+        return res.status(400).json({ error: 'Default max analyses must be a positive number' });
+      }
+
+      if (systemAnnouncement !== undefined && typeof systemAnnouncement !== 'string') {
+        return res.status(400).json({ error: 'System announcement must be a string' });
+      }
+
+      // Update environment variables (note: these won't persist across restarts without proper env file management)
+      if (defaultMaxAnalyses !== undefined) {
+        process.env.DEFAULT_MAX_ANALYSES = defaultMaxAnalyses.toString();
+      }
+
+      if (systemAnnouncement !== undefined) {
+        process.env.SYSTEM_ANNOUNCEMENT = systemAnnouncement;
+      }
+
+      // Return updated settings
+      const updatedSettings = {
+        defaultMaxAnalyses: parseInt(process.env.DEFAULT_MAX_ANALYSES || '3'),
+        systemAnnouncement: process.env.SYSTEM_ANNOUNCEMENT || '',
+        message: 'System settings updated successfully'
+      };
+
+      return res.status(200).json(updatedSettings);
+    } catch (error) {
+      console.error('Error updating system settings:', error);
+      return res.status(500).json({ error: 'Failed to update system settings' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

@@ -20,6 +20,14 @@ export default function AdminSettings() {
     queryKey: ["/api/admin/system-stats"],
   });
 
+  // Update local state when data loads
+  React.useEffect(() => {
+    if (systemStats) {
+      setDefaultMaxAnalyses(systemStats.defaultMaxAnalyses?.toString() || "3");
+      setSystemAnnouncement(systemStats.systemAnnouncement || "");
+    }
+  }, [systemStats]);
+
   const updateSystemSettingsMutation = useMutation({
     mutationFn: async (settings: any) => {
       const response = await apiRequest("PATCH", "/api/admin/system-settings", settings);
