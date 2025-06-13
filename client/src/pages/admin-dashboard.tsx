@@ -502,24 +502,33 @@ export default function AdminDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{user.fullName}</div>
-                        <div className="text-sm text-muted-foreground">@{user.username}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                        {user.role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Select
+                {filteredUsers.map((user) => {
+                  if (!user || !user.id) return null;
+                  
+                  return (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{user.fullName || 'Unknown'}</div>
+                          <div className="text-sm text-muted-foreground">@{user.username || 'unknown'}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{user.email || 'N/A'}</TableCell>
+                      <TableCell>
+                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                          {user.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                        key={`status-${user.id}-${user.status}`}
                         value={user.status || 'active'}
-                        onValueChange={(status) => updateUserStatusMutation.mutate({ userId: user.id, status })}
+                        onValueChange={(status) => {
+                          if (status && user.id) {
+                            updateUserStatusMutation.mutate({ userId: user.id, status });
+                          }
+                        }}
+                        disabled={updateUserStatusMutation.isPending}
                       >
                         <SelectTrigger className="w-24">
                           <SelectValue />
@@ -595,8 +604,9 @@ export default function AdminDashboard() {
                         </Dialog>
                       </div>
                     </TableCell>
-                  </TableRow>
-                ))}
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </CardContent>
