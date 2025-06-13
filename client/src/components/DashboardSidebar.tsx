@@ -23,15 +23,15 @@ interface SidebarItemProps {
 const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
   return (
     <Link href={href}>
-      <a
+      <div
         className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-accent",
+          "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-accent cursor-pointer",
           active ? "bg-accent text-accent-foreground" : "text-muted-foreground"
         )}
       >
         {icon}
         <span>{label}</span>
-      </a>
+      </div>
     </Link>
   );
 };
@@ -90,12 +90,14 @@ export function DashboardSidebar() {
           href="/consultations"
           active={location === "/consultations"}
         />
-        <SidebarItem
-          icon={<Settings className="h-5 w-5" />}
-          label="Account Settings"
-          href="/settings"
-          active={location === "/settings"}
-        />
+        {user?.role === "admin" && (
+          <SidebarItem
+            icon={<Shield className="h-5 w-5" />}
+            label="Admin Panel"
+            href="/admin"
+            active={location === "/admin" || location.startsWith("/admin/")}
+          />
+        )}
       </nav>
 
       <div className="mt-auto border-t pt-4">

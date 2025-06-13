@@ -11,6 +11,7 @@ import VisaAnalyzer from "@/pages/VisaAnalyzer";
 import AnalysisHistory from "@/pages/AnalysisHistory";
 import AuthPage from "@/pages/auth-page";
 import ConsultationsPage from "@/pages/consultations";
+import AdminPanel from "@/pages/admin-panel";
 
 function Router() {
   return (
@@ -23,6 +24,7 @@ function Router() {
       <ProtectedRoute path="/analyzer" component={VisaAnalyzer} />
       <ProtectedRoute path="/history" component={AnalysisHistory} />
       <ProtectedRoute path="/consultations" component={ConsultationsPage} />
+      <ProtectedRoute path="/admin" component={AdminPanel} />
       
       {/* 404 Route */}
       <Route component={NotFound} />
