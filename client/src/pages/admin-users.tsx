@@ -14,8 +14,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { User, Eye, Edit, Download, FileText, Calendar, Mail, Phone, MapPin, GraduationCap } from "lucide-react";
-import { format } from "date-fns";
+import { User, Eye, Edit, Download, FileText, Calendar, Mail, Phone, MapPin, GraduationCap, Filter } from "lucide-react";
+import { format, isAfter, isBefore, parseISO, subDays, subMonths, subYears } from "date-fns";
 
 interface UserData {
   id: number;
@@ -52,6 +52,10 @@ export default function AdminUsers() {
   const [userDetailsOpen, setUserDetailsOpen] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dateFilter, setDateFilter] = useState<string>("all");
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -109,7 +113,93 @@ export default function AdminUsers() {
     },
   });
 
-  // Export users data
+  // Filter users based on all criteria
+  const filteredUsers = users.filter(user => {
+    // Search filter
+    const matchesSearch = searchTerm === "" ||
+      user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.studyDestination.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.country.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Role filter
+    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+
+    // Status filter
+    const matchesStatus = statusFilter === "all" || user.status === statusFilter;
+
+    // Date filter
+    const userDate = parseISO(user.createdAt);
+    const now = new Date();
+    let matchesDate = true;
+
+    switch (dateFilter) {
+      case "today":
+        matchesDate = format(userDate, "yyyy-MM-dd") === format(now, "yyyy-MM-dd");
+        break;
+      case "week":
+        matchesDate = isAfter(userDate, subDays(now, 7));
+        break;
+      case "month":
+        matchesDate = isAfter(userDate, subMonths(now, 1));
+        break;
+      case "year":
+        matchesDate = isAfter(userDate, subYears(now, 1));
+        break;
+      case "all":
+      default:
+        matchesDate = true;
+    }
+
+    return matchesSearch && matchesRole && matchesStatus && matchesDate;
+  });
+
+  // CSV export functionality
+  const exportUsersCSV = () => {
+    const csvData = filteredUsers.map(user => ({
+      ID: user.id,
+      Username: user.username,
+      'First Name': user.firstName,
+      'Last Name': user.lastName,
+      Email: user.email,
+      'Phone Number': user.phoneNumber,
+      'Study Destination': user.studyDestination,
+      'Study Level': user.studyLevel,
+      'Start Date': user.startDate,
+      City: user.city,
+      Country: user.country,
+      'Counselling Mode': user.counsellingMode,
+      'Funding Source': user.fundingSource,
+      Role: user.role,
+      Status: user.status,
+      'Analysis Count': user.analysisCount,
+      'Max Analyses': user.maxAnalyses,
+      'Created At': format(new Date(user.createdAt), "yyyy-MM-dd HH:mm:ss")
+    }));
+
+    const csvHeaders = Object.keys(csvData[0] || {});
+    const csvContent = [
+      csvHeaders.join(','),
+      ...csvData.map(row => csvHeaders.map(header => `"${row[header as keyof typeof row]}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `users-export-${format(new Date(), "yyyy-MM-dd")}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({ title: "Success", description: `Exported ${csvData.length} users to CSV` });
+  };
+
+  // Export users data (legacy endpoint)
   const exportUsers = () => {
     window.open("/api/admin/export/users", "_blank");
   };
@@ -184,21 +274,94 @@ export default function AdminUsers() {
             <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
             <p className="text-gray-600">Manage user accounts, roles, and permissions</p>
           </div>
-          <Button onClick={exportUsers} variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export Users
-          </Button>
+          <div className="flex space-x-2">
+            <Button onClick={exportUsersCSV} variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+            <Button onClick={exportUsers} variant="secondary">
+              <Download className="h-4 w-4 mr-2" />
+              Export All
+            </Button>
+          </div>
         </div>
+
+        {/* Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Filter className="h-4 w-4 mr-2" />
+              Filters & Search
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <Label htmlFor="search" className="text-sm font-medium">Search</Label>
+                <Input
+                  id="search"
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="role" className="text-sm font-medium">Role</Label>
+                <Select value={roleFilter} onValueChange={setRoleFilter}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Roles</SelectItem>
+                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="status" className="text-sm font-medium">Status</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="suspended">Suspended</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="date" className="text-sm font-medium">Join Date</Label>
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Time</SelectItem>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="week">This Week</SelectItem>
+                    <SelectItem value="month">This Month</SelectItem>
+                    <SelectItem value="year">This Year</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <CardTitle className="text-sm font-medium">Filtered Users</CardTitle>
               <User className="h-4 w-4 text-gray-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{users.length}</div>
+              <div className="text-2xl font-bold">{filteredUsers.length}</div>
+              <p className="text-xs text-gray-600 mt-1">of {users.length} total</p>
             </CardContent>
           </Card>
           <Card>
@@ -208,7 +371,7 @@ export default function AdminUsers() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {users.filter(u => u.status === "active").length}
+                {filteredUsers.filter(u => u.status === "active").length}
               </div>
             </CardContent>
           </Card>
@@ -219,7 +382,7 @@ export default function AdminUsers() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {users.filter(u => u.role === "admin").length}
+                {filteredUsers.filter(u => u.role === "admin").length}
               </div>
             </CardContent>
           </Card>
@@ -230,7 +393,7 @@ export default function AdminUsers() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {users.reduce((sum, user) => sum + user.analysisCount, 0)}
+                {filteredUsers.reduce((sum, user) => sum + user.analysisCount, 0)}
               </div>
             </CardContent>
           </Card>
@@ -260,7 +423,7 @@ export default function AdminUsers() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {users.map((user) => (
+                  {filteredUsers.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>
                         <div>

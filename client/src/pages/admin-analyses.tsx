@@ -12,8 +12,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Eye, Download, User, Calendar, CheckCircle, AlertTriangle, Info, TrendingUp } from "lucide-react";
-import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+import { FileText, Eye, Download, User, Calendar, CheckCircle, AlertTriangle, Info, TrendingUp, Filter } from "lucide-react";
+import { format, isAfter, parseISO, subDays, subMonths, subYears } from "date-fns";
 
 interface AnalysisData {
   id: number;
@@ -50,23 +51,16 @@ export default function AdminAnalyses() {
   const [analysisDetailsOpen, setAnalysisDetailsOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [dateFilter, setDateFilter] = useState<string>("all");
+  
+  const { toast } = useToast();
 
   // Fetch all analyses with user data
   const { data: analyses = [], isLoading } = useQuery<AnalysisData[]>({
     queryKey: ["/api/admin/analyses"],
   });
 
-  // Export analyses data
-  const exportAnalyses = () => {
-    window.open("/api/admin/export/analyses", "_blank");
-  };
-
-  const openAnalysisDetails = (analysis: AnalysisData) => {
-    setSelectedAnalysis(analysis);
-    setAnalysisDetailsOpen(true);
-  };
-
-  // Filter analyses based on status and search term
+  // Filter analyses based on all criteria
   const filteredAnalyses = analyses.filter(analysis => {
     const matchesStatus = statusFilter === "all" || 
       (statusFilter === "public" && analysis.isPublic) ||
@@ -78,8 +72,77 @@ export default function AdminAnalyses() {
       analysis.user?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       analysis.user?.username?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    return matchesStatus && matchesSearch;
+    // Date filter
+    const analysisDate = parseISO(analysis.createdAt);
+    const now = new Date();
+    let matchesDate = true;
+
+    switch (dateFilter) {
+      case "today":
+        matchesDate = format(analysisDate, "yyyy-MM-dd") === format(now, "yyyy-MM-dd");
+        break;
+      case "week":
+        matchesDate = isAfter(analysisDate, subDays(now, 7));
+        break;
+      case "month":
+        matchesDate = isAfter(analysisDate, subMonths(now, 1));
+        break;
+      case "year":
+        matchesDate = isAfter(analysisDate, subYears(now, 1));
+        break;
+      case "all":
+      default:
+        matchesDate = true;
+    }
+
+    return matchesStatus && matchesSearch && matchesDate;
   });
+
+  // CSV export functionality
+  const exportAnalysesCSV = () => {
+    const csvData = filteredAnalyses.map(analysis => ({
+      ID: analysis.id,
+      'File Name': analysis.fileName,
+      'User ID': analysis.userId,
+      'User Name': analysis.user ? `${analysis.user.firstName} ${analysis.user.lastName}` : 'N/A',
+      'Username': analysis.user?.username || 'N/A',
+      'User Email': analysis.user?.email || 'N/A',
+      'Summary': analysis.analysisResults?.summary || 'N/A',
+      'Rejection Reasons Count': analysis.analysisResults?.rejectionReasons?.length || 0,
+      'Recommendations Count': analysis.analysisResults?.recommendations?.length || 0,
+      'Next Steps Count': analysis.analysisResults?.nextSteps?.length || 0,
+      'Visibility': analysis.isPublic ? 'Public' : 'Private',
+      'Created At': format(new Date(analysis.createdAt), "yyyy-MM-dd HH:mm:ss")
+    }));
+
+    const csvHeaders = Object.keys(csvData[0] || {});
+    const csvContent = [
+      csvHeaders.join(','),
+      ...csvData.map(row => csvHeaders.map(header => `"${row[header as keyof typeof row]}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `analyses-export-${format(new Date(), "yyyy-MM-dd")}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({ title: "Success", description: `Exported ${csvData.length} analyses to CSV` });
+  };
+
+  // Export analyses data (legacy endpoint)
+  const exportAnalyses = () => {
+    window.open("/api/admin/export/analyses", "_blank");
+  };
+
+  const openAnalysisDetails = (analysis: AnalysisData) => {
+    setSelectedAnalysis(analysis);
+    setAnalysisDetailsOpen(true);
+  };
 
   const getVisibilityBadgeVariant = (isPublic: boolean) => {
     return isPublic ? "default" : "secondary";
