@@ -175,26 +175,33 @@ export default function AdminDashboard() {
 
   // Filtered users based on search and filters
   const filteredUsers = useMemo(() => {
-    if (!users) return [];
+    if (!users || !Array.isArray(users)) return [];
 
     return users.filter(user => {
+      if (!user) return false;
+
       // Search filter
+      const fullName = user.fullName || '';
+      const username = user.username || '';
+      const email = user.email || '';
       const matchesSearch = searchTerm === "" || 
-        user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase());
+        fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        email.toLowerCase().includes(searchTerm.toLowerCase());
 
       // Role filter
       const matchesRole = roleFilter === "all" || user.role === roleFilter;
 
       // Status filter (based on analysis usage)
+      const analysisCount = user.analysisCount || 0;
+      const maxAnalyses = user.maxAnalyses || 0;
       const matchesStatus = statusFilter === "all" || 
-        (statusFilter === "active" && user.analysisCount > 0) ||
-        (statusFilter === "inactive" && user.analysisCount === 0) ||
-        (statusFilter === "limit_reached" && user.analysisCount >= user.maxAnalyses);
+        (statusFilter === "active" && analysisCount > 0) ||
+        (statusFilter === "inactive" && analysisCount === 0) ||
+        (statusFilter === "limit_reached" && analysisCount >= maxAnalyses);
 
       // Date filter
-      const userDate = new Date(user.createdAt);
+      const userDate = user.createdAt ? new Date(user.createdAt) : new Date();
       const matchesDateFrom = !dateFromFilter || userDate >= new Date(dateFromFilter);
       const matchesDateTo = !dateToFilter || userDate <= new Date(dateToFilter + 'T23:59:59');
 
@@ -264,12 +271,16 @@ export default function AdminDashboard() {
     setAnalysisDetailsOpen(true);
   };
 
-  const stats = users ? {
-    totalUsers: users.length,
-    totalAnalyses: users.reduce((sum, user) => sum + user.analysisCount, 0),
-    adminUsers: users.filter(user => user.role === 'admin').length,
-    activeUsers: users.filter(user => user.analysisCount > 0).length,
-  } : null;
+  const stats = useMemo(() => {
+    if (!users || users.length === 0) return null;
+    
+    return {
+      totalUsers: users.length,
+      totalAnalyses: users.reduce((sum, user) => sum + (user.analysisCount || 0), 0),
+      adminUsers: users.filter(user => user.role === 'admin').length,
+      activeUsers: users.filter(user => (user.analysisCount || 0) > 0).length,
+    };
+  }, [users]);
 
   if (isLoading) {
     return (
