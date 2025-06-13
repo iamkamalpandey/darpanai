@@ -1,109 +1,134 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar, Search, Eye, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
-import { format } from "date-fns";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { Calendar, Clock, User, Mail, Phone, MapPin, Edit, Download, CheckCircle, XCircle, AlertCircle, Eye } from "lucide-react";
+import { format } from "date-fns";
 
-interface Appointment {
+interface AppointmentData {
   id: number;
   userId: number;
   fullName: string;
   email: string;
   phoneNumber: string;
   preferredDate: string;
+  preferredTime: string;
+  consultationType: string;
   message: string;
   status: string;
   createdAt: string;
-  user: {
+  user?: {
     username: string;
     firstName: string;
     lastName: string;
     email: string;
-    analysisCount: number;
-    maxAnalyses: number;
+    phoneNumber: string;
+    city: string;
+    country: string;
   } | null;
 }
 
 export default function AdminAppointments() {
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentData | null>(null);
+  const [appointmentDetailsOpen, setAppointmentDetailsOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const { toast } = useToast();
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
 
-  const { data: appointments = [], isLoading } = useQuery<Appointment[]>({
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch all appointments with user data
+  const { data: appointments = [], isLoading } = useQuery<AppointmentData[]>({
     queryKey: ["/api/admin/appointments"],
   });
 
+  // Update appointment status mutation
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ appointmentId, status }: { appointmentId: number; status: string }) => {
-      const response = await apiRequest("PATCH", `/api/admin/appointments/${appointmentId}/status`, {
-        status,
-      });
-      return response.json();
-    },
+    mutationFn: (data: { appointmentId: number; status: string }) =>
+      apiRequest(`/api/admin/appointments/${data.appointmentId}/status`, "PATCH", { status: data.status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/appointments"] });
-      toast({
-        title: "Success",
-        description: "Appointment status updated successfully",
-      });
+      toast({ title: "Success", description: "Appointment status updated successfully" });
+      setEditingField(null);
     },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update appointment status", variant: "destructive" });
     },
   });
 
+  // Export appointments data
+  const exportAppointments = () => {
+    window.open("/api/admin/export/appointments", "_blank");
+  };
+
+  const openAppointmentDetails = (appointment: AppointmentData) => {
+    setSelectedAppointment(appointment);
+    setAppointmentDetailsOpen(true);
+  };
+
+  const handleEdit = (field: string, currentValue: string) => {
+    setEditingField(field);
+    setEditValue(currentValue);
+  };
+
+  const handleSave = () => {
+    if (!selectedAppointment || !editingField) return;
+
+    if (editingField === "status") {
+      updateStatusMutation.mutate({ appointmentId: selectedAppointment.id, status: editValue });
+    }
+  };
+
+  const handleCancel = () => {
+    setEditingField(null);
+    setEditValue("");
+  };
+
+  // Filter appointments based on status and search term
   const filteredAppointments = appointments.filter(appointment => {
-    const matchesSearch = 
-      appointment.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      appointment.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (appointment.user?.username || "").toLowerCase().includes(searchTerm.toLowerCase());
-    
     const matchesStatus = statusFilter === "all" || appointment.status === statusFilter;
     
-    return matchesSearch && matchesStatus;
+    const matchesSearch = searchTerm === "" ||
+      appointment.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      appointment.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      appointment.consultationType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      appointment.user?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      appointment.user?.lastName?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    return matchesStatus && matchesSearch;
   });
 
-  const totalAppointments = appointments.length;
-  const pendingAppointments = appointments.filter(a => a.status === 'pending').length;
-  const confirmedAppointments = appointments.filter(a => a.status === 'confirmed').length;
-  const completedAppointments = appointments.filter(a => a.status === 'completed').length;
-
-  const handleViewDetails = (appointment: Appointment) => {
-    setSelectedAppointment(appointment);
-    setIsDetailsOpen(true);
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "confirmed": return "default";
+      case "pending": return "secondary";
+      case "completed": return "outline";
+      case "cancelled": return "destructive";
+      default: return "secondary";
+    }
   };
 
-  const handleStatusUpdate = (appointmentId: number, status: string) => {
-    updateStatusMutation.mutate({ appointmentId, status });
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
-      case 'confirmed':
-        return <Badge variant="default"><CheckCircle className="h-3 w-3 mr-1" />Confirmed</Badge>;
-      case 'completed':
-        return <Badge variant="outline"><CheckCircle className="h-3 w-3 mr-1" />Completed</Badge>;
-      case 'cancelled':
-        return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Cancelled</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "confirmed": return <CheckCircle className="h-3 w-3" />;
+      case "pending": return <Clock className="h-3 w-3" />;
+      case "completed": return <CheckCircle className="h-3 w-3" />;
+      case "cancelled": return <XCircle className="h-3 w-3" />;
+      default: return <AlertCircle className="h-3 w-3" />;
     }
   };
 
@@ -112,8 +137,8 @@ export default function AdminAppointments() {
       <AdminLayout>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Loading appointments...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading appointments...</p>
           </div>
         </div>
       </AdminLayout>
@@ -124,11 +149,15 @@ export default function AdminAppointments() {
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Appointment Management</h1>
-            <p className="text-muted-foreground">Manage consultation bookings and user appointments</p>
+            <h1 className="text-3xl font-bold tracking-tight">Appointment Management</h1>
+            <p className="text-gray-600">Manage consultation bookings and user appointments</p>
           </div>
+          <Button onClick={exportAppointments} variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Export Appointments
+          </Button>
         </div>
 
         {/* Statistics Cards */}
@@ -136,238 +165,400 @@ export default function AdminAppointments() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Appointments</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <Calendar className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalAppointments}</div>
-              <p className="text-xs text-muted-foreground">All time</p>
+              <div className="text-2xl font-bold">{appointments.length}</div>
+              <p className="text-xs text-gray-600 mt-1">All bookings</p>
             </CardContent>
           </Card>
-          
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              <Clock className="h-4 w-4 text-orange-500" />
+              <Clock className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{pendingAppointments}</div>
-              <p className="text-xs text-muted-foreground">Awaiting confirmation</p>
+              <div className="text-2xl font-bold">
+                {appointments.filter(a => a.status === "pending").length}
+              </div>
+              <p className="text-xs text-gray-600 mt-1">Awaiting confirmation</p>
             </CardContent>
           </Card>
-          
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-500" />
+              <CheckCircle className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{confirmedAppointments}</div>
-              <p className="text-xs text-muted-foreground">Ready to proceed</p>
+              <div className="text-2xl font-bold">
+                {appointments.filter(a => a.status === "confirmed").length}
+              </div>
+              <p className="text-xs text-gray-600 mt-1">Ready to proceed</p>
             </CardContent>
           </Card>
-          
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              <CheckCircle className="h-4 w-4 text-blue-500" />
+              <CheckCircle className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{completedAppointments}</div>
-              <p className="text-xs text-muted-foreground">Finished sessions</p>
+              <div className="text-2xl font-bold">
+                {appointments.filter(a => a.status === "completed").length}
+              </div>
+              <p className="text-xs text-gray-600 mt-1">Finished sessions</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters */}
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, email, or username..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-          </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Filters</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <Label htmlFor="search" className="text-sm font-medium">Search</Label>
+                <Input
+                  id="search"
+                  placeholder="Search by name, email, or consultation type..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+              <div className="w-full sm:w-48">
+                <Label htmlFor="status" className="text-sm font-medium">Status</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="confirmed">Confirmed</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Appointments Table */}
         <Card>
           <CardHeader>
             <CardTitle>All Appointments</CardTitle>
+            <CardDescription>
+              Complete list of consultation appointments with client details
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Preferred Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Booked</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAppointments.map((appointment) => (
-                  <TableRow key={appointment.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{appointment.fullName}</div>
-                        <div className="text-sm text-muted-foreground">
-                          @{appointment.user?.username || 'N/A'} • {appointment.user?.analysisCount || 0}/{appointment.user?.maxAnalyses || 0} analyses
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Client</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Preferred Date</TableHead>
+                    <TableHead>Consultation Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Booked</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredAppointments.map((appointment) => (
+                    <TableRow key={appointment.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{appointment.fullName}</div>
+                          {appointment.user && (
+                            <div className="text-sm text-gray-600">
+                              @{appointment.user.username}
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div>{appointment.email}</div>
-                        <div className="text-muted-foreground">{appointment.phoneNumber}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(appointment.preferredDate), 'MMM dd, yyyy')}
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(appointment.status)}
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(appointment.createdAt), 'MMM dd, yyyy')}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center text-sm">
+                            <Mail className="h-3 w-3 mr-1" />
+                            {appointment.email}
+                          </div>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <Phone className="h-3 w-3 mr-1" />
+                            {appointment.phoneNumber}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center text-sm">
+                            <Calendar className="h-3 w-3 mr-1" />
+                            {format(new Date(appointment.preferredDate), "MMM dd, yyyy")}
+                          </div>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {appointment.preferredTime}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {appointment.consultationType}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadgeVariant(appointment.status)}>
+                          {getStatusIcon(appointment.status)}
+                          <span className="ml-1">{appointment.status}</span>
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {format(new Date(appointment.createdAt), "MMM dd, yyyy")}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
-                          onClick={() => handleViewDetails(appointment)}
+                          onClick={() => openAppointmentDetails(appointment)}
                         >
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </Button>
-                        {appointment.status === 'pending' && (
-                          <>
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={() => handleStatusUpdate(appointment.id, 'confirmed')}
-                              disabled={updateStatusMutation.isPending}
-                            >
-                              Confirm
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleStatusUpdate(appointment.id, 'cancelled')}
-                              disabled={updateStatusMutation.isPending}
-                            >
-                              Cancel
-                            </Button>
-                          </>
-                        )}
-                        {appointment.status === 'confirmed' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleStatusUpdate(appointment.id, 'completed')}
-                            disabled={updateStatusMutation.isPending}
-                          >
-                            Mark Complete
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 
         {/* Appointment Details Dialog */}
-        <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-          <DialogContent className="max-w-2xl">
+        <Dialog open={appointmentDetailsOpen} onOpenChange={setAppointmentDetailsOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
             <DialogHeader>
               <DialogTitle>Appointment Details</DialogTitle>
+              <DialogDescription>
+                Complete consultation appointment information for {selectedAppointment?.fullName}
+              </DialogDescription>
             </DialogHeader>
+            
             {selectedAppointment && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="font-semibold mb-3">Client Information</h3>
-                    <div className="space-y-2">
-                      <p><strong>Name:</strong> {selectedAppointment.fullName}</p>
-                      <p><strong>Email:</strong> {selectedAppointment.email}</p>
-                      <p><strong>Phone:</strong> {selectedAppointment.phoneNumber}</p>
-                      <p><strong>Username:</strong> @{selectedAppointment.user?.username || 'N/A'}</p>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-3">Appointment Details</h3>
-                    <div className="space-y-2">
-                      <p><strong>Preferred Date:</strong> {format(new Date(selectedAppointment.preferredDate), 'PPP')}</p>
-                      <p><strong>Status:</strong> {getStatusBadge(selectedAppointment.status)}</p>
-                      <p><strong>Booked:</strong> {format(new Date(selectedAppointment.createdAt), 'PPpp')}</p>
-                      <p><strong>User Analyses:</strong> {selectedAppointment.user?.analysisCount || 0}/{selectedAppointment.user?.maxAnalyses || 0}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="font-semibold mb-3">Message</h3>
-                  <div className="bg-muted rounded-lg p-4">
-                    <p className="text-sm whitespace-pre-wrap">{selectedAppointment.message}</p>
-                  </div>
-                </div>
+              <Tabs defaultValue="details" className="space-y-4">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="details">Details</TabsTrigger>
+                  <TabsTrigger value="client">Client Info</TabsTrigger>
+                  <TabsTrigger value="management">Management</TabsTrigger>
+                </TabsList>
 
-                <div className="flex justify-end space-x-2">
-                  {selectedAppointment.status === 'pending' && (
-                    <>
-                      <Button
-                        onClick={() => {
-                          handleStatusUpdate(selectedAppointment.id, 'confirmed');
-                          setIsDetailsOpen(false);
-                        }}
-                        disabled={updateStatusMutation.isPending}
-                      >
-                        Confirm Appointment
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => {
-                          handleStatusUpdate(selectedAppointment.id, 'cancelled');
-                          setIsDetailsOpen(false);
-                        }}
-                        disabled={updateStatusMutation.isPending}
-                      >
-                        Cancel Appointment
-                      </Button>
-                    </>
-                  )}
-                  {selectedAppointment.status === 'confirmed' && (
-                    <Button
-                      onClick={() => {
-                        handleStatusUpdate(selectedAppointment.id, 'completed');
-                        setIsDetailsOpen(false);
-                      }}
-                      disabled={updateStatusMutation.isPending}
-                    >
-                      Mark as Completed
-                    </Button>
-                  )}
-                </div>
-              </div>
+                <TabsContent value="details" className="space-y-4">
+                  <ScrollArea className="h-[500px] pr-4">
+                    <div className="space-y-6">
+                      {/* Appointment Information */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Appointment Information</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-sm font-medium">Client Name</Label>
+                            <p className="text-sm text-gray-600">{selectedAppointment.fullName}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Consultation Type</Label>
+                            <p className="text-sm text-gray-600">{selectedAppointment.consultationType}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Preferred Date</Label>
+                            <p className="text-sm text-gray-600">
+                              {format(new Date(selectedAppointment.preferredDate), "PPP")}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Preferred Time</Label>
+                            <p className="text-sm text-gray-600">{selectedAppointment.preferredTime}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Status</Label>
+                            <div className="mt-1">
+                              <Badge variant={getStatusBadgeVariant(selectedAppointment.status)}>
+                                {getStatusIcon(selectedAppointment.status)}
+                                <span className="ml-1">{selectedAppointment.status}</span>
+                              </Badge>
+                            </div>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Booking Date</Label>
+                            <p className="text-sm text-gray-600">
+                              {format(new Date(selectedAppointment.createdAt), "PPP")}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Message */}
+                      {selectedAppointment.message && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-3">Message</h3>
+                          <div className="bg-gray-50 p-4 rounded-lg">
+                            <p className="text-sm text-gray-700">{selectedAppointment.message}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+
+                <TabsContent value="client" className="space-y-4">
+                  <ScrollArea className="h-[500px] pr-4">
+                    <div className="space-y-6">
+                      {/* Contact Information */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Contact Information</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-sm font-medium">Email</Label>
+                            <p className="text-sm text-gray-600">{selectedAppointment.email}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Phone Number</Label>
+                            <p className="text-sm text-gray-600">{selectedAppointment.phoneNumber}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* User Account Information */}
+                      {selectedAppointment.user && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-3">User Account</h3>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label className="text-sm font-medium">Username</Label>
+                              <p className="text-sm text-gray-600">@{selectedAppointment.user.username}</p>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium">Full Name</Label>
+                              <p className="text-sm text-gray-600">
+                                {selectedAppointment.user.firstName} {selectedAppointment.user.lastName}
+                              </p>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium">Account Email</Label>
+                              <p className="text-sm text-gray-600">{selectedAppointment.user.email}</p>
+                            </div>
+                            <div>
+                              <Label className="text-sm font-medium">Location</Label>
+                              <p className="text-sm text-gray-600">
+                                {selectedAppointment.user.city}, {selectedAppointment.user.country}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+
+                <TabsContent value="management" className="space-y-4">
+                  <ScrollArea className="h-[500px] pr-4">
+                    <div className="space-y-6">
+                      {/* Status Management */}
+                      <div>
+                        <Label className="text-sm font-medium">Appointment Status</Label>
+                        <div className="flex items-center space-x-2 mt-2">
+                          {editingField === "status" ? (
+                            <>
+                              <Select value={editValue} onValueChange={setEditValue}>
+                                <SelectTrigger className="w-40">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pending">Pending</SelectItem>
+                                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                                  <SelectItem value="completed">Completed</SelectItem>
+                                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button size="sm" onClick={handleSave} disabled={updateStatusMutation.isPending}>
+                                Save
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={handleCancel}>
+                                Cancel
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <Badge variant={getStatusBadgeVariant(selectedAppointment.status)}>
+                                {getStatusIcon(selectedAppointment.status)}
+                                <span className="ml-1">{selectedAppointment.status}</span>
+                              </Badge>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEdit("status", selectedAppointment.status)}
+                              >
+                                <Edit className="h-3 w-3 mr-1" />
+                                Edit Status
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Actions */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Quick Actions</h3>
+                        <div className="space-y-2">
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                if (selectedAppointment.status !== "confirmed") {
+                                  updateStatusMutation.mutate({ 
+                                    appointmentId: selectedAppointment.id, 
+                                    status: "confirmed" 
+                                  });
+                                }
+                              }}
+                              disabled={selectedAppointment.status === "confirmed"}
+                            >
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Confirm Appointment
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                if (selectedAppointment.status !== "completed") {
+                                  updateStatusMutation.mutate({ 
+                                    appointmentId: selectedAppointment.id, 
+                                    status: "completed" 
+                                  });
+                                }
+                              }}
+                              disabled={selectedAppointment.status === "completed"}
+                            >
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Mark Complete
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+              </Tabs>
             )}
           </DialogContent>
         </Dialog>

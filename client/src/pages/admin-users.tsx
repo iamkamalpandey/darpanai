@@ -70,10 +70,7 @@ export default function AdminUsers() {
   // Update user max analyses mutation
   const updateMaxAnalysesMutation = useMutation({
     mutationFn: (data: { userId: number; maxAnalyses: number }) =>
-      apiRequest(`/api/admin/users/${data.userId}/max-analyses`, {
-        method: "PATCH",
-        body: { maxAnalyses: data.maxAnalyses },
-      }),
+      apiRequest(`/api/admin/users/${data.userId}/max-analyses`, "PATCH", { maxAnalyses: data.maxAnalyses }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({ title: "Success", description: "Analysis limit updated successfully" });
@@ -87,10 +84,7 @@ export default function AdminUsers() {
   // Update user role mutation
   const updateRoleMutation = useMutation({
     mutationFn: (data: { userId: number; role: string }) =>
-      apiRequest(`/api/admin/users/${data.userId}/role`, {
-        method: "PATCH",
-        body: { role: data.role },
-      }),
+      apiRequest(`/api/admin/users/${data.userId}/role`, "PATCH", { role: data.role }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({ title: "Success", description: "User role updated successfully" });
@@ -104,10 +98,7 @@ export default function AdminUsers() {
   // Update user status mutation
   const updateStatusMutation = useMutation({
     mutationFn: (data: { userId: number; status: string }) =>
-      apiRequest(`/api/admin/users/${data.userId}/status`, {
-        method: "PATCH",
-        body: { status: data.status },
-      }),
+      apiRequest(`/api/admin/users/${data.userId}/status`, "PATCH", { status: data.status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({ title: "Success", description: "User status updated successfully" });
