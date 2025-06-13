@@ -38,6 +38,7 @@ import {
   Edit,
   Eye,
 } from "lucide-react";
+import { AnalysisDetailView } from "@/components/AnalysisDetailView";
 
 interface UserData {
   id: number;
@@ -58,11 +59,22 @@ interface UserDetails extends UserData {
   appointments: any[];
 }
 
+interface Analysis {
+  id: number;
+  userId: number;
+  fileName: string;
+  analysisResults: any;
+  createdAt: string;
+  isPublic: boolean;
+}
+
 export default function AdminDashboard() {
   const { toast } = useToast();
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
   const [newMaxAnalyses, setNewMaxAnalyses] = useState<number>(0);
   const [userDetailsOpen, setUserDetailsOpen] = useState(false);
+  const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis | null>(null);
+  const [analysisDetailsOpen, setAnalysisDetailsOpen] = useState(false);
 
   // Fetch all users
   const { data: users, isLoading } = useQuery<UserData[]>({
@@ -120,6 +132,20 @@ export default function AdminDashboard() {
   const handleViewUserDetails = (user: UserData) => {
     setSelectedUser(user);
     setUserDetailsOpen(true);
+  };
+
+  const handleViewAnalysisDetails = (analysis: any) => {
+    // Convert the analysis data to match the expected format
+    const formattedAnalysis: Analysis = {
+      id: analysis.id,
+      userId: analysis.userId || selectedUser?.id || 0,
+      fileName: analysis.filename || analysis.fileName || 'Unknown File',
+      analysisResults: analysis.analysisResults || JSON.parse(analysis.results || '{}'),
+      createdAt: analysis.createdAt,
+      isPublic: analysis.isPublic || false,
+    };
+    setSelectedAnalysis(formattedAnalysis);
+    setAnalysisDetailsOpen(true);
   };
 
   const stats = users ? {
@@ -347,6 +373,7 @@ export default function AdminDashboard() {
                             <TableHead>File</TableHead>
                             <TableHead>Date</TableHead>
                             <TableHead>Summary</TableHead>
+                            <TableHead>Actions</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -355,6 +382,16 @@ export default function AdminDashboard() {
                               <TableCell className="font-medium">{analysis.filename}</TableCell>
                               <TableCell>{new Date(analysis.createdAt).toLocaleDateString()}</TableCell>
                               <TableCell className="max-w-xs truncate">{analysis.summary}</TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleViewAnalysisDetails(analysis)}
+                                >
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  View
+                                </Button>
+                              </TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -400,6 +437,31 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Analysis Details Modal */}
+        <Dialog open={analysisDetailsOpen} onOpenChange={setAnalysisDetailsOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Analysis Details</DialogTitle>
+              <DialogDescription>
+                Detailed visa rejection analysis results
+              </DialogDescription>
+            </DialogHeader>
+            {selectedAnalysis && (
+              <AnalysisDetailView 
+                analysis={{
+                  ...selectedAnalysis,
+                  user: {
+                    username: selectedUser?.username || 'Unknown',
+                    fullName: selectedUser?.fullName || 'Unknown User',
+                    email: selectedUser?.email || 'Unknown'
+                  }
+                }} 
+                showUserInfo={true} 
+              />
             )}
           </DialogContent>
         </Dialog>
