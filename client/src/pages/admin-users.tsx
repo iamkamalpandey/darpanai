@@ -65,9 +65,16 @@ export default function AdminUsers() {
     queryKey: ["/api/admin/users"],
   });
 
-  // Fetch user analyses when user is selected
+  // Fetch user analyses when user is selected (admin access to all analyses)
   const { data: userAnalyses = [] } = useQuery<AnalysisData[]>({
-    queryKey: ["/api/analyses", selectedUser?.id],
+    queryKey: ["/api/admin/users", selectedUser?.id, "analyses"],
+    queryFn: async () => {
+      if (!selectedUser?.id) return [];
+      const response = await fetch(`/api/admin/users/${selectedUser.id}`);
+      if (!response.ok) throw new Error('Failed to fetch user data');
+      const userData = await response.json();
+      return userData.analyses || [];
+    },
     enabled: !!selectedUser?.id,
   });
 
@@ -598,6 +605,17 @@ export default function AdminUsers() {
                 </TabsContent>
 
                 <TabsContent value="analyses" className="space-y-4">
+                  {/* Admin Access Notice */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                    <div className="flex items-start gap-2">
+                      <Shield className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-sm">
+                        <p className="font-medium text-blue-900">Administrator Access</p>
+                        <p className="text-blue-700">You have access to all user analyses regardless of privacy settings for administrative purposes.</p>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <ScrollArea className="h-[500px] pr-4">
                     {userAnalyses.length > 0 ? (
                       <div className="space-y-4">
