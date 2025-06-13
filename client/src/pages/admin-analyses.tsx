@@ -13,7 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Eye, Download, User, Calendar, CheckCircle, AlertTriangle, Info, TrendingUp, Filter } from "lucide-react";
+import { FileText, Eye, Download, User, Calendar, CheckCircle, AlertTriangle, Info, TrendingUp, Filter, Shield } from "lucide-react";
 import { format, isAfter, parseISO, subDays, subMonths, subYears } from "date-fns";
 
 interface AnalysisData {
@@ -25,7 +25,8 @@ interface AnalysisData {
     rejectionReasons?: Array<{
       title: string;
       description: string;
-      severity: 'high' | 'medium' | 'low';
+      category?: string;
+      severity?: 'high' | 'medium' | 'low';
     }>;
     recommendations?: Array<{
       title: string;
@@ -388,9 +389,9 @@ export default function AdminAnalyses() {
                         <div className="space-y-1">
                           {analysis.analysisResults?.rejectionReasons?.slice(0, 2).map((reason, idx) => (
                             <div key={idx} className="flex items-center">
-                              <Badge variant={getSeverityBadgeVariant(reason.severity)} className="mr-1">
-                                {getSeverityIcon(reason.severity)}
-                                <span className="ml-1 text-xs">{reason.severity}</span>
+                              <Badge variant={getCategoryBadgeVariant(reason.category || reason.severity || 'general')} className="mr-1">
+                                {getCategoryIcon(reason.category || reason.severity || 'general')}
+                                <span className="ml-1 text-xs">{formatCategoryName(reason.category || reason.severity || 'general')}</span>
                               </Badge>
                             </div>
                           ))}
@@ -511,9 +512,9 @@ export default function AdminAnalyses() {
                             <CardHeader className="pb-3">
                               <div className="flex justify-between items-start">
                                 <CardTitle className="text-base">{reason.title}</CardTitle>
-                                <Badge variant={getSeverityBadgeVariant(reason.severity)}>
-                                  {getSeverityIcon(reason.severity)}
-                                  <span className="ml-1">{reason.severity}</span>
+                                <Badge variant={getCategoryBadgeVariant(reason.category || reason.severity || 'general')}>
+                                  {getCategoryIcon(reason.category || reason.severity || 'general')}
+                                  <span className="ml-1">{formatCategoryName(reason.category || reason.severity || 'general')}</span>
                                 </Badge>
                               </div>
                             </CardHeader>

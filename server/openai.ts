@@ -11,13 +11,14 @@ Please analyze the following visa rejection letter and provide a comprehensive a
 
 Your analysis should include:
 1. A brief summary of why the visa was rejected
-2. Specific reasons for rejection with their severity level (high, medium, or low)
+2. Specific reasons for rejection with their category (financial, documentation, eligibility, academic, immigration_history, ties_to_home, credibility, or general)
 3. Personalized recommendations to address each rejection reason
 4. Suggested next steps for reapplication
 
 IMPORTANT: 
 - Focus only on the content of the rejection letter. Do not make assumptions beyond what is stated.
 - Be specific and actionable in your recommendations.
+- Categorize rejection reasons appropriately: financial (funds/sponsorship), documentation (missing/inadequate documents), eligibility (course/institution issues), academic (qualifications), immigration_history (previous refusals/violations), ties_to_home (intention to return), credibility (truthfulness concerns), general (other issues)
 - Format your response as a JSON object with the following structure:
 {
   "summary": "Brief summary of why the visa was rejected",
@@ -25,7 +26,7 @@ IMPORTANT:
     {
       "title": "Reason title",
       "description": "Detailed explanation of the reason",
-      "severity": "high|medium|low"
+      "category": "financial|documentation|eligibility|academic|immigration_history|ties_to_home|credibility|general"
     }
   ],
   "recommendations": [

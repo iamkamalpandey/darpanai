@@ -133,7 +133,8 @@ export const analysisResponseSchema = z.object({
   rejectionReasons: z.array(z.object({
     title: z.string(),
     description: z.string(),
-    severity: z.enum(["high", "medium", "low"]),
+    category: z.enum(["financial", "documentation", "eligibility", "academic", "immigration_history", "ties_to_home", "credibility", "general"]),
+    severity: z.enum(["high", "medium", "low"]).optional(), // Keep for backward compatibility
   })),
   recommendations: z.array(z.object({
     title: z.string(),
