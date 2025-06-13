@@ -428,6 +428,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to convert data to CSV format
+  function convertToCSV(data: any[], filename: string): string {
+    if (!data || data.length === 0) {
+      return '';
+    }
+
+    let headers: string[] = [];
+    let rows: string[] = [];
+
+    if (filename === 'users') {
+      headers = ['ID', 'Username', 'Email', 'Full Name', 'Qualification', 'Graduation Year', 'Phone Number', 'Role', 'Analysis Count', 'Max Analyses', 'Created At'];
+      rows = data.map(user => [
+        user.id,
+        user.username,
+        user.email,
+        user.fullName || '',
+        user.qualification || '',
+        user.graduationYear || '',
+        user.phoneNumber || '',
+        user.role,
+        user.analysisCount,
+        user.maxAnalyses,
+        new Date(user.createdAt).toISOString()
+      ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(','));
+    } else if (filename === 'analyses') {
+      headers = ['ID', 'User ID', 'File Name', 'Summary', 'Created At', 'Is Public'];
+      rows = data.map(analysis => [
+        analysis.id,
+        analysis.userId || '',
+        analysis.filename || analysis.fileName || '',
+        (analysis.summary || '').replace(/\n/g, ' ').substring(0, 500),
+        new Date(analysis.createdAt).toISOString(),
+        analysis.isPublic ? 'Yes' : 'No'
+      ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(','));
+    } else if (filename === 'appointments') {
+      headers = ['ID', 'User ID', 'Name', 'Email', 'Phone Number', 'Preferred Contact', 'Subject', 'Message', 'Requested Date', 'Status', 'Created At'];
+      rows = data.map(appointment => [
+        appointment.id,
+        appointment.userId,
+        appointment.name,
+        appointment.email,
+        appointment.phoneNumber || '',
+        appointment.preferredContact,
+        appointment.subject,
+        (appointment.message || '').replace(/\n/g, ' ').substring(0, 200),
+        appointment.requestedDate ? new Date(appointment.requestedDate).toISOString() : '',
+        appointment.status,
+        new Date(appointment.createdAt).toISOString()
+      ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(','));
+    }
+
+    return [headers.join(','), ...rows].join('\n');
+  }
+
+  // Export users data (admin only)
+  app.get('/api/admin/export/users', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const format = req.query.format as string;
+      const users = await storage.getAllUsers();
+      
+      // Remove password from exported data
+      const safeUsers = users.map(user => {
+        const { password, ...safeUser } = user;
+        return safeUser;
+      });
+
+      if (format === 'csv') {
+        const csv = convertToCSV(safeUsers, 'users');
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="users-export.csv"');
+        return res.send(csv);
+      } else {
+        return res.json(safeUsers);
+      }
+    } catch (error) {
+      console.error('Error exporting users:', error);
+      return res.status(500).json({ error: 'Failed to export users data' });
+    }
+  });
+
+  // Export analyses data (admin only)
+  app.get('/api/admin/export/analyses', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const format = req.query.format as string;
+      const analyses = await storage.getAllAnalyses();
+
+      if (format === 'csv') {
+        const csv = convertToCSV(analyses, 'analyses');
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="analyses-export.csv"');
+        return res.send(csv);
+      } else {
+        return res.json(analyses);
+      }
+    } catch (error) {
+      console.error('Error exporting analyses:', error);
+      return res.status(500).json({ error: 'Failed to export analyses data' });
+    }
+  });
+
+  // Export appointments data (admin only)
+  app.get('/api/admin/export/appointments', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const format = req.query.format as string;
+      const appointments = await storage.getAllAppointmentsWithUsers();
+
+      if (format === 'csv') {
+        const csv = convertToCSV(appointments, 'appointments');
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="appointments-export.csv"');
+        return res.send(csv);
+      } else {
+        return res.json(appointments);
+      }
+    } catch (error) {
+      console.error('Error exporting appointments:', error);
+      return res.status(500).json({ error: 'Failed to export appointments data' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

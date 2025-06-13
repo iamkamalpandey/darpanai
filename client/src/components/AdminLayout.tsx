@@ -120,15 +120,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               href="/admin/settings"
               active={location === "/admin/settings"}
             />
-            
-            <div className="border-t pt-4 mt-4">
-              <AdminSidebarItem
-                icon={<Home className="h-5 w-5" />}
-                label="Back to User Panel"
-                href="/"
-                active={false}
-              />
-            </div>
           </nav>
 
           <div className="mt-auto border-t pt-4">

@@ -43,21 +43,33 @@ export default function AdminSettings() {
 
   const exportDataMutation = useMutation({
     mutationFn: async (dataType: string) => {
-      const response = await apiRequest("GET", `/api/admin/export/${dataType}`);
-      return response.blob();
+      const response = await fetch(`/api/admin/export/${dataType}?format=csv`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'text/csv',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Export failed: ${response.statusText}`);
+      }
+      
+      const blob = await response.blob();
+      return { blob, dataType };
     },
-    onSuccess: (blob, dataType) => {
+    onSuccess: ({ blob, dataType }) => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${dataType}-export-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `${dataType}-export-${new Date().toISOString().split('T')[0]}.csv`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       toast({
         title: "Success",
-        description: `${dataType} data exported successfully`,
+        description: `${dataType} data exported successfully as CSV`,
       });
     },
     onError: (error: Error) => {
