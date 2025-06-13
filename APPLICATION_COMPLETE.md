@@ -133,8 +133,8 @@ appointments (id, user_id, full_name, email, phone_number, preferred_date, messa
 ### Environment Variables
 ```env
 DATABASE_URL=postgresql://user:pass@host:port/db
-OPENAI_API_KEY=sk-your-openai-api-key
-SESSION_SECRET=secure-random-string
+OPENAI_API_KEY=your_openai_api_key_here
+SESSION_SECRET=your_secure_session_secret_here
 ```
 
 ### Quick Start

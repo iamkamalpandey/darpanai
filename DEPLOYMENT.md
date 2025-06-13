@@ -10,7 +10,7 @@
 DATABASE_URL=postgresql://user:password@host:port/database
 
 # OpenAI Integration
-OPENAI_API_KEY=sk-your-openai-api-key
+OPENAI_API_KEY=your_openai_api_key_here
 
 # Security
 SESSION_SECRET=your-secure-random-string-here
