@@ -148,22 +148,37 @@ export default function AdminAnalyses() {
     return isPublic ? "default" : "secondary";
   };
 
-  const getSeverityBadgeVariant = (severity: 'high' | 'medium' | 'low') => {
-    switch (severity) {
-      case "high": return "destructive";
-      case "medium": return "secondary";
-      case "low": return "outline";
+  const getCategoryBadgeVariant = (category: string) => {
+    switch (category.toLowerCase()) {
+      case "financial": return "destructive";
+      case "documentation": return "secondary";
+      case "eligibility": return "outline";
+      case "academic": return "default";
+      case "immigration_history": return "secondary";
+      case "ties_to_home": return "outline";
+      case "credibility": return "destructive";
+      case "general": return "outline";
       default: return "outline";
     }
   };
 
-  const getSeverityIcon = (severity: 'high' | 'medium' | 'low') => {
-    switch (severity) {
-      case "high": return <AlertTriangle className="h-3 w-3" />;
-      case "medium": return <Info className="h-3 w-3" />;
-      case "low": return <CheckCircle className="h-3 w-3" />;
+  const getCategoryIcon = (category: string) => {
+    switch (category.toLowerCase()) {
+      case "financial": return <AlertTriangle className="h-3 w-3" />;
+      case "documentation": return <FileText className="h-3 w-3" />;
+      case "eligibility": return <Info className="h-3 w-3" />;
+      case "academic": return <CheckCircle className="h-3 w-3" />;
+      case "immigration_history": return <AlertTriangle className="h-3 w-3" />;
+      case "ties_to_home": return <Info className="h-3 w-3" />;
+      case "credibility": return <AlertTriangle className="h-3 w-3" />;
       default: return <Info className="h-3 w-3" />;
     }
+  };
+
+  const formatCategoryName = (category: string) => {
+    return category.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
   };
 
   if (isLoading) {
@@ -186,12 +201,26 @@ export default function AdminAnalyses() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Analysis Reports</h1>
-            <p className="text-gray-600">Monitor and manage all visa rejection analysis reports</p>
+            <p className="text-gray-600">Monitor and manage ALL user analyses (admin access overrides privacy settings)</p>
           </div>
           <Button onClick={exportAnalysesCSV} variant="outline">
             <Download className="h-4 w-4 mr-2" />
             Export CSV
           </Button>
+        </div>
+
+        {/* Admin Access Notice */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <Shield className="h-5 w-5 text-blue-600 mr-2" />
+            <div>
+              <h3 className="font-medium text-blue-900">Administrative Access</h3>
+              <p className="text-sm text-blue-700">
+                As an admin, you have full access to ALL user analyses including those marked as "Private" by users. 
+                User privacy settings do not apply to administrative access.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Statistics Cards */}
@@ -303,7 +332,7 @@ export default function AdminAnalyses() {
           <CardHeader>
             <CardTitle>Analysis Reports</CardTitle>
             <CardDescription>
-              Complete list of visa rejection analysis reports with user details
+              Complete list of ALL visa rejection analysis reports with user details (includes both public and private analyses)
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -315,7 +344,7 @@ export default function AdminAnalyses() {
                     <TableHead>User</TableHead>
                     <TableHead>Analysis Summary</TableHead>
                     <TableHead>Rejection Issues</TableHead>
-                    <TableHead>Visibility</TableHead>
+                    <TableHead>User Privacy Setting</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
