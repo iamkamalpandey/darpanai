@@ -48,6 +48,10 @@ export interface IStorage {
   updateUserStatus(userId: number, status: string): Promise<User | undefined>;
   incrementUserAnalysisCount(userId: number): Promise<User | undefined>;
   
+  // Email verification methods
+  getUserByVerificationToken(token: string): Promise<User | undefined>;
+  verifyUserEmail(userId: number): Promise<User | undefined>;
+  
   // Analysis methods
   saveAnalysis(analysis: InsertAnalysis, userId?: number): Promise<Analysis>;
   getAnalysis(id: number): Promise<Analysis | undefined>;
