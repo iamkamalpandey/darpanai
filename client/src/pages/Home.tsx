@@ -217,7 +217,7 @@ export default function Home() {
                         {analysis.isPublic ? "Public" : "Private"}
                       </Badge>
                       <Link href="/history">
-                        <Button variant="ghost" size="sm">
+                        <Button variant="secondary" size="sm">
                           <ArrowRight className="h-3 w-3" />
                         </Button>
                       </Link>
