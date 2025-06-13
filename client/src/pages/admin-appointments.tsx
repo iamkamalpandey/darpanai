@@ -217,16 +217,10 @@ export default function AdminAppointments() {
             <h1 className="text-3xl font-bold tracking-tight">Appointment Management</h1>
             <p className="text-gray-600">Manage consultation bookings and user appointments</p>
           </div>
-          <div className="flex space-x-2">
-            <Button onClick={exportAppointmentsCSV} variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
-            </Button>
-            <Button onClick={exportAppointments} variant="secondary">
-              <Download className="h-4 w-4 mr-2" />
-              Export All
-            </Button>
-          </div>
+          <Button onClick={exportAppointmentsCSV} variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
         </div>
 
         {/* Statistics Cards */}

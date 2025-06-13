@@ -188,16 +188,10 @@ export default function AdminAnalyses() {
             <h1 className="text-3xl font-bold tracking-tight">Analysis Reports</h1>
             <p className="text-gray-600">Monitor and manage all visa rejection analysis reports</p>
           </div>
-          <div className="flex space-x-2">
-            <Button onClick={exportAnalysesCSV} variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
-            </Button>
-            <Button onClick={exportAnalyses} variant="secondary">
-              <Download className="h-4 w-4 mr-2" />
-              Export All
-            </Button>
-          </div>
+          <Button onClick={exportAnalysesCSV} variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
         </div>
 
         {/* Statistics Cards */}

@@ -274,16 +274,10 @@ export default function AdminUsers() {
             <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
             <p className="text-gray-600">Manage user accounts, roles, and permissions</p>
           </div>
-          <div className="flex space-x-2">
-            <Button onClick={exportUsersCSV} variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
-            </Button>
-            <Button onClick={exportUsers} variant="secondary">
-              <Download className="h-4 w-4 mr-2" />
-              Export All
-            </Button>
-          </div>
+          <Button onClick={exportUsersCSV} variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
         </div>
 
         {/* Filters */}
