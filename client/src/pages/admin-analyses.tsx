@@ -387,14 +387,17 @@ export default function AdminAnalyses() {
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          {analysis.analysisResults?.rejectionReasons?.slice(0, 2).map((reason, idx) => (
-                            <div key={idx} className="flex items-center">
-                              <Badge variant={getCategoryBadgeVariant(reason.category || reason.severity || 'general')} className="mr-1">
-                                {getCategoryIcon(reason.category || reason.severity || 'general')}
-                                <span className="ml-1 text-xs">{formatCategoryName(reason.category || reason.severity || 'general')}</span>
-                              </Badge>
-                            </div>
-                          ))}
+                          {analysis.analysisResults?.rejectionReasons?.slice(0, 2).map((reason, idx) => {
+                            const categoryOrSeverity = (reason as any).category || (reason as any).severity || 'general';
+                            return (
+                              <div key={idx} className="flex items-center">
+                                <Badge variant={getCategoryBadgeVariant(categoryOrSeverity)} className="mr-1">
+                                  {getCategoryIcon(categoryOrSeverity)}
+                                  <span className="ml-1 text-xs">{formatCategoryName(categoryOrSeverity)}</span>
+                                </Badge>
+                              </div>
+                            );
+                          })}
                           {(analysis.analysisResults?.rejectionReasons?.length || 0) > 2 && (
                             <div className="text-xs text-gray-500">
                               +{(analysis.analysisResults?.rejectionReasons?.length || 0) - 2} more
@@ -512,9 +515,9 @@ export default function AdminAnalyses() {
                             <CardHeader className="pb-3">
                               <div className="flex justify-between items-start">
                                 <CardTitle className="text-base">{reason.title}</CardTitle>
-                                <Badge variant={getCategoryBadgeVariant(reason.category || reason.severity || 'general')}>
-                                  {getCategoryIcon(reason.category || reason.severity || 'general')}
-                                  <span className="ml-1">{formatCategoryName(reason.category || reason.severity || 'general')}</span>
+                                <Badge variant={getCategoryBadgeVariant((reason as any).category || (reason as any).severity || 'general')}>
+                                  {getCategoryIcon((reason as any).category || (reason as any).severity || 'general')}
+                                  <span className="ml-1">{formatCategoryName((reason as any).category || (reason as any).severity || 'general')}</span>
                                 </Badge>
                               </div>
                             </CardHeader>

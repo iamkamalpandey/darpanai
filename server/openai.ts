@@ -71,6 +71,10 @@ export async function analyzeRejectionLetter(letterText: string): Promise<Analys
 
     const analysisText = response.choices[0].message.content;
     
+    if (!analysisText) {
+      throw new Error('No analysis content received from OpenAI');
+    }
+    
     // Parse the JSON response
     const analysis: AnalysisResponse = JSON.parse(analysisText);
     
