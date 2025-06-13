@@ -35,25 +35,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Admin Access - Only visible to admin users */}
-        {user?.role === "admin" && (
-          <div className="rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 p-6 border border-blue-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-blue-900">Admin Access</h3>
-                <p className="text-blue-700 text-sm">
-                  Manage users, view system analytics, and configure settings
-                </p>
-              </div>
-              <Link href="/admin">
-                <Button className="bg-blue-600 hover:bg-blue-700 gap-2">
-                  <Shield className="h-4 w-4" />
-                  <span>Admin Panel</span>
-                </Button>
-              </Link>
-            </div>
-          </div>
-        )}
+
 
         {/* Explanation */}
         <div className="text-center max-w-3xl mx-auto my-8">

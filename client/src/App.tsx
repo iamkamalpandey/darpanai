@@ -4,7 +4,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/use-auth";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { UserProtectedRoute } from "@/components/UserProtectedRoute";
+import { AdminProtectedRoute } from "@/components/AdminProtectedRoute";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import VisaAnalyzer from "@/pages/VisaAnalyzer";
@@ -19,12 +20,14 @@ function Router() {
       {/* Public Routes */}
       <Route path="/auth" component={AuthPage} />
       
-      {/* Protected Routes */}
-      <ProtectedRoute path="/" component={Home} />
-      <ProtectedRoute path="/analyzer" component={VisaAnalyzer} />
-      <ProtectedRoute path="/history" component={AnalysisHistory} />
-      <ProtectedRoute path="/consultations" component={ConsultationsPage} />
-      <ProtectedRoute path="/admin" component={AdminDashboard} />
+      {/* User Routes - Only accessible by regular users */}
+      <UserProtectedRoute path="/" component={Home} />
+      <UserProtectedRoute path="/analyzer" component={VisaAnalyzer} />
+      <UserProtectedRoute path="/history" component={AnalysisHistory} />
+      <UserProtectedRoute path="/consultations" component={ConsultationsPage} />
+      
+      {/* Admin Routes - Only accessible by admin users */}
+      <AdminProtectedRoute path="/admin" component={AdminDashboard} />
       
       {/* 404 Route */}
       <Route component={NotFound} />
