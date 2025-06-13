@@ -2,18 +2,27 @@ import { pgTable, text, serial, integer, boolean, jsonb, timestamp, primaryKey }
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Enhanced User Model with additional fields
+// Enhanced User Model for Student Information
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   email: text("email").notNull().unique(),
-  fullName: text("full_name").notNull(),
-  qualification: text("qualification"),
-  graduationYear: text("graduation_year"),
-  phoneNumber: text("phone_number"),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  phoneNumber: text("phone_number").notNull(),
+  studyDestination: text("study_destination").notNull(), // Country preference
+  startDate: text("start_date").notNull(), // When they want to start
+  city: text("city").notNull(),
+  country: text("country").notNull(),
+  counsellingMode: text("counselling_mode").notNull(), // online, in-person, phone
+  fundingSource: text("funding_source").notNull(), // self-funded, scholarship, loan, family
+  studyLevel: text("study_level").notNull(), // bachelor, master, phd, diploma, certificate
+  agreeToTerms: boolean("agree_to_terms").default(false).notNull(),
+  allowContact: boolean("allow_contact").default(false).notNull(),
+  receiveUpdates: boolean("receive_updates").default(false).notNull(),
   role: text("role").default("user").notNull(),
-  status: text("status").default("active").notNull(), // active, inactive, suspended
+  status: text("status").default("active").notNull(),
   analysisCount: integer("analysis_count").default(0).notNull(),
   maxAnalyses: integer("max_analyses").default(3).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -48,15 +57,48 @@ export const appointments = pgTable("appointments", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Schemas for validation and type inference
-export const insertUserSchema = createInsertSchema(users).pick({
+// Base user schema for registration
+const baseUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
   email: true,
-  fullName: true,
-  qualification: true,
-  graduationYear: true,
+  firstName: true,
+  lastName: true,
   phoneNumber: true,
+  studyDestination: true,
+  startDate: true,
+  city: true,
+  country: true,
+  counsellingMode: true,
+  fundingSource: true,
+  studyLevel: true,
+  agreeToTerms: true,
+  allowContact: true,
+  receiveUpdates: true,
+});
+
+// Enhanced schema with password confirmation
+export const insertUserSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(6, "Password confirmation is required"),
+  email: z.string().email("Please enter a valid email address"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  phoneNumber: z.string().min(1, "Mobile number is required"),
+  studyDestination: z.string().min(1, "Please select your preferred study destination"),
+  startDate: z.string().min(1, "Please select when you'd like to start"),
+  city: z.string().min(1, "City is required"),
+  country: z.string().min(1, "Country is required"),
+  counsellingMode: z.string().min(1, "Please select your preferred counselling mode"),
+  fundingSource: z.string().min(1, "Please select how you would fund your education"),
+  studyLevel: z.string().min(1, "Please select your preferred study level"),
+  agreeToTerms: z.boolean().refine(val => val === true, "You must agree to the terms and privacy policy"),
+  allowContact: z.boolean().optional(),
+  receiveUpdates: z.boolean().optional(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 export const loginUserSchema = z.object({
