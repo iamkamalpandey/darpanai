@@ -299,191 +299,7 @@ export default function AdminDashboard() {
     setAnalysisDetailsOpen(true);
   };
 
-  // Generate comprehensive user analysis report
-  const generateUserAnalysisReport = (userDetails: UserDetails) => {
-    const reportDate = new Date().toLocaleDateString();
-    const userName = `${userDetails.firstName || ''} ${userDetails.lastName || ''}`.trim();
-    
-    let reportContent = `USER ANALYSIS REPORT
-Generated: ${reportDate}
-Administrator: Admin Dashboard
 
-==============================
-USER INFORMATION
-==============================
-Name: ${userName}
-Username: @${userDetails.username}
-Email: ${userDetails.email}
-Phone: ${userDetails.phoneNumber || 'Not provided'}
-Role: ${userDetails.role}
-Account Status: ${userDetails.status}
-Joined: ${new Date(userDetails.createdAt).toLocaleDateString()}
-Analysis Usage: ${userDetails.analysisCount} / ${userDetails.maxAnalyses}
-
-==============================
-ANALYSIS SUMMARY
-==============================
-Total Analyses Performed: ${userDetails.analyses.length}
-
-`;
-
-    if (userDetails.analyses.length > 0) {
-      reportContent += `==============================
-DETAILED ANALYSIS HISTORY
-==============================
-
-`;
-      
-      userDetails.analyses.forEach((analysis, index) => {
-        reportContent += `${index + 1}. Analysis #${analysis.id}
-   File: ${analysis.filename || analysis.fileName || 'Unknown File'}
-   Date: ${new Date(analysis.createdAt).toLocaleDateString()}
-   Summary: ${analysis.summary || 'No summary available'}
-   
-`;
-        
-        if (analysis.analysisResults || analysis.results) {
-          const results = analysis.analysisResults || analysis.results;
-          if (results.rejectionReasons && results.rejectionReasons.length > 0) {
-            reportContent += `   Rejection Reasons:\n`;
-            results.rejectionReasons.forEach((reason: any) => {
-              reportContent += `   - ${reason.title}: ${reason.description}\n`;
-            });
-          }
-          
-          if (results.recommendations && results.recommendations.length > 0) {
-            reportContent += `   Recommendations:\n`;
-            results.recommendations.forEach((rec: any) => {
-              reportContent += `   - ${rec.title}: ${rec.description}\n`;
-            });
-          }
-        }
-        reportContent += `\n`;
-      });
-    } else {
-      reportContent += `No analyses have been performed by this user yet.\n\n`;
-    }
-
-    if (userDetails.appointments.length > 0) {
-      reportContent += `==============================
-APPOINTMENT HISTORY
-==============================
-Total Appointments: ${userDetails.appointments.length}
-
-`;
-      userDetails.appointments.forEach((appointment, index) => {
-        reportContent += `${index + 1}. ${appointment.subject || 'Consultation Request'}
-   Date Requested: ${new Date(appointment.requestedDate).toLocaleDateString()}
-   Status: ${appointment.status}
-   Contact Method: ${appointment.preferredContact}
-   
-`;
-      });
-    }
-
-    reportContent += `==============================
-REPORT END
-==============================`;
-
-    // Create and download the report
-    const blob = new Blob([reportContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${userName.replace(/\s+/g, '_')}_Analysis_Report_${reportDate.replace(/\//g, '-')}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    toast({
-      title: "Report Generated",
-      description: `Comprehensive analysis report for ${userName} has been downloaded`,
-    });
-  };
-
-  // Generate single analysis report
-  const generateSingleAnalysisReport = (analysis: any, userDetails: UserDetails) => {
-    const reportDate = new Date().toLocaleDateString();
-    const userName = `${userDetails.firstName || ''} ${userDetails.lastName || ''}`.trim();
-    const fileName = analysis.filename || analysis.fileName || 'Unknown File';
-    
-    let reportContent = `INDIVIDUAL ANALYSIS REPORT
-Generated: ${reportDate}
-User: ${userName} (@${userDetails.username})
-File: ${fileName}
-Analysis Date: ${new Date(analysis.createdAt).toLocaleDateString()}
-
-==============================
-ANALYSIS SUMMARY
-==============================
-${analysis.summary || 'No summary available'}
-
-`;
-
-    const results = analysis.analysisResults || analysis.results;
-    if (results) {
-      if (results.rejectionReasons && results.rejectionReasons.length > 0) {
-        reportContent += `==============================
-REJECTION REASONS
-==============================
-`;
-        results.rejectionReasons.forEach((reason: any, index: number) => {
-          reportContent += `${index + 1}. ${reason.title}
-   Severity: ${reason.severity}
-   Description: ${reason.description}
-
-`;
-        });
-      }
-
-      if (results.recommendations && results.recommendations.length > 0) {
-        reportContent += `==============================
-RECOMMENDATIONS
-==============================
-`;
-        results.recommendations.forEach((rec: any, index: number) => {
-          reportContent += `${index + 1}. ${rec.title}
-   Description: ${rec.description}
-
-`;
-        });
-      }
-
-      if (results.nextSteps && results.nextSteps.length > 0) {
-        reportContent += `==============================
-NEXT STEPS
-==============================
-`;
-        results.nextSteps.forEach((step: any, index: number) => {
-          reportContent += `${index + 1}. ${step.title}
-   Description: ${step.description}
-
-`;
-        });
-      }
-    }
-
-    reportContent += `==============================
-REPORT END
-==============================`;
-
-    // Create and download the report
-    const blob = new Blob([reportContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${fileName.replace(/\.[^/.]+$/, "")}_Analysis_Report_${reportDate.replace(/\//g, '-')}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    toast({
-      title: "Analysis Report Generated",
-      description: `Individual analysis report for "${fileName}" has been downloaded`,
-    });
-  };
 
   const stats = useMemo(() => {
     if (!users || users.length === 0) return null;
@@ -843,7 +659,69 @@ REPORT END
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => generateUserAnalysisReport(userDetails)}
+                        onClick={() => {
+                          const reportDate = new Date().toLocaleDateString();
+                          const userName = `${userDetails.firstName || ''} ${userDetails.lastName || ''}`.trim();
+                          
+                          let reportContent = `USER ANALYSIS REPORT
+Generated: ${reportDate}
+Administrator: Admin Dashboard
+
+==============================
+USER INFORMATION
+==============================
+Name: ${userName}
+Username: @${userDetails.username}
+Email: ${userDetails.email}
+Phone: ${userDetails.phoneNumber || 'Not provided'}
+Role: ${userDetails.role}
+Account Status: ${userDetails.status}
+Joined: ${new Date(userDetails.createdAt).toLocaleDateString()}
+Analysis Usage: ${userDetails.analysisCount} / ${userDetails.maxAnalyses}
+
+==============================
+ANALYSIS SUMMARY
+==============================
+Total Analyses Performed: ${userDetails.analyses.length}
+
+`;
+
+                          if (userDetails.analyses.length > 0) {
+                            reportContent += `==============================
+DETAILED ANALYSIS HISTORY
+==============================
+
+`;
+                            
+                            userDetails.analyses.forEach((analysis, index) => {
+                              reportContent += `${index + 1}. Analysis #${analysis.id}
+   File: ${analysis.filename || analysis.fileName || 'Unknown File'}
+   Date: ${new Date(analysis.createdAt).toLocaleDateString()}
+   Summary: ${analysis.summary || 'No summary available'}
+   
+`;
+                            });
+                          }
+
+                          reportContent += `==============================
+REPORT END
+==============================`;
+
+                          const blob = new Blob([reportContent], { type: 'text/plain' });
+                          const url = URL.createObjectURL(blob);
+                          const link = document.createElement('a');
+                          link.href = url;
+                          link.download = `${userName.replace(/\s+/g, '_')}_Analysis_Report_${reportDate.replace(/\//g, '-')}.txt`;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                          URL.revokeObjectURL(url);
+
+                          toast({
+                            title: "Report Generated",
+                            description: `Comprehensive analysis report for ${userName} has been downloaded`,
+                          });
+                        }}
                         className="flex items-center gap-2"
                       >
                         <Download className="h-4 w-4" />
@@ -890,7 +768,40 @@ REPORT END
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
-                                      generateSingleAnalysisReport(analysis, userDetails);
+                                      
+                                      const reportDate = new Date().toLocaleDateString();
+                                      const userName = `${userDetails.firstName || ''} ${userDetails.lastName || ''}`.trim();
+                                      const fileName = analysis.filename || analysis.fileName || 'Unknown File';
+                                      
+                                      let reportContent = `INDIVIDUAL ANALYSIS REPORT
+Generated: ${reportDate}
+User: ${userName} (@${userDetails.username})
+File: ${fileName}
+Analysis Date: ${new Date(analysis.createdAt).toLocaleDateString()}
+
+==============================
+ANALYSIS SUMMARY
+==============================
+${analysis.summary || 'No summary available'}
+
+==============================
+REPORT END
+==============================`;
+
+                                      const blob = new Blob([reportContent], { type: 'text/plain' });
+                                      const url = URL.createObjectURL(blob);
+                                      const link = document.createElement('a');
+                                      link.href = url;
+                                      link.download = `${fileName.replace(/\.[^/.]+$/, "")}_Analysis_Report_${reportDate.replace(/\//g, '-')}.txt`;
+                                      document.body.appendChild(link);
+                                      link.click();
+                                      document.body.removeChild(link);
+                                      URL.revokeObjectURL(url);
+
+                                      toast({
+                                        title: "Analysis Report Generated",
+                                        description: `Individual analysis report for "${fileName}" has been downloaded`,
+                                      });
                                     }}
                                   >
                                     <Download className="h-4 w-4 mr-1" />
