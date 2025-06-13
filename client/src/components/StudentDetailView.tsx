@@ -2,35 +2,30 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { User, MapPin, GraduationCap, Phone, Mail, Calendar, DollarSign, MessageCircle, Shield } from "lucide-react";
+import { User, MapPin, GraduationCap, Phone, Mail, Calendar, DollarSign, MessageCircle, Shield, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 
 interface StudentDetailViewProps {
-  user: {
-    id: number;
-    username: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    phoneNumber: string;
-    studyDestination: string;
-    studyLevel: string;
-    startDate: string;
-    city: string;
-    country: string;
-    counsellingMode: string;
-    fundingSource: string;
-    role: string;
-    status: string;
-    analysisCount: number;
-    maxAnalyses: number;
-    createdAt: string;
-  } | null;
+  userId: number | null;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function StudentDetailView({ user, isOpen, onClose }: StudentDetailViewProps) {
-  if (!user) return null;
+export function StudentDetailView({ userId, isOpen, onClose }: StudentDetailViewProps) {
+  // Fetch real user data from database when dialog opens
+  const { data: user, isLoading, error } = useQuery({
+    queryKey: ['/api/admin/users', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const response = await fetch(`/api/admin/users/${userId}`);
+      if (!response.ok) throw new Error('Failed to fetch user data');
+      return response.json();
+    },
+    enabled: isOpen && !!userId,
+  });
+
+  if (!isOpen || !userId) return null;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -39,6 +34,34 @@ export function StudentDetailView({ user, isOpen, onClose }: StudentDetailViewPr
       day: 'numeric',
     });
   };
+
+  if (isLoading) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-md">
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin mr-2" />
+            <span>Loading student details...</span>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (error || !user) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-md">
+          <div className="text-center py-8">
+            <p className="text-red-600 mb-4">Failed to load student details</p>
+            <button onClick={onClose} className="text-sm text-muted-foreground hover:text-primary">
+              Close
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

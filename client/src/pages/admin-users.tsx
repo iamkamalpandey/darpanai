@@ -38,6 +38,7 @@ interface User {
 export default function AdminUsers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [isGrantDialogOpen, setIsGrantDialogOpen] = useState(false);
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
   const [isDetailViewOpen, setIsDetailViewOpen] = useState(false);
@@ -262,7 +263,7 @@ export default function AdminUsers() {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            setSelectedUser(user);
+                            setSelectedUserId(user.id);
                             setIsDetailViewOpen(true);
                           }}
                           className="flex items-center gap-1"
@@ -391,11 +392,11 @@ export default function AdminUsers() {
 
       {/* Student Detail View Modal */}
       <StudentDetailView
-        user={selectedUser}
+        userId={selectedUserId}
         isOpen={isDetailViewOpen}
         onClose={() => {
           setIsDetailViewOpen(false);
-          setSelectedUser(null);
+          setSelectedUserId(null);
         }}
       />
     </AdminLayout>

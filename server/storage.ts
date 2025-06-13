@@ -284,6 +284,28 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return appointment;
   }
+
+  // Email verification methods
+  async getUserByVerificationToken(token: string): Promise<User | undefined> {
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.emailVerificationToken, token));
+    return user || undefined;
+  }
+
+  async verifyUserEmail(userId: number): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        emailVerified: true, 
+        emailVerificationToken: null,
+        status: 'active' // Activate user account after email verification
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user || undefined;
+  }
 }
 
 export const storage = new DatabaseStorage();
