@@ -14,7 +14,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { User, Eye, Edit, Download, FileText, Calendar, Mail, Phone, MapPin, GraduationCap, Filter } from "lucide-react";
+import { User, Eye, Edit, Download, FileText, Calendar, Mail, Phone, MapPin, GraduationCap, Filter, Shield } from "lucide-react";
 import { format, isAfter, isBefore, parseISO, subDays, subMonths, subYears } from "date-fns";
 
 interface UserData {
@@ -608,7 +608,7 @@ export default function AdminUsers() {
                   {/* Admin Access Notice */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                     <div className="flex items-start gap-2">
-                      <Shield className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <FileText className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                       <div className="text-sm">
                         <p className="font-medium text-blue-900">Administrator Access</p>
                         <p className="text-blue-700">You have access to all user analyses regardless of privacy settings for administrative purposes.</p>
