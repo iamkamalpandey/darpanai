@@ -40,37 +40,50 @@ export function Toaster() {
         const getIcon = () => {
           switch (notificationType) {
             case 'success':
-              return <CheckCircle className="h-5 w-5 text-green-500" />;
+              return <CheckCircle className="h-5 w-5 text-green-600" />;
             case 'error':
-              return <XCircle className="h-5 w-5 text-red-500" />;
+              return <XCircle className="h-5 w-5 text-red-600" />;
             case 'warning':
-              return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+              return <AlertTriangle className="h-5 w-5 text-amber-600" />;
             default:
-              return <Info className="h-5 w-5 text-blue-500" />;
+              return <Info className="h-5 w-5 text-blue-600" />;
+          }
+        };
+
+        const getBorderColor = () => {
+          switch (notificationType) {
+            case 'success':
+              return 'border-l-green-500 bg-green-50';
+            case 'error':
+              return 'border-l-red-500 bg-red-50';
+            case 'warning':
+              return 'border-l-amber-500 bg-amber-50';
+            default:
+              return 'border-l-blue-500 bg-blue-50';
           }
         };
 
         return (
-          <Toast key={id} {...props} className="border-l-4 border-l-blue-500 shadow-lg">
-            <div className="flex items-start gap-3">
+          <Toast key={id} {...props} className={`border-l-4 ${getBorderColor()} shadow-lg rounded-lg border-0`}>
+            <div className="flex items-start gap-3 p-1">
               <div className="flex-shrink-0 mt-0.5">
                 {getIcon()}
               </div>
               <div className="grid gap-1 flex-1">
                 {displayTitle && (
-                  <ToastTitle className="text-sm font-semibold text-foreground">
+                  <ToastTitle className="text-sm font-semibold text-gray-900">
                     {displayTitle}
                   </ToastTitle>
                 )}
                 {displayDescription && (
-                  <ToastDescription className="text-sm text-muted-foreground">
+                  <ToastDescription className="text-sm text-gray-700">
                     {displayDescription}
                   </ToastDescription>
                 )}
               </div>
             </div>
             {action}
-            <ToastClose />
+            <ToastClose className="text-gray-500 hover:text-gray-700" />
           </Toast>
         )
       })}

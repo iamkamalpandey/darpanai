@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -21,10 +21,10 @@ export default function AdminSettings() {
   });
 
   // Update local state when data loads
-  React.useEffect(() => {
+  useEffect(() => {
     if (systemStats) {
-      setDefaultMaxAnalyses(systemStats.defaultMaxAnalyses?.toString() || "3");
-      setSystemAnnouncement(systemStats.systemAnnouncement || "");
+      setDefaultMaxAnalyses((systemStats as any).defaultMaxAnalyses?.toString() || "3");
+      setSystemAnnouncement((systemStats as any).systemAnnouncement || "");
     }
   }, [systemStats]);
 
@@ -170,28 +170,36 @@ export default function AdminSettings() {
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm text-muted-foreground">Total Users</p>
-                    <p className="text-lg font-semibold">7</p>
+                    <p className="text-lg font-semibold">
+                      {isLoading ? "..." : (systemStats as any)?.totalUsers || 0}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm text-muted-foreground">Total Analyses</p>
-                    <p className="text-lg font-semibold">3</p>
+                    <p className="text-lg font-semibold">
+                      {isLoading ? "..." : (systemStats as any)?.totalAnalyses || 0}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm text-muted-foreground">Admin Users</p>
-                    <p className="text-lg font-semibold">5</p>
+                    <p className="text-lg font-semibold">
+                      {isLoading ? "..." : (systemStats as any)?.adminUsers || 0}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <RefreshCw className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">System Uptime</p>
-                    <p className="text-lg font-semibold">Active</p>
+                    <p className="text-sm text-muted-foreground">Active Users</p>
+                    <p className="text-lg font-semibold">
+                      {isLoading ? "..." : (systemStats as any)?.activeUsers || 0}
+                    </p>
                   </div>
                 </div>
               </div>

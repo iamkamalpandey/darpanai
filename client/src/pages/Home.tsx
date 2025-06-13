@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { ConsultationForm } from "@/components/ConsultationForm";
+import { SystemAnnouncement } from "@/components/SystemAnnouncement";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2, Upload, FileText, ListChecks, Shield } from "lucide-react";
@@ -12,6 +13,9 @@ export default function Home() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
+        {/* System Announcement */}
+        <SystemAnnouncement />
+        
         {/* Welcome section */}
         <div className="rounded-lg bg-white p-6 shadow-sm border">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
