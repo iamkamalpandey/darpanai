@@ -4,11 +4,11 @@ import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { storage } from "./storage";
 import { insertUserSchema, loginUserSchema } from "@shared/schema";
-import type { User } from "@shared/schema";
+import type { User as SchemaUser } from "@shared/schema";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
 
-// Extend Express.User interface without recursion
+// Extend Express.User interface to match database schema
 declare global {
   namespace Express {
     interface User {
@@ -16,9 +16,9 @@ declare global {
       username: string;
       email: string;
       fullName: string;
-      qualification: string;
-      graduationYear: string;
-      phoneNumber: string;
+      qualification: string | null;
+      graduationYear: string | null;
+      phoneNumber: string | null;
       role: string;
       analysisCount: number;
       maxAnalyses: number;
@@ -70,7 +70,22 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
           return done(null, false, { message: 'Invalid username or password' });
         }
         
-        return done(null, user);
+        // Transform user data to match Express.User interface
+        const expressUser: Express.User = {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          fullName: user.fullName,
+          qualification: user.qualification,
+          graduationYear: user.graduationYear,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          analysisCount: user.analysisCount,
+          maxAnalyses: user.maxAnalyses,
+          createdAt: user.createdAt,
+        };
+        
+        return done(null, expressUser);
       } catch (error) {
         return done(error);
       }
@@ -85,13 +100,26 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      if (user) {
-        // Remove password from deserialized user
-        const { password, ...safeUser } = user;
-        done(null, safeUser);
-      } else {
-        done(null, undefined);
+      if (!user) {
+        return done(null, null);
       }
+      
+      // Transform user data to match Express.User interface
+      const expressUser: Express.User = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        qualification: user.qualification,
+        graduationYear: user.graduationYear,
+        phoneNumber: user.phoneNumber,
+        role: user.role,
+        analysisCount: user.analysisCount,
+        maxAnalyses: user.maxAnalyses,
+        createdAt: user.createdAt,
+      };
+      
+      done(null, expressUser);
     } catch (error) {
       done(error);
     }
@@ -158,7 +186,7 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate('local', (err: Error | null, user: User | false, info: { message: string }) => {
+    passport.authenticate('local', (err: Error | null, user: Express.User | false, info: { message: string }) => {
       if (err) {
         return next(err);
       }
