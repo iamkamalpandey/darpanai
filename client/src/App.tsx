@@ -1,4 +1,5 @@
 import { Switch, Route } from "wouter";
+import { lazy, Suspense } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,15 +10,24 @@ import { UserProtectedRoute } from "@/components/UserProtectedRoute";
 import { AdminProtectedRoute } from "@/components/AdminProtectedRoute";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
-import VisaAnalyzer from "@/pages/VisaAnalyzer";
-import AnalysisHistory from "@/pages/AnalysisHistory";
 import AuthPage from "@/pages/auth-page";
-import ConsultationsPage from "@/pages/consultations";
-import AdminDashboard from "@/pages/admin-dashboard";
-import AdminAnalyses from "@/pages/admin-analyses";
-import AdminAppointments from "@/pages/admin-appointments";
-import AdminUsers from "@/pages/admin-users";
-import AdminSettings from "@/pages/admin-settings";
+
+// Lazy load heavy components for better initial performance
+const VisaAnalyzer = lazy(() => import("@/pages/VisaAnalyzer"));
+const AnalysisHistory = lazy(() => import("@/pages/AnalysisHistory"));
+const ConsultationsPage = lazy(() => import("@/pages/consultations"));
+const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
+const AdminAnalyses = lazy(() => import("@/pages/admin-analyses"));
+const AdminAppointments = lazy(() => import("@/pages/admin-appointments"));
+const AdminUsers = lazy(() => import("@/pages/admin-users"));
+const AdminSettings = lazy(() => import("@/pages/admin-settings"));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+  </div>
+);
 
 function Router() {
   return (
@@ -27,16 +37,64 @@ function Router() {
       
       {/* User Routes - Only accessible by regular users */}
       <UserProtectedRoute path="/" component={Home} />
-      <UserProtectedRoute path="/analyzer" component={VisaAnalyzer} />
-      <UserProtectedRoute path="/history" component={AnalysisHistory} />
-      <UserProtectedRoute path="/consultations" component={ConsultationsPage} />
+      <Route path="/analyzer">
+        <UserProtectedRoute path="/analyzer" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <VisaAnalyzer />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/history">
+        <UserProtectedRoute path="/history" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AnalysisHistory />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/consultations">
+        <UserProtectedRoute path="/consultations" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <ConsultationsPage />
+          </Suspense>
+        )} />
+      </Route>
       
       {/* Admin Routes - Only accessible by admin users */}
-      <AdminProtectedRoute path="/admin" component={AdminDashboard} />
-      <AdminProtectedRoute path="/admin/users" component={AdminUsers} />
-      <AdminProtectedRoute path="/admin/analyses" component={AdminAnalyses} />
-      <AdminProtectedRoute path="/admin/appointments" component={AdminAppointments} />
-      <AdminProtectedRoute path="/admin/settings" component={AdminSettings} />
+      <Route path="/admin">
+        <AdminProtectedRoute path="/admin" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminDashboard />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/users">
+        <AdminProtectedRoute path="/admin/users" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminUsers />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/analyses">
+        <AdminProtectedRoute path="/admin/analyses" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminAnalyses />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/appointments">
+        <AdminProtectedRoute path="/admin/appointments" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminAppointments />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/settings">
+        <AdminProtectedRoute path="/admin/settings" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminSettings />
+          </Suspense>
+        )} />
+      </Route>
       
       {/* 404 Route */}
       <Route component={NotFound} />

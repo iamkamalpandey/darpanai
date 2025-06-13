@@ -21,6 +21,13 @@ function logWithLevel(message: string, level: 'info' | 'error' = 'info', source 
 }
 
 const app = express();
+
+// Enable compression for all responses to reduce bandwidth
+app.use(compression({
+  level: 6, // Good balance between compression and CPU usage
+  threshold: 1024, // Only compress responses larger than 1KB
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
