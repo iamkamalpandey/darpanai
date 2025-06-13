@@ -90,14 +90,6 @@ export function DashboardSidebar() {
           href="/consultations"
           active={location === "/consultations"}
         />
-        {user?.role === "admin" && (
-          <SidebarItem
-            icon={<Shield className="h-5 w-5" />}
-            label="Admin Panel"
-            href="/admin"
-            active={location === "/admin" || location.startsWith("/admin/")}
-          />
-        )}
       </nav>
 
       <div className="mt-auto border-t pt-4">
