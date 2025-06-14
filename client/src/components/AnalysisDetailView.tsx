@@ -36,8 +36,25 @@ export function AnalysisDetailView({ analysis, showUserInfo = false }: AnalysisD
     );
   }
 
-  const getSeverityIcon = (severity: string) => {
-    switch (severity) {
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'financial':
+        return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      case 'documentation':
+        return <AlertTriangle className="h-4 w-4 text-orange-500" />;
+      case 'eligibility':
+        return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      case 'academic':
+        return <AlertTriangle className="h-4 w-4 text-blue-500" />;
+      case 'immigration_history':
+        return <AlertTriangle className="h-4 w-4 text-purple-500" />;
+      case 'ties_to_home':
+        return <AlertTriangle className="h-4 w-4 text-orange-500" />;
+      case 'credibility':
+        return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      case 'general':
+        return <AlertTriangle className="h-4 w-4 text-gray-500" />;
+      // Legacy severity support
       case 'high':
         return <AlertTriangle className="h-4 w-4 text-red-500" />;
       case 'medium':
@@ -49,8 +66,21 @@ export function AnalysisDetailView({ analysis, showUserInfo = false }: AnalysisD
     }
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'financial':
+      case 'eligibility':
+      case 'credibility':
+        return 'destructive';
+      case 'documentation':
+      case 'ties_to_home':
+      case 'immigration_history':
+        return 'outline';
+      case 'academic':
+        return 'secondary';
+      case 'general':
+        return 'outline';
+      // Legacy severity support
       case 'high':
         return 'destructive';
       case 'medium':
@@ -116,12 +146,12 @@ export function AnalysisDetailView({ analysis, showUserInfo = false }: AnalysisD
           {results.rejectionReasons?.map((reason: any, index: number) => (
             <div key={index} className="border rounded-lg p-4">
               <div className="flex items-start gap-3">
-                {getSeverityIcon(reason.severity)}
+                {getCategoryIcon(reason.category || reason.severity)}
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium">{reason.title}</h4>
-                    <Badge variant={getSeverityColor(reason.severity)} className="text-xs">
-                      {reason.severity.toUpperCase()}
+                    <Badge variant={getCategoryColor(reason.category || reason.severity)} className="text-xs">
+                      {(reason.category || reason.severity || 'general').replace(/_/g, ' ').toUpperCase()}
                     </Badge>
                   </div>
                   <div className="text-sm text-muted-foreground leading-relaxed">
