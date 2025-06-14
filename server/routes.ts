@@ -173,10 +173,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (dbError) {
           console.error('Error saving analysis to database:', dbError);
           // Continue even if saving to DB fails, but log the issue
-          console.log('Returning analysis result without database save due to DB error');
+          console.log('Returning analysis result despite database error');
           return res.status(200).json({
             ...analysisResult,
             isAuthenticated: req.isAuthenticated(),
+            success: true,
             warning: 'Analysis completed but not saved to history due to temporary database issue'
           });
         }

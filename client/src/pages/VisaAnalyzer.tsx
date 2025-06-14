@@ -77,9 +77,23 @@ export default function VisaAnalyzer() {
         throw new Error('Invalid response format from server');
       }
       
-      if (!responseData.summary || !responseData.rejectionReasons || !responseData.recommendations || !responseData.nextSteps) {
-        console.error('Incomplete analysis response:', responseData);
-        throw new Error('Analysis response is missing required fields');
+      // Check for required fields but handle arrays properly
+      const hasValidStructure = (
+        responseData.summary &&
+        Array.isArray(responseData.rejectionReasons) && responseData.rejectionReasons.length > 0 &&
+        Array.isArray(responseData.recommendations) && responseData.recommendations.length > 0 &&
+        Array.isArray(responseData.nextSteps) && responseData.nextSteps.length > 0
+      );
+      
+      if (!hasValidStructure) {
+        console.error('Incomplete analysis response structure:', {
+          hasSummary: !!responseData.summary,
+          hasRejectionReasons: Array.isArray(responseData.rejectionReasons) && responseData.rejectionReasons.length > 0,
+          hasRecommendations: Array.isArray(responseData.recommendations) && responseData.recommendations.length > 0,
+          hasNextSteps: Array.isArray(responseData.nextSteps) && responseData.nextSteps.length > 0,
+          responseData
+        });
+        throw new Error('Analysis response is missing required fields or has invalid structure');
       }
       
       return responseData as AnalysisResponse;
