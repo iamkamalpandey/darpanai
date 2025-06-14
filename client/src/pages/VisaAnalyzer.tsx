@@ -77,24 +77,26 @@ export default function VisaAnalyzer() {
         throw new Error('Invalid response format from server');
       }
       
-      // Check for required fields but handle arrays properly
+      // Check for required fields - arrays can be empty for non-visa documents
       const hasValidStructure = (
         responseData.summary &&
-        Array.isArray(responseData.rejectionReasons) && responseData.rejectionReasons.length > 0 &&
-        Array.isArray(responseData.recommendations) && responseData.recommendations.length > 0 &&
-        Array.isArray(responseData.nextSteps) && responseData.nextSteps.length > 0
+        Array.isArray(responseData.rejectionReasons) &&
+        Array.isArray(responseData.recommendations) &&
+        Array.isArray(responseData.nextSteps)
       );
       
       if (!hasValidStructure) {
-        console.error('Incomplete analysis response structure:', {
+        console.error('Invalid analysis response structure:', {
           hasSummary: !!responseData.summary,
-          hasRejectionReasons: Array.isArray(responseData.rejectionReasons) && responseData.rejectionReasons.length > 0,
-          hasRecommendations: Array.isArray(responseData.recommendations) && responseData.recommendations.length > 0,
-          hasNextSteps: Array.isArray(responseData.nextSteps) && responseData.nextSteps.length > 0,
+          hasRejectionReasonsArray: Array.isArray(responseData.rejectionReasons),
+          hasRecommendationsArray: Array.isArray(responseData.recommendations),
+          hasNextStepsArray: Array.isArray(responseData.nextSteps),
           responseData
         });
         throw new Error('Analysis response is missing required fields or has invalid structure');
       }
+      
+      console.log('Analysis response validation successful');
       
       return responseData as AnalysisResponse;
     },

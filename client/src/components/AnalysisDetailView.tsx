@@ -143,24 +143,32 @@ export function AnalysisDetailView({ analysis, showUserInfo = false }: AnalysisD
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {results.rejectionReasons?.map((reason: any, index: number) => (
-            <div key={index} className="border rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                {getCategoryIcon(reason.category || reason.severity)}
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium">{reason.title}</h4>
-                    <Badge variant={getCategoryColor(reason.category || reason.severity)} className="text-xs">
-                      {(reason.category || reason.severity || 'general').replace(/_/g, ' ').toUpperCase()}
-                    </Badge>
-                  </div>
-                  <div className="text-sm text-muted-foreground leading-relaxed">
-                    {reason.description}
+          {results.rejectionReasons && results.rejectionReasons.length > 0 ? (
+            results.rejectionReasons.map((reason: any, index: number) => (
+              <div key={index} className="border rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  {getCategoryIcon(reason.category || reason.severity)}
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">{reason.title}</h4>
+                      <Badge variant={getCategoryColor(reason.category || reason.severity)} className="text-xs">
+                        {(reason.category || reason.severity || 'general').replace(/_/g, ' ').toUpperCase()}
+                      </Badge>
+                    </div>
+                    <div className="text-sm text-muted-foreground leading-relaxed">
+                      {reason.description}
+                    </div>
                   </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No rejection reasons found in this document.</p>
+              <p className="text-xs mt-2">This may not be a visa rejection letter.</p>
             </div>
-          ))}
+          )}
         </CardContent>
       </Card>
 
@@ -173,16 +181,24 @@ export function AnalysisDetailView({ analysis, showUserInfo = false }: AnalysisD
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {results.recommendations?.map((recommendation: any, index: number) => (
-            <div key={index} className="border rounded-lg p-4 bg-green-50/50">
-              <div className="space-y-2">
-                <h4 className="font-medium text-green-900">{recommendation.title}</h4>
-                <div className="text-sm text-green-700 leading-relaxed">
-                  {recommendation.description}
+          {results.recommendations && results.recommendations.length > 0 ? (
+            results.recommendations.map((recommendation: any, index: number) => (
+              <div key={index} className="border rounded-lg p-4 bg-green-50/50">
+                <div className="space-y-2">
+                  <h4 className="font-medium text-green-900">{recommendation.title}</h4>
+                  <div className="text-sm text-green-700 leading-relaxed">
+                    {recommendation.description}
+                  </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <CheckCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No recommendations available for this document.</p>
+              <p className="text-xs mt-2">Please ensure you've uploaded a visa rejection letter.</p>
             </div>
-          ))}
+          )}
         </CardContent>
       </Card>
 
@@ -195,21 +211,29 @@ export function AnalysisDetailView({ analysis, showUserInfo = false }: AnalysisD
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {results.nextSteps?.map((step: any, index: number) => (
-            <div key={index} className="border rounded-lg p-4 bg-blue-50/50">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-medium">
-                  {index + 1}
-                </div>
-                <div className="space-y-2">
-                  <h4 className="font-medium text-blue-900">{step.title}</h4>
-                  <div className="text-sm text-blue-700 leading-relaxed">
-                    {step.description}
+          {results.nextSteps && results.nextSteps.length > 0 ? (
+            results.nextSteps.map((step: any, index: number) => (
+              <div key={index} className="border rounded-lg p-4 bg-blue-50/50">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-medium">
+                    {index + 1}
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-blue-900">{step.title}</h4>
+                    <div className="text-sm text-blue-700 leading-relaxed">
+                      {step.description}
+                    </div>
                   </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <ArrowRight className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No next steps available for this document.</p>
+              <p className="text-xs mt-2">Upload a visa rejection letter for actionable guidance.</p>
             </div>
-          ))}
+          )}
         </CardContent>
       </Card>
     </div>
