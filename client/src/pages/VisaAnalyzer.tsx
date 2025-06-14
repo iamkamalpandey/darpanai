@@ -39,8 +39,21 @@ export default function VisaAnalyzer() {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || response.statusText);
+        let errorMessage = response.statusText;
+        try {
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorData.message || response.statusText;
+          } else {
+            const errorText = await response.text();
+            errorMessage = errorText || response.statusText;
+          }
+        } catch (parseError) {
+          // Use default status text if parsing fails
+          errorMessage = response.statusText;
+        }
+        throw new Error(errorMessage);
       }
 
       setProcessingStep("Analyzing content...");
@@ -55,13 +68,33 @@ export default function VisaAnalyzer() {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       setProcessingProgress(100);
-      return await response.json() as AnalysisResponse;
+      
+      const responseData = await response.json();
+      console.log('Analysis response received:', responseData);
+      
+      // Validate that we have the expected analysis structure
+      if (!responseData || typeof responseData !== 'object') {
+        throw new Error('Invalid response format from server');
+      }
+      
+      if (!responseData.summary || !responseData.rejectionReasons || !responseData.recommendations || !responseData.nextSteps) {
+        console.error('Incomplete analysis response:', responseData);
+        throw new Error('Analysis response is missing required fields');
+      }
+      
+      return responseData as AnalysisResponse;
     },
     onSuccess: (data) => {
+      console.log('Analysis successful, setting results:', data);
       setAnalysisResults(data);
       setCurrentStep(3);
+      toast({
+        title: "Analysis Complete",
+        description: "Your visa rejection letter has been analyzed successfully.",
+      });
     },
     onError: (error) => {
+      console.error('Analysis error:', error);
       toast({
         title: "Error analyzing document",
         description: error.message || "An unexpected error occurred. Please try again.",

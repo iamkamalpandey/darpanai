@@ -126,14 +126,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Analyze the extracted text using OpenAI
         console.log('Sending text to OpenAI for analysis...');
         const analysisResult = await analyzeRejectionLetter(extractedText);
+        console.log('OpenAI analysis result received:', JSON.stringify(analysisResult, null, 2));
         
         // Validate response schema
         const validationResult = analysisResponseSchema.safeParse(analysisResult);
         
         if (!validationResult.success) {
-          console.error('Invalid analysis result:', validationResult.error);
-          return res.status(500).json({ error: 'Failed to analyze the document' });
+          console.error('Schema validation failed:', validationResult.error);
+          console.error('Invalid analysis result structure:', analysisResult);
+          return res.status(500).json({ 
+            error: 'Analysis completed but response format is invalid',
+            details: validationResult.error.issues 
+          });
         }
+        
+        console.log('Schema validation successful, proceeding with database save...');
         
         try {
           const timestamp = new Date().toISOString();
@@ -155,18 +162,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log('User analysis count incremented after successful analysis');
           }
           
+          console.log('Analysis completed successfully, returning results to client');
           // Return the analysis results with the saved ID for reference
           return res.status(200).json({
             ...analysisResult,
             id: savedAnalysis.id,
-            isAuthenticated: req.isAuthenticated()
+            isAuthenticated: req.isAuthenticated(),
+            success: true
           });
         } catch (dbError) {
           console.error('Error saving analysis to database:', dbError);
-          // Continue even if saving to DB fails
+          // Continue even if saving to DB fails, but log the issue
+          console.log('Returning analysis result without database save due to DB error');
           return res.status(200).json({
             ...analysisResult,
-            isAuthenticated: req.isAuthenticated()
+            isAuthenticated: req.isAuthenticated(),
+            warning: 'Analysis completed but not saved to history due to temporary database issue'
           });
         }
         
