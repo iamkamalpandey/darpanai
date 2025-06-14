@@ -130,6 +130,22 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 14, 2025 - Critical Upload & Privacy Security Fixes:**
+- Fixed upload feature being enabled after credit exhaustion - now properly disabled when user reaches analysis limit
+- Fixed credits being deducted before successful analysis - credits now only deducted after full completion
+- Fixed critical privacy breach where users could see other users' analyses - now strict user isolation with admin-only override
+- Enhanced upload interface with visual feedback when credits are exhausted
+- Moved credit validation to the beginning of analysis process to prevent unnecessary processing
+- Added router-based navigation replacing page reloads for smoother authentication flow
+- Implemented data pre-warming for faster dashboard access after login/register
+- Fixed TypeScript errors and improved error handling throughout the upload system
+
+**Technical Security Improvements:**
+- Individual analysis access now requires user ownership OR admin role
+- Upload component fully disabled when credits exhausted with clear messaging
+- Credit deduction moved to after successful analysis completion
+- Enhanced error handling with proper user feedback
+
 **June 13, 2025 - Admin Panel Enhancement & User Dashboard Revamp:**
 - Completely revamped all admin pages with professional spacing and consistent card-based design
 - Added comprehensive date filtering (today, week, month, year, all time) across Users, Analysis Reports, and Appointments

@@ -29,6 +29,8 @@ export default function FileUpload({ onFileSelect, selectedFile, disabled = fals
   }, [onFileSelect, disabled]);
 
   const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (disabled) return; // Prevent file selection when disabled
+    
     const files = e.target.files;
     if (files && files.length > 0) {
       const file = files[0];
@@ -44,6 +46,8 @@ export default function FileUpload({ onFileSelect, selectedFile, disabled = fals
   };
 
   const handleBrowseClick = () => {
+    if (disabled) return; // Prevent browsing when disabled
+    
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
@@ -57,7 +61,8 @@ export default function FileUpload({ onFileSelect, selectedFile, disabled = fals
       'image/png': ['.png']
     },
     maxSize: 10 * 1024 * 1024, // 10MB
-    maxFiles: 1
+    maxFiles: 1,
+    disabled: disabled
   });
 
   const removeFile = () => {
@@ -72,8 +77,9 @@ export default function FileUpload({ onFileSelect, selectedFile, disabled = fals
       <div 
         {...getRootProps()}
         className={`border-2 border-dashed ${
+          disabled ? 'border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-900' :
           isDragActive ? 'border-primary' : 'border-gray-300 dark:border-gray-700'
-        } rounded-lg p-8 text-center cursor-pointer`}
+        } rounded-lg p-8 text-center ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
       >
         <input 
           {...getInputProps()} 
@@ -86,7 +92,7 @@ export default function FileUpload({ onFileSelect, selectedFile, disabled = fals
           </svg>
         </div>
         <p className="mt-4 text-sm font-medium text-gray-700 dark:text-gray-300">
-          Drag and drop your file here
+          {disabled ? 'Upload credits exhausted' : 'Drag and drop your file here'}
         </p>
         <div className="mt-3 flex justify-center">
           <Button 
@@ -97,13 +103,14 @@ export default function FileUpload({ onFileSelect, selectedFile, disabled = fals
               handleBrowseClick();
             }}
             className="inline-flex items-center"
+            disabled={disabled}
           >
             <Upload className="mr-2 h-4 w-4" />
-            Browse Files
+            {disabled ? 'No Credits Available' : 'Browse Files'}
           </Button>
         </div>
         <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-          PDF, JPG or PNG (max 10MB)
+          {disabled ? 'Contact admin for more analysis credits' : 'PDF, JPG or PNG (max 10MB)'}
         </p>
       </div>
       
