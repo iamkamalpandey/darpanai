@@ -85,6 +85,16 @@ export default function VisaAnalyzer() {
       return;
     }
 
+    // Check if user has credits available before processing
+    if (user && user.analysisCount >= user.maxAnalyses) {
+      toast({
+        title: "Analysis Limit Reached",
+        description: `You have used all ${user.maxAnalyses} of your analyses. Please contact admin for more credits.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     setCurrentStep(2);
     analyzeDocument.mutate(selectedFile);
   };

@@ -86,6 +86,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'No file uploaded' });
       }
       
+      // Check usage limits FIRST - before any processing
+      const userId = req.isAuthenticated() ? req.user!.id : undefined;
+      if (userId) {
+        const user = await storage.getUser(userId);
+        if (user && user.analysisCount >= user.maxAnalyses) {
+          return res.status(403).json({ 
+            error: 'Analysis limit reached',
+            message: `You have reached your analysis limit of ${user.maxAnalyses}. Please contact admin for additional analyses.`,
+            analysisCount: user.analysisCount,
+            maxAnalyses: user.maxAnalyses
+          });
+        }
+      }
+      
       console.log(`Processing file: ${req.file.originalname}, size: ${req.file.size} bytes, mimetype: ${req.file.mimetype}`);
       
       // Extract text from the document
@@ -121,20 +135,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ error: 'Failed to analyze the document' });
         }
         
-        // Check usage limits for authenticated users
-        const userId = req.isAuthenticated() ? req.user!.id : undefined;
-        if (userId) {
-          const user = await storage.getUser(userId);
-          if (user && user.analysisCount >= user.maxAnalyses) {
-            return res.status(403).json({ 
-              error: 'Analysis limit reached',
-              message: `You have reached your analysis limit of ${user.maxAnalyses}. Please contact admin for additional analyses.`,
-              analysisCount: user.analysisCount,
-              maxAnalyses: user.maxAnalyses
-            });
-          }
-        }
-        
         try {
           const timestamp = new Date().toISOString();
           const savedAnalysis = await storage.saveAnalysis({
@@ -149,9 +149,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           console.log('Analysis saved to database successfully', userId ? 'with user ID' : 'anonymously');
           
-          // Increment user's analysis count if authenticated
+          // ONLY increment user's analysis count AFTER successful completion
           if (userId) {
             await storage.incrementUserAnalysisCount(userId);
+            console.log('User analysis count incremented after successful analysis');
           }
           
           // Return the analysis results with the saved ID for reference
@@ -217,18 +218,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Analysis not found' });
       }
       
-      // Check if user has access to this analysis
-      // Allow if: analysis is public, or user is authenticated and owns the analysis
+      // STRICT Privacy: Only allow access if user owns the analysis OR user is admin
       const userOwnsAnalysis = req.isAuthenticated() && analysis.userId === req.user!.id;
+      const isAdmin = req.isAuthenticated() && req.user!.role === 'admin';
       
-      if (!analysis.isPublic && !userOwnsAnalysis) {
+      if (!userOwnsAnalysis && !isAdmin) {
         return res.status(403).json({ 
           error: 'Access denied',
-          preview: {
-            id: analysis.id,
-            summary: analysis.summary.substring(0, 100) + '...',
-            message: 'Please log in to view the full analysis'
-          }
+          message: 'You can only view your own analyses'
         });
       }
       
