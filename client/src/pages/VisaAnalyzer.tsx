@@ -196,16 +196,19 @@ export default function VisaAnalyzer() {
               <FileUpload 
                 onFileSelect={handleFileSelect} 
                 selectedFile={selectedFile}
+                disabled={(user?.analysisCount ?? 0) >= (user?.maxAnalyses ?? 0) && !!user}
               />
               
               <div className="mt-6 flex justify-end">
                 <Button 
                   onClick={handleProcessDocument}
-                  disabled={!selectedFile || analyzeDocument.isPending}
+                  disabled={!selectedFile || analyzeDocument.isPending || (user?.analysisCount ?? 0) >= (user?.maxAnalyses ?? 0)}
                   className="gap-2"
                 >
                   {analyzeDocument.isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (user?.analysisCount ?? 0) >= (user?.maxAnalyses ?? 0) && user ? (
+                    <>Credits Exhausted</>
                   ) : (
                     <>Analyze Document</>
                   )}

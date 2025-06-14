@@ -6,12 +6,15 @@ import { Button } from "@/components/ui/button";
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
   selectedFile: File | null;
+  disabled?: boolean;
 }
 
-export default function FileUpload({ onFileSelect, selectedFile }: FileUploadProps) {
+export default function FileUpload({ onFileSelect, selectedFile, disabled = false }: FileUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (disabled) return; // Prevent file selection when disabled
+    
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
       
@@ -23,7 +26,7 @@ export default function FileUpload({ onFileSelect, selectedFile }: FileUploadPro
       
       onFileSelect(file);
     }
-  }, [onFileSelect]);
+  }, [onFileSelect, disabled]);
 
   const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
