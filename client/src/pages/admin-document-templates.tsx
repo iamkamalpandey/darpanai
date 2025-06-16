@@ -30,6 +30,8 @@ const categories = [
 export default function AdminDocumentTemplates() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedVisaType, setSelectedVisaType] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<DocumentTemplate | null>(null);
   const { toast } = useToast();
@@ -178,7 +180,7 @@ export default function AdminDocumentTemplates() {
         </div>
 
         {/* Search and Filter Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="space-y-4 mb-8">
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
@@ -189,20 +191,44 @@ export default function AdminDocumentTemplates() {
             />
           </div>
           
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Categories</option>
-            {categories.map((category) => (
-              <option key={category.value} value={category.value}>
-                {category.label}
-              </option>
-            ))}
-          </select>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            >
+              <option value="">All Categories</option>
+              {categories.map((category) => (
+                <option key={category.value} value={category.value}>
+                  {category.label}
+                </option>
+              ))}
+            </select>
 
-          <div className="text-sm text-gray-600 flex items-center">
+            <select
+              value={selectedCountry}
+              onChange={(e) => setSelectedCountry(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            >
+              <option value="">All Countries</option>
+              {(dropdownOptions?.countries || []).map((country: string) => (
+                <option key={country} value={country}>{country}</option>
+              ))}
+            </select>
+
+            <select
+              value={selectedVisaType}
+              onChange={(e) => setSelectedVisaType(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            >
+              <option value="">All Visa Types</option>
+              {(dropdownOptions?.visaTypes || []).map((visaType: string) => (
+                <option key={visaType} value={visaType}>{visaType}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="text-sm text-gray-600">
             Total: {filteredTemplates.length} templates
           </div>
         </div>

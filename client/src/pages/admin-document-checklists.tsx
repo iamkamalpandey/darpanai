@@ -235,7 +235,7 @@ export default function AdminDocumentChecklists() {
         </div>
 
         {/* Checklists Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {filteredChecklists.map((checklist: DocumentChecklist) => (
             <Card key={checklist.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-green-500">
               <CardHeader className="pb-4">
@@ -251,12 +251,22 @@ export default function AdminDocumentChecklists() {
                       </CardDescription>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2 flex-shrink-0">
+                  <div className="flex items-center space-x-1 flex-shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingChecklist(checklist)}
+                      className="p-1 text-blue-600 hover:text-blue-800"
+                      title="Edit Checklist"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleToggleStatus(checklist)}
                       className="p-1"
+                      title={checklist.isActive ? "Deactivate" : "Activate"}
                     >
                       {checklist.isActive ? 
                         <Eye className="h-4 w-4 text-green-600" /> : 
@@ -398,6 +408,34 @@ export default function AdminDocumentChecklists() {
             )}
           </div>
         )}
+
+        {/* Edit Dialog */}
+        <Dialog open={!!editingChecklist} onOpenChange={() => setEditingChecklist(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Document Checklist</DialogTitle>
+              <DialogDescription>
+                Update the checklist information and requirements
+              </DialogDescription>
+            </DialogHeader>
+            {editingChecklist && (
+              <AdvancedChecklistForm
+                initialData={editingChecklist}
+                mode="edit"
+                onSubmit={async (data) => {
+                  return new Promise<void>((resolve, reject) => {
+                    editUpdateMutation.mutate(data, {
+                      onSuccess: () => resolve(),
+                      onError: (error) => reject(error)
+                    });
+                  });
+                }}
+                onCancel={() => setEditingChecklist(null)}
+                isLoading={editUpdateMutation.isPending}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );
