@@ -349,9 +349,7 @@ export const documentTemplateUploadSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export type DocumentTemplate = typeof documentTemplates.$inferSelect;
-export type InsertDocumentTemplate = z.infer<typeof insertDocumentTemplateSchema>;
-export type DocumentTemplateUpload = z.infer<typeof documentTemplateUploadSchema>;
+// Schema exports moved to end of file to avoid duplicates
 
 // Document Checklists schemas - Simplified for destination country focus
 export const insertDocumentChecklistSchema = z.object({
@@ -380,7 +378,7 @@ export const insertDocumentChecklistSchema = z.object({
 // Type exports for document templates and checklists
 export type DocumentTemplate = typeof documentTemplates.$inferSelect;
 export type InsertDocumentTemplate = z.infer<typeof insertDocumentTemplateSchema>;
-export type DocumentTemplateFormData = z.infer<typeof documentTemplateSchema>;
+export type DocumentTemplateUpload = z.infer<typeof documentTemplateUploadSchema>;
 
 export type DocumentChecklist = typeof documentChecklists.$inferSelect;
 export type InsertDocumentChecklist = z.infer<typeof insertDocumentChecklistSchema>;
