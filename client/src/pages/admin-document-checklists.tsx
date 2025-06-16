@@ -42,6 +42,7 @@ export default function AdminDocumentChecklists() {
   const [selectedUserType, setSelectedUserType] = useState<string>("all");
   const [selectedVisaType, setSelectedVisaType] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingChecklist, setEditingChecklist] = useState<DocumentChecklist | null>(null);
 
   const { data: checklists = [], isLoading } = useQuery<DocumentChecklist[]>({
     queryKey: ['/api/admin/document-checklists'],

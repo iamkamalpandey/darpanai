@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Trash2, Eye, EyeOff, FileText, Search, Download, Upload } from "lucide-react";
+import { Plus, Trash2, Eye, EyeOff, FileText, Search, Download, Upload, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { type DocumentTemplate } from "@shared/schema";
@@ -31,6 +31,7 @@ export default function AdminDocumentTemplates() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<DocumentTemplate | null>(null);
   const { toast } = useToast();
 
   const { data: templates = [], isLoading } = useQuery<DocumentTemplate[]>({
@@ -65,6 +66,23 @@ export default function AdminDocumentTemplates() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/document-templates'] });
+      setEditingTemplate(null);
+      toast({ title: "Success", description: "Document template updated successfully" });
+    },
+  });
+
+  const editUpdateMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const response = await fetch(`/api/admin/document-templates/${editingTemplate?.id}`, {
+        method: 'PATCH',
+        body: formData,
+      });
+      if (!response.ok) throw new Error('Failed to update template');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/document-templates'] });
+      setEditingTemplate(null);
       toast({ title: "Success", description: "Document template updated successfully" });
     },
   });
@@ -207,12 +225,22 @@ export default function AdminDocumentTemplates() {
                       </CardDescription>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2 flex-shrink-0">
+                  <div className="flex items-center space-x-1 flex-shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingTemplate(template)}
+                      className="p-1 text-blue-600 hover:text-blue-800"
+                      title="Edit Template"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleToggleStatus(template)}
                       className="p-1"
+                      title={template.isActive ? "Deactivate" : "Activate"}
                     >
                       {template.isActive ? 
                         <Eye className="h-4 w-4 text-green-600" /> : 
@@ -343,6 +371,26 @@ export default function AdminDocumentTemplates() {
             )}
           </div>
         )}
+
+        {/* Edit Dialog */}
+        <Dialog open={!!editingTemplate} onOpenChange={() => setEditingTemplate(null)}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Document Template</DialogTitle>
+              <DialogDescription>
+                Update the template information and file
+              </DialogDescription>
+            </DialogHeader>
+            {editingTemplate && (
+              <AdvancedTemplateForm
+                template={editingTemplate}
+                onSubmit={editUpdateMutation.mutate}
+                onCancel={() => setEditingTemplate(null)}
+                isLoading={editUpdateMutation.isPending}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );
