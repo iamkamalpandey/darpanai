@@ -182,6 +182,20 @@ export default function Updates() {
                     <CollapsibleContent>
                       <CardContent className="pt-0">
                         <div className="space-y-4">
+                          {/* Update Image */}
+                          {update.imageUrl && (
+                            <div className="w-full">
+                              <img 
+                                src={update.imageUrl} 
+                                alt={update.title}
+                                className="w-full max-w-lg h-48 object-cover rounded-lg border shadow-sm"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          )}
+                          
                           {/* Full Content */}
                           <div className="prose prose-sm max-w-none">
                             <p className="text-gray-700 whitespace-pre-wrap">{update.content}</p>

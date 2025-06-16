@@ -130,20 +130,21 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
-**June 16, 2025 - Comprehensive Updates/Notifications System & Dashboard Routing:**
-- Implemented complete updates/notifications system with admin creation interface and user display
-- Added database schema with updates and user_update_views tables for tracking engagement
-- Created admin interface at /admin/updates for creating, editing, and managing system updates
-- Built user interface at /updates with expandable cards showing summary and full content
-- Added targeting options: all users, specific user types (students/agents/other), or individual users
-- Implemented priority levels (low, normal, high, urgent) with visual indicators and badges
-- Added expiration dates, external links, and call-to-action buttons for updates
-- Enhanced admin navigation with "Updates & Notifications" menu item and Bell icon
-- Added user navigation with "Updates" menu item in dashboard sidebar
-- Fixed dashboard routing so admin users redirect immediately to admin panel without seeing user dashboard
-- Implemented view tracking and action taken recording for analytics
-- Created comprehensive API endpoints for CRUD operations and user interaction tracking
-- Added proper form validation, error handling, and success notifications throughout system
+**June 16, 2025 - Enhanced Updates System with Image Upload & Visa-Specific Targeting:**
+- Added image upload capability (JPG/PNG) with optimized display for engaging visual updates
+- Implemented comprehensive visa-specific audience targeting beyond basic user types
+- Enhanced targeting options: all users, students, agents, other visa categories, or specific visa types
+- Added visa type selection with 16+ visa categories (Student F-1, Tourist B-2, Work H-1B, Study Permits, etc.)
+- Integrated image display in both admin and user interfaces with error handling
+- Created conditional form sections that show visa type checkboxes when "Specific Visa Types" is selected
+- Enhanced admin interface with image URL input field and upload button placeholder
+- Updated database schema to include imageUrl field for visual content
+- Improved user experience with responsive image display (400x200px recommended size)
+- Added comprehensive form validation for image URLs and visa type selections
+- Implemented global standard practices for image handling with proper error states
+- Enhanced user updates page with expandable cards showing images and rich content
+- Created sophisticated audience targeting allowing precise user segmentation
+- Added visual indicators and badges for different update types and priorities
 
 **June 16, 2025 - Enhanced Country Selection & User Type Forms:**
 - Added Nepal at the top of origin countries list along with Sri Lanka, Vietnam, China, Bangladesh, Pakistan
