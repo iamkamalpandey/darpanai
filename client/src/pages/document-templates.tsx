@@ -55,7 +55,7 @@ export default function DocumentTemplates() {
   };
 
   const generateDocument = (template: DocumentTemplate) => {
-    let generatedText = template.content;
+    let generatedText = template.template;
     
     // Replace placeholders with form data
     const fields = (template.fields as any[]) || [];
@@ -248,10 +248,10 @@ export default function DocumentTemplates() {
                     {template.category}
                   </Badge>
                   <Badge variant="outline">
-                    {template.country}
+                    {template.countries?.join(", ") || "All Countries"}
                   </Badge>
                   <Badge variant="secondary">
-                    {template.visaType}
+                    {template.visaTypes?.join(", ") || "All Visa Types"}
                   </Badge>
                 </div>
               </CardHeader>
@@ -290,7 +290,7 @@ export default function DocumentTemplates() {
                             <div className="space-y-2">
                               <Label className="text-sm font-medium">Template Content</Label>
                               <div className="border rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
-                                <pre className="text-sm whitespace-pre-wrap">{selectedTemplate.content}</pre>
+                                <pre className="text-sm whitespace-pre-wrap">{selectedTemplate.template}</pre>
                               </div>
                             </div>
                           </TabsContent>

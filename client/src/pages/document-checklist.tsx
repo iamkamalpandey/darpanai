@@ -68,7 +68,11 @@ export default function DocumentChecklistGenerator() {
     queryKey: ['/api/document-checklists'],
   });
 
-  const { data: dropdownOptions } = useQuery({
+  const { data: dropdownOptions } = useQuery<{
+    countries: string[];
+    visaTypes: string[];
+    userTypes: string[];
+  }>({
     queryKey: ['/api/dropdown-options'],
   });
 
@@ -87,8 +91,8 @@ export default function DocumentChecklistGenerator() {
       if (foundChecklist) {
         setChecklist(foundChecklist);
         setCompletedDocuments(new Set());
-        const categories = (foundChecklist.categories as ChecklistCategory[]) || [];
-        setExpandedCategories(new Set(categories.map(cat => cat.id)));
+        const items = (foundChecklist.items as any[]) || [];
+        setExpandedCategories(new Set(['documents'])); // Single category for simplified structure
       }
     }
   };
@@ -116,15 +120,11 @@ export default function DocumentChecklistGenerator() {
   const categories = (checklist?.categories as ChecklistCategory[]) || [];
   const fees = (checklist?.fees as ChecklistFee[]) || [];
   
-  const totalDocuments = categories.reduce((total, category) => {
-    return total + (category.documents?.length || 0);
-  }, 0);
+  const totalDocuments = checklist ? (checklist.items as any[]).length : 0;
 
-  const completedCount = categories.reduce((sum, category) => {
-    return sum + (category.documents?.reduce((sum, doc) => {
-      return sum + (completedDocuments.has(doc.id) ? 1 : 0);
-    }, 0) || 0);
-  }, 0);
+  const completedCount = checklist ? (checklist.items as any[]).reduce((sum, item) => {
+    return sum + (completedDocuments.has(item.id) ? 1 : 0);
+  }, 0) : 0;
 
   const progress = totalDocuments > 0 ? (completedCount / totalDocuments) * 100 : 0;
 
