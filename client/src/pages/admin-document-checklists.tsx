@@ -148,7 +148,9 @@ export default function AdminDocumentChecklists() {
                 </DialogDescription>
               </DialogHeader>
               <AdvancedChecklistForm
-                onSubmit={createMutation.mutate}
+                onSubmit={async (data) => {
+                  await createMutation.mutateAsync(data);
+                }}
                 onCancel={() => setIsCreateDialogOpen(false)}
                 isLoading={createMutation.isPending}
                 mode="create"

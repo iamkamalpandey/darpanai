@@ -28,11 +28,15 @@ export default function DocumentTemplates() {
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedVisaType, setSelectedVisaType] = useState("");
 
-  const { data: templates = [], isLoading } = useQuery({
+  const { data: templates = [], isLoading } = useQuery<DocumentTemplate[]>({
     queryKey: ['/api/document-templates'],
   });
 
-  const { data: dropdownOptions = { countries: [], visaTypes: [] } } = useQuery({
+  const { data: dropdownOptions = { countries: [], visaTypes: [] } } = useQuery<{
+    countries: string[];
+    visaTypes: string[];
+    userTypes: string[];
+  }>({
     queryKey: ['/api/dropdown-options'],
   });
 
@@ -122,7 +126,7 @@ export default function DocumentTemplates() {
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">All Countries</option>
-            {dropdownOptions.countries.map((country: string) => (
+            {(dropdownOptions?.countries || []).map((country: string) => (
               <option key={country} value={country}>{country}</option>
             ))}
           </select>
@@ -133,7 +137,7 @@ export default function DocumentTemplates() {
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">All Visa Types</option>
-            {dropdownOptions.visaTypes.map((visaType: string) => (
+            {(dropdownOptions?.visaTypes || []).map((visaType: string) => (
               <option key={visaType} value={visaType}>{visaType}</option>
             ))}
           </select>

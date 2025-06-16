@@ -528,7 +528,7 @@ export function AdvancedChecklistForm({
               {/* Important Notes */}
               <AccordionItem value="important-notes">
                 <AccordionTrigger className="text-lg font-semibold">
-                  Important Notes ({noteFields.length})
+                  Important Notes ({noteItems.length})
                 </AccordionTrigger>
                 <AccordionContent className="space-y-4 pt-4">
                   <div className="flex justify-between items-center">
