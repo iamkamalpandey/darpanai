@@ -63,7 +63,7 @@ const createUserSchema = z.object({
   role: z.enum(["user", "admin"]),
   status: z.enum(["active", "suspended", "inactive"]),
   maxAnalyses: z.number().min(0).default(3),
-  userType: z.enum(["student", "agent", "other"]).default("student"),
+  userType: z.enum(["student", "agent", "other"]).optional(),
   city: z.string().min(1, "City is required"),
   country: z.string().min(1, "Country is required"),
   // Student fields (conditional)
@@ -914,28 +914,31 @@ export default function AdminUsers() {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={createForm.control}
-                    name="userType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>User Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select user type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="student">Student (Study Abroad)</SelectItem>
-                            <SelectItem value="agent">Education Agent/Consultant</SelectItem>
-                            <SelectItem value="other">Other Visa Category</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* User Type field only for regular users */}
+                  {createForm.watch('role') === 'user' && (
+                    <FormField
+                      control={createForm.control}
+                      name="userType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>User Type</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select user type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="student">Student (Study Abroad)</SelectItem>
+                              <SelectItem value="agent">Education Agent/Consultant</SelectItem>
+                              <SelectItem value="other">Other Visa Category</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
                   <FormField
                     control={createForm.control}
                     name="status"
@@ -1025,9 +1028,9 @@ export default function AdminUsers() {
                   />
                 </div>
 
-                {/* Conditional sections based on user type */}
+                {/* Conditional sections based on user type - only for regular users */}
                 <>
-                {createForm.watch('userType') === 'student' && (
+                {createForm.watch('role') === 'user' && createForm.watch('userType') === 'student' && (
                   <div className="space-y-4 border-t pt-4">
                     <h3 className="text-lg font-semibold">Student Information</h3>
                     <div className="grid grid-cols-2 gap-4">
@@ -1168,7 +1171,7 @@ export default function AdminUsers() {
                 )}
 
                 {/* Agent Business Information */}
-                {createForm.watch('userType') === 'agent' && (
+                {createForm.watch('role') === 'user' && createForm.watch('userType') === 'agent' && (
                   <div className="space-y-4 border-t pt-4">
                     <h3 className="text-lg font-semibold">Business Information</h3>
                     <div className="grid grid-cols-2 gap-4">

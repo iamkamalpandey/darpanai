@@ -1,4 +1,5 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { useEffect } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { ConsultationForm } from "@/components/ConsultationForm";
 import { SystemAnnouncement } from "@/components/SystemAnnouncement";
@@ -25,6 +26,19 @@ interface RecentAnalysis {
 
 export default function Home() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
+  
+  // Immediately redirect admin users to admin dashboard
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      setLocation('/admin');
+    }
+  }, [user, setLocation]);
+
+  // Don't render user dashboard for admin users
+  if (user?.role === 'admin') {
+    return null;
+  }
   
   // Fetch user's recent analyses
   const { data: recentAnalyses = [] } = useQuery<RecentAnalysis[]>({
