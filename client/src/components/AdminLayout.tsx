@@ -13,6 +13,8 @@ import {
   Calendar,
   Building2,
   Bell,
+  FileCheck,
+  CheckSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
