@@ -63,13 +63,25 @@ const createUserSchema = z.object({
   role: z.enum(["user", "admin"]),
   status: z.enum(["active", "suspended", "inactive"]),
   maxAnalyses: z.number().min(0).default(3),
-  studyDestination: z.string().min(1, "Study destination is required"),
-  startDate: z.string().min(1, "Start date is required"),
+  userType: z.enum(["student", "agent", "other"]).default("student"),
   city: z.string().min(1, "City is required"),
   country: z.string().min(1, "Country is required"),
-  studyLevel: z.string().default("bachelor"),
-  counsellingMode: z.string().default("online"),
-  fundingSource: z.string().default("self"),
+  // Student fields (conditional)
+  studyDestination: z.string().optional(),
+  startDate: z.string().optional(),
+  studyLevel: z.string().optional(),
+  counsellingMode: z.string().optional(),
+  fundingSource: z.string().optional(),
+  // Agent fields (conditional)
+  businessName: z.string().optional(),
+  businessAddress: z.string().optional(),
+  businessLicense: z.string().optional(),
+  yearsOfExperience: z.string().optional(),
+  specialization: z.string().optional(),
+  // Other visa category fields (conditional)
+  visaCategory: z.string().optional(),
+  purposeOfTravel: z.string().optional(),
+  // Common fields
   agreeToTerms: z.boolean().default(true),
   allowContact: z.boolean().default(true),
   receiveUpdates: z.boolean().default(true),
@@ -110,13 +122,25 @@ export default function AdminUsers() {
       role: "user",
       status: "active",
       maxAnalyses: 3,
-      studyDestination: "",
-      startDate: "",
+      userType: "student",
       city: "",
       country: "",
+      // Student fields
+      studyDestination: "",
+      startDate: "",
       studyLevel: "bachelor",
       counsellingMode: "online",
       fundingSource: "self",
+      // Agent fields
+      businessName: "",
+      businessAddress: "",
+      businessLicense: "",
+      yearsOfExperience: "",
+      specialization: "",
+      // Other fields
+      visaCategory: "",
+      purposeOfTravel: "",
+      // Common fields
       agreeToTerms: true,
       allowContact: true,
       receiveUpdates: true,
@@ -868,7 +892,7 @@ export default function AdminUsers() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <FormField
                     control={createForm.control}
                     name="role"
@@ -884,6 +908,28 @@ export default function AdminUsers() {
                           <SelectContent>
                             <SelectItem value="user">User</SelectItem>
                             <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={createForm.control}
+                    name="userType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>User Type</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select user type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="student">Student (Study Abroad)</SelectItem>
+                            <SelectItem value="agent">Education Agent/Consultant</SelectItem>
+                            <SelectItem value="other">Other Visa Category</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -979,129 +1025,136 @@ export default function AdminUsers() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={createForm.control}
-                    name="studyDestination"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Study Destination</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select destination" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Australia">Australia</SelectItem>
-                            <SelectItem value="United States">United States</SelectItem>
-                            <SelectItem value="United Kingdom">United Kingdom</SelectItem>
-                            <SelectItem value="Canada">Canada</SelectItem>
-                            <SelectItem value="Germany">Germany</SelectItem>
-                            <SelectItem value="New Zealand">New Zealand</SelectItem>
-                            <SelectItem value="France">France</SelectItem>
-                            <SelectItem value="Netherlands">Netherlands</SelectItem>
-                            <SelectItem value="Sweden">Sweden</SelectItem>
-                            <SelectItem value="Norway">Norway</SelectItem>
-                            <SelectItem value="Denmark">Denmark</SelectItem>
-                            <SelectItem value="Finland">Finland</SelectItem>
-                            <SelectItem value="Switzerland">Switzerland</SelectItem>
-                            <SelectItem value="Austria">Austria</SelectItem>
-                            <SelectItem value="Ireland">Ireland</SelectItem>
-                            <SelectItem value="Belgium">Belgium</SelectItem>
-                            <SelectItem value="Italy">Italy</SelectItem>
-                            <SelectItem value="Spain">Spain</SelectItem>
-                            <SelectItem value="Portugal">Portugal</SelectItem>
-                            <SelectItem value="Poland">Poland</SelectItem>
-                            <SelectItem value="Czech Republic">Czech Republic</SelectItem>
-                            <SelectItem value="Hungary">Hungary</SelectItem>
-                            <SelectItem value="Singapore">Singapore</SelectItem>
-                            <SelectItem value="South Korea">South Korea</SelectItem>
-                            <SelectItem value="Japan">Japan</SelectItem>
-                            <SelectItem value="Hong Kong">Hong Kong</SelectItem>
-                            <SelectItem value="Other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={createForm.control}
-                    name="startDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Start Date</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ""} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={createForm.control}
-                    name="studyLevel"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Study Level</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select study level" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="bachelor">Bachelor's</SelectItem>
-                            <SelectItem value="master">Master's</SelectItem>
-                            <SelectItem value="phd">PhD</SelectItem>
-                            <SelectItem value="diploma">Diploma</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                {/* Conditional sections based on user type */}
+                {createForm.watch('userType') === 'student' && (
+                  <div className="space-y-4 border-t pt-4">
+                    <h3 className="text-lg font-semibold">Student Information</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={createForm.control}
+                        name="studyDestination"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Study Destination</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select destination" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Australia">Australia</SelectItem>
+                                <SelectItem value="United States">United States</SelectItem>
+                                <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+                                <SelectItem value="Canada">Canada</SelectItem>
+                                <SelectItem value="Germany">Germany</SelectItem>
+                                <SelectItem value="New Zealand">New Zealand</SelectItem>
+                                <SelectItem value="France">France</SelectItem>
+                                <SelectItem value="Netherlands">Netherlands</SelectItem>
+                                <SelectItem value="Sweden">Sweden</SelectItem>
+                                <SelectItem value="Norway">Norway</SelectItem>
+                                <SelectItem value="Denmark">Denmark</SelectItem>
+                                <SelectItem value="Finland">Finland</SelectItem>
+                                <SelectItem value="Switzerland">Switzerland</SelectItem>
+                                <SelectItem value="Austria">Austria</SelectItem>
+                                <SelectItem value="Ireland">Ireland</SelectItem>
+                                <SelectItem value="Belgium">Belgium</SelectItem>
+                                <SelectItem value="Italy">Italy</SelectItem>
+                                <SelectItem value="Spain">Spain</SelectItem>
+                                <SelectItem value="Portugal">Portugal</SelectItem>
+                                <SelectItem value="Poland">Poland</SelectItem>
+                                <SelectItem value="Czech Republic">Czech Republic</SelectItem>
+                                <SelectItem value="Hungary">Hungary</SelectItem>
+                                <SelectItem value="Singapore">Singapore</SelectItem>
+                                <SelectItem value="South Korea">South Korea</SelectItem>
+                                <SelectItem value="Japan">Japan</SelectItem>
+                                <SelectItem value="Hong Kong">Hong Kong</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={createForm.control}
+                        name="startDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Start Date</FormLabel>
+                            <FormControl>
+                              <Input {...field} value={field.value || ""} placeholder="e.g., Fall 2025" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={createForm.control}
-                    name="counsellingMode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Counselling Mode</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select mode" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="online">Online</SelectItem>
-                            <SelectItem value="in-person">In-Person</SelectItem>
-                            <SelectItem value="hybrid">Hybrid</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={createForm.control}
-                    name="fundingSource"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Funding Source</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select funding" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="self">Self-funded</SelectItem>
-                            <SelectItem value="scholarship">Scholarship</SelectItem>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={createForm.control}
+                        name="studyLevel"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Study Level</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select study level" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="bachelor">Bachelor's</SelectItem>
+                                <SelectItem value="master">Master's</SelectItem>
+                                <SelectItem value="phd">PhD</SelectItem>
+                                <SelectItem value="diploma">Diploma</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={createForm.control}
+                        name="counsellingMode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Counselling Mode</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select mode" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="online">Online</SelectItem>
+                                <SelectItem value="in-person">In-Person</SelectItem>
+                                <SelectItem value="hybrid">Hybrid</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={createForm.control}
+                      name="fundingSource"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Funding Source</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select funding" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="self">Self-funded</SelectItem>
+                              <SelectItem value="scholarship">Scholarship</SelectItem>
                             <SelectItem value="family">Family</SelectItem>
                             <SelectItem value="loan">Student Loan</SelectItem>
                           </SelectContent>
