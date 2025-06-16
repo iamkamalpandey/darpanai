@@ -130,6 +130,15 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 16, 2025 - Document Checklist Excel/CSV Export & Analysis Count Bug Fix:**
+- Implemented comprehensive Document Checklist export functionality with both CSV and Excel format support
+- Added detailed export reports including checklist metadata, document items with progress tracking, important notes, and summary statistics
+- Enhanced export UI with separate CSV and Excel export buttons using proper Excel-compatible TSV format
+- Fixed critical analysis count discrepancy bug where user interface showed incorrect analysis usage (1/3 vs actual 2/3)
+- Verified professional application endpoint functionality - backend working correctly with proper validation and database storage
+- Enhanced Document Templates with external URL support alongside file upload capabilities for Word, PDF, Excel, PPT formats
+- Confirmed all CRUD operations functional across admin and user interfaces with proper responsive design
+
 **June 16, 2025 - Comprehensive File-Based Document Templates & Enhanced Checklist Hub:**
 - Redesigned Document Templates from text-based to actual file upload/download system with real sample documents
 - Implemented complete file storage infrastructure with proper metadata tracking (paths, sizes, types, upload tracking)

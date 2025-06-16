@@ -18,7 +18,8 @@ import {
   DollarSign, 
   AlertTriangle, 
   Info,
-  Download
+  Download,
+  FileSpreadsheet
 } from 'lucide-react';
 
 interface DocumentChecklistItem {
@@ -87,25 +88,152 @@ export default function DocumentChecklistGenerator() {
     ? (items.filter(item => completedDocuments.has(item.id)).length / items.length) * 100 
     : 0;
 
-  const exportChecklist = () => {
+  const exportChecklistToCSV = () => {
     if (!selectedChecklist) return;
     
-    const data = {
-      checklist: selectedChecklist.title,
-      country: selectedChecklist.country,
-      visaType: selectedChecklist.visaType,
-      userType: selectedChecklist.userType,
-      progress: `${Math.round(progress)}%`,
-      completedItems: items.filter(item => completedDocuments.has(item.id)).map(item => item.name),
-      pendingItems: items.filter(item => !completedDocuments.has(item.id)).map(item => item.name)
-    };
+    // Header information
+    const headerData = [
+      ['Checklist Export Report'],
+      ['Generated Date', new Date().toLocaleDateString()],
+      [''],
+      ['Checklist Details'],
+      ['Title', selectedChecklist.title],
+      ['Destination Country', selectedChecklist.country],
+      ['Visa Type', selectedChecklist.visaType],
+      ['User Type', selectedChecklist.userType],
+      ['Description', selectedChecklist.description],
+      ['Total Fees', selectedChecklist.totalFees || 'Not specified'],
+      ['Processing Time', selectedChecklist.estimatedProcessingTime || 'Not specified'],
+      ['Overall Progress', `${Math.round(progress)}%`],
+      [''],
+      ['Document Checklist Items'],
+      ['Document Name', 'Category', 'Required', 'Status', 'Tips']
+    ];
+
+    // Document items data
+    const itemsData = items.map(item => [
+      item.name,
+      item.category,
+      item.required ? 'Required' : 'Optional',
+      completedDocuments.has(item.id) ? 'Completed' : 'Pending',
+      item.tips ? item.tips.join('; ') : 'No tips available'
+    ]);
+
+    // Important notes section
+    const notesData = [
+      [''],
+      ['Important Notes']
+    ];
     
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    if (selectedChecklist.importantNotes && selectedChecklist.importantNotes.length > 0) {
+      selectedChecklist.importantNotes.forEach((note, index) => {
+        notesData.push([`Note ${index + 1}`, note]);
+      });
+    } else {
+      notesData.push(['No important notes available']);
+    }
+
+    // Summary section
+    const summaryData = [
+      [''],
+      ['Progress Summary'],
+      ['Total Documents', items.length.toString()],
+      ['Completed', items.filter(item => completedDocuments.has(item.id)).length.toString()],
+      ['Pending', items.filter(item => !completedDocuments.has(item.id)).length.toString()],
+      ['Required Documents', items.filter(item => item.required).length.toString()],
+      ['Optional Documents', items.filter(item => !item.required).length.toString()]
+    ];
+
+    // Combine all data
+    const csvData = [...headerData, ...itemsData, ...notesData, ...summaryData];
+    
+    // Convert to CSV format
+    const csvContent = csvData.map(row => 
+      row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+    ).join('\n');
+    
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `checklist-progress-${selectedChecklist.country}-${selectedChecklist.visaType}.json`;
+    a.download = `visa-checklist-${selectedChecklist.country}-${selectedChecklist.visaType}-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportChecklistToExcel = () => {
+    if (!selectedChecklist) return;
+    
+    // Create Excel-compatible TSV format (Tab-separated values)
+    const headerData = [
+      ['Checklist Export Report'],
+      ['Generated Date', new Date().toLocaleDateString()],
+      [''],
+      ['Checklist Details'],
+      ['Title', selectedChecklist.title],
+      ['Destination Country', selectedChecklist.country],
+      ['Visa Type', selectedChecklist.visaType],
+      ['User Type', selectedChecklist.userType],
+      ['Description', selectedChecklist.description],
+      ['Total Fees', selectedChecklist.totalFees || 'Not specified'],
+      ['Processing Time', selectedChecklist.estimatedProcessingTime || 'Not specified'],
+      ['Overall Progress', `${Math.round(progress)}%`],
+      [''],
+      ['Document Checklist Items'],
+      ['Document Name', 'Category', 'Required', 'Status', 'Tips']
+    ];
+
+    const itemsData = items.map(item => [
+      item.name,
+      item.category,
+      item.required ? 'Required' : 'Optional',
+      completedDocuments.has(item.id) ? 'Completed' : 'Pending',
+      item.tips ? item.tips.join('; ') : 'No tips available'
+    ]);
+
+    const notesData = [
+      [''],
+      ['Important Notes']
+    ];
+    
+    if (selectedChecklist.importantNotes && selectedChecklist.importantNotes.length > 0) {
+      selectedChecklist.importantNotes.forEach((note, index) => {
+        notesData.push([`Note ${index + 1}`, note]);
+      });
+    } else {
+      notesData.push(['No important notes available']);
+    }
+
+    const summaryData = [
+      [''],
+      ['Progress Summary'],
+      ['Total Documents', items.length.toString()],
+      ['Completed', items.filter(item => completedDocuments.has(item.id)).length.toString()],
+      ['Pending', items.filter(item => !completedDocuments.has(item.id)).length.toString()],
+      ['Required Documents', items.filter(item => item.required).length.toString()],
+      ['Optional Documents', items.filter(item => !item.required).length.toString()]
+    ];
+
+    // Combine all data
+    const excelData = [...headerData, ...itemsData, ...notesData, ...summaryData];
+    
+    // Convert to Excel-compatible format (TSV)
+    const tsvContent = excelData.map(row => 
+      row.map(cell => String(cell).replace(/\t/g, ' ')).join('\t')
+    ).join('\n');
+    
+    // Create Excel file
+    const blob = new Blob([tsvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `visa-checklist-${selectedChecklist.country}-${selectedChecklist.visaType}-${new Date().toISOString().split('T')[0]}.xls`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
@@ -476,10 +604,14 @@ export default function DocumentChecklistGenerator() {
             )}
 
             {/* Export Actions */}
-            <div className="flex gap-4">
-              <Button onClick={exportChecklist} variant="outline" className="flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button onClick={exportChecklistToCSV} variant="outline" className="flex-1">
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+              <Button onClick={exportChecklistToExcel} variant="outline" className="flex-1">
                 <Download className="h-4 w-4 mr-2" />
-                Export Progress
+                Export Excel
               </Button>
               <Button onClick={() => window.print()} variant="outline" className="flex-1">
                 Print Checklist
