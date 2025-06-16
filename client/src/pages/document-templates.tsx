@@ -68,16 +68,16 @@ export default function DocumentTemplates() {
 
   if (isLoading) {
     return (
-      <Layout>
+      <DashboardLayout>
         <div className="p-8">
           <div className="text-center">Loading document templates...</div>
         </div>
-      </Layout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <Layout>
+    <DashboardLayout>
       <div className="p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Document Templates</h1>
@@ -294,6 +294,6 @@ export default function DocumentTemplates() {
           </div>
         )}
       </div>
-    </UserLayout>
+    </DashboardLayout>
   );
 }
