@@ -2,6 +2,8 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ProfessionalApplicationForm } from "@/components/ProfessionalApplicationForm";
+import { ConsultationForm } from "@/components/ConsultationForm";
 import { 
   CheckCircle2, 
   Upload, 
@@ -45,7 +47,7 @@ export default function Landing() {
                 <Button variant="ghost">Sign In</Button>
               </Link>
               <Link href="/auth">
-                <Button>Get Started</Button>
+                <Button>Sign Up</Button>
               </Link>
             </div>
           </div>
@@ -79,10 +81,12 @@ export default function Landing() {
                   Analyze My Rejection Letter
                 </Button>
               </Link>
-              <Button variant="outline" size="lg" className="text-lg px-8 py-4 h-auto">
-                <MessageCircle className="h-5 w-5 mr-2" />
-                Book Free Consultation
-              </Button>
+              <ConsultationForm 
+                buttonVariant="outline" 
+                buttonSize="lg"
+                buttonText="Book Free Consultation"
+                className="text-lg px-8 py-4 h-auto border-2 hover:bg-gray-50 transition-colors"
+              />
             </div>
 
             {/* Trust Indicators */}

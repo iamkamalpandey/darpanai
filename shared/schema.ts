@@ -44,6 +44,26 @@ export const analyses = pgTable("analyses", {
   isPublic: boolean("is_public").default(false),
 });
 
+// Professional Account Applications
+export const professionalApplications = pgTable("professional_applications", {
+  id: serial("id").primaryKey(),
+  planType: text("plan_type").notNull(), // 'professional' or 'enterprise'
+  companyName: text("company_name").notNull(),
+  contactName: text("contact_name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull(),
+  industry: text("industry").notNull(),
+  teamSize: text("team_size").notNull(),
+  monthlyVolume: text("monthly_volume").notNull(),
+  useCase: text("use_case").notNull(),
+  additionalInfo: text("additional_info"),
+  status: text("status").default("pending").notNull(), // pending, approved, rejected
+  adminNotes: text("admin_notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: integer("reviewed_by").references(() => users.id),
+});
+
 // Consultation Appointments
 export const appointments = pgTable("appointments", {
   id: serial("id").primaryKey(),
@@ -122,6 +142,19 @@ export const appointmentSchema = z.object({
   requestedDate: z.string().datetime("Invalid date format"),
 });
 
+export const professionalApplicationSchema = z.object({
+  planType: z.enum(["professional", "enterprise"]),
+  companyName: z.string().min(1, "Company name is required"),
+  contactName: z.string().min(1, "Contact name is required"),
+  email: z.string().email("Valid email address is required"),
+  phone: z.string().min(1, "Phone number is required"),
+  industry: z.string().min(1, "Industry is required"),
+  teamSize: z.string().min(1, "Team size is required"),
+  monthlyVolume: z.string().min(1, "Monthly volume is required"),
+  useCase: z.string().min(10, "Please provide more details about your use case"),
+  additionalInfo: z.string().optional(),
+});
+
 // FileUpload schema
 export const fileUploadSchema = z.object({
   file: z.instanceof(File),
@@ -159,6 +192,9 @@ export type InsertAppointment = z.infer<typeof appointmentSchema>;
 export type AppointmentFormData = Omit<InsertAppointment, 'requestedDate'> & {
   requestedDate: string;
 };
+
+export type ProfessionalApplication = typeof professionalApplications.$inferSelect;
+export type InsertProfessionalApplication = z.infer<typeof professionalApplicationSchema>;
 
 export type FileUpload = z.infer<typeof fileUploadSchema>;
 export type AnalysisResponse = z.infer<typeof analysisResponseSchema>;
