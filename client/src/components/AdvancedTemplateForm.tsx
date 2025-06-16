@@ -60,6 +60,7 @@ export function AdvancedTemplateForm({
 }: AdvancedTemplateFormProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [uploadMethod, setUploadMethod] = useState<'file' | 'url'>('file');
 
   const form = useForm<DocumentTemplateUpload>({
     resolver: zodResolver(documentTemplateUploadSchema),
@@ -74,18 +75,29 @@ export function AdvancedTemplateForm({
       tips: initialData?.tips || [],
       requirements: initialData?.requirements || [],
       isActive: initialData?.isActive !== undefined ? initialData.isActive : true,
+      externalUrl: initialData?.externalUrl || "",
     },
   });
 
   const handleFileChange = (file: File | null) => {
     if (!file) return;
     
-    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'application/rtf'];
-    const allowedExtensions = ['.pdf', '.doc', '.docx', '.txt', '.rtf'];
+    const allowedTypes = [
+      'application/pdf', 
+      'application/msword', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'text/plain', 
+      'application/rtf'
+    ];
+    const allowedExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.rtf'];
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
     
     if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
-      alert('Invalid file type. Only PDF, DOC, DOCX, TXT, and RTF files are allowed.');
+      alert('Invalid file type. Only Word, PDF, Excel, PowerPoint, and text files are allowed.');
       return;
     }
     

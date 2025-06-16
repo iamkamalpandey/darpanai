@@ -244,16 +244,18 @@ export default function AdminDocumentTemplates() {
         </div>
 
         {/* Templates Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
           {filteredTemplates.map((template: DocumentTemplate) => (
-            <Card key={template.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-2">
-                    <FileText className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+            <Card key={template.id} className="hover:shadow-lg transition-shadow h-full flex flex-col">
+              <CardHeader className="pb-3 flex-shrink-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start space-x-2 min-w-0 flex-1">
+                    <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 mt-1 flex-shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <CardTitle className="text-lg leading-6 truncate">{template.title}</CardTitle>
-                      <CardDescription className="text-sm mt-1">
+                      <CardTitle className="text-sm sm:text-base lg:text-lg leading-tight break-words hyphens-auto line-clamp-2">
+                        {template.title}
+                      </CardTitle>
+                      <CardDescription className="text-xs sm:text-sm mt-1 break-words line-clamp-1">
                         {template.documentType ? 
                           template.documentType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
                           'Document'
