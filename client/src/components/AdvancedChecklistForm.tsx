@@ -55,7 +55,8 @@ export function AdvancedChecklistForm({ initialData, onSubmit, isLoading }: Adva
   const form = useForm<DocumentChecklistFormData>({
     resolver: zodResolver(insertDocumentChecklistSchema),
     defaultValues: {
-      country: initialData?.country || "",
+      originCountry: initialData?.originCountry || "",
+      destinationCountry: initialData?.destinationCountry || "",
       visaType: initialData?.visaType || "",
       userType: initialData?.userType || "student",
       categories: initialData?.categories || [],
@@ -188,16 +189,30 @@ export function AdvancedChecklistForm({ initialData, onSubmit, isLoading }: Adva
             <AccordionContent>
               <Card>
                 <CardContent className="space-y-4 pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <FormField
                       control={form.control}
-                      name="country"
+                      name="originCountry"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Country</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter destination country..." {...field} />
-                          </FormControl>
+                          <FormLabel>Origin Country</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select origin country" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Nepal">Nepal</SelectItem>
+                              <SelectItem value="India">India</SelectItem>
+                              <SelectItem value="Bangladesh">Bangladesh</SelectItem>
+                              <SelectItem value="Pakistan">Pakistan</SelectItem>
+                              <SelectItem value="Sri Lanka">Sri Lanka</SelectItem>
+                              <SelectItem value="Vietnam">Vietnam</SelectItem>
+                              <SelectItem value="China">China</SelectItem>
+                              <SelectItem value="Philippines">Philippines</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -205,13 +220,60 @@ export function AdvancedChecklistForm({ initialData, onSubmit, isLoading }: Adva
 
                     <FormField
                       control={form.control}
+                      name="destinationCountry"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Destination Country</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select destination country" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="United States">United States</SelectItem>
+                              <SelectItem value="Canada">Canada</SelectItem>
+                              <SelectItem value="Australia">Australia</SelectItem>
+                              <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+                              <SelectItem value="Germany">Germany</SelectItem>
+                              <SelectItem value="France">France</SelectItem>
+                              <SelectItem value="Netherlands">Netherlands</SelectItem>
+                              <SelectItem value="Sweden">Sweden</SelectItem>
+                              <SelectItem value="Norway">Norway</SelectItem>
+                              <SelectItem value="New Zealand">New Zealand</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
                       name="visaType"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Visa Type</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter visa type..." {...field} />
-                          </FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select visa type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="F-1 Student Visa">F-1 Student Visa</SelectItem>
+                              <SelectItem value="Study Permit">Study Permit (Canada)</SelectItem>
+                              <SelectItem value="Student Visa (Subclass 500)">Student Visa (Australia)</SelectItem>
+                              <SelectItem value="Tier 4 Student Visa">Tier 4 Student Visa (UK)</SelectItem>
+                              <SelectItem value="H-1B Work Visa">H-1B Work Visa</SelectItem>
+                              <SelectItem value="Work Permit">Work Permit</SelectItem>
+                              <SelectItem value="Tourist Visa">Tourist Visa</SelectItem>
+                              <SelectItem value="Business Visa">Business Visa</SelectItem>
+                              <SelectItem value="Family Reunion">Family Reunion</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
