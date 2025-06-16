@@ -39,6 +39,30 @@ const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
   );
 };
 
+// Notification badge for updates
+const UpdatesNotificationBadge = () => {
+  const { user } = useAuth();
+  
+  const { data: updates = [] } = useQuery<any[]>({
+    queryKey: ["/api/updates"],
+    enabled: !!user,
+    refetchInterval: 30000, // Check for new updates every 30 seconds
+  });
+
+  const unreadCount = updates.filter((update: any) => !update.isViewed).length;
+
+  if (unreadCount === 0) return null;
+
+  return (
+    <Badge 
+      variant="destructive" 
+      className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs font-bold animate-pulse"
+    >
+      {unreadCount > 9 ? "9+" : unreadCount}
+    </Badge>
+  );
+};
+
 export function DashboardSidebar() {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
@@ -93,12 +117,15 @@ export function DashboardSidebar() {
           href="/consultations"
           active={location === "/consultations"}
         />
-        <SidebarItem
-          icon={<Bell className="h-5 w-5" />}
-          label="Updates"
-          href="/updates"
-          active={location === "/updates"}
-        />
+        <div className="relative">
+          <SidebarItem
+            icon={<Bell className="h-5 w-5" />}
+            label="Updates"
+            href="/updates"
+            active={location === "/updates"}
+          />
+          <UpdatesNotificationBadge />
+        </div>
       </nav>
 
       <div className="mt-auto border-t pt-4">
