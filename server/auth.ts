@@ -54,8 +54,10 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
     saveUninitialized: false,
     store: sessionStore,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Set to false for development to ensure cookies work
+      httpOnly: true,
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      sameSite: 'lax' // Allow cross-site requests for proper session handling
     }
   };
 
