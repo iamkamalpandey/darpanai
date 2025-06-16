@@ -17,7 +17,8 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Plus, Edit, Trash2, Eye, EyeOff, CheckSquare, Search, MapPin, Clock, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
-import { documentChecklistSchema, type DocumentChecklist, type DocumentChecklistFormData } from "@shared/schema";
+import { insertDocumentChecklistSchema, type DocumentChecklist, type DocumentChecklistFormData } from "@shared/schema";
+import { SimpleChecklistForm } from "@/components/SimpleChecklistForm";
 import { AdminLayout } from "@/components/AdminLayout";
 
 const userTypes = [
@@ -112,7 +113,7 @@ export default function AdminDocumentChecklists() {
   });
 
   const form = useForm<DocumentChecklistFormData>({
-    resolver: zodResolver(documentChecklistSchema),
+    resolver: zodResolver(insertDocumentChecklistSchema),
     defaultValues: {
       country: "",
       visaType: "",
