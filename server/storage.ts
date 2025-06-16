@@ -73,6 +73,17 @@ export interface IStorage {
   createProfessionalApplication(application: InsertProfessionalApplication): Promise<ProfessionalApplication>;
   getAllProfessionalApplications(): Promise<ProfessionalApplication[]>;
   updateProfessionalApplicationStatus(id: number, status: string, adminNotes?: string, reviewedBy?: number): Promise<ProfessionalApplication | undefined>;
+  
+  // Updates/Notifications methods
+  createUpdate(update: InsertUpdate): Promise<Update>;
+  getAllUpdates(): Promise<Update[]>;
+  getUpdatesForUser(userId: number, userType?: string): Promise<Update[]>;
+  getUpdate(id: number): Promise<Update | undefined>;
+  updateUpdate(id: number, updates: Partial<Update>): Promise<Update | undefined>;
+  deleteUpdate(id: number): Promise<boolean>;
+  markUpdateAsViewed(userId: number, updateId: number): Promise<UserUpdateView>;
+  markUpdateActionTaken(userId: number, updateId: number): Promise<UserUpdateView | undefined>;
+  getUserUpdateViews(userId: number): Promise<UserUpdateView[]>;
 }
 
 export class DatabaseStorage implements IStorage {

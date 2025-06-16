@@ -91,6 +91,36 @@ export const appointments = pgTable("appointments", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// System Updates/Notifications
+export const updates = pgTable("updates", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  summary: text("summary").notNull(), // Short description for list view
+  type: text("type").notNull(), // 'general', 'visa_category', 'individual'
+  priority: text("priority").default("normal").notNull(), // 'low', 'normal', 'high', 'urgent'
+  targetAudience: text("target_audience").default("all").notNull(), // 'all', 'students', 'agents', 'other'
+  targetVisaCategories: text("target_visa_categories").array(), // For visa category specific updates
+  targetUserIds: integer("target_user_ids").array(), // For individual user updates
+  callToAction: text("call_to_action"), // Button text
+  externalLink: text("external_link"), // External URL
+  isActive: boolean("is_active").default(true).notNull(),
+  publishedAt: timestamp("published_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at"), // Optional expiration date
+  createdBy: integer("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// User Update Views Tracking
+export const userUpdateViews = pgTable("user_update_views", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  updateId: integer("update_id").references(() => updates.id).notNull(),
+  viewedAt: timestamp("viewed_at").defaultNow().notNull(),
+  actionTaken: boolean("action_taken").default(false).notNull(),
+});
+
 // Base user schema for registration
 const baseUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -210,3 +240,32 @@ export type InsertProfessionalApplication = z.infer<typeof professionalApplicati
 
 export type FileUpload = z.infer<typeof fileUploadSchema>;
 export type AnalysisResponse = z.infer<typeof analysisResponseSchema>;
+
+// Update schema for creation
+export const insertUpdateSchema = createInsertSchema(updates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  publishedAt: true,
+});
+
+export const updateSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  content: z.string().min(1, "Content is required"),
+  summary: z.string().min(1, "Summary is required"),
+  type: z.enum(["general", "visa_category", "individual"]),
+  priority: z.enum(["low", "normal", "high", "urgent"]).default("normal"),
+  targetAudience: z.enum(["all", "students", "agents", "other"]).default("all"),
+  targetVisaCategories: z.array(z.string()).optional(),
+  targetUserIds: z.array(z.number()).optional(),
+  callToAction: z.string().optional(),
+  externalLink: z.string().url().optional().or(z.literal("")),
+  expiresAt: z.string().optional(),
+});
+
+export type Update = typeof updates.$inferSelect;
+export type InsertUpdate = z.infer<typeof insertUpdateSchema>;
+export type UpdateFormData = z.infer<typeof updateSchema>;
+
+export type UserUpdateView = typeof userUpdateViews.$inferSelect;
+export type InsertUserUpdateView = typeof userUpdateViews.$inferInsert;

@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { lazy, Suspense } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -32,16 +32,23 @@ const LoadingFallback = () => (
 );
 
 function Router() {
-  // HomePage component that shows Landing for guests, Home for authenticated users
+  // HomePage component that routes users to their appropriate dashboard
   function HomePage() {
     const { user, isLoading } = useAuth();
+    const [, setLocation] = useLocation();
     
     if (isLoading) {
       return <LoadingFallback />;
     }
     
     if (user) {
-      return <Home />;
+      // Route users to their appropriate dashboard immediately
+      if (user.role === 'admin') {
+        setLocation('/admin');
+        return <LoadingFallback />;
+      } else {
+        return <Home />;
+      }
     }
     
     return <Landing />;
