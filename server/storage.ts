@@ -44,6 +44,8 @@ export interface IStorage {
   
   // Admin methods
   getAllUsers(): Promise<User[]>;
+  updateUser(userId: number, updates: Partial<User>): Promise<User | undefined>;
+  deleteUser(userId: number): Promise<boolean>;
   updateUserMaxAnalyses(userId: number, maxAnalyses: number): Promise<User | undefined>;
   updateUserRole(userId: number, role: string): Promise<User | undefined>;
   updateUserStatus(userId: number, status: string): Promise<User | undefined>;
@@ -145,6 +147,41 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return updatedUser || undefined;
+  }
+
+  async updateUser(userId: number, updates: Partial<User>): Promise<User | undefined> {
+    // If password is being updated, hash it
+    if (updates.password) {
+      updates.password = await hashPassword(updates.password);
+    }
+
+    // Remove any undefined fields and fields that shouldn't be updated directly
+    const cleanUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([_, value]) => value !== undefined)
+    );
+
+    const [updatedUser] = await db
+      .update(users)
+      .set(cleanUpdates)
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return updatedUser || undefined;
+  }
+
+  async deleteUser(userId: number): Promise<boolean> {
+    try {
+      // First delete related data to maintain referential integrity
+      await db.delete(analyses).where(eq(analyses.userId, userId));
+      await db.delete(appointments).where(eq(appointments.userId, userId));
+      
+      // Then delete the user
+      const result = await db.delete(users).where(eq(users.id, userId));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
+    }
   }
 
   async incrementUserAnalysisCount(userId: number): Promise<User | undefined> {

@@ -587,6 +587,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create new user (admin only)
+  app.post('/api/admin/users', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const userData = req.body;
+      
+      // Validate required fields
+      if (!userData.username || !userData.email || !userData.password) {
+        return res.status(400).json({ error: 'Username, email, and password are required' });
+      }
+
+      // Check if username or email already exists
+      const existingUser = await storage.getUserByUsername(userData.username);
+      if (existingUser) {
+        return res.status(400).json({ error: 'Username already exists' });
+      }
+
+      const existingEmail = await storage.getUserByEmail(userData.email);
+      if (existingEmail) {
+        return res.status(400).json({ error: 'Email already exists' });
+      }
+
+      const newUser = await storage.createUser(userData);
+      const { password, ...safeUser } = newUser;
+      
+      // Invalidate cache when user data changes
+      invalidateCache('admin:users');
+      
+      return res.status(201).json(safeUser);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      return res.status(500).json({ error: 'Failed to create user' });
+    }
+  });
+
+  // Update user details (admin only)
+  app.patch('/api/admin/users/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ error: 'Invalid user ID' });
+      }
+
+      const updatedUser = await storage.updateUser(userId, updates);
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Invalidate cache when user data changes
+      invalidateCache('admin:users');
+
+      const { password, ...safeUser } = updatedUser;
+      return res.status(200).json(safeUser);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return res.status(500).json({ error: 'Failed to update user' });
+    }
+  });
+
+  // Delete user (admin only)
+  app.delete('/api/admin/users/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ error: 'Invalid user ID' });
+      }
+
+      const deleted = await storage.deleteUser(userId);
+      if (!deleted) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Invalidate cache when user data changes
+      invalidateCache('admin:users');
+
+      return res.status(200).json({ message: 'User deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return res.status(500).json({ error: 'Failed to delete user' });
+    }
+  });
+
   // Get user details with analyses (admin only)
   app.get('/api/admin/users/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
