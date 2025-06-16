@@ -152,10 +152,15 @@ export default function AdminUsers() {
     queryKey: ["/api/admin/users", selectedUser?.id, "analyses"],
     queryFn: async () => {
       if (!selectedUser?.id) return [];
-      const response = await fetch(`/api/admin/users/${selectedUser.id}`);
-      if (!response.ok) throw new Error('Failed to fetch user data');
-      const userData = await response.json();
-      return userData.analyses || [];
+      try {
+        const response = await fetch(`/api/admin/users/${selectedUser.id}`);
+        if (!response.ok) throw new Error('Failed to fetch user data');
+        const userData = await response.json();
+        return userData.analyses || [];
+      } catch (error) {
+        console.error("Fetch user analyses error:", error);
+        throw error;
+      }
     },
     enabled: !!selectedUser?.id,
   });
@@ -256,10 +261,11 @@ export default function AdminUsers() {
       setSelectedUser(null);
       setUserDetailsOpen(false);
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
+      console.error("Delete user error:", error);
       toast({ 
         title: "Error", 
-        description: error.message || "Failed to delete user", 
+        description: error?.message || "Failed to delete user", 
         variant: "destructive" 
       });
     },
@@ -387,8 +393,35 @@ export default function AdminUsers() {
   };
 
   const openUserDetails = (user: UserData) => {
-    setSelectedUser(user);
-    setUserDetailsOpen(true);
+    try {
+      setSelectedUser(user);
+      setUserDetailsOpen(true);
+      // Reset edit form with user data to prevent controlled/uncontrolled input errors
+      editForm.reset({
+        username: user.username || "",
+        email: user.email || "",
+        password: "",
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        phoneNumber: user.phoneNumber || "",
+        role: user.role || "user",
+        status: user.status || "active",
+        maxAnalyses: user.maxAnalyses || 3,
+        studyDestination: user.studyDestination || "",
+        city: user.city || "",
+        country: user.country || "",
+        studyLevel: user.studyLevel || "bachelor",
+        counsellingMode: user.counsellingMode || "online",
+        fundingSource: user.fundingSource || "self",
+      });
+    } catch (error) {
+      console.error("Error opening user details:", error);
+      toast({
+        title: "Error",
+        description: "Failed to open user details",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusBadgeVariant = (status: string) => {
