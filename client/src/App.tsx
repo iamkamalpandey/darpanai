@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { UserProtectedRoute } from "@/components/UserProtectedRoute";
 import { AdminProtectedRoute } from "@/components/AdminProtectedRoute";
+import { AdminRedirect } from "@/components/AdminRedirect";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Landing from "@/pages/Landing";
@@ -22,6 +23,7 @@ const AdminAnalyses = lazy(() => import("@/pages/admin-analyses"));
 const AdminAppointments = lazy(() => import("@/pages/admin-appointments"));
 const AdminUsers = lazy(() => import("@/pages/admin-users"));
 const AdminProfessionalApplications = lazy(() => import("@/pages/admin-professional-applications"));
+const AdminUpdates = lazy(() => import("@/pages/admin-updates"));
 const AdminSettings = lazy(() => import("@/pages/admin-settings"));
 
 // Loading fallback component
@@ -35,20 +37,17 @@ function Router() {
   // HomePage component that routes users to their appropriate dashboard
   function HomePage() {
     const { user, isLoading } = useAuth();
-    const [, setLocation] = useLocation();
     
     if (isLoading) {
       return <LoadingFallback />;
     }
     
+    if (user?.role === 'admin') {
+      return <AdminRedirect />;
+    }
+    
     if (user) {
-      // Route users to their appropriate dashboard immediately
-      if (user.role === 'admin') {
-        setLocation('/admin');
-        return <LoadingFallback />;
-      } else {
-        return <Home />;
-      }
+      return <Home />;
     }
     
     return <Landing />;
@@ -117,6 +116,13 @@ function Router() {
         <AdminProtectedRoute path="/admin/professional-applications" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <AdminProfessionalApplications />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/updates">
+        <AdminProtectedRoute path="/admin/updates" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminUpdates />
           </Suspense>
         )} />
       </Route>
