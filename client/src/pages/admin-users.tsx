@@ -170,7 +170,7 @@ export default function AdminUsers() {
   // Update user max analyses mutation
   const updateMaxAnalysesMutation = useMutation({
     mutationFn: (data: { userId: number; maxAnalyses: number }) =>
-      apiRequest(`/api/admin/users/${data.userId}/max-analyses`, "PATCH", { maxAnalyses: data.maxAnalyses }),
+      apiRequest("PATCH", `/api/admin/users/${data.userId}/max-analyses`, { maxAnalyses: data.maxAnalyses }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({ title: "Success", description: "Analysis limit updated successfully" });
@@ -185,7 +185,7 @@ export default function AdminUsers() {
   // Update user role mutation
   const updateRoleMutation = useMutation({
     mutationFn: (data: { userId: number; role: string }) =>
-      apiRequest(`/api/admin/users/${data.userId}/role`, "PATCH", { role: data.role }),
+      apiRequest("PATCH", `/api/admin/users/${data.userId}/role`, { role: data.role }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({ title: "Success", description: "User role updated successfully" });
@@ -200,7 +200,7 @@ export default function AdminUsers() {
   // Update user status mutation
   const updateStatusMutation = useMutation({
     mutationFn: (data: { userId: number; status: string }) =>
-      apiRequest(`/api/admin/users/${data.userId}/status`, "PATCH", { status: data.status }),
+      apiRequest("PATCH", `/api/admin/users/${data.userId}/status`, { status: data.status }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({ title: "Success", description: "User status updated successfully" });
@@ -215,7 +215,7 @@ export default function AdminUsers() {
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: (userData: CreateUserData) =>
-      apiRequest("/api/admin/users", "POST", userData),
+      apiRequest("POST", "/api/admin/users", userData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({ title: "Success", description: "User created successfully" });
@@ -235,7 +235,7 @@ export default function AdminUsers() {
   // Edit user mutation
   const editUserMutation = useMutation({
     mutationFn: (data: { userId: number; updates: EditUserData }) =>
-      apiRequest(`/api/admin/users/${data.userId}`, "PATCH", data.updates),
+      apiRequest("PATCH", `/api/admin/users/${data.userId}`, data.updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({ title: "Success", description: "User updated successfully" });
@@ -256,7 +256,7 @@ export default function AdminUsers() {
   // Delete user mutation
   const deleteUserMutation = useMutation({
     mutationFn: (userId: number) =>
-      apiRequest(`/api/admin/users/${userId}`, "DELETE"),
+      apiRequest("DELETE", `/api/admin/users/${userId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
       toast({ title: "Success", description: "User deleted successfully" });
