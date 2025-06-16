@@ -18,13 +18,13 @@ declare global {
       firstName: string;
       lastName: string;
       phoneNumber: string;
-      studyDestination: string;
-      startDate: string;
+      studyDestination?: string;
+      startDate?: string;
       city: string;
       country: string;
-      counsellingMode: string;
-      fundingSource: string;
-      studyLevel: string;
+      counsellingMode?: string;
+      fundingSource?: string;
+      studyLevel?: string;
       agreeToTerms: boolean;
       allowContact: boolean;
       receiveUpdates: boolean;
@@ -134,13 +134,13 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
         firstName: user.firstName,
         lastName: user.lastName,
         phoneNumber: user.phoneNumber,
-        studyDestination: user.studyDestination,
-        startDate: user.startDate,
+        studyDestination: user.studyDestination ?? undefined,
+        startDate: user.startDate ?? undefined,
         city: user.city,
         country: user.country,
-        counsellingMode: user.counsellingMode,
-        fundingSource: user.fundingSource,
-        studyLevel: user.studyLevel,
+        counsellingMode: user.counsellingMode ?? undefined,
+        fundingSource: user.fundingSource ?? undefined,
+        studyLevel: user.studyLevel ?? undefined,
         agreeToTerms: user.agreeToTerms,
         allowContact: user.allowContact,
         receiveUpdates: user.receiveUpdates,
@@ -193,8 +193,33 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
       // Create user
       const user = await storage.createUser(userValidation.data);
       
+      // Transform user data for session
+      const transformedUser: Express.User = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phoneNumber: user.phoneNumber,
+        studyDestination: user.studyDestination ?? undefined,
+        startDate: user.startDate ?? undefined,
+        city: user.city,
+        country: user.country,
+        counsellingMode: user.counsellingMode ?? undefined,
+        fundingSource: user.fundingSource ?? undefined,
+        studyLevel: user.studyLevel ?? undefined,
+        agreeToTerms: user.agreeToTerms,
+        allowContact: user.allowContact,
+        receiveUpdates: user.receiveUpdates,
+        role: user.role,
+        status: user.status,
+        analysisCount: user.analysisCount,
+        maxAnalyses: user.maxAnalyses,
+        createdAt: user.createdAt,
+      };
+      
       // Log user in automatically
-      req.login(user, (err) => {
+      req.login(transformedUser, (err) => {
         if (err) return next(err);
         
         // Create a safe user object without password

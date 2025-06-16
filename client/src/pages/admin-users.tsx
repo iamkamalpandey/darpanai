@@ -233,8 +233,16 @@ export default function AdminUsers() {
   const updateStatusMutation = useMutation({
     mutationFn: (data: { userId: number; status: string }) =>
       apiRequest("PATCH", `/api/admin/users/${data.userId}/status`, { status: data.status }),
-    onSuccess: () => {
+    onSuccess: (updatedUser, variables) => {
+      // Invalidate all user-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users", variables.userId] });
+      
+      // Update selected user if it's the one being modified
+      if (selectedUser?.id === variables.userId) {
+        setSelectedUser(prev => prev ? { ...prev, status: variables.status } : null);
+      }
+      
       toast({ title: "Success", description: "User status updated successfully" });
       setEditingField(null);
     },
