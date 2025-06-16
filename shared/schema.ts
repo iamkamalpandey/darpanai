@@ -278,21 +278,24 @@ export type UpdateWithViewStatus = Update & {
 export type UserUpdateView = typeof userUpdateViews.$inferSelect;
 export type InsertUserUpdateView = typeof userUpdateViews.$inferInsert;
 
-// Document Templates table
+// Document Templates table - For sample document files
 export const documentTemplates = pgTable("document_templates", {
   id: serial("id").primaryKey(),
-  title: text("title").notNull(),
+  title: text("title").notNull(), // e.g., "Bank Statement Template - USA F-1 Visa"
   description: text("description").notNull(),
+  documentType: text("document_type").notNull(), // 'bank_statement', 'sop', 'recommendation_letter', 'financial_affidavit', etc.
   category: text("category").notNull(), // 'financial', 'academic', 'personal', 'employment', 'travel', 'legal'
   visaTypes: text("visa_types").array().notNull().default([]),
   countries: text("countries").array().notNull().default([]),
-  template: text("template").notNull(),
-  fields: jsonb("fields").notNull().default([]), // TemplateField[]
+  fileName: text("file_name").notNull(), // Original file name
+  filePath: text("file_path").notNull(), // Server file path for downloads
+  fileSize: integer("file_size"), // File size in bytes
+  fileType: text("file_type").notNull(), // MIME type
   instructions: text("instructions").array().notNull().default([]),
   tips: text("tips").array().notNull().default([]),
-  requiredDocuments: text("required_documents").array().notNull().default([]),
-  downloadUrl: text("download_url"), // External download link for template files
+  requirements: text("requirements").array().notNull().default([]), // What info to fill in template
   isActive: boolean("is_active").default(true),
+  uploadedBy: integer("uploaded_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -314,83 +317,41 @@ export const documentChecklists = pgTable("document_checklists", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Document Templates schemas
+// Document Templates schemas - File-based templates
 export const insertDocumentTemplateSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
-  category: z.enum(["financial", "academic", "personal", "employment", "travel", "legal", "medical", "insurance", "accommodation", "language"]),
-  visaTypes: z.array(z.string()).default([]),
-  originCountries: z.array(z.string()).default([]),
-  destinationCountries: z.array(z.string()).default([]),
-  template: z.string().min(1, "Template content is required"),
-  fields: z.array(z.object({
-    id: z.string(),
-    label: z.string(),
-    type: z.enum(["text", "date", "number", "select", "textarea", "checkbox", "radio", "file", "email", "phone", "url"]),
-    required: z.boolean(),
-    placeholder: z.string().optional(),
-    options: z.array(z.string()).optional(),
-    validation: z.string().optional(),
-    defaultValue: z.string().optional(),
-    helpText: z.string().optional(),
-    section: z.string().optional(),
-    order: z.number().optional(),
-    conditional: z.object({
-      field: z.string(),
-      value: z.string(),
-      operator: z.enum(["equals", "not_equals", "contains", "greater_than", "less_than"]),
-    }).optional(),
-  })).default([]),
-  downloadUrl: z.string().url().optional().or(z.literal("")),
-  instructions: z.array(z.object({
-    title: z.string(),
-    content: z.string(),
-    order: z.number().optional(),
-    important: z.boolean().default(false),
-  })).default([]),
-  tips: z.array(z.object({
-    title: z.string(),
-    content: z.string(),
-    category: z.enum(["general", "formatting", "submission", "documentation"]).default("general"),
-  })).default([]),
-  requiredDocuments: z.array(z.object({
-    name: z.string(),
-    description: z.string(),
-    format: z.string().optional(),
-    mandatory: z.boolean().default(true),
-    alternatives: z.array(z.string()).default([]),
-  })).default([]),
-  metadata: z.object({
-    difficulty: z.enum(["easy", "medium", "hard"]).optional(),
-    estimatedTime: z.string().optional(),
-    version: z.string().optional(),
-    lastReviewDate: z.string().optional(),
-    tags: z.array(z.string()).default([]),
-  }).optional(),
-  isActive: z.boolean().default(true),
-});
-
-export const documentTemplateSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().min(1, "Description is required"),
+  documentType: z.string().min(1, "Document type is required"),
   category: z.enum(["financial", "academic", "personal", "employment", "travel", "legal"]),
   visaTypes: z.array(z.string()).default([]),
   countries: z.array(z.string()).default([]),
-  template: z.string().min(1, "Template content is required"),
-  fields: z.array(z.object({
-    id: z.string(),
-    label: z.string(),
-    type: z.enum(["text", "date", "number", "select", "textarea"]),
-    required: z.boolean(),
-    placeholder: z.string().optional(),
-    options: z.array(z.string()).optional(),
-    validation: z.string().optional(),
-  })).default([]),
+  fileName: z.string().min(1, "File name is required"),
+  filePath: z.string().min(1, "File path is required"),
+  fileSize: z.number().optional(),
+  fileType: z.string().min(1, "File type is required"),
   instructions: z.array(z.string()).default([]),
   tips: z.array(z.string()).default([]),
-  requiredDocuments: z.array(z.string()).default([]),
+  requirements: z.array(z.string()).default([]),
+  isActive: z.boolean().default(true),
+  uploadedBy: z.number().optional(),
+});
+
+export const documentTemplateUploadSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  documentType: z.string().min(1, "Document type is required"),
+  category: z.enum(["financial", "academic", "personal", "employment", "travel", "legal"]),
+  visaTypes: z.array(z.string()).default([]),
+  countries: z.array(z.string()).default([]),
+  instructions: z.array(z.string()).default([]),
+  tips: z.array(z.string()).default([]),
+  requirements: z.array(z.string()).default([]),
   isActive: z.boolean().default(true),
 });
+
+export type DocumentTemplate = typeof documentTemplates.$inferSelect;
+export type InsertDocumentTemplate = z.infer<typeof insertDocumentTemplateSchema>;
+export type DocumentTemplateUpload = z.infer<typeof documentTemplateUploadSchema>;
 
 // Document Checklists schemas - Simplified for destination country focus
 export const insertDocumentChecklistSchema = z.object({
