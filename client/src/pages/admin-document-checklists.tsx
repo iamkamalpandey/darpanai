@@ -10,6 +10,7 @@ import { Plus, Trash2, Eye, EyeOff, CheckSquare, Search, MapPin, Clock, DollarSi
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { type DocumentChecklist } from "@shared/schema";
+import { AdvancedChecklistForm } from "@/components/AdvancedChecklistForm";
 import { AdminLayout } from "@/components/AdminLayout";
 
 const userTypes = [
