@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
 import { 
   CheckCircle, 
   Circle, 
@@ -201,10 +202,10 @@ export default function DocumentChecklistGenerator() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center">
+                <Label className="text-sm font-medium flex items-center">
                   <MapPin className="h-4 w-4 mr-2" />
                   Destination Country
-                </label>
+                </Label>
                 <Select value={selectedCountry} onValueChange={setSelectedCountry}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select country" />
@@ -219,10 +220,10 @@ export default function DocumentChecklistGenerator() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center">
+                <Label className="text-sm font-medium flex items-center">
                   <Plane className="h-4 w-4 mr-2" />
                   Visa Type
-                </label>
+                </Label>
                 <Select value={selectedVisaType} onValueChange={setSelectedVisaType}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select visa type" />
@@ -237,10 +238,10 @@ export default function DocumentChecklistGenerator() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center">
+                <Label className="text-sm font-medium flex items-center">
                   <User className="h-4 w-4 mr-2" />
                   Application Type
-                </label>
+                </Label>
                 <Select value={selectedUserType} onValueChange={setSelectedUserType}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
