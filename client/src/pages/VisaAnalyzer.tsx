@@ -264,6 +264,34 @@ export default function VisaAnalyzer() {
                 </Button>
               </div>
             </div>
+            
+            {/* Strategic CTA for users who exhausted credits */}
+            {(user?.analysisCount ?? 0) >= (user?.maxAnalyses ?? 0) && user && (
+              <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-6 mt-6">
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold text-orange-900 mb-3">
+                    Ready for Expert Analysis?
+                  </h3>
+                  <p className="text-orange-700 mb-4 max-w-2xl mx-auto">
+                    You've used all your free analyses. Get unlimited expert consultations and personalized guidance from our visa specialists to maximize your approval chances.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <ConsultationForm 
+                      buttonSize="lg"
+                      buttonText="Book Expert Consultation"
+                      subject="Need More Document Analysis - Credit Exhausted"
+                      className="bg-orange-600 hover:bg-orange-700 text-white"
+                    />
+                    <Button variant="outline" className="border-orange-300 text-orange-700 hover:bg-orange-50">
+                      View Pricing Plans
+                    </Button>
+                  </div>
+                  <p className="text-sm text-orange-600 mt-3">
+                    Get personalized advice • Unlimited consultations • 90% success rate
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
         
