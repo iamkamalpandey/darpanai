@@ -5,7 +5,8 @@ import path from "path";
 import { storage } from "./storage";
 import { extractTextFromDocument } from "./fileProcessing";
 import { analyzeRejectionLetter } from "./openai";
-import { analysisResponseSchema, professionalApplicationSchema } from "@shared/schema";
+import { analysisResponseSchema, professionalApplicationSchema, insertDocumentTemplateSchema } from "@shared/schema";
+import { z } from 'zod';
 import { setupAuth } from "./auth";
 
 // Simple in-memory cache for performance optimization
@@ -1016,6 +1017,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Download document template file
+  app.get('/api/document-templates/:id/download', async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const template = await storage.getDocumentTemplate(parseInt(id));
+      
+      if (!template) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+
+      const { getTemplateFile } = await import('./fileStorage');
+      const fileBuffer = await getTemplateFile(template.filePath);
+      
+      res.setHeader('Content-Disposition', `attachment; filename="${template.fileName}"`);
+      res.setHeader('Content-Type', template.fileType);
+      res.setHeader('Content-Length', template.fileSize || fileBuffer.length);
+      
+      res.send(fileBuffer);
+    } catch (error) {
+      console.error('Error downloading template:', error);
+      res.status(500).json({ error: 'Failed to download template' });
+    }
+  });
+
   app.get('/api/admin/document-templates', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const cacheKey = 'admin-document-templates';
@@ -1033,11 +1058,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/admin/document-templates', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  app.post('/api/admin/document-templates', requireAuth, requireAdmin, upload.single('file'), async (req: FileRequest, res: Response) => {
     try {
-      const template = await storage.createDocumentTemplate(req.body);
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const { saveTemplateFile, isAllowedFileType, getFileSizeInBytes } = await import('./fileStorage');
+      
+      if (!isAllowedFileType(req.file.originalname)) {
+        return res.status(400).json({ error: 'Invalid file type. Only PDF, DOC, DOCX, TXT, and RTF files are allowed.' });
+      }
+
+      // Save file to storage
+      const filePath = await saveTemplateFile(req.file.buffer, req.file.originalname);
+      
+      // Parse and validate form data
+      const formData = {
+        ...req.body,
+        visaTypes: Array.isArray(req.body.visaTypes) ? req.body.visaTypes : JSON.parse(req.body.visaTypes || '[]'),
+        countries: Array.isArray(req.body.countries) ? req.body.countries : JSON.parse(req.body.countries || '[]'),
+        instructions: Array.isArray(req.body.instructions) ? req.body.instructions : JSON.parse(req.body.instructions || '[]'),
+        tips: Array.isArray(req.body.tips) ? req.body.tips : JSON.parse(req.body.tips || '[]'),
+        requirements: Array.isArray(req.body.requirements) ? req.body.requirements : JSON.parse(req.body.requirements || '[]'),
+        isActive: req.body.isActive === 'true' || req.body.isActive === true,
+        fileName: req.file.originalname,
+        filePath: filePath,
+        fileSize: getFileSizeInBytes(req.file.buffer),
+        fileType: req.file.mimetype,
+        uploadedBy: req.user!.id,
+      };
+
+      const template = await storage.createDocumentTemplate(formData);
+      
       invalidateCache('document-templates');
       invalidateCache('admin-document-templates');
+      invalidateCache('dropdown-options');
+      
       res.status(201).json(template);
     } catch (error) {
       console.error('Error creating document template:', error);
