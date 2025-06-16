@@ -93,7 +93,7 @@ export function DashboardSidebar() {
           href="/consultations"
           active={location === "/consultations"}
         />
-        <UpdatesMenuItemWithNotifications location={location} />
+        <UpdatesMenuWithNotifications location={location} />
       </nav>
 
       <div className="mt-auto border-t pt-4">
