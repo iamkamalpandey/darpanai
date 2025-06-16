@@ -46,7 +46,7 @@ const UpdatesNotificationBadge = () => {
   const { data: updates = [] } = useQuery<any[]>({
     queryKey: ["/api/updates"],
     enabled: !!user,
-    refetchInterval: 30000, // Check for new updates every 30 seconds
+    refetchInterval: 3600000, // Check for new updates every 1 hour (3600000ms)
   });
 
   const unreadCount = updates.filter((update: any) => !update.isViewed).length;

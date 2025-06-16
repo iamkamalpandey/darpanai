@@ -135,7 +135,7 @@ FRONTEND_URL=your_domain_url
 - Added automatic signup date filtering - users only see updates created after their registration
 - Enhanced image upload capability with professional upload button and JPG/PNG support
 - Fixed edit form fields to completely match create form functionality with all targeting options
-- Added real-time notification indicators with 30-second refresh intervals for new updates
+- Added real-time notification indicators with 1-hour refresh intervals for resource efficiency
 - Implemented "New" badge animations on unread updates with visual prominence
 - Enhanced targeting options: all users, students, agents, other visa categories, or specific visa types
 - Added visa type selection with 16+ categories (Student F-1, Tourist B-2, Work H-1B, Study Permits, etc.)

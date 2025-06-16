@@ -18,7 +18,7 @@ export default function Updates() {
   // Fetch user updates (filtered by signup date)
   const { data: updates = [], isLoading, error } = useQuery<Update[]>({
     queryKey: ["/api/updates"],
-    refetchInterval: 30000, // Refetch every 30 seconds for new updates
+    refetchInterval: 3600000, // Refetch every 1 hour for resource efficiency
   });
 
   // Mark update as viewed
