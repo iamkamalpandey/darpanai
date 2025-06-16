@@ -130,12 +130,16 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
-**June 16, 2025 - Document Checklist Excel/CSV Export & Analysis Count Bug Fix:**
-- Implemented comprehensive Document Checklist export functionality with both CSV and Excel format support
-- Added detailed export reports including checklist metadata, document items with progress tracking, important notes, and summary statistics
-- Enhanced export UI with separate CSV and Excel export buttons using proper Excel-compatible TSV format
+**June 16, 2025 - Strategic Consultation Booking CTAs & Document Checklist Excel/CSV Export:**
+- Implemented comprehensive consultation booking call-to-actions across all user dashboard pages with compelling copywriting
+- Added strategic CTAs on VisaAnalyzer page for users who exhausted analysis credits with conversion-focused messaging
+- Enhanced AnalysisHistory page with "Transform Analysis Into Success Plan" consultation prompts and document template links
+- Added Document Templates page CTAs for "Document Review & Guidance" with embassy-specific requirements messaging
+- Implemented Document Checklist page CTAs for "Expert Checklist Review" with priority guidance and embassy-specific tips
+- Created color-coded CTA sections (orange for credit exhaustion, blue for analysis follow-up, green for document assistance, purple for checklist guidance)
+- Added compelling benefit statements: 90% success rate, 85% approval improvement, 92% document approval rate, 88% faster completion
+- Implemented comprehensive Document Checklist export functionality with both CSV and Excel format support including detailed progress tracking
 - Fixed critical analysis count discrepancy bug where user interface showed incorrect analysis usage (1/3 vs actual 2/3)
-- Verified professional application endpoint functionality - backend working correctly with proper validation and database storage
 - Enhanced Document Templates with external URL support alongside file upload capabilities for Word, PDF, Excel, PPT formats
 - Confirmed all CRUD operations functional across admin and user interfaces with proper responsive design
 

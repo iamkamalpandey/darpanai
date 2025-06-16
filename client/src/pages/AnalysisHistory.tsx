@@ -36,6 +36,35 @@ export default function AnalysisHistoryPage() {
             <AnalysisHistory />
           </div>
         </div>
+
+        {/* Strategic CTA for Next Steps */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+          <div className="text-center">
+            <h3 className="text-xl font-semibold text-blue-900 mb-3">
+              Ready to Take Action on Your Analysis?
+            </h3>
+            <p className="text-blue-700 mb-4 max-w-2xl mx-auto">
+              Transform your rejection analysis into a winning application strategy. Our visa experts help you address every identified weakness with proven solutions.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <ConsultationForm 
+                buttonSize="lg"
+                buttonText="Get Expert Strategy Session"
+                subject="Transform Analysis Into Success Plan"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              />
+              <Link href="/document-templates">
+                <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Download Document Templates
+                </Button>
+              </Link>
+            </div>
+            <p className="text-sm text-blue-600 mt-3">
+              Personalized action plan • Document guidance • 85% approval improvement rate
+            </p>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

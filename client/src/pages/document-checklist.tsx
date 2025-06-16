@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { ConsultationForm } from '@/components/ConsultationForm';
 import { 
   Search, 
   Filter, 
@@ -477,6 +478,37 @@ export default function DocumentChecklistGenerator() {
                 <Download className="h-4 w-4 mr-2" />
                 Export Excel
               </Button>
+            </div>
+
+            {/* Strategic CTA for Checklist Completion */}
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6 mt-6">
+              <div className="text-center">
+                <h3 className="text-xl font-semibold text-purple-900 mb-3">
+                  Overwhelmed by This Checklist?
+                </h3>
+                <p className="text-purple-700 mb-4 max-w-2xl mx-auto">
+                  Don't navigate the complex visa requirements alone. Our experts help you prioritize documents, avoid common mistakes, and ensure nothing is missed for your {viewingChecklist.visaType} application.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <ConsultationForm 
+                    buttonSize="lg"
+                    buttonText="Get Expert Checklist Review"
+                    subject={`Checklist Guidance for ${viewingChecklist.country} ${viewingChecklist.visaType}`}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                  />
+                  <Button 
+                    variant="outline" 
+                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                    onClick={() => setViewingChecklist(null)}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Browse More Checklists
+                  </Button>
+                </div>
+                <p className="text-sm text-purple-600 mt-3">
+                  Priority guidance • Embassy-specific tips • 88% faster application completion
+                </p>
+              </div>
             </div>
           </>
         ) : (

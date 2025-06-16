@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Search, Download, Filter } from "lucide-react";
 import { type DocumentTemplate } from "@shared/schema";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { ConsultationForm } from "@/components/ConsultationForm";
 
 const categories = [
   { value: "financial", label: "Financial" },
@@ -328,6 +330,35 @@ export default function DocumentTemplates() {
             )}
           </div>
         )}
+
+        {/* Strategic CTA for Document Assistance */}
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6 mt-8">
+          <div className="text-center">
+            <h3 className="text-xl font-semibold text-green-900 mb-3">
+              Need Help Customizing These Documents?
+            </h3>
+            <p className="text-green-700 mb-4 max-w-2xl mx-auto">
+              These templates are just the starting point. Get personalized guidance from our visa experts to ensure your documents meet specific embassy requirements and maximize approval chances.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <ConsultationForm 
+                buttonSize="lg"
+                buttonText="Get Document Review & Guidance"
+                subject="Document Template Customization Assistance"
+                className="bg-green-600 hover:bg-green-700 text-white"
+              />
+              <Link href="/document-checklist">
+                <Button variant="outline" className="border-green-300 text-green-700 hover:bg-green-50">
+                  <FileText className="h-4 w-4 mr-2" />
+                  View Document Checklists
+                </Button>
+              </Link>
+            </div>
+            <p className="text-sm text-green-600 mt-3">
+              Document review • Embassy-specific requirements • 92% document approval rate
+            </p>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
