@@ -40,6 +40,14 @@ export default function AdminDocumentTemplates() {
     queryKey: ['/api/admin/document-templates'],
   });
 
+  const { data: dropdownOptions = { countries: [], visaTypes: [], userTypes: [] } } = useQuery<{
+    countries: string[];
+    visaTypes: string[];
+    userTypes: string[];
+  }>({
+    queryKey: ['/api/dropdown-options'],
+  });
+
   const createMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const response = await fetch('/api/admin/document-templates', {
@@ -106,7 +114,9 @@ export default function AdminDocumentTemplates() {
     const matchesSearch = template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          template.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !selectedCategory || template.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesCountry = !selectedCountry || template.countries.includes(selectedCountry);
+    const matchesVisaType = !selectedVisaType || template.visaTypes.includes(selectedVisaType);
+    return matchesSearch && matchesCategory && matchesCountry && matchesVisaType;
   });
 
   const handleSubmit = async (formData: FormData) => {
@@ -211,7 +221,7 @@ export default function AdminDocumentTemplates() {
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
               <option value="">All Countries</option>
-              {(dropdownOptions?.countries || []).map((country: string) => (
+              {dropdownOptions.countries.map((country: string) => (
                 <option key={country} value={country}>{country}</option>
               ))}
             </select>
@@ -222,7 +232,7 @@ export default function AdminDocumentTemplates() {
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
               <option value="">All Visa Types</option>
-              {(dropdownOptions?.visaTypes || []).map((visaType: string) => (
+              {dropdownOptions.visaTypes.map((visaType: string) => (
                 <option key={visaType} value={visaType}>{visaType}</option>
               ))}
             </select>
