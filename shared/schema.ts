@@ -291,6 +291,7 @@ export const documentTemplates = pgTable("document_templates", {
   instructions: text("instructions").array().notNull().default([]),
   tips: text("tips").array().notNull().default([]),
   requiredDocuments: text("required_documents").array().notNull().default([]),
+  downloadUrl: text("download_url"), // External download link for template files
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -328,6 +329,7 @@ export const insertDocumentTemplateSchema = z.object({
     options: z.array(z.string()).optional(),
     validation: z.string().optional(),
   })).default([]),
+  downloadUrl: z.string().url().optional().or(z.literal("")),
   instructions: z.array(z.string()).default([]),
   tips: z.array(z.string()).default([]),
   requiredDocuments: z.array(z.string()).default([]),

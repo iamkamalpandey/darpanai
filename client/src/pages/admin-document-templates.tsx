@@ -14,7 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Plus, Edit, Trash2, Eye, EyeOff, FileCheck, Search } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, EyeOff, FileCheck, Search, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { documentTemplateSchema, type DocumentTemplate, type DocumentTemplateFormData } from "@shared/schema";

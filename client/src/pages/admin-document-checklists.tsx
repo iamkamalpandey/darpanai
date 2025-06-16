@@ -14,7 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Plus, Edit, Trash2, Eye, EyeOff, CheckSquare, Search, MapPin, Clock } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, EyeOff, CheckSquare, Search, MapPin, Clock, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { documentChecklistSchema, type DocumentChecklist, type DocumentChecklistFormData } from "@shared/schema";
@@ -443,13 +443,28 @@ export default function AdminDocumentChecklists() {
                         <Button
                           size="sm"
                           variant="outline"
+                          onClick={() => downloadChecklist(checklist)}
+                          title="Download checklist"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={checklist.isActive ? "destructive" : "default"}
                           onClick={() => handleToggleStatus(checklist)}
                           disabled={updateMutation.isPending}
+                          title={checklist.isActive ? "Disable checklist" : "Enable checklist"}
                         >
                           {checklist.isActive ? (
-                            <EyeOff className="h-4 w-4" />
+                            <>
+                              <EyeOff className="h-4 w-4 mr-1" />
+                              Disable
+                            </>
                           ) : (
-                            <Eye className="h-4 w-4" />
+                            <>
+                              <Eye className="h-4 w-4 mr-1" />
+                              Enable
+                            </>
                           )}
                         </Button>
                         <Button
