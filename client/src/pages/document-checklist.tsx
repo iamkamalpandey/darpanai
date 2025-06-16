@@ -3,13 +3,10 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   CheckCircle, 
@@ -24,9 +21,39 @@ import {
   Info,
   User,
   MapPin,
-  Plane
+  Plane,
+  Search
 } from "lucide-react";
-import { documentChecklists, getChecklistByCountryAndVisa, type DocumentChecklist, type ChecklistDocument } from "@shared/document-templates";
+import { useQuery } from "@tanstack/react-query";
+import { type DocumentChecklist } from "@shared/schema";
+
+interface ChecklistCategory {
+  id: string;
+  name: string;
+  description: string;
+  required: boolean;
+  documents: ChecklistDocument[];
+}
+
+interface ChecklistDocument {
+  id: string;
+  name: string;
+  description: string;
+  required: boolean;
+  alternatives: string[];
+  format: string;
+  validity: string;
+  tips: string[];
+  templateId?: string;
+}
+
+interface ChecklistFee {
+  name: string;
+  amount: string;
+  currency: string;
+  description: string;
+  required: boolean;
+}
 
 export default function DocumentChecklistGenerator() {
   const [selectedCountry, setSelectedCountry] = useState<string>("");
@@ -36,22 +63,27 @@ export default function DocumentChecklistGenerator() {
   const [completedDocuments, setCompletedDocuments] = useState<Set<string>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
-  const countries = ["USA", "UK", "Canada", "Australia", "Germany", "France", "Japan", "Singapore"];
-  const visaTypes = {
-    "USA": ["Student Visa (F-1)", "Tourist Visa (B-2)", "Work Visa (H-1B)", "Business Visa (B-1)"],
-    "UK": ["Student Visa (Tier 4)", "Tourist Visa", "Work Visa (Tier 2)", "Business Visa"],
-    "Canada": ["Study Permit", "Visitor Visa", "Work Permit", "Business Visa"],
-    "Australia": ["Student Visa (500)", "Tourist Visa (600)", "Work Visa (482)", "Business Visa"]
-  };
+  const { data: checklists = [], isLoading } = useQuery({
+    queryKey: ['/api/document-checklists'],
+  });
+
+  const countries = ["Nepal", "India", "Pakistan", "Bangladesh", "Sri Lanka", "Vietnam", "China", "USA", "UK", "Canada", "Australia", "Germany", "France", "Netherlands"];
+  const visaTypes = ["Student F-1", "Tourist B-2", "Work H-1B", "Study Permit", "Visitor Visa", "Business B-1", "Transit C-1", "Family Reunification"];
   const userTypes = ["student", "tourist", "work", "family", "business"];
 
   const generateChecklist = () => {
     if (selectedCountry && selectedVisaType && selectedUserType) {
-      const foundChecklist = getChecklistByCountryAndVisa(selectedCountry, selectedVisaType);
+      const foundChecklist = (checklists as DocumentChecklist[]).find((checklist: DocumentChecklist) => 
+        checklist.country === selectedCountry && 
+        checklist.visaType === selectedVisaType && 
+        checklist.userType === selectedUserType &&
+        checklist.isActive
+      );
       if (foundChecklist) {
         setChecklist(foundChecklist);
         setCompletedDocuments(new Set());
-        setExpandedCategories(new Set(foundChecklist.categories.map(cat => cat.id)));
+        const categories = (foundChecklist.categories as ChecklistCategory[]) || [];
+        setExpandedCategories(new Set(categories.map(cat => cat.id)));
       }
     }
   };
@@ -66,7 +98,7 @@ export default function DocumentChecklistGenerator() {
     setCompletedDocuments(newCompleted);
   };
 
-  const toggleCategory = (categoryId: string) => {
+  const toggleCategoryExpanded = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories);
     if (newExpanded.has(categoryId)) {
       newExpanded.delete(categoryId);
@@ -76,156 +108,145 @@ export default function DocumentChecklistGenerator() {
     setExpandedCategories(newExpanded);
   };
 
-  const calculateProgress = () => {
-    if (!checklist) return 0;
-    const totalDocuments = checklist.categories.reduce(
-      (total, category) => total + category.documents.length, 0
-    );
-    const completedCount = completedDocuments.size;
-    return totalDocuments > 0 ? (completedCount / totalDocuments) * 100 : 0;
-  };
+  const categories = (checklist?.categories as ChecklistCategory[]) || [];
+  const fees = (checklist?.fees as ChecklistFee[]) || [];
+  
+  const totalDocuments = categories.reduce((total, category) => {
+    return total + (category.documents?.length || 0);
+  }, 0);
 
-  const getRequiredDocumentsCount = () => {
-    if (!checklist) return { total: 0, required: 0 };
-    const total = checklist.categories.reduce(
-      (sum, category) => sum + category.documents.length, 0
-    );
-    const required = checklist.categories.reduce(
-      (sum, category) => sum + category.documents.filter(doc => doc.required).length, 0
-    );
-    return { total, required };
-  };
+  const completedCount = categories.reduce((sum, category) => {
+    return sum + (category.documents?.reduce((sum, doc) => {
+      return sum + (completedDocuments.has(doc.id) ? 1 : 0);
+    }, 0) || 0);
+  }, 0);
+
+  const progress = totalDocuments > 0 ? (completedCount / totalDocuments) * 100 : 0;
 
   const exportChecklist = () => {
     if (!checklist) return;
 
-    const content = `
-VISA APPLICATION CHECKLIST
-${checklist.country} - ${checklist.visaType}
-Generated on: ${new Date().toLocaleDateString()}
+    const requiredFees = fees.filter(fee => fee.required);
+    const totalFees = requiredFees.reduce((total, fee) => {
+      const amount = parseFloat(fee.amount.replace(/[^0-9.]/g, ''));
+      return total + amount;
+    }, 0);
 
-ESTIMATED PROCESSING TIME: ${checklist.estimatedProcessingTime}
+    const categoryProgress = categories.map(category => {
+      const categoryDocs = category.documents || [];
+      const completedInCategory = categoryDocs.filter(doc => 
+        completedDocuments.has(doc.id)
+      ).length;
+      return {
+        name: category.name,
+        completed: completedInCategory,
+        total: categoryDocs.length,
+        percentage: categoryDocs.length > 0 ? (completedInCategory / categoryDocs.length) * 100 : 0
+      };
+    });
 
-REQUIRED FEES:
-${checklist.fees.map(fee => `- ${fee.name}: ${fee.amount} ${fee.currency} (${fee.description})`).join('\n')}
+    const exportData = {
+      country: checklist.country,
+      visaType: checklist.visaType,
+      userType: checklist.userType,
+      estimatedProcessingTime: checklist.estimatedProcessingTime,
+      lastUpdated: checklist.updatedAt || checklist.createdAt,
+      progress: {
+        overall: Math.round(progress),
+        completed: completedCount,
+        total: totalDocuments
+      },
+      categories: categoryProgress,
+      fees: {
+        total: totalFees,
+        currency: requiredFees[0]?.currency || 'USD',
+        breakdown: requiredFees
+      },
+      importantNotes: checklist.importantNotes
+    };
 
-DOCUMENT CATEGORIES:
-${checklist.categories.map(category => `
-${category.name.toUpperCase()} ${category.required ? '(REQUIRED)' : '(OPTIONAL)'}
-${category.description}
-
-Documents:
-${category.documents.map(doc => `
-□ ${doc.name} ${doc.required ? '(REQUIRED)' : '(OPTIONAL)'}
-  Description: ${doc.description}
-  Format: ${doc.format}
-  Validity: ${doc.validity}
-  ${doc.tips.length > 0 ? `Tips: ${doc.tips.join('; ')}` : ''}
-  ${doc.alternatives.length > 0 ? `Alternatives: ${doc.alternatives.join(', ')}` : ''}
-`).join('')}
-`).join('')}
-
-IMPORTANT NOTES:
-${checklist.importantNotes.map(note => `- ${note}`).join('\n')}
-
-Last Updated: ${checklist.lastUpdated.toLocaleDateString()}
-    `;
-
-    const blob = new Blob([content], { type: 'text/plain' });
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${checklist.country}_${checklist.visaType.replace(/\s+/g, '_')}_Checklist.txt`;
+    a.download = `${checklist.country}-${checklist.visaType}-checklist.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
-  const getDocumentStatusIcon = (documentId: string, required: boolean) => {
-    const isCompleted = completedDocuments.has(documentId);
-    if (isCompleted) {
-      return <CheckCircle className="h-5 w-5 text-green-600" />;
-    }
-    return required ? 
-      <Circle className="h-5 w-5 text-red-500" /> : 
-      <Circle className="h-5 w-5 text-gray-400" />;
-  };
-
-  const { total, required } = getRequiredDocumentsCount();
-
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Document Checklist Generator</h1>
-          <p className="text-gray-600">Generate country-specific document checklists based on your visa type and profile</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Document Checklist Generator</h1>
+            <p className="text-muted-foreground">
+              Generate country-specific document checklists based on your visa type and profile
+            </p>
+          </div>
         </div>
 
-        {/* Selection Form */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Generate Your Checklist
+            <CardTitle className="flex items-center">
+              <Search className="h-5 w-5 mr-2" />
+              Find Your Checklist
             </CardTitle>
             <CardDescription>
-              Select your destination, visa type, and profile to get a personalized document checklist
+              Select your details to generate a personalized document checklist
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <Label htmlFor="country">Destination Country</Label>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Destination Country
+                </label>
                 <Select value={selectedCountry} onValueChange={setSelectedCountry}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select country" />
                   </SelectTrigger>
                   <SelectContent>
-                    {countries.map(country => (
+                    {countries.map((country) => (
                       <SelectItem key={country} value={country}>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          {country}
-                        </div>
+                        {country}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              
-              <div>
-                <Label htmlFor="visa-type">Visa Type</Label>
-                <Select 
-                  value={selectedVisaType} 
-                  onValueChange={setSelectedVisaType}
-                  disabled={!selectedCountry}
-                >
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center">
+                  <Plane className="h-4 w-4 mr-2" />
+                  Visa Type
+                </label>
+                <Select value={selectedVisaType} onValueChange={setSelectedVisaType}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select visa type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {selectedCountry && visaTypes[selectedCountry as keyof typeof visaTypes]?.map(type => (
+                    {visaTypes.map((type) => (
                       <SelectItem key={type} value={type}>
-                        <div className="flex items-center gap-2">
-                          <Plane className="h-4 w-4" />
-                          {type}
-                        </div>
+                        {type}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-
-              <div>
-                <Label htmlFor="user-type">Application Type</Label>
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center">
+                  <User className="h-4 w-4 mr-2" />
+                  Application Type
+                </label>
                 <Select value={selectedUserType} onValueChange={setSelectedUserType}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {userTypes.map(type => (
+                    {userTypes.map((type) => (
                       <SelectItem key={type} value={type}>
                         {type.charAt(0).toUpperCase() + type.slice(1)}
                       </SelectItem>
@@ -233,199 +254,161 @@ Last Updated: ${checklist.lastUpdated.toLocaleDateString()}
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="flex items-end">
-                <Button 
-                  onClick={generateChecklist}
-                  disabled={!selectedCountry || !selectedVisaType || !selectedUserType}
-                  className="w-full"
-                >
-                  Generate Checklist
-                </Button>
-              </div>
             </div>
+            <Button 
+              onClick={generateChecklist} 
+              disabled={!selectedCountry || !selectedVisaType || !selectedUserType || isLoading}
+              className="w-full"
+            >
+              Generate Checklist
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Generated Checklist */}
         {checklist && (
-          <div className="space-y-6">
-            {/* Progress Overview */}
+          <>
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
+                    <CardTitle className="flex items-center">
+                      <FileText className="h-5 w-5 mr-2" />
                       {checklist.country} - {checklist.visaType}
                     </CardTitle>
-                    <CardDescription>
-                      Track your document preparation progress
+                    <CardDescription className="mt-1">
+                      Application type: {checklist.userType.charAt(0).toUpperCase() + checklist.userType.slice(1)}
                     </CardDescription>
                   </div>
-                  <Button onClick={exportChecklist} variant="outline">
+                  <Button onClick={exportChecklist} variant="outline" size="sm">
                     <Download className="h-4 w-4 mr-2" />
-                    Export Checklist
+                    Export
                   </Button>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm text-gray-600 mb-2">
-                      <span>Progress: {completedDocuments.size} of {total} documents</span>
-                      <span>{Math.round(calculateProgress())}% complete</span>
-                    </div>
-                    <Progress value={calculateProgress()} className="h-2" />
+                <div className="flex items-center space-x-4 mt-4">
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4 mr-1" />
+                    {checklist.estimatedProcessingTime}
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-5 w-5 text-blue-500" />
-                      <div>
-                        <p className="font-medium">Processing Time</p>
-                        <p className="text-sm text-gray-600">{checklist.estimatedProcessingTime}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-5 w-5 text-green-500" />
-                      <div>
-                        <p className="font-medium">Total Fees</p>
-                        <p className="text-sm text-gray-600">
-                          {checklist.fees.reduce((total, fee) => total + parseFloat(fee.amount), 0)} {checklist.fees[0]?.currency}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-purple-500" />
-                      <div>
-                        <p className="font-medium">Required Docs</p>
-                        <p className="text-sm text-gray-600">{required} of {total} mandatory</p>
-                      </div>
-                    </div>
-                  </div>
+                  <Badge variant="outline">
+                    {completedCount} of {totalDocuments} completed
+                  </Badge>
                 </div>
-              </CardContent>
+                <Progress value={progress} className="mt-2" />
+              </CardHeader>
             </Card>
 
-            {/* Fees Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Application Fees
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {checklist.fees.map((fee, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium">{fee.name}</p>
-                        <p className="text-sm text-gray-600">{fee.description}</p>
+            {fees.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <DollarSign className="h-5 w-5 mr-2" />
+                    Application Fees
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {fees.map((fee, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div>
+                          <div className="font-medium">{fee.name}</div>
+                          <div className="text-sm text-muted-foreground">{fee.description}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium">{fee.amount} {fee.currency}</div>
+                          <Badge variant={fee.required ? "default" : "secondary"} className="text-xs">
+                            {fee.required ? "Required" : "Optional"}
+                          </Badge>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-lg">{fee.amount} {fee.currency}</p>
-                        {fee.required && <Badge variant="destructive" className="text-xs">Required</Badge>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-            {/* Document Categories */}
             <div className="space-y-4">
-              {checklist.categories.map(category => (
+              {categories.map((category) => (
                 <Card key={category.id}>
-                  <Collapsible 
+                  <Collapsible
                     open={expandedCategories.has(category.id)}
-                    onOpenChange={() => toggleCategory(category.id)}
+                    onOpenChange={() => toggleCategoryExpanded(category.id)}
                   >
                     <CollapsibleTrigger asChild>
-                      <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+                      <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            {expandedCategories.has(category.id) ? 
-                              <ChevronDown className="h-5 w-5" /> : 
+                          <div className="flex items-center space-x-3">
+                            {expandedCategories.has(category.id) ? (
+                              <ChevronDown className="h-5 w-5" />
+                            ) : (
                               <ChevronRight className="h-5 w-5" />
-                            }
+                            )}
                             <div>
-                              <CardTitle className="flex items-center gap-2">
-                                {category.name}
-                                {category.required && <Badge variant="destructive">Required</Badge>}
-                              </CardTitle>
+                              <CardTitle className="text-lg">{category.name}</CardTitle>
                               <CardDescription>{category.description}</CardDescription>
                             </div>
                           </div>
-                          <Badge variant="outline">
-                            {category.documents.filter(doc => completedDocuments.has(doc.id)).length} / {category.documents.length}
-                          </Badge>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={category.required ? "default" : "secondary"}>
+                              {category.required ? "Required" : "Optional"}
+                            </Badge>
+                            <Badge variant="outline">
+                              {category.documents?.filter(doc => completedDocuments.has(doc.id)).length || 0} / {category.documents?.length || 0}
+                            </Badge>
+                          </div>
                         </div>
                       </CardHeader>
                     </CollapsibleTrigger>
-                    
                     <CollapsibleContent>
-                      <CardContent>
+                      <CardContent className="pt-0">
                         <div className="space-y-4">
-                          {category.documents.map(document => (
+                          {(category.documents || []).map((document) => (
                             <div key={document.id} className="border rounded-lg p-4">
-                              <div className="flex items-start gap-3">
-                                <button
-                                  onClick={() => toggleDocumentComplete(document.id)}
-                                  className="mt-0.5"
-                                >
-                                  {getDocumentStatusIcon(document.id, document.required)}
-                                </button>
-                                
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-2">
+                              <div className="flex items-start space-x-3">
+                                <Checkbox
+                                  checked={completedDocuments.has(document.id)}
+                                  onCheckedChange={() => toggleDocumentComplete(document.id)}
+                                  className="mt-1"
+                                />
+                                <div className="flex-1 space-y-2">
+                                  <div className="flex items-center justify-between">
                                     <h4 className="font-medium">{document.name}</h4>
-                                    {document.required && <Badge variant="destructive" className="text-xs">Required</Badge>}
+                                    <Badge variant={document.required ? "default" : "secondary"} className="text-xs">
+                                      {document.required ? "Required" : "Optional"}
+                                    </Badge>
                                   </div>
-                                  
-                                  <p className="text-sm text-gray-600 mb-3">{document.description}</p>
-                                  
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                  <p className="text-sm text-muted-foreground">{document.description}</p>
+                                  <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div>
-                                      <p><span className="font-medium">Format:</span> {document.format}</p>
-                                      <p><span className="font-medium">Validity:</span> {document.validity}</p>
+                                      <span className="font-medium">Format:</span> {document.format}
                                     </div>
-                                    
-                                    {document.alternatives.length > 0 && (
-                                      <div>
-                                        <p className="font-medium">Alternatives:</p>
-                                        <ul className="list-disc list-inside text-gray-600">
-                                          {document.alternatives.map((alt, index) => (
-                                            <li key={index}>{alt}</li>
-                                          ))}
-                                        </ul>
-                                      </div>
-                                    )}
+                                    <div>
+                                      <span className="font-medium">Validity:</span> {document.validity}
+                                    </div>
                                   </div>
-                                  
-                                  {document.tips.length > 0 && (
-                                    <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                                      <p className="font-medium text-blue-800 mb-2">Tips:</p>
-                                      <ul className="space-y-1">
-                                        {document.tips.map((tip, index) => (
-                                          <li key={index} className="text-sm text-blue-700 flex items-start gap-2">
-                                            <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                                            {tip}
+                                  {document.alternatives && document.alternatives.length > 0 && (
+                                    <div>
+                                      <span className="font-medium text-sm">Alternatives:</span>
+                                      <ul className="text-sm text-muted-foreground mt-1 space-y-1">
+                                        {document.alternatives.map((alt, index) => (
+                                          <li key={index} className="flex items-center">
+                                            <Circle className="h-2 w-2 mr-2 fill-current" />
+                                            {alt}
                                           </li>
                                         ))}
                                       </ul>
                                     </div>
                                   )}
-                                  
-                                  {document.templateId && (
-                                    <div className="mt-3">
-                                      <Button variant="outline" size="sm">
-                                        <FileText className="h-4 w-4 mr-2" />
-                                        Use Template
-                                      </Button>
+                                  {document.tips && document.tips.length > 0 && (
+                                    <div>
+                                      <span className="font-medium text-sm">Tips:</span>
+                                      <ul className="text-sm text-muted-foreground mt-1 space-y-1">
+                                        {document.tips.map((tip, index) => (
+                                          <li key={index} className="flex items-start">
+                                            <Info className="h-3 w-3 mr-2 mt-0.5 flex-shrink-0" />
+                                            {tip}
+                                          </li>
+                                        ))}
+                                      </ul>
                                     </div>
                                   )}
                                 </div>
@@ -440,29 +423,42 @@ Last Updated: ${checklist.lastUpdated.toLocaleDateString()}
               ))}
             </div>
 
-            {/* Important Notes */}
+            {checklist.importantNotes && checklist.importantNotes.length > 0 && (
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <div className="space-y-2">
+                    <div className="font-medium">Important Notes:</div>
+                    <ul className="space-y-1">
+                      {checklist.importantNotes.map((note, index) => (
+                        <li key={index} className="text-sm">• {note}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-amber-500" />
-                  Important Notes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {checklist.importantNotes.map((note, index) => (
-                    <Alert key={index}>
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>{note}</AlertDescription>
-                    </Alert>
-                  ))}
-                </div>
-                <div className="mt-4 pt-4 border-t text-sm text-gray-500">
-                  Last updated: {checklist.lastUpdated.toLocaleDateString()}
+              <CardContent className="pt-6">
+                <div className="text-center text-sm text-muted-foreground">
+                  Last updated: {checklist.updatedAt ? new Date(checklist.updatedAt).toLocaleDateString() : 'Unknown'}
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </>
+        )}
+
+        {!checklist && selectedCountry && selectedVisaType && selectedUserType && (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No Checklist Available</h3>
+              <p className="text-muted-foreground text-center">
+                We don't have a checklist for {selectedCountry} - {selectedVisaType} ({selectedUserType}) yet.
+              </p>
+            </CardContent>
+          </Card>
         )}
       </div>
     </DashboardLayout>
