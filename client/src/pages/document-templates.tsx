@@ -93,16 +93,16 @@ export default function DocumentTemplates() {
 
   return (
     <DashboardLayout>
-      <div className="p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Document Templates</h1>
-          <p className="text-gray-600 mt-2">
+      <div className="space-y-6">
+        <div className="text-center sm:text-left">
+          <h1 className="text-2xl sm:text-3xl font-bold">Document Templates</h1>
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">
             Download sample documents and templates for your visa application
           </p>
         </div>
 
         {/* Search and Filter Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input

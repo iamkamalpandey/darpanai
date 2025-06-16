@@ -54,21 +54,21 @@ export default function Home() {
         <SystemAnnouncement />
         
         {/* Hero Section - Lead Generation Focused */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-100">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl p-4 sm:p-6 lg:p-8 border border-blue-100">
           <div className="max-w-4xl mx-auto">
             <div className="text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight">
                 Turn Your Visa Rejection Into Success
               </h1>
-              <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed">
                 Get expert AI analysis of your rejection letter and personalized guidance to strengthen your next application
               </p>
               
               {/* Primary CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-                <Link href="/analyzer">
-                  <Button size="lg" className="text-lg px-8 py-3">
-                    <Upload className="h-5 w-5 mr-2" />
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-6 sm:mb-8">
+                <Link href="/analyzer" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-3">
+                    <Upload className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Analyze My Rejection Letter
                   </Button>
                 </Link>
@@ -76,22 +76,22 @@ export default function Home() {
                   buttonVariant="outline" 
                   buttonSize="lg"
                   buttonText="Book Free Consultation"
-                  className="text-lg px-8 py-3"
+                  className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-3"
                 />
               </div>
 
               {/* Trust Indicators */}
-              <div className="flex flex-wrap justify-center items-center gap-6 text-sm text-gray-500">
+              <div className="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-500">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
                   <span>AI-Powered Analysis</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
                   <span>Expert Consultation Available</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
                   <span>Confidential & Secure</span>
                 </div>
               </div>
@@ -100,7 +100,7 @@ export default function Home() {
         </div>
 
         {/* User Dashboard Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Usage Status Card */}
           <Card>
             <CardHeader className="pb-3">
