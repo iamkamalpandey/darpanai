@@ -85,7 +85,7 @@ export default function Landing() {
                 buttonVariant="outline" 
                 buttonSize="lg"
                 buttonText="Book Free Consultation"
-                className="text-lg px-8 py-4 h-auto border-2 hover:bg-gray-50 transition-colors text-gray-900 hover:text-gray-900"
+                className="text-lg px-8 py-4 h-auto border-2 border-white bg-transparent text-white hover:bg-white hover:text-blue-600 transition-all duration-200"
               />
             </div>
 
@@ -414,7 +414,7 @@ export default function Landing() {
               buttonVariant="outline" 
               buttonSize="lg"
               buttonText="Book Consultation"
-              className="text-lg px-8 py-4 h-auto border-2 border-white text-white hover:bg-white hover:text-blue-600 transition-all duration-200"
+              className="text-lg px-8 py-4 h-auto border-2 border-white bg-transparent text-white hover:bg-white hover:text-blue-600 transition-all duration-200 font-medium"
             />
           </div>
           
