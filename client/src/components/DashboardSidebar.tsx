@@ -10,6 +10,7 @@ import {
   User,
   Users,
   Shield,
+  Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -89,6 +90,12 @@ export function DashboardSidebar() {
           label="Consultations"
           href="/consultations"
           active={location === "/consultations"}
+        />
+        <SidebarItem
+          icon={<Bell className="h-5 w-5" />}
+          label="Updates"
+          href="/updates"
+          active={location === "/updates"}
         />
       </nav>
 

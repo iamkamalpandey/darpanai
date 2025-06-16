@@ -18,6 +18,7 @@ import AuthPage from "@/pages/auth-page";
 const VisaAnalyzer = lazy(() => import("@/pages/VisaAnalyzer"));
 const AnalysisHistory = lazy(() => import("@/pages/AnalysisHistory"));
 const ConsultationsPage = lazy(() => import("@/pages/consultations"));
+const UpdatesPage = lazy(() => import("@/pages/updates"));
 const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
 const AdminAnalyses = lazy(() => import("@/pages/admin-analyses"));
 const AdminAppointments = lazy(() => import("@/pages/admin-appointments"));
@@ -79,6 +80,13 @@ function Router() {
         <UserProtectedRoute path="/consultations" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <ConsultationsPage />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/updates">
+        <UserProtectedRoute path="/updates" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <UpdatesPage />
           </Suspense>
         )} />
       </Route>

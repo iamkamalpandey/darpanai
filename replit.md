@@ -130,6 +130,21 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 16, 2025 - Comprehensive Updates/Notifications System & Dashboard Routing:**
+- Implemented complete updates/notifications system with admin creation interface and user display
+- Added database schema with updates and user_update_views tables for tracking engagement
+- Created admin interface at /admin/updates for creating, editing, and managing system updates
+- Built user interface at /updates with expandable cards showing summary and full content
+- Added targeting options: all users, specific user types (students/agents/other), or individual users
+- Implemented priority levels (low, normal, high, urgent) with visual indicators and badges
+- Added expiration dates, external links, and call-to-action buttons for updates
+- Enhanced admin navigation with "Updates & Notifications" menu item and Bell icon
+- Added user navigation with "Updates" menu item in dashboard sidebar
+- Fixed dashboard routing so admin users redirect immediately to admin panel without seeing user dashboard
+- Implemented view tracking and action taken recording for analytics
+- Created comprehensive API endpoints for CRUD operations and user interaction tracking
+- Added proper form validation, error handling, and success notifications throughout system
+
 **June 16, 2025 - Enhanced Country Selection & User Type Forms:**
 - Added Nepal at the top of origin countries list along with Sri Lanka, Vietnam, China, Bangladesh, Pakistan
 - Updated destination countries to include Australia, USA, UK, Canada and other popular study destinations
