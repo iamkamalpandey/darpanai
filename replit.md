@@ -130,6 +130,14 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 16, 2025 - UI Fixes & Admin Features Enhancement:**
+- Fixed Book Consultation button text visibility on landing page with proper white text styling
+- Confirmed role assignment feature exists in Admin Panel → User Management → View User → Settings tab
+- Created complete Professional Applications admin interface at /admin/professional-applications
+- Added Professional Applications to admin navigation menu for managing pricing plan applications
+- Fixed authentication page to default to sign-in with "Welcome Back" messaging
+- Resolved runtime errors and improved application stability
+
 **June 16, 2025 - Professional Application System & Landing Page Enhancement:**
 - Created comprehensive public landing page with VisaAnalyzer branding and professional design
 - Implemented professional account application system with custom pricing and admin approval workflow

@@ -82,10 +82,10 @@ export default function Landing() {
                 </Button>
               </Link>
               <ConsultationForm 
-                buttonVariant="outline" 
+                buttonVariant="secondary" 
                 buttonSize="lg"
                 buttonText="Book Free Consultation"
-                className="text-lg px-8 py-4 h-auto border-2 border-white bg-transparent text-white hover:bg-white hover:text-blue-600 transition-all duration-200"
+                className="text-lg px-8 py-4 h-auto bg-white text-blue-600 border-2 border-white hover:bg-blue-50 transition-all duration-200 font-medium"
               />
             </div>
 
@@ -325,7 +325,7 @@ export default function Landing() {
               </div>
               <CardHeader className="text-center pb-8">
                 <CardTitle className="text-2xl">Professional</CardTitle>
-                <div className="text-2xl font-bold text-blue-600 mb-2">Custom Pricing</div>
+                <div className="text-2xl font-bold text-blue-600 mb-2">$29/month</div>
                 <CardDescription>For agencies & consultants</CardDescription>
               </CardHeader>
               <CardContent>
