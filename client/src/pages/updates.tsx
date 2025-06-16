@@ -40,12 +40,16 @@ export default function Updates() {
 
   const toggleExpand = (updateId: number) => {
     const newExpanded = new Set(expandedUpdates);
+    const update = updates.find(u => u.id === updateId);
+    
     if (newExpanded.has(updateId)) {
       newExpanded.delete(updateId);
     } else {
       newExpanded.add(updateId);
-      // Mark as viewed when expanded
-      viewMutation.mutate(updateId);
+      // Mark as viewed when expanded (only if not already viewed)
+      if (update && !(update as any).isViewed) {
+        viewMutation.mutate(updateId);
+      }
     }
     setExpandedUpdates(newExpanded);
   };

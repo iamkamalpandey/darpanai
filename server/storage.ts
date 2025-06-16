@@ -418,7 +418,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getUpdatesForUser(userId: number, userType?: string): Promise<Update[]> {
+  async getUpdatesForUser(userId: number, userType?: string): Promise<any[]> {
     try {
       // Get user info if userType not provided
       let targetUserType = userType;
@@ -428,8 +428,34 @@ export class DatabaseStorage implements IStorage {
       }
 
       const userUpdates = await db
-        .select()
+        .select({
+          id: updates.id,
+          title: updates.title,
+          content: updates.content,
+          summary: updates.summary,
+          imageUrl: updates.imageUrl,
+          type: updates.type,
+          priority: updates.priority,
+          targetAudience: updates.targetAudience,
+          targetVisaCategories: updates.targetVisaCategories,
+          targetUserIds: updates.targetUserIds,
+          callToAction: updates.callToAction,
+          externalLink: updates.externalLink,
+          isActive: updates.isActive,
+          expiresAt: updates.expiresAt,
+          createdAt: updates.createdAt,
+          updatedAt: updates.updatedAt,
+          isViewed: userUpdateViews.viewedAt,
+          actionTaken: userUpdateViews.actionTaken,
+        })
         .from(updates)
+        .leftJoin(
+          userUpdateViews,
+          and(
+            eq(userUpdateViews.updateId, updates.id),
+            eq(userUpdateViews.userId, userId)
+          )
+        )
         .where(
           and(
             eq(updates.isActive, true),
@@ -446,7 +472,11 @@ export class DatabaseStorage implements IStorage {
         )
         .orderBy(desc(updates.priority), desc(updates.createdAt));
       
-      return userUpdates;
+      return userUpdates.map(update => ({
+        ...update,
+        isViewed: !!update.isViewed,
+        actionTaken: !!update.actionTaken
+      }));
     } catch (error) {
       console.error("Error fetching user updates:", error);
       return [];
