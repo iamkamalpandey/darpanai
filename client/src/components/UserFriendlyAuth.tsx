@@ -20,6 +20,7 @@ const basicAccountSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
+  userType: z.enum(["student", "agent", "other"], { required_error: "Please select user type" }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -48,6 +49,7 @@ const completeFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
+  userType: z.enum(["student", "agent", "other"], { required_error: "Please select user type" }),
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   phoneNumber: z.string().min(10, "Please enter a valid phone number"),
@@ -90,9 +92,69 @@ const fundingSources = [
   "Employer Sponsorship", "Government Grant", "Other"
 ];
 
-const countries = [
-  "India", "United States", "United Kingdom", "Canada", "Australia", 
-  "Germany", "France", "Netherlands", "Sweden", "New Zealand", "Other"
+// Origin countries (popular study abroad sources)
+const originCountries = [
+  "Nepal", 
+  "India", 
+  "Sri Lanka",
+  "Vietnam",
+  "China",
+  "Bangladesh",
+  "Pakistan",
+  "Philippines",
+  "Thailand", 
+  "Indonesia",
+  "Malaysia",
+  "South Korea",
+  "Japan",
+  "Myanmar",
+  "Afghanistan",
+  "Iran",
+  "Turkey",
+  "Nigeria",
+  "Kenya",
+  "Ghana",
+  "Ethiopia",
+  "Egypt",
+  "Morocco",
+  "Brazil",
+  "Colombia",
+  "Mexico",
+  "Peru",
+  "Ecuador",
+  "Chile",
+  "Other"
+];
+
+// Destination countries (popular study destinations)
+const destinationCountries = [
+  "Australia",
+  "United States",
+  "United Kingdom", 
+  "Canada",
+  "Germany",
+  "New Zealand", 
+  "France",
+  "Netherlands",
+  "Sweden",
+  "Norway",
+  "Denmark",
+  "Finland",
+  "Switzerland",
+  "Austria",
+  "Ireland",
+  "Belgium",
+  "Italy",
+  "Spain",
+  "Portugal",
+  "Poland",
+  "Czech Republic",
+  "Hungary",
+  "Singapore",
+  "South Korea",
+  "Japan",
+  "Hong Kong",
+  "Other"
 ];
 
 export default function UserFriendlyAuth() {
@@ -110,6 +172,7 @@ export default function UserFriendlyAuth() {
       email: "",
       password: "",
       confirmPassword: "",
+      userType: undefined,
     },
   });
 
@@ -455,7 +518,7 @@ export default function UserFriendlyAuth() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {countries.map((country) => (
+                            {originCountries.map((country) => (
                               <SelectItem key={country} value={country}>
                                 {country}
                               </SelectItem>
@@ -485,7 +548,7 @@ export default function UserFriendlyAuth() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {studyDestinations.map((destination) => (
+                              {destinationCountries.map((destination) => (
                                 <SelectItem key={destination} value={destination}>
                                   {destination}
                                 </SelectItem>
