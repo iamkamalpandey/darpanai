@@ -130,22 +130,23 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
-**June 16, 2025 - Complete Updates System with Notification Indicators & Advanced Features:**
-- Implemented comprehensive notification badge system showing unread update counts on sidebar menu
-- Added automatic signup date filtering - users only see updates created after their registration
-- Enhanced image upload capability with professional upload button and JPG/PNG support
-- Fixed edit form fields to completely match create form functionality with all targeting options
-- Added real-time notification indicators with 1-hour refresh intervals for resource efficiency
-- Implemented "New" badge animations on unread updates with visual prominence
-- Enhanced targeting options: all users, students, agents, other visa categories, or specific visa types
-- Added visa type selection with 16+ categories (Student F-1, Tourist B-2, Work H-1B, Study Permits, etc.)
-- Created conditional form sections showing visa type checkboxes when "Specific Visa Types" selected
-- Integrated comprehensive image display in both admin and user interfaces with error handling
-- Added professional image upload interface with URL input and upload button
-- Enhanced user experience with responsive image display (400x200px recommended size)
-- Implemented sophisticated audience targeting allowing precise user segmentation
-- Added visual indicators and priority badges with urgent/high/normal/low classifications
-- Created expandable update cards with rich content display and external link support
+**June 16, 2025 - Document Template Library & Checklist Generator Implementation:**
+- Built comprehensive Document Template Library with pre-built templates for common visa documents
+- Created Document Checklist Generator for country-specific document requirements
+- Added 3 professional document templates: Statement of Purpose, Financial Support Statement, Cover Letter
+- Implemented interactive form filling with field validation and template customization
+- Added document generation with placeholder replacement and download functionality
+- Created country-specific checklists for USA F-1 and UK Tier 4 student visas
+- Implemented progress tracking with completion indicators and percentage calculations
+- Added fee information display with currency and requirement details
+- Built expandable category system with document alternatives and tips
+- Integrated template linking between checklists and document templates
+- Enhanced navigation with new sidebar items for Document Templates and Document Checklist
+- Added comprehensive filtering by category, visa type, and search functionality
+- Implemented export functionality for both generated documents and checklists
+- Fixed admin updates delete functionality with enhanced error handling and confirmation dialogs
+- Added notification badge system showing only unread update counts per individual user
+- Reduced refresh intervals to 1 hour for optimal resource efficiency
 
 **June 16, 2025 - Enhanced Country Selection & User Type Forms:**
 - Added Nepal at the top of origin countries list along with Sri Lanka, Vietnam, China, Bangladesh, Pakistan

@@ -12,6 +12,8 @@ import {
   Users,
   Shield,
   Bell,
+  CheckSquare,
+  FileCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -126,6 +128,18 @@ export function DashboardSidebar() {
           />
           <UpdatesNotificationBadge />
         </div>
+        <SidebarItem
+          icon={<FileCheck className="h-5 w-5" />}
+          label="Document Templates"
+          href="/document-templates"
+          active={location === "/document-templates"}
+        />
+        <SidebarItem
+          icon={<CheckSquare className="h-5 w-5" />}
+          label="Document Checklist"
+          href="/document-checklist"
+          active={location === "/document-checklist"}
+        />
       </nav>
 
       <div className="mt-auto border-t pt-4">
