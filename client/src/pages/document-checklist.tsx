@@ -52,6 +52,7 @@ export default function DocumentChecklistGenerator() {
   const [selectedCountry, setSelectedCountry] = useState('');
   const [selectedVisaType, setSelectedVisaType] = useState('');
   const [selectedUserType, setSelectedUserType] = useState('');
+  const [viewingChecklist, setViewingChecklist] = useState<DocumentChecklist | null>(null);
   const [completedDocuments, setCompletedDocuments] = useState<Set<string>>(new Set());
 
   // Load dropdown options
@@ -81,7 +82,6 @@ export default function DocumentChecklistGenerator() {
     });
   }, [checklists, searchTerm, selectedCountry, selectedVisaType, selectedUserType]);
 
-  const selectedChecklist = filteredChecklists.length === 1 ? filteredChecklists[0] : null;
   const items = selectedChecklist?.items || [];
 
   const progress = items.length > 0 
@@ -248,10 +248,16 @@ export default function DocumentChecklistGenerator() {
                 Get personalized document checklists for your visa application
               </p>
             </div>
+            {selectedChecklist && (
+              <Button onClick={() => setSelectedChecklist(null)} variant="outline">
+                ← Back to Checklists
+              </Button>
+            )}
           </div>
 
-          {/* Search and Filters */}
-          <Card>
+          {/* Search and Filters - Only show on list page */}
+          {!selectedChecklist && (
+            <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Filter className="h-5 w-5 mr-2" />
@@ -321,6 +327,7 @@ export default function DocumentChecklistGenerator() {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
 
         {isLoading ? (
