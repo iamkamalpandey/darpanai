@@ -1027,6 +1027,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Template not found' });
       }
 
+      // Check if file path exists
+      if (!template.filePath) {
+        return res.status(404).json({ error: 'Template file not available for download' });
+      }
+
       const { getTemplateFile } = await import('./fileStorage');
       const fileBuffer = await getTemplateFile(template.filePath);
       

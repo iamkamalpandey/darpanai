@@ -19,7 +19,12 @@ const categories = [
   { value: "personal", label: "Personal" },
   { value: "employment", label: "Employment" },
   { value: "travel", label: "Travel" },
-  { value: "legal", label: "Legal" }
+  { value: "legal", label: "Legal" },
+  { value: "medical", label: "Medical" },
+  { value: "insurance", label: "Insurance" },
+  { value: "accommodation", label: "Accommodation" },
+  { value: "language", label: "Language" },
+  { value: "others", label: "Others" }
 ];
 
 export default function AdminDocumentTemplates() {

@@ -14,7 +14,12 @@ const categories = [
   { value: "personal", label: "Personal" },
   { value: "employment", label: "Employment" },
   { value: "travel", label: "Travel" },
-  { value: "legal", label: "Legal" }
+  { value: "legal", label: "Legal" },
+  { value: "medical", label: "Medical" },
+  { value: "insurance", label: "Insurance" },
+  { value: "accommodation", label: "Accommodation" },
+  { value: "language", label: "Language" },
+  { value: "others", label: "Others" }
 ];
 
 export default function DocumentTemplates() {
@@ -146,40 +151,50 @@ export default function DocumentTemplates() {
         </div>
 
         {/* Templates Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
           {filteredTemplates.map((template: DocumentTemplate) => (
-            <Card key={template.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start space-x-3">
-                  <FileText className="h-6 w-6 text-blue-500 mt-0.5 flex-shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <CardTitle className="text-lg leading-6">{template.title}</CardTitle>
-                    <CardDescription className="text-sm mt-1">
-                      {template.documentType ? 
-                        template.documentType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
-                        'Document'
-                      }
-                    </CardDescription>
+            <Card key={template.id} className="flex flex-col hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
+              <CardHeader className="pb-3 flex-shrink-0">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start space-x-3 min-w-0 flex-1">
+                    <FileText className="h-5 w-5 text-blue-500 mt-1 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-base lg:text-lg leading-tight line-clamp-2 mb-1">
+                        {template.title}
+                      </CardTitle>
+                      <CardDescription className="text-xs lg:text-sm">
+                        {template.documentType ? 
+                          template.documentType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
+                          'Document'
+                        }
+                      </CardDescription>
+                    </div>
                   </div>
+                  <Badge variant="secondary" className="text-xs flex-shrink-0 ml-2">
+                    {template.category}
+                  </Badge>
                 </div>
-                <Badge variant="secondary" className="w-fit mt-2">
-                  {template.category}
-                </Badge>
               </CardHeader>
               
-              <CardContent className="pt-0">
-                <p className="text-sm text-gray-600 mb-4 line-clamp-3">{template.description}</p>
+              <CardContent className="pt-0 flex-1 flex flex-col">
+                <p className="text-xs lg:text-sm text-gray-600 mb-3 line-clamp-2 flex-grow">
+                  {template.description}
+                </p>
                 
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">File:</span>
-                    <span className="font-medium truncate ml-2">{template.fileName}</span>
-                  </div>
+                <div className="space-y-2 mb-4">
+                  {template.fileName && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500">File:</span>
+                      <span className="font-medium truncate ml-2 max-w-[60%]">{template.fileName}</span>
+                    </div>
+                  )}
                   
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Size:</span>
-                    <span>{formatFileSize(template.fileSize)}</span>
-                  </div>
+                  {template.fileSize && (
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500">Size:</span>
+                      <span>{formatFileSize(template.fileSize)}</span>
+                    </div>
+                  )}
 
                   {template.countries && template.countries.length > 0 && (
                     <div className="text-sm">
@@ -259,15 +274,27 @@ export default function DocumentTemplates() {
                 )}
 
                 {/* Download Button */}
-                <div className="pt-4 border-t">
-                  <Button
-                    onClick={() => downloadTemplate(template)}
-                    className="w-full"
-                    size="sm"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Template
-                  </Button>
+                <div className="pt-3 border-t mt-auto">
+                  {template.filePath ? (
+                    <Button
+                      onClick={() => downloadTemplate(template)}
+                      className="w-full"
+                      size="sm"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Template
+                    </Button>
+                  ) : (
+                    <Button
+                      disabled
+                      className="w-full"
+                      size="sm"
+                      variant="secondary"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Template Info Only
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
