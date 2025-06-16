@@ -1,369 +1,296 @@
 import { useState } from "react";
-import { DashboardLayout } from "@/components/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Download, Eye, Search, Filter, MapPin, Plane, User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { FileText, Search, Download, Filter } from "lucide-react";
 import { type DocumentTemplate } from "@shared/schema";
+import { UserLayout } from "@/components/UserLayout";
+
+const categories = [
+  { value: "financial", label: "Financial" },
+  { value: "academic", label: "Academic" },
+  { value: "personal", label: "Personal" },
+  { value: "employment", label: "Employment" },
+  { value: "travel", label: "Travel" },
+  { value: "legal", label: "Legal" }
+];
 
 export default function DocumentTemplates() {
-  const [selectedTemplate, setSelectedTemplate] = useState<DocumentTemplate | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [selectedVisaType, setSelectedVisaType] = useState<string>("all");
-  const [selectedCountry, setSelectedCountry] = useState<string>("all");
-  const [selectedUserType, setSelectedUserType] = useState<string>("all");
-  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedVisaType, setSelectedVisaType] = useState("");
 
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ['/api/document-templates'],
   });
 
-  const { data: dropdownOptions } = useQuery<{
-    countries: string[];
-    visaTypes: string[];
-    userTypes: string[];
-  }>({
+  const { data: dropdownOptions = { countries: [], visaTypes: [] } } = useQuery({
     queryKey: ['/api/dropdown-options'],
   });
 
-  const categories = ["all", "financial", "academic", "personal", "employment", "travel", "legal"];
-  const countries = ["all", ...(dropdownOptions?.countries || [])];
-  const visaTypes = ["all", ...(dropdownOptions?.visaTypes || [])];
-  const userTypes = ["all", ...(dropdownOptions?.userTypes || [])];
-
-  const filteredTemplates = (templates as DocumentTemplate[]).filter((template: DocumentTemplate) => {
+  const filteredTemplates = templates.filter((template: DocumentTemplate) => {
     const matchesSearch = template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          template.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || template.category === selectedCategory;
-    const matchesVisaType = selectedVisaType === "all" || template.visaTypes?.includes(selectedVisaType);
-    const matchesCountry = selectedCountry === "all" || template.countries?.includes(selectedCountry);
-    const matchesUserType = selectedUserType === "all" || true; // Templates don't have userType filter
+    const matchesCategory = !selectedCategory || template.category === selectedCategory;
+    const matchesCountry = !selectedCountry || (template.countries && template.countries.includes(selectedCountry));
+    const matchesVisaType = !selectedVisaType || (template.visaTypes && template.visaTypes.includes(selectedVisaType));
     
-    return matchesSearch && matchesCategory && matchesVisaType && matchesCountry && matchesUserType;
+    return matchesSearch && matchesCategory && matchesCountry && matchesVisaType;
   });
 
-  const handleInputChange = (fieldId: string, value: string) => {
-    setFormData(prev => ({ ...prev, [fieldId]: value }));
+  const downloadTemplate = (template: DocumentTemplate) => {
+    const link = document.createElement('a');
+    link.href = `/api/document-templates/${template.id}/download`;
+    link.download = template.fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
-  const generateDocument = (template: DocumentTemplate) => {
-    let generatedText = template.template;
-    
-    // Replace placeholders with form data
-    const fields = (template.fields as any[]) || [];
-    fields.forEach((field: any) => {
-      const placeholder = `{{${field.id}}}`;
-      const value = formData[field.id] || '';
-      generatedText = generatedText.replace(new RegExp(placeholder, 'g'), value);
-    });
-
-    // Create and download the document
-    const blob = new Blob([generatedText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${template.title.replace(/\s+/g, '_')}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes) return 'Unknown';
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
   };
 
-  const getCategoryColor = (category: string) => {
-    const colors: Record<string, string> = {
-      financial: "bg-green-100 text-green-800",
-      academic: "bg-blue-100 text-blue-800",
-      personal: "bg-purple-100 text-purple-800",
-      employment: "bg-orange-100 text-orange-800",
-      travel: "bg-indigo-100 text-indigo-800",
-      legal: "bg-red-100 text-red-800"
-    };
-    return colors[category] || "bg-gray-100 text-gray-800";
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedCategory("");
+    setSelectedCountry("");
+    setSelectedVisaType("");
   };
+
+  const hasActiveFilters = searchTerm || selectedCategory || selectedCountry || selectedVisaType;
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading templates...</div>
+      <UserLayout>
+        <div className="p-8">
+          <div className="text-center">Loading document templates...</div>
         </div>
-      </DashboardLayout>
+      </UserLayout>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Document Template Library</h1>
-            <p className="text-muted-foreground">
-              Access ready-to-use document templates for your visa application
-            </p>
-          </div>
+    <UserLayout>
+      <div className="p-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">Document Templates</h1>
+          <p className="text-gray-600 mt-2">
+            Download sample documents and templates for your visa application
+          </p>
         </div>
 
-        {/* Search and Filters */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Search className="h-5 w-5 mr-2" />
-              Search Templates
-            </CardTitle>
-            <CardDescription>
-              Find the perfect template for your needs
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-col space-y-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search templates..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Category</Label>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All categories" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category.charAt(0).toUpperCase() + category.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+        {/* Search and Filter Controls */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search templates..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Categories</option>
+            {categories.map((category) => (
+              <option key={category.value} value={category.value}>
+                {category.label}
+              </option>
+            ))}
+          </select>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium flex items-center">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    Country
-                  </Label>
-                  <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All countries" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {countries.map((country) => (
-                        <SelectItem key={country} value={country}>
-                          {country === "all" ? "All Countries" : country}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+          <select
+            value={selectedCountry}
+            onChange={(e) => setSelectedCountry(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Countries</option>
+            {dropdownOptions.countries.map((country: string) => (
+              <option key={country} value={country}>{country}</option>
+            ))}
+          </select>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium flex items-center">
-                    <Plane className="h-4 w-4 mr-1" />
-                    Visa Type
-                  </Label>
-                  <Select value={selectedVisaType} onValueChange={setSelectedVisaType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All visa types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {visaTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type === "all" ? "All Visa Types" : type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+          <select
+            value={selectedVisaType}
+            onChange={(e) => setSelectedVisaType(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Visa Types</option>
+            {dropdownOptions.visaTypes.map((visaType: string) => (
+              <option key={visaType} value={visaType}>{visaType}</option>
+            ))}
+          </select>
 
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium flex items-center">
-                    <User className="h-4 w-4 mr-1" />
-                    User Type
-                  </Label>
-                  <Select value={selectedUserType} onValueChange={setSelectedUserType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All user types" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {userTypes.filter(type => type && type.trim()).map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type === "all" ? "All User Types" : type.charAt(0).toUpperCase() + type.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex items-end">
-                  <Button 
-                    onClick={() => {
-                      setSearchTerm("");
-                      setSelectedCategory("all");
-                      setSelectedCountry("all");
-                      setSelectedVisaType("all");
-                      setSelectedUserType("all");
-                    }}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <Filter className="h-4 w-4 mr-2" />
-                    Clear Filters
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <div className="flex items-center justify-between">
+            {hasActiveFilters && (
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                Clear Filters
+              </Button>
+            )}
+            <span className="text-sm text-gray-600">
+              {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+        </div>
 
         {/* Templates Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTemplates.map((template: DocumentTemplate) => (
             <Card key={template.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <FileText className="h-5 w-5" />
-                      {template.title}
-                    </CardTitle>
-                    <CardDescription className="mt-2">{template.description}</CardDescription>
+              <CardHeader className="pb-3">
+                <div className="flex items-start space-x-3">
+                  <FileText className="h-6 w-6 text-blue-500 mt-0.5 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-lg leading-6">{template.title}</CardTitle>
+                    <CardDescription className="text-sm mt-1">
+                      {template.documentType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </CardDescription>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2 mt-3">
-                  <Badge className={getCategoryColor(template.category)}>
-                    {template.category}
-                  </Badge>
-                  <Badge variant="outline">
-                    {template.countries?.join(", ") || "All Countries"}
-                  </Badge>
-                  <Badge variant="secondary">
-                    {template.visaTypes?.join(", ") || "All Visa Types"}
-                  </Badge>
-                </div>
+                <Badge variant="secondary" className="w-fit mt-2">
+                  {template.category}
+                </Badge>
               </CardHeader>
-              <CardContent>
-                <div className="flex gap-2">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => setSelectedTemplate(template)}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        Preview
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                          <FileText className="h-5 w-5" />
-                          {selectedTemplate?.title}
-                        </DialogTitle>
-                      </DialogHeader>
-                      {selectedTemplate && (
-                        <Tabs defaultValue="preview" className="w-full">
-                          <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="preview">Preview</TabsTrigger>
-                            <TabsTrigger value="generate">Generate</TabsTrigger>
-                          </TabsList>
-                          <TabsContent value="preview" className="space-y-4">
-                            <div className="space-y-2">
-                              <Label className="text-sm font-medium">Description</Label>
-                              <p className="text-sm text-muted-foreground">{selectedTemplate.description}</p>
-                            </div>
-                            <div className="space-y-2">
-                              <Label className="text-sm font-medium">Template Content</Label>
-                              <div className="border rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
-                                <pre className="text-sm whitespace-pre-wrap">{selectedTemplate.template}</pre>
-                              </div>
-                            </div>
-                          </TabsContent>
-                          <TabsContent value="generate" className="space-y-4">
-                            <div className="space-y-4">
-                              {((selectedTemplate.fields as any[]) || []).map((field: any) => (
-                                <div key={field.id} className="space-y-2">
-                                  <Label htmlFor={field.id}>{field.label} {field.required && <span className="text-red-500">*</span>}</Label>
-                                  {field.type === 'textarea' ? (
-                                    <Textarea
-                                      id={field.id}
-                                      placeholder={field.placeholder}
-                                      value={formData[field.id] || ''}
-                                      onChange={(e) => handleInputChange(field.id, e.target.value)}
-                                    />
-                                  ) : field.type === 'select' ? (
-                                    <Select
-                                      value={formData[field.id] || ''}
-                                      onValueChange={(value) => handleInputChange(field.id, value)}
-                                    >
-                                      <SelectTrigger>
-                                        <SelectValue placeholder={field.placeholder} />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {(field.options || []).map((option: string) => (
-                                          <SelectItem key={option} value={option}>
-                                            {option}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  ) : (
-                                    <Input
-                                      id={field.id}
-                                      type={field.type}
-                                      placeholder={field.placeholder}
-                                      value={formData[field.id] || ''}
-                                      onChange={(e) => handleInputChange(field.id, e.target.value)}
-                                    />
-                                  )}
-                                </div>
-                              ))}
-                              <Button
-                                onClick={() => generateDocument(selectedTemplate)}
-                                className="w-full"
-                              >
-                                <Download className="h-4 w-4 mr-2" />
-                                Generate & Download Document
-                              </Button>
-                            </div>
-                          </TabsContent>
-                        </Tabs>
+              
+              <CardContent className="pt-0">
+                <p className="text-sm text-gray-600 mb-4 line-clamp-3">{template.description}</p>
+                
+                <div className="space-y-3 mb-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">File:</span>
+                    <span className="font-medium truncate ml-2">{template.fileName}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Size:</span>
+                    <span>{formatFileSize(template.fileSize)}</span>
+                  </div>
+
+                  {template.countries && template.countries.length > 0 && (
+                    <div className="text-sm">
+                      <span className="text-gray-500 block mb-1">Countries:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {template.countries.slice(0, 3).map((country, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {country}
+                          </Badge>
+                        ))}
+                        {template.countries.length > 3 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{template.countries.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {template.visaTypes && template.visaTypes.length > 0 && (
+                    <div className="text-sm">
+                      <span className="text-gray-500 block mb-1">Visa Types:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {template.visaTypes.slice(0, 2).map((visa, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {visa}
+                          </Badge>
+                        ))}
+                        {template.visaTypes.length > 2 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{template.visaTypes.length - 2} more
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Instructions */}
+                {template.instructions && template.instructions.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Instructions:</h4>
+                    <ul className="text-xs text-gray-600 space-y-1">
+                      {template.instructions.slice(0, 3).map((instruction, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="text-blue-500 mr-1">•</span>
+                          <span>{instruction}</span>
+                        </li>
+                      ))}
+                      {template.instructions.length > 3 && (
+                        <li className="text-gray-500 italic">
+                          +{template.instructions.length - 3} more instructions
+                        </li>
                       )}
-                    </DialogContent>
-                  </Dialog>
+                    </ul>
+                  </div>
+                )}
+
+                {/* Tips */}
+                {template.tips && template.tips.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Tips:</h4>
+                    <ul className="text-xs text-gray-600 space-y-1">
+                      {template.tips.slice(0, 2).map((tip, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="text-green-500 mr-1">•</span>
+                          <span>{tip}</span>
+                        </li>
+                      ))}
+                      {template.tips.length > 2 && (
+                        <li className="text-gray-500 italic">
+                          +{template.tips.length - 2} more tips
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Download Button */}
+                <div className="pt-4 border-t">
+                  <Button
+                    onClick={() => downloadTemplate(template)}
+                    className="w-full"
+                    size="sm"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Template
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
+        {/* Empty State */}
         {filteredTemplates.length === 0 && (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Templates Found</h3>
-              <p className="text-muted-foreground text-center">
-                No templates match your current search criteria. Try adjusting your filters.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="text-center py-12">
+            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No templates found</h3>
+            <p className="text-gray-500 mb-4">
+              {hasActiveFilters 
+                ? "Try adjusting your search or filter criteria to find relevant templates."
+                : "Document templates are currently being prepared. Please check back soon."
+              }
+            </p>
+            {hasActiveFilters && (
+              <Button variant="outline" onClick={clearFilters}>
+                <Filter className="h-4 w-4 mr-2" />
+                Clear All Filters
+              </Button>
+            )}
+          </div>
         )}
       </div>
-    </DashboardLayout>
+    </UserLayout>
   );
 }

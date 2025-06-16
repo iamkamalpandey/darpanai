@@ -3,22 +3,15 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Plus, Edit, Trash2, Eye, EyeOff, FileCheck, Search, Download } from "lucide-react";
+import { Plus, Trash2, Eye, EyeOff, FileText, Search, Download, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
-import { documentTemplateSchema, type DocumentTemplate, type DocumentTemplateFormData } from "@shared/schema";
+import { type DocumentTemplate } from "@shared/schema";
 import { AdminLayout } from "@/components/AdminLayout";
+import { FileUploadTemplateForm } from "@/components/FileUploadTemplateForm";
 
 const categories = [
   { value: "financial", label: "Financial" },
@@ -26,40 +19,24 @@ const categories = [
   { value: "personal", label: "Personal" },
   { value: "employment", label: "Employment" },
   { value: "travel", label: "Travel" },
-  { value: "legal", label: "Legal" },
-];
-
-const visaTypes = [
-  "Student F-1", "Tourist B-2", "Work H-1B", "Study Permit", "Visitor Visa",
-  "Business B-1", "Transit C-1", "Family Reunification", "Investment E-2",
-  "Artist O-1", "Researcher J-1", "Spouse/Partner", "Working Holiday",
-  "Permanent Residence", "Refugee/Asylum", "Other"
-];
-
-const countries = [
-  "Nepal", "India", "Pakistan", "Bangladesh", "Sri Lanka", "Vietnam", "China",
-  "Philippines", "Indonesia", "Thailand", "Nigeria", "Ghana", "Kenya",
-  "USA", "Canada", "UK", "Australia", "Germany", "France", "Netherlands",
-  "Other"
+  { value: "legal", label: "Legal" }
 ];
 
 export default function AdminDocumentTemplates() {
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<DocumentTemplate | null>(null);
+  const { toast } = useToast();
 
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ['/api/admin/document-templates'],
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: DocumentTemplateFormData) => {
+    mutationFn: async (formData: FormData) => {
       const response = await fetch('/api/admin/document-templates', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: formData,
       });
       if (!response.ok) throw new Error('Failed to create template');
       return response.json();
@@ -67,10 +44,7 @@ export default function AdminDocumentTemplates() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/document-templates'] });
       setIsCreateDialogOpen(false);
-      toast({ title: "Template created successfully" });
-    },
-    onError: () => {
-      toast({ title: "Failed to create template", variant: "destructive" });
+      toast({ title: "Success", description: "Document template uploaded successfully" });
     },
   });
 
@@ -86,11 +60,7 @@ export default function AdminDocumentTemplates() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/document-templates'] });
-      setEditingTemplate(null);
-      toast({ title: "Template updated successfully" });
-    },
-    onError: () => {
-      toast({ title: "Failed to update template", variant: "destructive" });
+      toast({ title: "Success", description: "Document template updated successfully" });
     },
   });
 
@@ -100,66 +70,22 @@ export default function AdminDocumentTemplates() {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete template');
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/document-templates'] });
-      toast({ title: "Template deleted successfully" });
-    },
-    onError: () => {
-      toast({ title: "Failed to delete template", variant: "destructive" });
-    },
-  });
-
-  const form = useForm<DocumentTemplateFormData>({
-    resolver: zodResolver(documentTemplateSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-      category: "academic",
-      visaTypes: [],
-      countries: [],
-      template: "",
-      fields: [],
-      instructions: [],
-      tips: [],
-      requiredDocuments: [],
-      isActive: true,
+      toast({ title: "Success", description: "Document template deleted successfully" });
     },
   });
 
   const filteredTemplates = templates.filter((template: DocumentTemplate) => {
     const matchesSearch = template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          template.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || template.category === selectedCategory;
+    const matchesCategory = !selectedCategory || template.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const handleSubmit = (data: DocumentTemplateFormData) => {
-    if (editingTemplate) {
-      updateMutation.mutate({ id: editingTemplate.id, data });
-    } else {
-      createMutation.mutate(data);
-    }
-  };
-
-  const handleEdit = (template: DocumentTemplate) => {
-    setEditingTemplate(template);
-    form.reset({
-      title: template.title,
-      description: template.description,
-      category: template.category as any,
-      visaTypes: template.visaTypes,
-      countries: template.countries,
-      template: template.template,
-      fields: template.fields || [],
-      instructions: template.instructions,
-      tips: template.tips,
-      requiredDocuments: template.requiredDocuments,
-      downloadUrl: template.downloadUrl || "",
-      isActive: template.isActive,
-    });
-    setIsCreateDialogOpen(true);
+  const handleSubmit = async (formData: FormData) => {
+    await createMutation.mutateAsync(formData);
   };
 
   const handleToggleStatus = (template: DocumentTemplate) => {
@@ -170,198 +96,67 @@ export default function AdminDocumentTemplates() {
   };
 
   const downloadTemplate = (template: DocumentTemplate) => {
-    // If external download URL is available, open it
-    if (template.downloadUrl) {
-      window.open(template.downloadUrl, '_blank');
-      return;
-    }
-
-    // Otherwise, download as JSON
-    const templateData = {
-      title: template.title,
-      description: template.description,
-      category: template.category,
-      content: template.template,
-      fields: template.fields,
-      instructions: template.instructions,
-      tips: template.tips,
-      requiredDocuments: template.requiredDocuments,
-      visaTypes: template.visaTypes,
-      countries: template.countries,
-      lastUpdated: template.updatedAt || template.createdAt
-    };
-
-    const blob = new Blob([JSON.stringify(templateData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${template.title.replace(/\s+/g, '_')}_template.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const link = document.createElement('a');
+    link.href = `/api/document-templates/${template.id}/download`;
+    link.download = template.fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
-  const resetForm = () => {
-    form.reset();
-    setEditingTemplate(null);
-    setIsCreateDialogOpen(false);
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes) return 'Unknown';
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
   };
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="p-8">
+          <div className="text-center">Loading document templates...</div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="p-8">
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Document Templates</h1>
-            <p className="text-muted-foreground">
-              Manage document templates for visa applications
-            </p>
+            <h1 className="text-3xl font-bold">Document Templates</h1>
+            <p className="text-gray-600 mt-2">Manage uploadable sample documents for visa applications</p>
           </div>
+          
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={resetForm}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Template
+              <Button>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload Template
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>
-                  {editingTemplate ? "Edit Template" : "Create New Template"}
-                </DialogTitle>
+                <DialogTitle>Upload Document Template</DialogTitle>
                 <DialogDescription>
-                  {editingTemplate ? "Update the template details below." : "Fill in the details to create a new document template."}
+                  Upload sample document files that users can download as templates
                 </DialogDescription>
               </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Title</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Statement of Purpose" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Brief description of the template..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {categories.map((category) => (
-                              <SelectItem key={category.value} value={category.value}>
-                                {category.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="template"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Template Content</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Template content with placeholders like {{fullName}}, {{university}}, etc." 
-                            rows={8}
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Use double curly braces for placeholders: {`{{fieldName}}`}
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="downloadUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>External Download URL (Optional)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="https://example.com/template.docx" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Provide an external link for users to download the template file
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="isActive"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Active</FormLabel>
-                          <FormDescription>
-                            Make this template available to users
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex justify-end space-x-2 pt-4">
-                    <Button type="button" variant="outline" onClick={resetForm}>
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                      {editingTemplate ? "Update" : "Create"} Template
-                    </Button>
-                  </div>
-                </form>
-              </Form>
+              <FileUploadTemplateForm
+                onSubmit={handleSubmit}
+                onCancel={() => setIsCreateDialogOpen(false)}
+                isLoading={createMutation.isPending}
+              />
             </DialogContent>
           </Dialog>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+        {/* Search and Filter Controls */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search templates..."
               value={searchTerm}
@@ -369,156 +164,175 @@ export default function AdminDocumentTemplates() {
               className="pl-10"
             />
           </div>
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category.value} value={category.value}>
-                  {category.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">All Categories</option>
+            {categories.map((category) => (
+              <option key={category.value} value={category.value}>
+                {category.label}
+              </option>
+            ))}
+          </select>
+
+          <div className="text-sm text-gray-600 flex items-center">
+            Total: {filteredTemplates.length} templates
+          </div>
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-20 bg-gray-200 rounded"></div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTemplates.map((template: DocumentTemplate) => (
-              <Card key={template.id} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg">{template.title}</CardTitle>
-                      <CardDescription className="mt-1">
-                        {template.description}
+        {/* Templates Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTemplates.map((template: DocumentTemplate) => (
+            <Card key={template.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start space-x-2">
+                    <FileText className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-lg leading-6 truncate">{template.title}</CardTitle>
+                      <CardDescription className="text-sm mt-1">
+                        {template.documentType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                       </CardDescription>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant={template.isActive ? "default" : "secondary"}>
-                        {template.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="outline">{categories.find(c => c.value === template.category)?.label}</Badge>
-                    {template.visaTypes.length > 0 && (
-                      <Badge variant="outline" className="text-xs">
-                        {template.visaTypes.length} visa types
-                      </Badge>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      Created {new Date(template.createdAt).toLocaleDateString()}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => downloadTemplate(template)}
-                        title="Download template"
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={template.isActive ? "destructive" : "default"}
-                        onClick={() => handleToggleStatus(template)}
-                        disabled={updateMutation.isPending}
-                        title={template.isActive ? "Disable template" : "Enable template"}
-                      >
-                        {template.isActive ? (
-                          <>
-                            <EyeOff className="h-4 w-4 mr-1" />
-                            Disable
-                          </>
-                        ) : (
-                          <>
-                            <Eye className="h-4 w-4 mr-1" />
-                            Enable
-                          </>
-                        )}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEdit(template)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button size="sm" variant="outline">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Template</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete "{template.title}"? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteMutation.mutate(template.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {!isLoading && filteredTemplates.length === 0 && (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <FileCheck className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No templates found</h3>
-              <p className="text-muted-foreground text-center mb-4">
-                {searchTerm || selectedCategory !== "all"
-                  ? "Try adjusting your search criteria."
-                  : "Get started by creating your first document template."}
-              </p>
-              {!searchTerm && selectedCategory === "all" && (
-                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button onClick={resetForm}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create First Template
+                  <div className="flex items-center space-x-2 flex-shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleToggleStatus(template)}
+                      className="p-1"
+                    >
+                      {template.isActive ? 
+                        <Eye className="h-4 w-4 text-green-600" /> : 
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      }
                     </Button>
-                  </DialogTrigger>
-                </Dialog>
-              )}
-            </CardContent>
-          </Card>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="p-1 text-red-600">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Template</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete "{template.title}"? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => deleteMutation.mutate(template.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="pt-0">
+                <p className="text-sm text-gray-600 mb-4 line-clamp-2">{template.description}</p>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">File:</span>
+                    <span className="font-medium">{template.fileName}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Size:</span>
+                    <span>{formatFileSize(template.fileSize)}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Category:</span>
+                    <Badge variant="secondary">{template.category}</Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Status:</span>
+                    <Badge variant={template.isActive ? "default" : "secondary"}>
+                      {template.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
+
+                  {template.countries && template.countries.length > 0 && (
+                    <div className="text-sm">
+                      <span className="text-gray-500 block mb-1">Countries:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {template.countries.slice(0, 3).map((country, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {country}
+                          </Badge>
+                        ))}
+                        {template.countries.length > 3 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{template.countries.length - 3} more
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {template.visaTypes && template.visaTypes.length > 0 && (
+                    <div className="text-sm">
+                      <span className="text-gray-500 block mb-1">Visa Types:</span>
+                      <div className="flex flex-wrap gap-1">
+                        {template.visaTypes.slice(0, 2).map((visa, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {visa}
+                          </Badge>
+                        ))}
+                        {template.visaTypes.length > 2 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{template.visaTypes.length - 2} more
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 pt-4 border-t">
+                  <Button
+                    onClick={() => downloadTemplate(template)}
+                    className="w-full"
+                    size="sm"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Template
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {filteredTemplates.length === 0 && (
+          <div className="text-center py-12">
+            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No templates found</h3>
+            <p className="text-gray-500 mb-4">
+              {searchTerm || selectedCategory 
+                ? "Try adjusting your search or filter criteria."
+                : "Upload your first document template to get started."
+              }
+            </p>
+            {!searchTerm && !selectedCategory && (
+              <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload First Template
+              </Button>
+            )}
+          </div>
         )}
       </div>
     </AdminLayout>
