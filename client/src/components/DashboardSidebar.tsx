@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import {
   BarChart3,
@@ -13,6 +14,7 @@ import {
   Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface SidebarItemProps {
   icon: React.ReactNode;
@@ -91,12 +93,7 @@ export function DashboardSidebar() {
           href="/consultations"
           active={location === "/consultations"}
         />
-        <SidebarItem
-          icon={<Bell className="h-5 w-5" />}
-          label="Updates"
-          href="/updates"
-          active={location === "/updates"}
-        />
+        <UpdatesMenuItemWithNotification location={location} />
       </nav>
 
       <div className="mt-auto border-t pt-4">

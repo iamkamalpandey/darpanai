@@ -553,6 +553,31 @@ export default function AdminUpdates() {
 
                   <FormField
                     control={editForm.control}
+                    name="imageUrl"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel>Image URL (Optional)</FormLabel>
+                        <FormControl>
+                          <div className="flex gap-2">
+                            <Input 
+                              placeholder="https://example.com/image.jpg or https://example.com/image.png" 
+                              {...field} 
+                            />
+                            <Button type="button" variant="outline" size="sm">
+                              <Upload className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </FormControl>
+                        <p className="text-xs text-muted-foreground">
+                          Add a small image (JPG/PNG) to make your update more engaging. Recommended size: 400x200px
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={editForm.control}
                     name="content"
                     render={({ field }) => (
                       <FormItem className="col-span-2">
@@ -626,15 +651,61 @@ export default function AdminUpdates() {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="all">All Users</SelectItem>
-                            <SelectItem value="students">Students</SelectItem>
-                            <SelectItem value="agents">Agents</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
+                            <SelectItem value="students">Students Only</SelectItem>
+                            <SelectItem value="agents">Agents Only</SelectItem>
+                            <SelectItem value="other">Other Visa Categories</SelectItem>
+                            <SelectItem value="visa_type">Specific Visa Types</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+
+                    {/* Conditional Visa Type Selection for Edit Form */}
+                    {editForm.watch("targetAudience") === "visa_type" && (
+                      <FormField
+                        control={editForm.control}
+                        name="targetVisaCategories"
+                        render={({ field }) => (
+                          <FormItem className="col-span-2">
+                            <FormLabel>Specific Visa Types</FormLabel>
+                            <div className="grid grid-cols-2 gap-2 p-3 border rounded-lg">
+                              {[
+                                "Student Visa (F-1)", "Tourist Visa (B-2)", "Work Visa (H-1B)", 
+                                "Business Visa (B-1)", "Transit Visa", "Family Visa",
+                                "Study Permit (Canada)", "Visitor Visa (Canada)", "Work Permit (Canada)",
+                                "Student Visa (Australia)", "Tourist Visa (Australia)", "Work Visa (Australia)",
+                                "Student Visa (UK)", "Tourist Visa (UK)", "Work Visa (UK)",
+                                "Schengen Visa", "Other Visa Types"
+                              ].map((visaType) => (
+                                <div key={visaType} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={`edit-${visaType}`}
+                                    checked={field.value?.includes(visaType) || false}
+                                    onCheckedChange={(checked) => {
+                                      const current = field.value || [];
+                                      if (checked) {
+                                        field.onChange([...current, visaType]);
+                                      } else {
+                                        field.onChange(current.filter((v: string) => v !== visaType));
+                                      }
+                                    }}
+                                  />
+                                  <label htmlFor={`edit-${visaType}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    {visaType}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Select specific visa types to target users with relevant applications
+                            </p>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
 
                   <FormField
                     control={editForm.control}
