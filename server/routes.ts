@@ -1036,7 +1036,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileBuffer = await getTemplateFile(template.filePath);
       
       res.setHeader('Content-Disposition', `attachment; filename="${template.fileName || 'document'}"`);
-      res.setHeader('Content-Type', template.fileType || 'application/octet-stream');
+      if (template.fileType) {
+        res.setHeader('Content-Type', template.fileType);
+      } else {
+        res.setHeader('Content-Type', 'application/octet-stream');
+      }
       res.setHeader('Content-Length', template.fileSize || fileBuffer.length);
       
       res.send(fileBuffer);

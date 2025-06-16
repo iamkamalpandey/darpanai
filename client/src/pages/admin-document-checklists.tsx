@@ -427,6 +427,19 @@ export default function AdminDocumentChecklists() {
                       </div>
                     </div>
                   )}
+
+                  {/* Download Checklist as Excel Button */}
+                  <div className="pt-3 border-t">
+                    <Button
+                      onClick={() => downloadChecklistAsExcel(checklist)}
+                      className="w-full text-sm"
+                      size="sm"
+                      variant="outline"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Excel
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
