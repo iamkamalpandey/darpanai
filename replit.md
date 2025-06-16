@@ -130,6 +130,30 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 16, 2025 - Professional Application System & Landing Page Enhancement:**
+- Created comprehensive public landing page with VisaAnalyzer branding and professional design
+- Implemented professional account application system with custom pricing and admin approval workflow
+- Added conditional routing: landing page for visitors, dashboard for authenticated users
+- Replaced pricing display with application forms for Professional and Enterprise plans
+- Enhanced Book Consultation styling with proper CSS transitions and hover effects
+- Fixed navigation links: "Sign In" for login, "Sign Up" for registration (defaults to signup/login)
+- Added professional applications database table with complete admin management interface
+- Implemented backend API endpoints for professional application submission and admin review
+
+**Professional Application Features:**
+- Separate application forms for Professional and Enterprise plans
+- Applications saved to database and require admin approval before activation
+- Admin interface for reviewing, approving, or rejecting professional applications
+- Email notification system for application status updates
+- Complete audit trail with reviewer tracking and timestamps
+
+**Landing Page Improvements:**
+- Professional branding with gradient animations and modern design
+- Comprehensive sections: hero, features, how-it-works, pricing with applications
+- Enhanced trust indicators and social proof elements
+- Improved Book Consultation button styling with border transitions
+- Smooth scrolling navigation and responsive design optimization
+
 **June 14, 2025 - Critical Upload & Privacy Security Fixes:**
 - Fixed upload feature being enabled after credit exhaustion - now properly disabled when user reaches analysis limit
 - Fixed credits being deducted before successful analysis - credits now only deducted after full completion

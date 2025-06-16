@@ -282,6 +282,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // PROFESSIONAL APPLICATION API
+  // Submit professional account application (public endpoint)
+  app.post('/api/professional-applications', async (req: Request, res: Response) => {
+    try {
+      const validatedData = professionalApplicationSchema.parse(req.body);
+      
+      const application = await storage.createProfessionalApplication(validatedData);
+      
+      invalidateCache('admin:professional-applications');
+      
+      return res.status(201).json({
+        id: application.id,
+        message: 'Application submitted successfully. We will review and contact you within 24-48 hours.',
+        status: application.status
+      });
+    } catch (error: any) {
+      console.error('Error creating professional application:', error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          error: 'Validation failed',
+          details: error.errors
+        });
+      }
+      
+      return res.status(500).json({ 
+        error: 'Failed to submit application. Please try again.'
+      });
+    }
+  });
+
   // APPOINTMENT APIS
   // Book a consultation appointment (requires auth)
   app.post('/api/appointments', requireAuth, async (req: Request, res: Response) => {
@@ -503,6 +534,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating appointment status:', error);
       return res.status(500).json({ error: 'Failed to update appointment status' });
+    }
+  });
+
+  // Get all professional applications (admin only)
+  app.get('/api/admin/professional-applications', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const cacheKey = 'admin:professional-applications';
+      const cached = getCachedData(cacheKey);
+      
+      if (cached) {
+        return res.status(200).json(cached);
+      }
+      
+      const applications = await storage.getAllProfessionalApplications();
+      setCacheData(cacheKey, applications, 2); // Cache for 2 minutes
+      return res.status(200).json(applications);
+    } catch (error) {
+      console.error('Error fetching professional applications:', error);
+      return res.status(500).json({ error: 'Failed to fetch professional applications' });
+    }
+  });
+
+  // Update professional application status (admin only)
+  app.patch('/api/admin/professional-applications/:id/status', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const applicationId = parseInt(req.params.id);
+      const { status, adminNotes } = req.body;
+
+      if (isNaN(applicationId) || !status) {
+        return res.status(400).json({ error: 'Invalid application ID or status' });
+      }
+
+      const updatedApplication = await storage.updateProfessionalApplicationStatus(
+        applicationId, 
+        status, 
+        adminNotes, 
+        req.user!.id
+      );
+      
+      if (!updatedApplication) {
+        return res.status(404).json({ error: 'Application not found' });
+      }
+
+      // Invalidate cache when application data changes
+      invalidateCache('admin:professional-applications');
+      
+      return res.status(200).json(updatedApplication);
+    } catch (error) {
+      console.error('Error updating application status:', error);
+      return res.status(500).json({ error: 'Failed to update application status' });
     }
   });
 
