@@ -888,11 +888,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Updates/Notifications API Routes
 
-  // Get updates for current user
+  // Get updates for current user (only show updates created after user signup)
   app.get('/api/updates', requireAuth, async (req: Request, res: Response) => {
     try {
-      const updates = await storage.getUpdatesForUser(req.user!.id, 'student');
-      return res.status(200).json(updates);
+      const user = req.user!;
+      const updates = await storage.getUpdatesForUser(user.id, 'students');
+      
+      // Filter updates to only show those created after user's signup date
+      const filteredUpdates = updates.filter(update => 
+        new Date(update.createdAt) >= new Date(user.createdAt)
+      );
+      
+      return res.status(200).json(filteredUpdates);
     } catch (error) {
       console.error('Error fetching user updates:', error);
       return res.status(500).json({ error: 'Failed to fetch updates' });

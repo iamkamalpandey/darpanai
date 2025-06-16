@@ -90,6 +90,20 @@ export default function AdminUpdates() {
 
   const editForm = useForm<UpdateFormData>({
     resolver: zodResolver(updateSchema),
+    defaultValues: {
+      title: "",
+      content: "",
+      summary: "",
+      imageUrl: "",
+      type: "general",
+      priority: "normal",
+      targetAudience: "all",
+      targetVisaCategories: [],
+      targetUserIds: [],
+      callToAction: "",
+      externalLink: "",
+      expiresAt: "",
+    },
   });
 
   const handleCreate = (data: UpdateFormData) => {

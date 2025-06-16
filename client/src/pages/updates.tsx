@@ -15,9 +15,10 @@ export default function Updates() {
   const { toast } = useToast();
   const [expandedUpdates, setExpandedUpdates] = useState<Set<number>>(new Set());
 
-  // Fetch user updates
+  // Fetch user updates (filtered by signup date)
   const { data: updates = [], isLoading, error } = useQuery<Update[]>({
     queryKey: ["/api/updates"],
+    refetchInterval: 30000, // Refetch every 30 seconds for new updates
   });
 
   // Mark update as viewed

@@ -93,7 +93,12 @@ export function DashboardSidebar() {
           href="/consultations"
           active={location === "/consultations"}
         />
-        <UpdatesMenuItem location={location} />
+        <SidebarItem
+          icon={<Bell className="h-5 w-5" />}
+          label="Updates"
+          href="/updates"
+          active={location === "/updates"}
+        />
       </nav>
 
       <div className="mt-auto border-t pt-4">
