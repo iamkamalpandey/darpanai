@@ -287,10 +287,11 @@ export const documentTemplates = pgTable("document_templates", {
   category: text("category").notNull(), // 'financial', 'academic', 'personal', 'employment', 'travel', 'legal'
   visaTypes: text("visa_types").array().notNull().default([]),
   countries: text("countries").array().notNull().default([]),
-  fileName: text("file_name").notNull(), // Original file name
-  filePath: text("file_path").notNull(), // Server file path for downloads
+  fileName: text("file_name"), // Original file name
+  filePath: text("file_path"), // Server file path for downloads
   fileSize: integer("file_size"), // File size in bytes
-  fileType: text("file_type").notNull(), // MIME type
+  fileType: text("file_type"), // MIME type
+  externalUrl: text("external_url"), // External URL for templates
   instructions: text("instructions").array().notNull().default([]),
   tips: text("tips").array().notNull().default([]),
   requirements: text("requirements").array().notNull().default([]), // What info to fill in template
@@ -347,6 +348,7 @@ export const documentTemplateUploadSchema = z.object({
   tips: z.array(z.string()).default([]),
   requirements: z.array(z.string()).default([]),
   isActive: z.boolean().default(true),
+  externalUrl: z.string().url().optional().or(z.literal("")),
 });
 
 // Schema exports moved to end of file to avoid duplicates

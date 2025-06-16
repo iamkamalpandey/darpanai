@@ -128,6 +128,48 @@ export default function AdminDocumentChecklists() {
     });
   };
 
+  const downloadChecklistAsExcel = (checklist: DocumentChecklist) => {
+    // Convert checklist to CSV format for Excel compatibility
+    const csvData = convertChecklistToCSV(checklist);
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${checklist.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_checklist.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const convertChecklistToCSV = (checklist: DocumentChecklist): string => {
+    let csv = 'Document Checklist Report\n\n';
+    csv += `Title:,${checklist.title}\n`;
+    csv += `Description:,${checklist.description}\n`;
+    csv += `Country:,${checklist.country}\n`;
+    csv += `Visa Type:,${checklist.visaType}\n`;
+    csv += `User Type:,${checklist.userType}\n`;
+    csv += `Processing Time:,${checklist.estimatedProcessingTime}\n`;
+    csv += `Total Fees:,${checklist.totalFees}\n\n`;
+    
+    csv += 'Required Documents and Steps:\n';
+    csv += 'Order,Document Name,Description,Category,Required,Tips\n';
+    
+    checklist.items.forEach((item: any) => {
+      const tips = item.tips ? item.tips.join('; ') : '';
+      csv += `${item.order || ''},"${item.name}","${item.description}","${item.category}","${item.required ? 'Yes' : 'No'}","${tips}"\n`;
+    });
+    
+    if (checklist.importantNotes && checklist.importantNotes.length > 0) {
+      csv += '\nImportant Notes:\n';
+      checklist.importantNotes.forEach((note: string, index: number) => {
+        csv += `${index + 1},"${note}"\n`;
+      });
+    }
+    
+    return csv;
+  };
+
   const formatDate = (date: Date | null) => {
     if (!date) return 'Unknown';
     return new Date(date).toLocaleDateString();
@@ -235,18 +277,18 @@ export default function AdminDocumentChecklists() {
         </div>
 
         {/* Checklists Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           {filteredChecklists.map((checklist: DocumentChecklist) => (
-            <Card key={checklist.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-green-500">
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-3 min-w-0 flex-1">
-                    <CheckSquare className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
+            <Card key={checklist.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-green-500 h-full flex flex-col">
+              <CardHeader className="pb-4 flex-shrink-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start space-x-2 min-w-0 flex-1">
+                    <CheckSquare className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mt-1 flex-shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <CardTitle className="text-lg leading-tight line-clamp-2 mb-2">
+                      <CardTitle className="text-sm sm:text-base lg:text-lg leading-tight break-words hyphens-auto line-clamp-2 mb-2">
                         {checklist.title}
                       </CardTitle>
-                      <CardDescription className="text-sm line-clamp-2">
+                      <CardDescription className="text-xs sm:text-sm break-words line-clamp-2">
                         {checklist.description}
                       </CardDescription>
                     </div>
