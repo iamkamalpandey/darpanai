@@ -1,11 +1,12 @@
 import { 
-  users, analyses, appointments, professionalApplications,
+  users, analyses, appointments, professionalApplications, updates, userUpdateViews,
   type User, type InsertUser, type Analysis, type InsertAnalysis, 
   type Appointment, type InsertAppointment, type LoginUser,
-  type ProfessionalApplication, type InsertProfessionalApplication
+  type ProfessionalApplication, type InsertProfessionalApplication,
+  type Update, type InsertUpdate, type UserUpdateView
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, isNull, isNotNull, sql } from "drizzle-orm";
+import { eq, desc, and, isNull, isNotNull, sql, or, gt } from "drizzle-orm";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 
@@ -394,6 +395,146 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return user || undefined;
+  }
+
+  // Updates/Notifications methods
+  async createUpdate(updateData: InsertUpdate): Promise<Update> {
+    try {
+      const [update] = await db.insert(updates).values(updateData).returning();
+      return update;
+    } catch (error) {
+      console.error("Error creating update:", error);
+      throw error;
+    }
+  }
+
+  async getAllUpdates(): Promise<Update[]> {
+    try {
+      const allUpdates = await db.select().from(updates).orderBy(desc(updates.createdAt));
+      return allUpdates;
+    } catch (error) {
+      console.error("Error fetching all updates:", error);
+      return [];
+    }
+  }
+
+  async getUpdatesForUser(userId: number, userType?: string): Promise<Update[]> {
+    try {
+      // Get user info if userType not provided
+      let targetUserType = userType;
+      if (!targetUserType) {
+        const user = await this.getUser(userId);
+        targetUserType = user?.userType || 'student';
+      }
+
+      const userUpdates = await db
+        .select()
+        .from(updates)
+        .where(
+          and(
+            eq(updates.isActive, true),
+            or(
+              eq(updates.targetAudience, 'all'),
+              eq(updates.targetAudience, targetUserType),
+              sql`${updates.targetUserIds} @> ARRAY[${userId}]::integer[]`
+            ),
+            or(
+              isNull(updates.expiresAt),
+              gt(updates.expiresAt, new Date())
+            )
+          )
+        )
+        .orderBy(desc(updates.priority), desc(updates.createdAt));
+      
+      return userUpdates;
+    } catch (error) {
+      console.error("Error fetching user updates:", error);
+      return [];
+    }
+  }
+
+  async getUpdate(id: number): Promise<Update | undefined> {
+    try {
+      const [update] = await db.select().from(updates).where(eq(updates.id, id));
+      return update;
+    } catch (error) {
+      console.error("Error fetching update:", error);
+      return undefined;
+    }
+  }
+
+  async updateUpdate(id: number, updateData: Partial<Update>): Promise<Update | undefined> {
+    try {
+      const [update] = await db
+        .update(updates)
+        .set({ ...updateData, updatedAt: new Date() })
+        .where(eq(updates.id, id))
+        .returning();
+      return update;
+    } catch (error) {
+      console.error("Error updating update:", error);
+      return undefined;
+    }
+  }
+
+  async deleteUpdate(id: number): Promise<boolean> {
+    try {
+      await db.delete(updates).where(eq(updates.id, id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting update:", error);
+      return false;
+    }
+  }
+
+  async markUpdateAsViewed(userId: number, updateId: number): Promise<UserUpdateView> {
+    try {
+      // Check if already viewed
+      const existing = await db
+        .select()
+        .from(userUpdateViews)
+        .where(and(eq(userUpdateViews.userId, userId), eq(userUpdateViews.updateId, updateId)));
+
+      if (existing.length > 0) {
+        return existing[0];
+      }
+
+      const [view] = await db
+        .insert(userUpdateViews)
+        .values({ userId, updateId })
+        .returning();
+      return view;
+    } catch (error) {
+      console.error("Error marking update as viewed:", error);
+      throw error;
+    }
+  }
+
+  async markUpdateActionTaken(userId: number, updateId: number): Promise<UserUpdateView | undefined> {
+    try {
+      const [view] = await db
+        .update(userUpdateViews)
+        .set({ actionTaken: true })
+        .where(and(eq(userUpdateViews.userId, userId), eq(userUpdateViews.updateId, updateId)))
+        .returning();
+      return view;
+    } catch (error) {
+      console.error("Error marking update action taken:", error);
+      return undefined;
+    }
+  }
+
+  async getUserUpdateViews(userId: number): Promise<UserUpdateView[]> {
+    try {
+      const views = await db
+        .select()
+        .from(userUpdateViews)
+        .where(eq(userUpdateViews.userId, userId));
+      return views;
+    } catch (error) {
+      console.error("Error fetching user update views:", error);
+      return [];
+    }
   }
 }
 
