@@ -376,12 +376,12 @@ export default function DocumentTemplates() {
         )}
 
         {/* Strategic CTA for Document Assistance */}
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6 mt-8">
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4 sm:p-6 mt-6 sm:mt-8">
           <div className="text-center">
-            <h3 className="text-xl font-semibold text-green-900 mb-3">
+            <h3 className="text-lg sm:text-xl font-semibold text-green-900 mb-3">
               Need Help Customizing These Documents?
             </h3>
-            <p className="text-green-700 mb-4 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base text-green-700 mb-4 max-w-2xl mx-auto">
               These templates are just the starting point. Get personalized guidance from our visa experts to ensure your documents meet specific embassy requirements and maximize approval chances.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -389,16 +389,16 @@ export default function DocumentTemplates() {
                 buttonSize="lg"
                 buttonText="Get Document Review & Guidance"
                 subject="Document Template Customization Assistance"
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
               />
-              <Link href="/document-checklist">
-                <Button variant="outline" className="border-green-300 text-green-700 hover:bg-green-50">
+              <Link href="/document-checklist" className="w-full sm:w-auto">
+                <Button variant="outline" className="border-green-300 text-green-700 hover:bg-green-50 w-full sm:w-auto">
                   <FileText className="h-4 w-4 mr-2" />
                   View Document Checklists
                 </Button>
               </Link>
             </div>
-            <p className="text-sm text-green-600 mt-3">
+            <p className="text-xs sm:text-sm text-green-600 mt-3">
               Document review • Embassy-specific requirements • 92% document approval rate
             </p>
           </div>
