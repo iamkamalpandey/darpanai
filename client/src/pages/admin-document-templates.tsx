@@ -156,6 +156,7 @@ export default function AdminDocumentTemplates() {
       instructions: template.instructions,
       tips: template.tips,
       requiredDocuments: template.requiredDocuments,
+      downloadUrl: template.downloadUrl || "",
       isActive: template.isActive,
     });
     setIsCreateDialogOpen(true);
@@ -169,6 +170,13 @@ export default function AdminDocumentTemplates() {
   };
 
   const downloadTemplate = (template: DocumentTemplate) => {
+    // If external download URL is available, open it
+    if (template.downloadUrl) {
+      window.open(template.downloadUrl, '_blank');
+      return;
+    }
+
+    // Otherwise, download as JSON
     const templateData = {
       title: template.title,
       description: template.description,
@@ -293,6 +301,25 @@ export default function AdminDocumentTemplates() {
                         </FormControl>
                         <FormDescription>
                           Use double curly braces for placeholders: {`{{fieldName}}`}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="downloadUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>External Download URL (Optional)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="https://example.com/template.docx" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Provide an external link for users to download the template file
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
