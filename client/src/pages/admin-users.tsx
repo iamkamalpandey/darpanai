@@ -786,7 +786,14 @@ export default function AdminUsers() {
             </DialogHeader>
             
             <Form {...createForm}>
-              <form onSubmit={createForm.handleSubmit((data) => createUserMutation.mutate(data))} className="space-y-4">
+              <form onSubmit={createForm.handleSubmit((data) => {
+                // Remove userType for admin users since they don't have subtypes
+                const userData = { ...data };
+                if (userData.role === 'admin') {
+                  delete userData.userType;
+                }
+                createUserMutation.mutate(userData);
+              })} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={createForm.control}
@@ -1269,7 +1276,7 @@ export default function AdminUsers() {
                 )}
 
                 {/* Other Visa Category Information */}
-                {createForm.watch('userType') === 'other' && (
+                {createForm.watch('role') === 'user' && createForm.watch('userType') === 'other' && (
                   <div className="space-y-4 border-t pt-4">
                     <h3 className="text-lg font-semibold">Visa Information</h3>
                     <div className="grid grid-cols-2 gap-4">

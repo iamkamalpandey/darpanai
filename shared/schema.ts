@@ -2,7 +2,7 @@ import { pgTable, text, serial, integer, boolean, jsonb, timestamp, primaryKey }
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Enhanced User Model for Student Information
+// Enhanced User Model with User Types
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -13,21 +13,33 @@ export const users = pgTable("users", {
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   phoneNumber: text("phone_number").notNull(),
-  studyDestination: text("study_destination").notNull(), // Country preference
-  startDate: text("start_date").notNull(), // When they want to start
-  city: text("city").notNull(),
-  country: text("country").notNull(),
-  counsellingMode: text("counselling_mode").notNull(), // online, in-person, phone
-  fundingSource: text("funding_source").notNull(), // self-funded, scholarship, loan, family
-  studyLevel: text("study_level").notNull(), // bachelor, master, phd, diploma, certificate
-  agreeToTerms: boolean("agree_to_terms").default(false).notNull(),
-  allowContact: boolean("allow_contact").default(false).notNull(),
-  receiveUpdates: boolean("receive_updates").default(false).notNull(),
   role: text("role").default("user").notNull(),
   status: text("status").default("pending").notNull(), // pending until email verified
   analysisCount: integer("analysis_count").default(0).notNull(),
   maxAnalyses: integer("max_analyses").default(3).notNull(),
+  city: text("city").notNull(),
+  country: text("country").notNull(),
+  agreeToTerms: boolean("agree_to_terms").default(false).notNull(),
+  allowContact: boolean("allow_contact").default(false).notNull(),
+  receiveUpdates: boolean("receive_updates").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  // User type for regular users (admin users don't have subtypes)
+  userType: text("user_type"), // student, agent, other (null for admin)
+  // Student fields (conditional)
+  studyDestination: text("study_destination"), // Country preference
+  startDate: text("start_date"), // When they want to start
+  counsellingMode: text("counselling_mode"), // online, in-person, phone
+  fundingSource: text("funding_source"), // self-funded, scholarship, loan, family
+  studyLevel: text("study_level"), // bachelor, master, phd, diploma, certificate
+  // Agent fields (conditional)
+  businessName: text("business_name"),
+  businessAddress: text("business_address"),
+  businessLicense: text("business_license"),
+  yearsOfExperience: text("years_of_experience"),
+  specialization: text("specialization"),
+  // Other visa category fields (conditional)
+  visaCategory: text("visa_category"),
+  purposeOfTravel: text("purpose_of_travel"),
 });
 
 // Analysis schema
