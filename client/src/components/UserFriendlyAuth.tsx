@@ -96,7 +96,7 @@ const countries = [
 ];
 
 export default function UserFriendlyAuth() {
-  const [showLogin, setShowLogin] = useState(false);
+  const [showLogin, setShowLogin] = useState(true);
   const [registrationStep, setRegistrationStep] = useState(1); // 1: Basic Account, 2: Additional Info
   const [basicAccountData, setBasicAccountData] = useState<BasicAccountData | null>(null);
   const [, setLocation] = useLocation();
