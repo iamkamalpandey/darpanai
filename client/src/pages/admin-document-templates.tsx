@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { type DocumentTemplate } from "@shared/schema";
 import { AdminLayout } from "@/components/AdminLayout";
-import { FileUploadTemplateForm } from "@/components/FileUploadTemplateForm";
+import { AdvancedTemplateForm } from "@/components/AdvancedTemplateForm";
 
 const categories = [
   { value: "financial", label: "Financial" },
@@ -33,7 +33,7 @@ export default function AdminDocumentTemplates() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const { data: templates = [], isLoading } = useQuery({
+  const { data: templates = [], isLoading } = useQuery<DocumentTemplate[]>({
     queryKey: ['/api/admin/document-templates'],
   });
 
@@ -149,10 +149,11 @@ export default function AdminDocumentTemplates() {
                   Upload sample document files that users can download as templates
                 </DialogDescription>
               </DialogHeader>
-              <FileUploadTemplateForm
+              <AdvancedTemplateForm
                 onSubmit={handleSubmit}
                 onCancel={() => setIsCreateDialogOpen(false)}
                 isLoading={createMutation.isPending}
+                mode="create"
               />
             </DialogContent>
           </Dialog>

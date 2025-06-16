@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,788 +10,525 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Plus, Trash2, Move, Eye, EyeOff, Settings, FileText, Lightbulb, CheckSquare } from "lucide-react";
-import { insertDocumentTemplateSchema, type DocumentTemplateFormData } from "@shared/schema";
-
-interface AdvancedTemplateFormProps {
-  initialData?: Partial<DocumentTemplateFormData>;
-  onSubmit: (data: DocumentTemplateFormData) => void;
-  isLoading?: boolean;
-}
-
-const fieldTypes = [
-  { value: "text", label: "Text Input" },
-  { value: "textarea", label: "Text Area" },
-  { value: "number", label: "Number" },
-  { value: "date", label: "Date" },
-  { value: "select", label: "Dropdown" },
-  { value: "checkbox", label: "Checkbox" },
-  { value: "radio", label: "Radio Button" },
-  { value: "file", label: "File Upload" },
-  { value: "email", label: "Email" },
-  { value: "phone", label: "Phone" },
-  { value: "url", label: "URL" },
-];
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Plus, Trash2, Upload, FileText, X } from "lucide-react";
+import { documentTemplateUploadSchema, type DocumentTemplateUpload } from "@shared/schema";
 
 const categories = [
-  { value: "financial", label: "Financial Documents" },
-  { value: "academic", label: "Academic Documents" },
-  { value: "personal", label: "Personal Documents" },
-  { value: "employment", label: "Employment Documents" },
-  { value: "travel", label: "Travel Documents" },
-  { value: "legal", label: "Legal Documents" },
+  { value: "financial", label: "Financial" },
+  { value: "academic", label: "Academic" },
+  { value: "personal", label: "Personal" },
+  { value: "employment", label: "Employment" },
+  { value: "travel", label: "Travel" },
+  { value: "legal", label: "Legal" },
+  { value: "medical", label: "Medical" },
+  { value: "insurance", label: "Insurance" },
+  { value: "accommodation", label: "Accommodation" },
+  { value: "language", label: "Language" },
+  { value: "other", label: "Other" },
 ];
 
-const tipCategories = [
-  { value: "general", label: "General" },
-  { value: "formatting", label: "Formatting" },
-  { value: "submission", label: "Submission" },
-  { value: "documentation", label: "Documentation" },
+const countries = [
+  "Nepal", "India", "Pakistan", "Bangladesh", "Sri Lanka", "Vietnam", "China",
+  "Philippines", "Indonesia", "Thailand", "Nigeria", "Ghana", "Kenya",
+  "USA", "Canada", "UK", "Australia", "Germany", "France", "Netherlands",
+  "Other"
 ];
 
-export function AdvancedTemplateForm({ initialData, onSubmit, isLoading }: AdvancedTemplateFormProps) {
-  const form = useForm<DocumentTemplateFormData>({
-    resolver: zodResolver(insertDocumentTemplateSchema),
+const visaTypes = [
+  "Student F-1", "Tourist B-2", "Work H-1B", "Study Permit", "Visitor Visa",
+  "Business B-1", "Transit C-1", "Family Reunification", "Investment E-2",
+  "Artist O-1", "Researcher J-1", "Spouse/Partner", "Working Holiday",
+  "Permanent Residence", "Refugee/Asylum", "Other"
+];
+
+interface AdvancedTemplateFormProps {
+  onSubmit: (data: FormData) => Promise<void>;
+  onCancel: () => void;
+  isLoading?: boolean;
+  initialData?: any;
+  mode?: "create" | "edit";
+}
+
+export function AdvancedTemplateForm({ 
+  onSubmit, 
+  onCancel, 
+  isLoading = false, 
+  initialData, 
+  mode = "create" 
+}: AdvancedTemplateFormProps) {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+
+  const form = useForm<DocumentTemplateUpload>({
+    resolver: zodResolver(documentTemplateUploadSchema),
     defaultValues: {
       title: initialData?.title || "",
       description: initialData?.description || "",
+      documentType: initialData?.documentType || "",
       category: initialData?.category || "financial",
       visaTypes: initialData?.visaTypes || [],
       countries: initialData?.countries || [],
-      template: initialData?.template || "",
-      fields: initialData?.fields || [],
       instructions: initialData?.instructions || [],
       tips: initialData?.tips || [],
-      requiredDocuments: initialData?.requiredDocuments || [],
-      isActive: initialData?.isActive ?? true,
+      requirements: initialData?.requirements || [],
+      isActive: initialData?.isActive !== undefined ? initialData.isActive : true,
     },
   });
 
-  const { fields: formFields, append: appendField, remove: removeField, move: moveField } = useFieldArray({
-    control: form.control,
-    name: "fields",
-  });
-
-  const { fields: instructionFields, append: appendInstruction, remove: removeInstruction } = useFieldArray({
-    control: form.control,
-    name: "instructions",
-  });
-
-  const { fields: tipFields, append: appendTip, remove: removeTip } = useFieldArray({
-    control: form.control,
-    name: "tips",
-  });
-
-  const { fields: documentFields, append: appendDocument, remove: removeDocument } = useFieldArray({
-    control: form.control,
-    name: "requiredDocuments",
-  });
-
-  const addFormField = () => {
-    appendField({
-      id: `field_${Date.now()}`,
-      label: "",
-      type: "text",
-      required: false,
-      placeholder: "",
-      options: [],
-      validation: "",
-      defaultValue: "",
-      helpText: "",
-      section: "",
-      order: formFields.length,
-    });
+  const handleFileChange = (file: File | null) => {
+    if (!file) return;
+    
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'application/rtf'];
+    const allowedExtensions = ['.pdf', '.doc', '.docx', '.txt', '.rtf'];
+    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+    
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+      alert('Invalid file type. Only PDF, DOC, DOCX, TXT, and RTF files are allowed.');
+      return;
+    }
+    
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size must be less than 10MB.');
+      return;
+    }
+    
+    setSelectedFile(file);
   };
 
-  const addInstruction = () => {
-    appendInstruction({
-      title: "",
-      content: "",
-      order: instructionFields.length,
-      important: false,
-    });
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
   };
 
-  const addTip = () => {
-    appendTip({
-      title: "",
-      content: "",
-      category: "general",
-    });
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFileChange(e.dataTransfer.files[0]);
+    }
   };
 
-  const addDocument = () => {
-    appendDocument({
-      name: "",
-      description: "",
-      format: "",
-      mandatory: true,
-      alternatives: [],
+  const onFormSubmit = async (data: DocumentTemplateUpload) => {
+    if (mode === "create" && !selectedFile) {
+      alert("Please select a file to upload.");
+      return;
+    }
+
+    const formData = new FormData();
+    
+    // Append form data
+    Object.entries(data).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        formData.append(key, JSON.stringify(value));
+      } else {
+        formData.append(key, String(value));
+      }
     });
+
+    if (selectedFile) {
+      formData.append('file', selectedFile);
+    }
+
+    await onSubmit(formData);
+  };
+
+  const addArrayItem = (fieldName: keyof DocumentTemplateUpload, item: string) => {
+    const currentValues = form.getValues(fieldName) as string[];
+    if (item.trim() && !currentValues.includes(item.trim())) {
+      form.setValue(fieldName, [...currentValues, item.trim()] as any);
+    }
+  };
+
+  const removeArrayItem = (fieldName: keyof DocumentTemplateUpload, index: number) => {
+    const currentValues = form.getValues(fieldName) as string[];
+    form.setValue(fieldName, currentValues.filter((_, i) => i !== index) as any);
+  };
+
+  const ArrayInputField = ({ 
+    fieldName, 
+    label, 
+    placeholder, 
+    description 
+  }: { 
+    fieldName: keyof DocumentTemplateUpload; 
+    label: string; 
+    placeholder: string; 
+    description?: string;
+  }) => {
+    const [inputValue, setInputValue] = useState("");
+    const values = form.watch(fieldName) as string[];
+
+    return (
+      <FormField
+        control={form.control}
+        name={fieldName}
+        render={() => (
+          <FormItem>
+            <FormLabel>{label}</FormLabel>
+            <div className="space-y-2">
+              <div className="flex space-x-2">
+                <Input
+                  placeholder={placeholder}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (inputValue.trim()) {
+                        addArrayItem(fieldName, inputValue);
+                        setInputValue("");
+                      }
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (inputValue.trim()) {
+                      addArrayItem(fieldName, inputValue);
+                      setInputValue("");
+                    }
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {values.map((item, index) => (
+                  <Badge key={index} variant="secondary" className="px-2 py-1">
+                    {item}
+                    <button
+                      type="button"
+                      onClick={() => removeArrayItem(fieldName, index)}
+                      className="ml-1 hover:text-red-600"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            {description && <FormDescription>{description}</FormDescription>}
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    );
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Accordion type="multiple" defaultValue={["basic", "content"]} className="w-full">
-          <AccordionItem value="basic">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <FileText className="h-5 w-5" />
+          <span>{mode === "create" ? "Create Document Template" : "Edit Document Template"}</span>
+        </CardTitle>
+        <CardDescription>
+          {mode === "create" 
+            ? "Upload a sample document template with detailed information"
+            : "Update the document template information"
+          }
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-6">
+            <Accordion type="single" collapsible defaultValue="basic-info" className="w-full">
+              
+              {/* Basic Information */}
+              <AccordionItem value="basic-info">
+                <AccordionTrigger className="text-lg font-semibold">
                   Basic Information
-                </CardTitle>
-                <CardDescription>
-                  Essential template details and categorization
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Template Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter template title..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                </AccordionTrigger>
+                <AccordionContent className="space-y-4 pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Template Title *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g., Bank Statement Template - USA F-1 Visa" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Brief description of the template..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {categories.map((category) => (
-                            <SelectItem key={category.value} value={category.value}>
-                              {category.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="downloadUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>External Download URL (Optional)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="https://example.com/template.docx" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Provide an external link for users to download the template file
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="isActive"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-base">Active Status</FormLabel>
-                        <FormDescription>
-                          Enable or disable this template for public use
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="content" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Template Content</CardTitle>
-                <CardDescription>
-                  Define the main template content with placeholders
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FormField
-                  control={form.control}
-                  name="template"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Template Content</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Template content with placeholders like {{fullName}}, {{university}}, etc." 
-                          rows={12}
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Use double curly braces for placeholders: {`{{fieldName}}`}
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="fields" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Settings className="h-5 w-5" />
-                    Form Fields
-                  </span>
-                  <Button type="button" onClick={addFormField} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Field
-                  </Button>
-                </CardTitle>
-                <CardDescription>
-                  Define interactive form fields for template customization
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {formFields.map((field, index) => (
-                  <Card key={field.id} className="p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="font-medium">Field {index + 1}</h4>
-                      <div className="flex items-center gap-2">
-                        {index > 0 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => moveField(index, index - 1)}
-                          >
-                            <Move className="h-4 w-4" />
-                          </Button>
-                        )}
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => removeField(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name={`fields.${index}.label`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Field Label</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Field label..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name={`fields.${index}.type`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Field Type</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {fieldTypes.map((type) => (
-                                  <SelectItem key={type.value} value={type.value}>
-                                    {type.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name={`fields.${index}.placeholder`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Placeholder</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Enter placeholder..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name={`fields.${index}.helpText`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Help Text</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Additional help information..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name={`fields.${index}.required`}
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                            <div className="space-y-0.5">
-                              <FormLabel className="text-sm">Required Field</FormLabel>
-                            </div>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </Card>
-                ))}
-
-                {formFields.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No form fields defined. Click "Add Field" to create interactive elements.
+                    <FormField
+                      control={form.control}
+                      name="documentType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Document Type *</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g., bank_statement, sop, recommendation_letter" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
-          <TabsContent value="instructions" className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Instructions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <CheckSquare className="h-5 w-5" />
-                      Instructions
-                    </span>
-                    <Button type="button" onClick={addInstruction} size="sm">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {instructionFields.map((instruction, index) => (
-                    <Card key={instruction.id} className="p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="font-medium">Instruction {index + 1}</h4>
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => removeInstruction(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <FormField
-                          control={form.control}
-                          name={`instructions.${index}.title`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Title</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Instruction title..." {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`instructions.${index}.content`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Content</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="Detailed instruction content..." rows={3} {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`instructions.${index}.important`}
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                              <div className="space-y-0.5">
-                                <FormLabel className="text-sm">Important</FormLabel>
-                              </div>
-                              <FormControl>
-                                <Switch
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </Card>
-                  ))}
-
-                  {instructionFields.length === 0 && (
-                    <div className="text-center py-4 text-muted-foreground text-sm">
-                      No instructions added yet.
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Tips */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <Lightbulb className="h-5 w-5" />
-                      Tips & Guidance
-                    </span>
-                    <Button type="button" onClick={addTip} size="sm">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {tipFields.map((tip, index) => (
-                    <Card key={tip.id} className="p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="font-medium">Tip {index + 1}</h4>
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => removeTip(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <FormField
-                          control={form.control}
-                          name={`tips.${index}.title`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Title</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Tip title..." {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`tips.${index}.content`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Content</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="Helpful tip content..." rows={3} {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`tips.${index}.category`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Category</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {tipCategories.map((category) => (
-                                    <SelectItem key={category.value} value={category.value}>
-                                      {category.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </Card>
-                  ))}
-
-                  {tipFields.length === 0 && (
-                    <div className="text-center py-4 text-muted-foreground text-sm">
-                      No tips added yet.
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Required Documents */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  Required Documents
-                  <Button type="button" onClick={addDocument} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Document
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {documentFields.map((document, index) => (
-                  <Card key={document.id} className="p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="font-medium">Document {index + 1}</h4>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => removeDocument(index)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name={`requiredDocuments.${index}.name`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Document Name</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Document name..." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name={`requiredDocuments.${index}.format`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Format</FormLabel>
-                            <FormControl>
-                              <Input placeholder="PDF, DOC, etc." {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="col-span-2">
-                        <FormField
-                          control={form.control}
-                          name={`requiredDocuments.${index}.description`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Description</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="Document description..." rows={2} {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <FormField
-                        control={form.control}
-                        name={`requiredDocuments.${index}.mandatory`}
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                            <div className="space-y-0.5">
-                              <FormLabel className="text-sm">Mandatory</FormLabel>
-                            </div>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </Card>
-                ))}
-
-                {documentFields.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No required documents defined yet.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="metadata" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Template Metadata</CardTitle>
-                <CardDescription>
-                  Additional information about the template
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="metadata.difficulty"
+                    name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Difficulty Level</FormLabel>
+                        <FormLabel>Description *</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Detailed description of the document template and its purpose..."
+                            className="min-h-[100px]"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category *</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select difficulty" />
+                              <SelectValue placeholder="Select a category" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="easy">Easy</SelectItem>
-                            <SelectItem value="medium">Medium</SelectItem>
-                            <SelectItem value="hard">Hard</SelectItem>
+                            {categories.map((category) => (
+                              <SelectItem key={category.value} value={category.value}>
+                                {category.label}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+                </AccordionContent>
+              </AccordionItem>
 
+              {/* File Upload */}
+              {mode === "create" && (
+                <AccordionItem value="file-upload">
+                  <AccordionTrigger className="text-lg font-semibold">
+                    File Upload
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-4">
+                    <div
+                      className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                        dragActive 
+                          ? 'border-blue-400 bg-blue-50' 
+                          : selectedFile 
+                            ? 'border-green-400 bg-green-50' 
+                            : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                      onDragEnter={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDragOver={handleDrag}
+                      onDrop={handleDrop}
+                    >
+                      {selectedFile ? (
+                        <div className="space-y-2">
+                          <FileText className="h-12 w-12 text-green-600 mx-auto" />
+                          <p className="text-sm font-medium text-green-800">{selectedFile.name}</p>
+                          <p className="text-xs text-green-600">
+                            {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedFile(null)}
+                          >
+                            Remove File
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          <Upload className="h-12 w-12 text-gray-400 mx-auto" />
+                          <div>
+                            <p className="text-lg font-medium text-gray-900">
+                              Drop your file here, or click to browse
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Supports PDF, DOC, DOCX, TXT, RTF up to 10MB
+                            </p>
+                          </div>
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.txt,.rtf"
+                            onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+                            className="hidden"
+                            id="file-upload"
+                          />
+                          <label htmlFor="file-upload">
+                            <Button type="button" variant="outline" asChild>
+                              <span>Choose File</span>
+                            </Button>
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              )}
+
+              {/* Target Audience */}
+              <AccordionItem value="target-audience">
+                <AccordionTrigger className="text-lg font-semibold">
+                  Target Audience
+                </AccordionTrigger>
+                <AccordionContent className="space-y-4 pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-base font-medium">Visa Types</Label>
+                      <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border rounded-md p-3">
+                        {visaTypes.map((visaType) => (
+                          <label key={visaType} className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={form.watch("visaTypes").includes(visaType)}
+                              onChange={(e) => {
+                                const current = form.getValues("visaTypes");
+                                if (e.target.checked) {
+                                  form.setValue("visaTypes", [...current, visaType]);
+                                } else {
+                                  form.setValue("visaTypes", current.filter(v => v !== visaType));
+                                }
+                              }}
+                              className="rounded"
+                            />
+                            <span className="text-sm">{visaType}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-base font-medium">Countries</Label>
+                      <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border rounded-md p-3">
+                        {countries.map((country) => (
+                          <label key={country} className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={form.watch("countries").includes(country)}
+                              onChange={(e) => {
+                                const current = form.getValues("countries");
+                                if (e.target.checked) {
+                                  form.setValue("countries", [...current, country]);
+                                } else {
+                                  form.setValue("countries", current.filter(c => c !== country));
+                                }
+                              }}
+                              className="rounded"
+                            />
+                            <span className="text-sm">{country}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Instructions & Tips */}
+              <AccordionItem value="instructions-tips">
+                <AccordionTrigger className="text-lg font-semibold">
+                  Instructions & Tips
+                </AccordionTrigger>
+                <AccordionContent className="space-y-6 pt-4">
+                  <ArrayInputField
+                    fieldName="instructions"
+                    label="Usage Instructions"
+                    placeholder="Add step-by-step instructions..."
+                    description="Step-by-step instructions for using this template"
+                  />
+
+                  <ArrayInputField
+                    fieldName="tips"
+                    label="Helpful Tips"
+                    placeholder="Add helpful tips..."
+                    description="Tips and best practices for completing this document"
+                  />
+
+                  <ArrayInputField
+                    fieldName="requirements"
+                    label="Information Requirements"
+                    placeholder="Add required information..."
+                    description="What information users need to provide when using this template"
+                  />
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Settings */}
+              <AccordionItem value="settings">
+                <AccordionTrigger className="text-lg font-semibold">
+                  Settings
+                </AccordionTrigger>
+                <AccordionContent className="pt-4">
                   <FormField
                     control={form.control}
-                    name="metadata.estimatedTime"
+                    name="isActive"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Estimated Completion Time</FormLabel>
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                          <FormLabel className="text-base">Active Status</FormLabel>
+                          <FormDescription>
+                            Enable this template to make it available to users
+                          </FormDescription>
+                        </div>
                         <FormControl>
-                          <Input placeholder="e.g., 30 minutes" {...field} />
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
 
-                  <FormField
-                    control={form.control}
-                    name="metadata.version"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Version</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., 1.0" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            <Separator />
 
-                  <FormField
-                    control={form.control}
-                    name="metadata.lastReviewDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Last Review Date</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        <div className="flex items-center justify-end space-x-2 pt-4">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save Template"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+            <div className="flex justify-end space-x-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Processing..." : mode === "create" ? "Create Template" : "Update Template"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }
