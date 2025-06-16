@@ -886,6 +886,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Updates/Notifications API Routes
+
+  // Get updates for current user
+  app.get('/api/updates', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const updates = await storage.getUpdatesForUser(req.user!.id, 'student');
+      return res.status(200).json(updates);
+    } catch (error) {
+      console.error('Error fetching user updates:', error);
+      return res.status(500).json({ error: 'Failed to fetch updates' });
+    }
+  });
+
+  // Mark update as viewed
+  app.post('/api/updates/:id/view', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const updateId = parseInt(req.params.id);
+      const view = await storage.markUpdateAsViewed(req.user!.id, updateId);
+      return res.status(200).json(view);
+    } catch (error) {
+      console.error('Error marking update as viewed:', error);
+      return res.status(500).json({ error: 'Failed to mark update as viewed' });
+    }
+  });
+
+  // Mark update action as taken
+  app.post('/api/updates/:id/action', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const updateId = parseInt(req.params.id);
+      const view = await storage.markUpdateActionTaken(req.user!.id, updateId);
+      return res.status(200).json(view);
+    } catch (error) {
+      console.error('Error marking update action taken:', error);
+      return res.status(500).json({ error: 'Failed to mark action taken' });
+    }
+  });
+
+  // Admin Updates Management Routes
+
+  // Get all updates (admin only)
+  app.get('/api/admin/updates', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const updates = await storage.getAllUpdates();
+      return res.status(200).json(updates);
+    } catch (error) {
+      console.error('Error fetching admin updates:', error);
+      return res.status(500).json({ error: 'Failed to fetch updates' });
+    }
+  });
+
+  // Create new update (admin only)
+  app.post('/api/admin/updates', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const updateData = {
+        ...req.body,
+        createdBy: req.user!.id,
+        expiresAt: req.body.expiresAt ? new Date(req.body.expiresAt) : null,
+      };
+      
+      const update = await storage.createUpdate(updateData);
+      return res.status(201).json(update);
+    } catch (error) {
+      console.error('Error creating update:', error);
+      return res.status(500).json({ error: 'Failed to create update' });
+    }
+  });
+
+  // Update existing update (admin only)
+  app.patch('/api/admin/updates/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const updateId = parseInt(req.params.id);
+      const updateData = {
+        ...req.body,
+        expiresAt: req.body.expiresAt ? new Date(req.body.expiresAt) : null,
+      };
+      
+      const update = await storage.updateUpdate(updateId, updateData);
+      if (!update) {
+        return res.status(404).json({ error: 'Update not found' });
+      }
+      
+      return res.status(200).json(update);
+    } catch (error) {
+      console.error('Error updating update:', error);
+      return res.status(500).json({ error: 'Failed to update update' });
+    }
+  });
+
+  // Delete update (admin only)
+  app.delete('/api/admin/updates/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const updateId = parseInt(req.params.id);
+      const success = await storage.deleteUpdate(updateId);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Update not found' });
+      }
+      
+      return res.status(200).json({ message: 'Update deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting update:', error);
+      return res.status(500).json({ error: 'Failed to delete update' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

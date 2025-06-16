@@ -122,6 +122,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               active={location === "/admin/professional-applications"}
             />
             <AdminSidebarItem
+              icon={<Bell className="h-5 w-5" />}
+              label="Updates & Notifications"
+              href="/admin/updates"
+              active={location === "/admin/updates"}
+            />
+            <AdminSidebarItem
               icon={<Settings className="h-5 w-5" />}
               label="System Settings"
               href="/admin/settings"
