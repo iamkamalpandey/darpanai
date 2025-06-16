@@ -59,16 +59,19 @@ const createUserSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  phoneNumber: z.string().optional(),
+  phoneNumber: z.string().min(1, "Phone number is required"),
   role: z.enum(["user", "admin"]),
   status: z.enum(["active", "suspended", "inactive"]),
   maxAnalyses: z.number().min(0).default(3),
-  studyDestination: z.string().optional(),
-  city: z.string().optional(),
-  country: z.string().optional(),
-  studyLevel: z.string().optional(),
-  counsellingMode: z.string().optional(),
-  fundingSource: z.string().optional(),
+  studyDestination: z.string().min(1, "Study destination is required"),
+  city: z.string().min(1, "City is required"),
+  country: z.string().min(1, "Country is required"),
+  studyLevel: z.string().default("bachelor"),
+  counsellingMode: z.string().default("online"),
+  fundingSource: z.string().default("self"),
+  agreeToTerms: z.boolean().default(true),
+  allowContact: z.boolean().default(true),
+  receiveUpdates: z.boolean().default(true),
 });
 
 const editUserSchema = createUserSchema.partial().omit({ password: true }).extend({
@@ -100,6 +103,12 @@ export default function AdminUsers() {
       role: "user",
       status: "active",
       maxAnalyses: 3,
+      studyLevel: "bachelor",
+      counsellingMode: "online",
+      fundingSource: "self",
+      agreeToTerms: true,
+      allowContact: true,
+      receiveUpdates: true,
     },
   });
 
@@ -868,19 +877,92 @@ export default function AdminUsers() {
                   />
                 </div>
 
-                <FormField
-                  control={createForm.control}
-                  name="studyDestination"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Study Destination</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={createForm.control}
+                    name="studyDestination"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Study Destination</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={createForm.control}
+                    name="studyLevel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Study Level</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select study level" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="bachelor">Bachelor's</SelectItem>
+                            <SelectItem value="master">Master's</SelectItem>
+                            <SelectItem value="phd">PhD</SelectItem>
+                            <SelectItem value="diploma">Diploma</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={createForm.control}
+                    name="counsellingMode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Counselling Mode</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select mode" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="online">Online</SelectItem>
+                            <SelectItem value="in-person">In-Person</SelectItem>
+                            <SelectItem value="hybrid">Hybrid</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={createForm.control}
+                    name="fundingSource"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Funding Source</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select funding" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="self">Self-funded</SelectItem>
+                            <SelectItem value="scholarship">Scholarship</SelectItem>
+                            <SelectItem value="family">Family</SelectItem>
+                            <SelectItem value="loan">Student Loan</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setCreateUserOpen(false)}>
