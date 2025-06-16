@@ -316,9 +316,10 @@ export const documentChecklists = pgTable("document_checklists", {
 export const insertDocumentTemplateSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
-  category: z.enum(["financial", "academic", "personal", "employment", "travel", "legal"]),
+  category: z.enum(["financial", "academic", "personal", "employment", "travel", "legal", "medical", "insurance", "accommodation", "language"]),
   visaTypes: z.array(z.string()).default([]),
-  countries: z.array(z.string()).default([]),
+  originCountries: z.array(z.string()).default([]),
+  destinationCountries: z.array(z.string()).default([]),
   template: z.string().min(1, "Template content is required"),
   fields: z.array(z.object({
     id: z.string(),
@@ -391,7 +392,8 @@ export const documentTemplateSchema = z.object({
 
 // Document Checklists schemas
 export const insertDocumentChecklistSchema = z.object({
-  country: z.string().min(1, "Country is required"),
+  originCountry: z.string().min(1, "Origin country is required"),
+  destinationCountry: z.string().min(1, "Destination country is required"),
   visaType: z.string().min(1, "Visa type is required"),
   userType: z.enum(["student", "tourist", "work", "family", "business"]),
   categories: z.array(z.object({
