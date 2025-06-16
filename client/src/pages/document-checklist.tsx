@@ -238,17 +238,17 @@ export default function DocumentChecklistGenerator() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="flex flex-col space-y-4">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h1 className="text-3xl font-bold">Document Checklist Generator</h1>
-              <p className="text-muted-foreground">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col space-y-3 sm:space-y-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold">Document Checklist Generator</h1>
+              <p className="text-muted-foreground text-sm sm:text-base">
                 Get personalized document checklists for your visa application
               </p>
             </div>
             {viewingChecklist && (
-              <Button onClick={() => setViewingChecklist(null)} variant="outline">
+              <Button onClick={() => setViewingChecklist(null)} variant="outline" className="self-center sm:self-auto">
                 ← Back to Checklists
               </Button>
             )}
@@ -257,14 +257,14 @@ export default function DocumentChecklistGenerator() {
           {/* Search and Filters - Only show on list page */}
           {!viewingChecklist && (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Filter className="h-5 w-5 mr-2" />
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center text-lg">
+                  <Filter className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Find Your Checklist
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="search">Search</Label>
                     <div className="relative">
