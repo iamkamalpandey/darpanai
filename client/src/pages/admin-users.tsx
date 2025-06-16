@@ -934,9 +934,45 @@ export default function AdminUsers() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Country</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ""} />
-                        </FormControl>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select country" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Nepal">Nepal</SelectItem>
+                            <SelectItem value="India">India</SelectItem>
+                            <SelectItem value="Sri Lanka">Sri Lanka</SelectItem>
+                            <SelectItem value="Vietnam">Vietnam</SelectItem>
+                            <SelectItem value="China">China</SelectItem>
+                            <SelectItem value="Bangladesh">Bangladesh</SelectItem>
+                            <SelectItem value="Pakistan">Pakistan</SelectItem>
+                            <SelectItem value="Philippines">Philippines</SelectItem>
+                            <SelectItem value="Thailand">Thailand</SelectItem>
+                            <SelectItem value="Indonesia">Indonesia</SelectItem>
+                            <SelectItem value="Malaysia">Malaysia</SelectItem>
+                            <SelectItem value="South Korea">South Korea</SelectItem>
+                            <SelectItem value="Japan">Japan</SelectItem>
+                            <SelectItem value="Myanmar">Myanmar</SelectItem>
+                            <SelectItem value="Afghanistan">Afghanistan</SelectItem>
+                            <SelectItem value="Iran">Iran</SelectItem>
+                            <SelectItem value="Turkey">Turkey</SelectItem>
+                            <SelectItem value="Nigeria">Nigeria</SelectItem>
+                            <SelectItem value="Kenya">Kenya</SelectItem>
+                            <SelectItem value="Ghana">Ghana</SelectItem>
+                            <SelectItem value="Ethiopia">Ethiopia</SelectItem>
+                            <SelectItem value="Egypt">Egypt</SelectItem>
+                            <SelectItem value="Morocco">Morocco</SelectItem>
+                            <SelectItem value="Brazil">Brazil</SelectItem>
+                            <SelectItem value="Colombia">Colombia</SelectItem>
+                            <SelectItem value="Mexico">Mexico</SelectItem>
+                            <SelectItem value="Peru">Peru</SelectItem>
+                            <SelectItem value="Ecuador">Ecuador</SelectItem>
+                            <SelectItem value="Chile">Chile</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}

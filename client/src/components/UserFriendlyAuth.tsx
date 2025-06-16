@@ -26,8 +26,8 @@ const basicAccountSchema = z.object({
   path: ["confirmPassword"],
 });
 
-// Step 2: Additional Information (shown after basic account)
-const additionalInfoSchema = z.object({
+// Step 2: Additional Information (conditional based on user type)
+const studentAdditionalInfoSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   phoneNumber: z.string().min(10, "Please enter a valid phone number"),
@@ -42,6 +42,37 @@ const additionalInfoSchema = z.object({
   allowContact: z.boolean().optional(),
   receiveUpdates: z.boolean().optional(),
 });
+
+const agentAdditionalInfoSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  phoneNumber: z.string().min(10, "Please enter a valid phone number"),
+  city: z.string().min(2, "City must be at least 2 characters"),
+  country: z.string().min(1, "Please select your country"),
+  businessName: z.string().min(2, "Business name is required"),
+  businessAddress: z.string().min(5, "Business address is required"),
+  businessLicense: z.string().optional(),
+  yearsOfExperience: z.string().min(1, "Please specify years of experience"),
+  specialization: z.string().min(1, "Please select your specialization"),
+  agreeToTerms: z.boolean().refine((val) => val === true, "You must agree to the terms and conditions"),
+  allowContact: z.boolean().optional(),
+  receiveUpdates: z.boolean().optional(),
+});
+
+const otherAdditionalInfoSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  phoneNumber: z.string().min(10, "Please enter a valid phone number"),
+  city: z.string().min(2, "City must be at least 2 characters"),
+  country: z.string().min(1, "Please select your country"),
+  visaCategory: z.string().min(1, "Please specify your visa category"),
+  purposeOfTravel: z.string().min(1, "Please specify purpose of travel"),
+  agreeToTerms: z.boolean().refine((val) => val === true, "You must agree to the terms and conditions"),
+  allowContact: z.boolean().optional(),
+  receiveUpdates: z.boolean().optional(),
+});
+
+const additionalInfoSchema = studentAdditionalInfoSchema;
 
 // Complete form schema - manually combine all fields
 const completeFormSchema = z.object({
@@ -176,20 +207,44 @@ export default function UserFriendlyAuth() {
     },
   });
 
-  // Additional Info Form
-  const additionalForm = useForm<AdditionalInfoData>({
-    resolver: zodResolver(additionalInfoSchema),
+  // Additional Info Form - conditional schema based on user type
+  const getAdditionalSchema = (userType: string) => {
+    switch (userType) {
+      case 'agent':
+        return agentAdditionalInfoSchema;
+      case 'other':
+        return otherAdditionalInfoSchema;
+      default:
+        return studentAdditionalInfoSchema;
+    }
+  };
+
+  const additionalForm = useForm<any>({
+    resolver: zodResolver(basicAccountData ? getAdditionalSchema(basicAccountData.userType) : studentAdditionalInfoSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
       phoneNumber: "",
       city: "",
       country: "",
-      studyDestination: "",
-      studyLevel: "",
-      startDate: "",
-      counsellingMode: "",
-      fundingSource: "",
+      ...(basicAccountData?.userType === 'student' && {
+        studyDestination: "",
+        studyLevel: "",
+        startDate: "",
+        counsellingMode: "",
+        fundingSource: "",
+      }),
+      ...(basicAccountData?.userType === 'agent' && {
+        businessName: "",
+        businessAddress: "",
+        businessLicense: "",
+        yearsOfExperience: "",
+        specialization: "",
+      }),
+      ...(basicAccountData?.userType === 'other' && {
+        visaCategory: "",
+        purposeOfTravel: "",
+      }),
       agreeToTerms: false,
       allowContact: true,
       receiveUpdates: true,
@@ -406,6 +461,29 @@ export default function UserFriendlyAuth() {
                     )}
                   />
 
+                  <FormField
+                    control={basicForm.control}
+                    name="userType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>I am a</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select your user type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="student">Student (Study Abroad)</SelectItem>
+                            <SelectItem value="agent">Education Agent/Consultant</SelectItem>
+                            <SelectItem value="other">Other Visa Category</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <Button type="submit" className="w-full">
                     Continue <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
@@ -531,101 +609,128 @@ export default function UserFriendlyAuth() {
                   />
                 </div>
 
-                {/* Study Preferences */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Study Preferences</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={additionalForm.control}
-                      name="studyDestination"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Study Destination</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Choose destination" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {destinationCountries.map((destination) => (
-                                <SelectItem key={destination} value={destination}>
-                                  {destination}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                {/* Student Study Preferences */}
+                {basicAccountData?.userType === 'student' && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Study Preferences</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={additionalForm.control}
+                        name="studyDestination"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Study Destination</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Choose destination" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {destinationCountries.map((destination) => (
+                                  <SelectItem key={destination} value={destination}>
+                                    {destination}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={additionalForm.control}
+                        name="studyLevel"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Study Level</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select study level" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {studyLevels.map((level) => (
+                                  <SelectItem key={level} value={level}>
+                                    {level}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={additionalForm.control}
+                        name="startDate"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Preferred Start Date</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="When would you like to start?" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Fall 2025">Fall 2025</SelectItem>
+                                <SelectItem value="Spring 2026">Spring 2026</SelectItem>
+                                <SelectItem value="Summer 2026">Summer 2026</SelectItem>
+                                <SelectItem value="Fall 2026">Fall 2026</SelectItem>
+                                <SelectItem value="Flexible">Flexible</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={additionalForm.control}
+                        name="counsellingMode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Counselling Preference</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="How would you like to be counselled?" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {counsellingModes.map((mode) => (
+                                  <SelectItem key={mode} value={mode}>
+                                    {mode}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
                     <FormField
                       control={additionalForm.control}
-                      name="studyLevel"
+                      name="fundingSource"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Study Level</FormLabel>
+                          <FormLabel>Funding Source</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select study level" />
+                                <SelectValue placeholder="How will you fund your studies?" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {studyLevels.map((level) => (
-                                <SelectItem key={level} value={level}>
-                                  {level}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={additionalForm.control}
-                      name="startDate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Preferred Start Date</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="When would you like to start?" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="Fall 2025">Fall 2025</SelectItem>
-                              <SelectItem value="Spring 2026">Spring 2026</SelectItem>
-                              <SelectItem value="Summer 2026">Summer 2026</SelectItem>
-                              <SelectItem value="Fall 2026">Fall 2026</SelectItem>
-                              <SelectItem value="Flexible">Flexible</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={additionalForm.control}
-                      name="counsellingMode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Counselling Preference</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="How would you like to be counselled?" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {counsellingModes.map((mode) => (
-                                <SelectItem key={mode} value={mode}>
-                                  {mode}
+                              {fundingSources.map((source) => (
+                                <SelectItem key={source} value={source}>
+                                  {source}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -635,32 +740,158 @@ export default function UserFriendlyAuth() {
                       )}
                     />
                   </div>
+                )}
 
-                  <FormField
-                    control={additionalForm.control}
-                    name="fundingSource"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Funding Source</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                {/* Agent Business Information */}
+                {basicAccountData?.userType === 'agent' && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Business Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={additionalForm.control}
+                        name="businessName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Business Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Your business name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={additionalForm.control}
+                        name="yearsOfExperience"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Years of Experience</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select experience" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="0-1">0-1 years</SelectItem>
+                                <SelectItem value="2-5">2-5 years</SelectItem>
+                                <SelectItem value="6-10">6-10 years</SelectItem>
+                                <SelectItem value="10+">10+ years</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={additionalForm.control}
+                      name="businessAddress"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Business Address</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="How will you fund your studies?" />
-                            </SelectTrigger>
+                            <Input placeholder="Complete business address" {...field} />
                           </FormControl>
-                          <SelectContent>
-                            {fundingSources.map((source) => (
-                              <SelectItem key={source} value={source}>
-                                {source}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={additionalForm.control}
+                        name="businessLicense"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Business License (Optional)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="License number" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={additionalForm.control}
+                        name="specialization"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Specialization</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select specialization" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="student-visa">Student Visa</SelectItem>
+                                <SelectItem value="work-visa">Work Visa</SelectItem>
+                                <SelectItem value="immigration">Immigration</SelectItem>
+                                <SelectItem value="business-visa">Business Visa</SelectItem>
+                                <SelectItem value="family-visa">Family Visa</SelectItem>
+                                <SelectItem value="general">General Consultation</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Other Visa Category Information */}
+                {basicAccountData?.userType === 'other' && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Visa Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={additionalForm.control}
+                        name="visaCategory"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Visa Category</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select visa category" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="tourist">Tourist/Visitor Visa</SelectItem>
+                                <SelectItem value="business">Business Visa</SelectItem>
+                                <SelectItem value="work">Work Visa</SelectItem>
+                                <SelectItem value="family">Family Visa</SelectItem>
+                                <SelectItem value="transit">Transit Visa</SelectItem>
+                                <SelectItem value="medical">Medical Visa</SelectItem>
+                                <SelectItem value="other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={additionalForm.control}
+                        name="purposeOfTravel"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Purpose of Travel</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Brief description of travel purpose" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 {/* Terms and Preferences */}
                 <div className="space-y-4 pt-4 border-t">
