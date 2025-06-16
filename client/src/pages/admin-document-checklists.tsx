@@ -42,7 +42,7 @@ export default function AdminDocumentChecklists() {
   const [selectedVisaType, setSelectedVisaType] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  const { data: checklists = [], isLoading } = useQuery({
+  const { data: checklists = [], isLoading } = useQuery<DocumentChecklist[]>({
     queryKey: ['/api/admin/document-checklists'],
   });
 
@@ -146,18 +146,12 @@ export default function AdminDocumentChecklists() {
                   Create a comprehensive checklist of required documents for specific visa applications
                 </DialogDescription>
               </DialogHeader>
-              <div className="p-4">
-                <p className="text-sm text-gray-600">
-                  Use the main Document Checklists interface to create detailed checklists with multiple documents, 
-                  fees, processing times, and requirements.
-                </p>
-                <Button 
-                  className="mt-4" 
-                  onClick={() => setIsCreateDialogOpen(false)}
-                >
-                  Close
-                </Button>
-              </div>
+              <AdvancedChecklistForm
+                onSubmit={createMutation.mutate}
+                onCancel={() => setIsCreateDialogOpen(false)}
+                isLoading={createMutation.isPending}
+                mode="create"
+              />
             </DialogContent>
           </Dialog>
         </div>

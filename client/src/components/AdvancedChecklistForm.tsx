@@ -81,10 +81,7 @@ export function AdvancedChecklistForm({
     name: "items",
   });
 
-  const { fields: noteFields, append: appendNote, remove: removeNote } = useFieldArray({
-    control: form.control,
-    name: "importantNotes",
-  });
+  const [noteItems, setNoteItems] = useState<string[]>(initialData?.importantNotes || []);
 
   const addNewItem = () => {
     appendItem({
@@ -101,7 +98,18 @@ export function AdvancedChecklistForm({
   };
 
   const addNewNote = () => {
-    appendNote("");
+    setNoteItems([...noteItems, ""]);
+  };
+
+  const removeNote = (index: number) => {
+    setNoteItems(noteItems.filter((_, i) => i !== index));
+  };
+
+  const updateNote = (index: number, value: string) => {
+    const newNotes = [...noteItems];
+    newNotes[index] = value;
+    setNoteItems(newNotes);
+    form.setValue("importantNotes", newNotes);
   };
 
   const ArrayInputField = ({ 
@@ -534,22 +542,13 @@ export function AdvancedChecklistForm({
                   </div>
 
                   <div className="space-y-3">
-                    {noteFields.map((field, index) => (
-                      <div key={field.id} className="flex space-x-2">
-                        <FormField
-                          control={form.control}
-                          name={`importantNotes.${index}`}
-                          render={({ field }) => (
-                            <FormItem className="flex-1">
-                              <FormControl>
-                                <Textarea 
-                                  placeholder="Enter important note or warning..."
-                                  {...field} 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
+                    {noteItems.map((note, index) => (
+                      <div key={index} className="flex space-x-2">
+                        <Textarea 
+                          placeholder="Enter important note or warning..."
+                          value={note}
+                          onChange={(e) => updateNote(index, e.target.value)}
+                          className="flex-1"
                         />
                         <Button
                           type="button"
@@ -564,7 +563,7 @@ export function AdvancedChecklistForm({
                     ))}
                   </div>
 
-                  {noteFields.length === 0 && (
+                  {noteItems.length === 0 && (
                     <div className="text-center py-6 border-2 border-dashed border-gray-300 rounded-lg">
                       <p className="text-gray-500 mb-4">No important notes added yet</p>
                       <Button type="button" variant="outline" onClick={addNewNote}>
