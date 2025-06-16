@@ -64,6 +64,7 @@ const createUserSchema = z.object({
   status: z.enum(["active", "suspended", "inactive"]),
   maxAnalyses: z.number().min(0).default(3),
   studyDestination: z.string().min(1, "Study destination is required"),
+  startDate: z.string().min(1, "Start date is required"),
   city: z.string().min(1, "City is required"),
   country: z.string().min(1, "Country is required"),
   studyLevel: z.string().default("bachelor"),
@@ -110,6 +111,7 @@ export default function AdminUsers() {
       status: "active",
       maxAnalyses: 3,
       studyDestination: "",
+      startDate: "",
       city: "",
       country: "",
       studyLevel: "bachelor",
@@ -948,6 +950,19 @@ export default function AdminUsers() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Study Destination</FormLabel>
+                        <FormControl>
+                          <Input {...field} value={field.value || ""} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={createForm.control}
+                    name="startDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Date</FormLabel>
                         <FormControl>
                           <Input {...field} value={field.value || ""} />
                         </FormControl>
