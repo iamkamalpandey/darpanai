@@ -1026,6 +1026,7 @@ export default function AdminUsers() {
                 </div>
 
                 {/* Conditional sections based on user type */}
+                <>
                 {createForm.watch('userType') === 'student' && (
                   <div className="space-y-4 border-t pt-4">
                     <h3 className="text-lg font-semibold">Student Information</h3>
@@ -1163,7 +1164,155 @@ export default function AdminUsers() {
                       </FormItem>
                     )}
                   />
-                </div>
+                  </div>
+                )}
+
+                {/* Agent Business Information */}
+                {createForm.watch('userType') === 'agent' && (
+                  <div className="space-y-4 border-t pt-4">
+                    <h3 className="text-lg font-semibold">Business Information</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={createForm.control}
+                        name="businessName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Business Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} value={field.value || ""} placeholder="Your business name" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={createForm.control}
+                        name="yearsOfExperience"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Years of Experience</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select experience" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="0-1">0-1 years</SelectItem>
+                                <SelectItem value="2-5">2-5 years</SelectItem>
+                                <SelectItem value="6-10">6-10 years</SelectItem>
+                                <SelectItem value="10+">10+ years</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <FormField
+                      control={createForm.control}
+                      name="businessAddress"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Business Address</FormLabel>
+                          <FormControl>
+                            <Input {...field} value={field.value || ""} placeholder="Complete business address" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={createForm.control}
+                        name="businessLicense"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Business License (Optional)</FormLabel>
+                            <FormControl>
+                              <Input {...field} value={field.value || ""} placeholder="License number" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={createForm.control}
+                        name="specialization"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Specialization</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select specialization" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="student-visa">Student Visa</SelectItem>
+                                <SelectItem value="work-visa">Work Visa</SelectItem>
+                                <SelectItem value="immigration">Immigration</SelectItem>
+                                <SelectItem value="business-visa">Business Visa</SelectItem>
+                                <SelectItem value="family-visa">Family Visa</SelectItem>
+                                <SelectItem value="general">General Consultation</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Other Visa Category Information */}
+                {createForm.watch('userType') === 'other' && (
+                  <div className="space-y-4 border-t pt-4">
+                    <h3 className="text-lg font-semibold">Visa Information</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={createForm.control}
+                        name="visaCategory"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Visa Category</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select visa category" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="tourist">Tourist/Visitor Visa</SelectItem>
+                                <SelectItem value="business">Business Visa</SelectItem>
+                                <SelectItem value="work">Work Visa</SelectItem>
+                                <SelectItem value="family">Family Visa</SelectItem>
+                                <SelectItem value="transit">Transit Visa</SelectItem>
+                                <SelectItem value="medical">Medical Visa</SelectItem>
+                                <SelectItem value="other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={createForm.control}
+                        name="purposeOfTravel"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Purpose of Travel</FormLabel>
+                            <FormControl>
+                              <Input {...field} value={field.value || ""} placeholder="Brief description of travel purpose" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                )}
+                </>
 
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setCreateUserOpen(false)}>

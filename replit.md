@@ -130,6 +130,17 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 16, 2025 - Enhanced Country Selection & User Type Forms:**
+- Added Nepal at the top of origin countries list along with Sri Lanka, Vietnam, China, Bangladesh, Pakistan
+- Updated destination countries to include Australia, USA, UK, Canada and other popular study destinations
+- Enhanced admin user creation form with proper country dropdowns matching registration improvements
+- Added user type selection (Student, Agent, Other) in both registration and admin user creation
+- Created conditional form sections that show relevant fields based on user type
+- Student forms collect study destination, level, counselling mode, funding source
+- Agent forms collect business information, experience, specialization
+- Other visa category forms collect visa type and purpose of travel
+- Updated both registration and admin user creation to use context-aware forms
+
 **June 16, 2025 - Comprehensive User Management System:**
 - Implemented complete user management functionality in admin dashboard
 - Added Create User feature with comprehensive form including all required database fields
