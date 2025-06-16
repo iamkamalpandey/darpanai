@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Trash2, Eye, EyeOff, CheckSquare, Search, MapPin, Clock, DollarSign } from "lucide-react";
+import { Plus, Trash2, Eye, EyeOff, CheckSquare, Search, MapPin, Clock, DollarSign, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { type DocumentChecklist } from "@shared/schema";
@@ -77,6 +77,24 @@ export default function AdminDocumentChecklists() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/document-checklists'] });
+      setEditingChecklist(null);
+      toast({ title: "Success", description: "Document checklist updated successfully" });
+    },
+  });
+
+  const editUpdateMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch(`/api/admin/document-checklists/${editingChecklist?.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update checklist');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/document-checklists'] });
+      setEditingChecklist(null);
       toast({ title: "Success", description: "Document checklist updated successfully" });
     },
   });
