@@ -100,9 +100,18 @@ export default function AdminUsers() {
   const createForm = useForm<CreateUserData>({
     resolver: zodResolver(createUserSchema),
     defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+      firstName: "",
+      lastName: "",
+      phoneNumber: "",
       role: "user",
       status: "active",
       maxAnalyses: 3,
+      studyDestination: "",
+      city: "",
+      country: "",
       studyLevel: "bachelor",
       counsellingMode: "online",
       fundingSource: "self",
@@ -114,6 +123,23 @@ export default function AdminUsers() {
 
   const editForm = useForm<EditUserData>({
     resolver: zodResolver(editUserSchema),
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+      firstName: "",
+      lastName: "",
+      phoneNumber: "",
+      role: "user",
+      status: "active",
+      maxAnalyses: 3,
+      studyDestination: "",
+      city: "",
+      country: "",
+      studyLevel: "bachelor",
+      counsellingMode: "online",
+      fundingSource: "self",
+    },
   });
 
   // Fetch all users
@@ -705,7 +731,7 @@ export default function AdminUsers() {
                       <FormItem>
                         <FormLabel>First Name</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -718,7 +744,7 @@ export default function AdminUsers() {
                       <FormItem>
                         <FormLabel>Last Name</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -734,7 +760,7 @@ export default function AdminUsers() {
                       <FormItem>
                         <FormLabel>Username</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -747,7 +773,7 @@ export default function AdminUsers() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input type="email" {...field} />
+                          <Input type="email" {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -762,7 +788,7 @@ export default function AdminUsers() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} />
+                        <Input type="password" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -777,7 +803,7 @@ export default function AdminUsers() {
                       <FormItem>
                         <FormLabel>Phone Number</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -856,7 +882,7 @@ export default function AdminUsers() {
                       <FormItem>
                         <FormLabel>City</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -869,7 +895,7 @@ export default function AdminUsers() {
                       <FormItem>
                         <FormLabel>Country</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -885,7 +911,7 @@ export default function AdminUsers() {
                       <FormItem>
                         <FormLabel>Study Destination</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1001,7 +1027,7 @@ export default function AdminUsers() {
                       <FormItem>
                         <FormLabel>First Name</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1014,7 +1040,7 @@ export default function AdminUsers() {
                       <FormItem>
                         <FormLabel>Last Name</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1030,7 +1056,7 @@ export default function AdminUsers() {
                       <FormItem>
                         <FormLabel>Username</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1043,7 +1069,7 @@ export default function AdminUsers() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input type="email" {...field} />
+                          <Input type="email" {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1058,7 +1084,7 @@ export default function AdminUsers() {
                     <FormItem>
                       <FormLabel>New Password (optional)</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} placeholder="Leave blank to keep current password" />
+                        <Input type="password" {...field} value={field.value || ""} placeholder="Leave blank to keep current password" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1073,7 +1099,7 @@ export default function AdminUsers() {
                       <FormItem>
                         <FormLabel>Phone Number</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
