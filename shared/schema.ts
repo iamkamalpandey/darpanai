@@ -297,15 +297,17 @@ export const documentTemplates = pgTable("document_templates", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Document Checklists table
+// Document Checklists table - Simplified destination-country focused
 export const documentChecklists = pgTable("document_checklists", {
   id: serial("id").primaryKey(),
-  country: text("country").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  country: text("country").notNull(), // Destination country only
   visaType: text("visa_type").notNull(),
   userType: text("user_type").notNull(), // 'student', 'tourist', 'work', 'family', 'business'
-  categories: jsonb("categories").notNull().default([]), // ChecklistCategory[]
+  items: jsonb("items").notNull().default([]), // ChecklistItem[]
   estimatedProcessingTime: text("estimated_processing_time").notNull(),
-  fees: jsonb("fees").notNull().default([]), // ChecklistFee[]
+  totalFees: text("total_fees").notNull(),
   importantNotes: text("important_notes").array().notNull().default([]),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
