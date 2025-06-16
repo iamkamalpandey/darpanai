@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DashboardLayout } from '@/components/dashboard-layout';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import { 
   Search, 
   Filter, 
@@ -57,6 +57,11 @@ export default function DocumentChecklistGenerator() {
   const { data: dropdownOptions = { countries: [], visaTypes: [], userTypes: [] } } = useQuery({
     queryKey: ['/api/dropdown-options'],
   });
+
+  // Type the dropdown options properly
+  const countries = (dropdownOptions as any)?.countries || [];
+  const visaTypes = (dropdownOptions as any)?.visaTypes || [];
+  const userTypes = (dropdownOptions as any)?.userTypes || [];
 
   // Load document checklists
   const { data: checklists = [], isLoading } = useQuery({
@@ -149,7 +154,7 @@ export default function DocumentChecklistGenerator() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">All Countries</SelectItem>
-                      {(dropdownOptions.countries || []).map((country: string) => (
+                      {countries.map((country: string) => (
                         <SelectItem key={country} value={country}>{country}</SelectItem>
                       ))}
                     </SelectContent>
@@ -164,7 +169,7 @@ export default function DocumentChecklistGenerator() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">All Visa Types</SelectItem>
-                      {(dropdownOptions.visaTypes || []).map((visaType: string) => (
+                      {visaTypes.map((visaType: string) => (
                         <SelectItem key={visaType} value={visaType}>{visaType}</SelectItem>
                       ))}
                     </SelectContent>
@@ -179,7 +184,7 @@ export default function DocumentChecklistGenerator() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">All User Types</SelectItem>
-                      {(dropdownOptions.userTypes || []).map((userType: string) => (
+                      {userTypes.map((userType: string) => (
                         <SelectItem key={userType} value={userType}>{userType}</SelectItem>
                       ))}
                     </SelectContent>
