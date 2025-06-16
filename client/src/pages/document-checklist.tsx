@@ -117,8 +117,8 @@ export default function DocumentChecklistGenerator() {
     setExpandedCategories(newExpanded);
   };
 
-  const categories = (checklist?.categories as ChecklistCategory[]) || [];
-  const fees = (checklist?.fees as ChecklistFee[]) || [];
+  // Simplified structure - items only
+  const items = (checklist?.items as any[]) || [];
   
   const totalDocuments = checklist ? (checklist.items as any[]).length : 0;
 
@@ -131,22 +131,13 @@ export default function DocumentChecklistGenerator() {
   const exportChecklist = () => {
     if (!checklist) return;
 
-    const requiredFees = fees.filter(fee => fee.required);
-    const totalFees = requiredFees.reduce((total, fee) => {
-      const amount = parseFloat(fee.amount.replace(/[^0-9.]/g, ''));
-      return total + amount;
-    }, 0);
+    const totalFees = checklist.totalFees || "0";
 
-    const categoryProgress = categories.map(category => {
-      const categoryDocs = category.documents || [];
-      const completedInCategory = categoryDocs.filter(doc => 
-        completedDocuments.has(doc.id)
-      ).length;
+    const itemProgress = items.map((item: any) => {
+      const isCompleted = completedDocuments.has(item.id);
       return {
-        name: category.name,
-        completed: completedInCategory,
-        total: categoryDocs.length,
-        percentage: categoryDocs.length > 0 ? (completedInCategory / categoryDocs.length) * 100 : 0
+        name: item.name,
+        completed: isCompleted
       };
     });
 
@@ -161,11 +152,10 @@ export default function DocumentChecklistGenerator() {
         completed: completedCount,
         total: totalDocuments
       },
-      categories: categoryProgress,
+      items: itemProgress,
       fees: {
         total: totalFees,
-        currency: requiredFees[0]?.currency || 'USD',
-        breakdown: requiredFees
+        currency: 'USD'
       },
       importantNotes: checklist.importantNotes
     };
@@ -215,7 +205,7 @@ export default function DocumentChecklistGenerator() {
                     <SelectValue placeholder="Select country" />
                   </SelectTrigger>
                   <SelectContent>
-                    {countries.map((country) => (
+                    {countries.map((country: string) => (
                       <SelectItem key={country} value={country}>
                         {country}
                       </SelectItem>
@@ -233,7 +223,7 @@ export default function DocumentChecklistGenerator() {
                     <SelectValue placeholder="Select visa type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {visaTypes.map((type) => (
+                    {visaTypes.map((type: string) => (
                       <SelectItem key={type} value={type}>
                         {type}
                       </SelectItem>
@@ -302,7 +292,7 @@ export default function DocumentChecklistGenerator() {
               </CardHeader>
             </Card>
 
-            {fees.length > 0 && (
+            {checklist.totalFees && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -312,7 +302,30 @@ export default function DocumentChecklistGenerator() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {fees.map((fee, index) => (
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <div className="font-medium">Total Application Fees</div>
+                        <div className="text-sm text-muted-foreground">All required fees combined</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-lg">{checklist.totalFees}</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  Document Checklist
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {items.map((item: any) => (
                       <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                         <div>
                           <div className="font-medium">{fee.name}</div>
