@@ -130,21 +130,22 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
-**June 16, 2025 - Enhanced Updates System with Image Upload & Visa-Specific Targeting:**
-- Added image upload capability (JPG/PNG) with optimized display for engaging visual updates
-- Implemented comprehensive visa-specific audience targeting beyond basic user types
+**June 16, 2025 - Complete Updates System with Notification Indicators & Advanced Features:**
+- Implemented comprehensive notification badge system showing unread update counts on sidebar menu
+- Added automatic signup date filtering - users only see updates created after their registration
+- Enhanced image upload capability with professional upload button and JPG/PNG support
+- Fixed edit form fields to completely match create form functionality with all targeting options
+- Added real-time notification indicators with 30-second refresh intervals for new updates
+- Implemented "New" badge animations on unread updates with visual prominence
 - Enhanced targeting options: all users, students, agents, other visa categories, or specific visa types
-- Added visa type selection with 16+ visa categories (Student F-1, Tourist B-2, Work H-1B, Study Permits, etc.)
-- Integrated image display in both admin and user interfaces with error handling
-- Created conditional form sections that show visa type checkboxes when "Specific Visa Types" is selected
-- Enhanced admin interface with image URL input field and upload button placeholder
-- Updated database schema to include imageUrl field for visual content
-- Improved user experience with responsive image display (400x200px recommended size)
-- Added comprehensive form validation for image URLs and visa type selections
-- Implemented global standard practices for image handling with proper error states
-- Enhanced user updates page with expandable cards showing images and rich content
-- Created sophisticated audience targeting allowing precise user segmentation
-- Added visual indicators and badges for different update types and priorities
+- Added visa type selection with 16+ categories (Student F-1, Tourist B-2, Work H-1B, Study Permits, etc.)
+- Created conditional form sections showing visa type checkboxes when "Specific Visa Types" selected
+- Integrated comprehensive image display in both admin and user interfaces with error handling
+- Added professional image upload interface with URL input and upload button
+- Enhanced user experience with responsive image display (400x200px recommended size)
+- Implemented sophisticated audience targeting allowing precise user segmentation
+- Added visual indicators and priority badges with urgent/high/normal/low classifications
+- Created expandable update cards with rich content display and external link support
 
 **June 16, 2025 - Enhanced Country Selection & User Type Forms:**
 - Added Nepal at the top of origin countries list along with Sri Lanka, Vietnam, China, Bangladesh, Pakistan
