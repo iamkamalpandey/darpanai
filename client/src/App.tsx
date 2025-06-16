@@ -21,6 +21,7 @@ const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
 const AdminAnalyses = lazy(() => import("@/pages/admin-analyses"));
 const AdminAppointments = lazy(() => import("@/pages/admin-appointments"));
 const AdminUsers = lazy(() => import("@/pages/admin-users"));
+const AdminProfessionalApplications = lazy(() => import("@/pages/admin-professional-applications"));
 const AdminSettings = lazy(() => import("@/pages/admin-settings"));
 
 // Loading fallback component
@@ -102,6 +103,13 @@ function Router() {
         <AdminProtectedRoute path="/admin/appointments" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <AdminAppointments />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/professional-applications">
+        <AdminProtectedRoute path="/admin/professional-applications" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminProfessionalApplications />
           </Suspense>
         )} />
       </Route>
