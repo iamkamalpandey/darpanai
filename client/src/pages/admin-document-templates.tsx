@@ -194,7 +194,10 @@ export default function AdminDocumentTemplates() {
                     <div className="min-w-0 flex-1">
                       <CardTitle className="text-lg leading-6 truncate">{template.title}</CardTitle>
                       <CardDescription className="text-sm mt-1">
-                        {template.documentType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        {template.documentType ? 
+                          template.documentType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
+                          'Document'
+                        }
                       </CardDescription>
                     </div>
                   </div>

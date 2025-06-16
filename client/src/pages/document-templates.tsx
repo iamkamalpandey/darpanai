@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Search, Download, Filter } from "lucide-react";
 import { type DocumentTemplate } from "@shared/schema";
-import { UserLayout } from "@/components/UserLayout";
+import { DashboardLayout } from "@/components/DashboardLayout";
 
 const categories = [
   { value: "financial", label: "Financial" },
@@ -68,16 +68,16 @@ export default function DocumentTemplates() {
 
   if (isLoading) {
     return (
-      <UserLayout>
+      <Layout>
         <div className="p-8">
           <div className="text-center">Loading document templates...</div>
         </div>
-      </UserLayout>
+      </Layout>
     );
   }
 
   return (
-    <UserLayout>
+    <Layout>
       <div className="p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Document Templates</h1>
@@ -155,7 +155,10 @@ export default function DocumentTemplates() {
                   <div className="min-w-0 flex-1">
                     <CardTitle className="text-lg leading-6">{template.title}</CardTitle>
                     <CardDescription className="text-sm mt-1">
-                      {template.documentType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      {template.documentType ? 
+                        template.documentType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
+                        'Document'
+                      }
                     </CardDescription>
                   </div>
                 </div>
