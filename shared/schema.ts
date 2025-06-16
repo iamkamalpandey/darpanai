@@ -97,6 +97,7 @@ export const updates = pgTable("updates", {
   title: text("title").notNull(),
   content: text("content").notNull(),
   summary: text("summary").notNull(), // Short description for list view
+  imageUrl: text("image_url"), // URL for update image (jpg/png)
   type: text("type").notNull(), // 'general', 'visa_category', 'individual'
   priority: text("priority").default("normal").notNull(), // 'low', 'normal', 'high', 'urgent'
   targetAudience: text("target_audience").default("all").notNull(), // 'all', 'students', 'agents', 'other'
@@ -253,9 +254,10 @@ export const updateSchema = z.object({
   title: z.string().min(1, "Title is required"),
   content: z.string().min(1, "Content is required"),
   summary: z.string().min(1, "Summary is required"),
+  imageUrl: z.string().url().optional().or(z.literal("")),
   type: z.enum(["general", "visa_category", "individual"]),
   priority: z.enum(["low", "normal", "high", "urgent"]).default("normal"),
-  targetAudience: z.enum(["all", "students", "agents", "other"]).default("all"),
+  targetAudience: z.enum(["all", "students", "agents", "other", "visa_type"]).default("all"),
   targetVisaCategories: z.array(z.string()).optional(),
   targetUserIds: z.array(z.number()).optional(),
   callToAction: z.string().optional(),
