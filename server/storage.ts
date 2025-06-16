@@ -1,7 +1,8 @@
 import { 
-  users, analyses, appointments,
+  users, analyses, appointments, professionalApplications,
   type User, type InsertUser, type Analysis, type InsertAnalysis, 
-  type Appointment, type InsertAppointment, type LoginUser
+  type Appointment, type InsertAppointment, type LoginUser,
+  type ProfessionalApplication, type InsertProfessionalApplication
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, isNotNull, sql } from "drizzle-orm";
@@ -65,6 +66,11 @@ export interface IStorage {
   getUserAppointments(userId: number): Promise<Appointment[]>;
   getAllAppointmentsWithUsers(): Promise<any[]>;
   updateAppointmentStatus(id: number, status: string): Promise<Appointment | undefined>;
+  
+  // Professional application methods
+  createProfessionalApplication(application: InsertProfessionalApplication): Promise<ProfessionalApplication>;
+  getAllProfessionalApplications(): Promise<ProfessionalApplication[]>;
+  updateProfessionalApplicationStatus(id: number, status: string, adminNotes?: string, reviewedBy?: number): Promise<ProfessionalApplication | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -283,6 +289,41 @@ export class DatabaseStorage implements IStorage {
       .where(eq(appointments.id, id))
       .returning();
     return appointment;
+  }
+
+  // Professional application methods
+  async createProfessionalApplication(applicationData: InsertProfessionalApplication): Promise<ProfessionalApplication> {
+    const [application] = await db
+      .insert(professionalApplications)
+      .values(applicationData)
+      .returning();
+    return application;
+  }
+
+  async getAllProfessionalApplications(): Promise<ProfessionalApplication[]> {
+    return await db
+      .select()
+      .from(professionalApplications)
+      .orderBy(desc(professionalApplications.createdAt));
+  }
+
+  async updateProfessionalApplicationStatus(
+    id: number, 
+    status: string, 
+    adminNotes?: string, 
+    reviewedBy?: number
+  ): Promise<ProfessionalApplication | undefined> {
+    const [application] = await db
+      .update(professionalApplications)
+      .set({ 
+        status, 
+        adminNotes,
+        reviewedBy,
+        reviewedAt: new Date()
+      })
+      .where(eq(professionalApplications.id, id))
+      .returning();
+    return application;
   }
 
   // Email verification methods

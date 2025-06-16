@@ -5,7 +5,7 @@ import path from "path";
 import { storage } from "./storage";
 import { extractTextFromDocument } from "./fileProcessing";
 import { analyzeRejectionLetter } from "./openai";
-import { analysisResponseSchema } from "@shared/schema";
+import { analysisResponseSchema, professionalApplicationSchema } from "@shared/schema";
 import { setupAuth } from "./auth";
 
 // Simple in-memory cache for performance optimization

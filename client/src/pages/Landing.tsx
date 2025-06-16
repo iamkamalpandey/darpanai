@@ -284,10 +284,10 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Simple, Transparent Pricing
+              Choose Your Plan
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Choose the plan that works best for your visa application journey
+              Start with our free trial or apply for professional services for your business needs
             </p>
           </div>
 
@@ -321,12 +321,12 @@ export default function Landing() {
 
             <Card className="border-2 border-blue-200 relative">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-blue-600">Most Popular</Badge>
+                <Badge className="bg-blue-600">Apply Now</Badge>
               </div>
               <CardHeader className="text-center pb-8">
                 <CardTitle className="text-2xl">Professional</CardTitle>
-                <div className="text-4xl font-bold text-gray-900 mb-2">$29</div>
-                <CardDescription>For serious applicants</CardDescription>
+                <div className="text-2xl font-bold text-blue-600 mb-2">Custom Pricing</div>
+                <CardDescription>For agencies & consultants</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4 mb-8">
@@ -340,34 +340,37 @@ export default function Landing() {
                   </div>
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    <span>Expert consultation (1 session)</span>
+                    <span>Expert consultation sessions</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className="h-5 w-5 text-green-500" />
                     <span>Priority support</span>
                   </div>
                 </div>
-                <Link href="/auth">
-                  <Button className="w-full">Start Professional</Button>
-                </Link>
+                <ProfessionalApplicationForm 
+                  planType="professional"
+                  triggerButton={
+                    <Button className="w-full">Apply Now</Button>
+                  }
+                />
               </CardContent>
             </Card>
 
             <Card className="border-2">
               <CardHeader className="text-center pb-8">
                 <CardTitle className="text-2xl">Enterprise</CardTitle>
-                <div className="text-4xl font-bold text-gray-900 mb-2">$99</div>
-                <CardDescription>For agencies & consultants</CardDescription>
+                <div className="text-2xl font-bold text-purple-600 mb-2">Contact Sales</div>
+                <CardDescription>For large organizations</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4 mb-8">
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    <span>Unlimited everything</span>
+                    <span>White-label solutions</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    <span>White-label option</span>
+                    <span>API access</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <CheckCircle2 className="h-5 w-5 text-green-500" />
@@ -378,7 +381,12 @@ export default function Landing() {
                     <span>Dedicated support</span>
                   </div>
                 </div>
-                <Button variant="outline" className="w-full">Contact Sales</Button>
+                <ProfessionalApplicationForm 
+                  planType="enterprise"
+                  triggerButton={
+                    <Button variant="outline" className="w-full">Apply Now</Button>
+                  }
+                />
               </CardContent>
             </Card>
           </div>
@@ -402,14 +410,16 @@ export default function Landing() {
                 Start Free Analysis
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-4 h-auto border-white text-white hover:bg-white hover:text-blue-600">
-              <MessageCircle className="h-5 w-5 mr-2" />
-              Book Consultation
-            </Button>
+            <ConsultationForm 
+              buttonVariant="outline" 
+              buttonSize="lg"
+              buttonText="Book Consultation"
+              className="text-lg px-8 py-4 h-auto border-2 border-white text-white hover:bg-white hover:text-blue-600 transition-all duration-200"
+            />
           </div>
           
           <p className="text-blue-100 mt-6 text-sm">
-            No credit card required • Instant results • 30-day money-back guarantee
+            No credit card required • Instant results • Expert support available
           </p>
         </div>
       </section>
