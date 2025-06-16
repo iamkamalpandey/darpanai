@@ -195,8 +195,16 @@ export default function AdminUsers() {
   const updateMaxAnalysesMutation = useMutation({
     mutationFn: (data: { userId: number; maxAnalyses: number }) =>
       apiRequest("PATCH", `/api/admin/users/${data.userId}/max-analyses`, { maxAnalyses: data.maxAnalyses }),
-    onSuccess: () => {
+    onSuccess: (updatedUser, variables) => {
+      // Invalidate all user-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users", variables.userId] });
+      
+      // Update selected user if it's the one being modified
+      if (selectedUser?.id === variables.userId) {
+        setSelectedUser(prev => prev ? { ...prev, maxAnalyses: variables.maxAnalyses } : null);
+      }
+      
       toast({ title: "Success", description: "Analysis limit updated successfully" });
       setEditingField(null);
     },
