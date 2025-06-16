@@ -416,10 +416,6 @@ export const insertDocumentChecklistSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export type DocumentChecklist = typeof documentChecklists.$inferSelect;
-export type InsertDocumentChecklist = z.infer<typeof insertDocumentChecklistSchema>;
-export type DocumentChecklistFormData = InsertDocumentChecklist;
-
 // Type exports for document templates and checklists
 export type DocumentTemplate = typeof documentTemplates.$inferSelect;
 export type InsertDocumentTemplate = z.infer<typeof insertDocumentTemplateSchema>;
@@ -427,4 +423,4 @@ export type DocumentTemplateFormData = z.infer<typeof documentTemplateSchema>;
 
 export type DocumentChecklist = typeof documentChecklists.$inferSelect;
 export type InsertDocumentChecklist = z.infer<typeof insertDocumentChecklistSchema>;
-export type DocumentChecklistFormData = z.infer<typeof documentChecklistSchema>;
+export type DocumentChecklistFormData = InsertDocumentChecklist;
