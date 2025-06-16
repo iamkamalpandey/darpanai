@@ -301,68 +301,54 @@ export default function DocumentTemplates() {
                   )}
                 </div>
 
-                {/* Instructions */}
-                {template.instructions && template.instructions.length > 0 && (
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Instructions:</h4>
-                    <ul className="text-xs text-gray-600 space-y-1">
-                      {template.instructions.slice(0, 3).map((instruction, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="text-blue-500 mr-1">•</span>
-                          <span>{instruction}</span>
-                        </li>
-                      ))}
-                      {template.instructions.length > 3 && (
-                        <li className="text-gray-500 italic">
-                          +{template.instructions.length - 3} more instructions
-                        </li>
-                      )}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Tips */}
+                {/* Tips Preview */}
                 {template.tips && template.tips.length > 0 && (
-                  <div className="mb-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Tips:</h4>
-                    <ul className="text-xs text-gray-600 space-y-1">
+                  <div>
+                    <div className="text-xs font-medium text-gray-700 mb-2">Expert Tips:</div>
+                    <div className="text-xs text-gray-600 space-y-1">
                       {template.tips.slice(0, 2).map((tip, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="text-green-500 mr-1">•</span>
-                          <span>{tip}</span>
-                        </li>
+                        <div key={index} className="flex items-start gap-2">
+                          <div className="w-1 h-1 rounded-full bg-green-500 mt-2 flex-shrink-0"></div>
+                          <span className="line-clamp-2">{tip}</span>
+                        </div>
                       ))}
                       {template.tips.length > 2 && (
-                        <li className="text-gray-500 italic">
-                          +{template.tips.length - 2} more tips
-                        </li>
+                        <div className="text-xs text-green-600">+{template.tips.length - 2} more tips</div>
                       )}
-                    </ul>
+                    </div>
                   </div>
                 )}
 
-                {/* Download Button */}
-                <div className="pt-3 border-t mt-auto">
-                  {template.filePath ? (
-                    <Button
-                      onClick={() => downloadTemplate(template)}
-                      className="w-full"
-                      size="sm"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download Template
-                    </Button>
-                  ) : (
-                    <Button
-                      disabled
-                      className="w-full"
-                      size="sm"
-                      variant="secondary"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Template Info Only
-                    </Button>
-                  )}
+                {/* File Information */}
+                {(template.fileName || template.fileSize) && (
+                  <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                    {template.fileName && (
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-600">File:</span>
+                        <span className="font-medium text-gray-800 truncate ml-2">{template.fileName}</span>
+                      </div>
+                    )}
+                    {template.fileSize && (
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-600">Size:</span>
+                        <span className="text-gray-800">{formatFileSize(template.fileSize)}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Download Action */}
+                <div className="pt-2">
+                  <Button
+                    variant={template.filePath || template.externalUrl ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => downloadTemplate(template)}
+                    disabled={!template.filePath && !template.externalUrl}
+                    className="w-full group-hover:bg-blue-600 group-hover:text-white transition-colors"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    {template.filePath || template.externalUrl ? "Download Template" : "Not Available"}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
