@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
-import { type Update } from "@shared/schema";
+import { type UpdateWithViewStatus } from "@shared/schema";
 import { ChevronDown, ChevronRight, ExternalLink, AlertCircle, Calendar, Eye } from "lucide-react";
 import { format } from "date-fns";
 
@@ -16,7 +16,7 @@ export default function Updates() {
   const [expandedUpdates, setExpandedUpdates] = useState<Set<number>>(new Set());
 
   // Fetch user updates (filtered by signup date)
-  const { data: updates = [], isLoading, error } = useQuery<Update[]>({
+  const { data: updates = [], isLoading, error } = useQuery<UpdateWithViewStatus[]>({
     queryKey: ["/api/updates"],
     refetchInterval: 3600000, // Refetch every 1 hour for resource efficiency
   });
@@ -47,7 +47,7 @@ export default function Updates() {
     } else {
       newExpanded.add(updateId);
       // Mark as viewed when expanded (only if not already viewed)
-      if (update && !(update as any).isViewed) {
+      if (update && !update.isViewed) {
         viewMutation.mutate(updateId);
       }
     }
@@ -153,6 +153,11 @@ export default function Updates() {
                               <Badge variant={getPriorityBadgeVariant(update.priority)}>
                                 {update.priority}
                               </Badge>
+                              {!update.isViewed && (
+                                <Badge variant="destructive" className="animate-pulse">
+                                  New
+                                </Badge>
+                              )}
                               {isExpired && (
                                 <Badge variant="outline">Expired</Badge>
                               )}
@@ -163,7 +168,7 @@ export default function Updates() {
                             <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                               <div className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                {format(new Date(update.publishedAt), "MMM d, yyyy")}
+                                {format(new Date(update.createdAt), "MMM d, yyyy")}
                               </div>
                               {update.expiresAt && (
                                 <div className="flex items-center gap-1">

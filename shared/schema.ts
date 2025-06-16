@@ -269,5 +269,11 @@ export type Update = typeof updates.$inferSelect;
 export type InsertUpdate = z.infer<typeof insertUpdateSchema>;
 export type UpdateFormData = z.infer<typeof updateSchema>;
 
+// Extended Update type with user view status
+export type UpdateWithViewStatus = Update & {
+  isViewed: boolean;
+  actionTaken: boolean;
+};
+
 export type UserUpdateView = typeof userUpdateViews.$inferSelect;
 export type InsertUserUpdateView = typeof userUpdateViews.$inferInsert;
