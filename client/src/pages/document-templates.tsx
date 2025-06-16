@@ -26,7 +26,11 @@ export default function DocumentTemplates() {
     queryKey: ['/api/document-templates'],
   });
 
-  const { data: dropdownOptions } = useQuery({
+  const { data: dropdownOptions } = useQuery<{
+    countries: string[];
+    visaTypes: string[];
+    userTypes: string[];
+  }>({
     queryKey: ['/api/dropdown-options'],
   });
 
@@ -39,9 +43,9 @@ export default function DocumentTemplates() {
     const matchesSearch = template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          template.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || template.category === selectedCategory;
-    const matchesVisaType = selectedVisaType === "all" || template.visaType === selectedVisaType;
-    const matchesCountry = selectedCountry === "all" || template.country === selectedCountry;
-    const matchesUserType = selectedUserType === "all" || template.userType === selectedUserType;
+    const matchesVisaType = selectedVisaType === "all" || template.visaTypes?.includes(selectedVisaType);
+    const matchesCountry = selectedCountry === "all" || template.countries?.includes(selectedCountry);
+    const matchesUserType = selectedUserType === "all" || true; // Templates don't have userType filter
     
     return matchesSearch && matchesCategory && matchesVisaType && matchesCountry && matchesUserType;
   });
@@ -195,7 +199,7 @@ export default function DocumentTemplates() {
                       <SelectValue placeholder="All user types" />
                     </SelectTrigger>
                     <SelectContent>
-                      {userTypes.map((type) => (
+                      {userTypes.filter(type => type && type.trim()).map((type) => (
                         <SelectItem key={type} value={type}>
                           {type === "all" ? "All User Types" : type.charAt(0).toUpperCase() + type.slice(1)}
                         </SelectItem>

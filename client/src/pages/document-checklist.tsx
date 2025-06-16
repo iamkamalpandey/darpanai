@@ -251,7 +251,7 @@ export default function DocumentChecklistGenerator() {
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {userTypes.map((type) => (
+                    {userTypes.filter(type => type && type.trim()).map((type) => (
                       <SelectItem key={type} value={type}>
                         {type.charAt(0).toUpperCase() + type.slice(1)}
                       </SelectItem>
