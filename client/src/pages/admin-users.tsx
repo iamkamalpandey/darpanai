@@ -169,8 +169,9 @@ export default function AdminUsers() {
       toast({ title: "Success", description: "Analysis limit updated successfully" });
       setEditingField(null);
     },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to update analysis limit", variant: "destructive" });
+    onError: (error: any) => {
+      console.error("Update max analyses error:", error);
+      toast({ title: "Error", description: error?.message || "Failed to update analysis limit", variant: "destructive" });
     },
   });
 
@@ -183,8 +184,9 @@ export default function AdminUsers() {
       toast({ title: "Success", description: "User role updated successfully" });
       setEditingField(null);
     },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to update user role", variant: "destructive" });
+    onError: (error: any) => {
+      console.error("Update role error:", error);
+      toast({ title: "Error", description: error?.message || "Failed to update user role", variant: "destructive" });
     },
   });
 
@@ -197,8 +199,9 @@ export default function AdminUsers() {
       toast({ title: "Success", description: "User status updated successfully" });
       setEditingField(null);
     },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to update user status", variant: "destructive" });
+    onError: (error: any) => {
+      console.error("Update status error:", error);
+      toast({ title: "Error", description: error?.message || "Failed to update user status", variant: "destructive" });
     },
   });
 
@@ -212,10 +215,11 @@ export default function AdminUsers() {
       setCreateUserOpen(false);
       createForm.reset();
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
+      console.error("Create user error:", error);
       toast({ 
         title: "Error", 
-        description: error.message || "Failed to create user", 
+        description: error?.message || "Failed to create user", 
         variant: "destructive" 
       });
     },
@@ -232,10 +236,11 @@ export default function AdminUsers() {
       setSelectedUser(null);
       editForm.reset();
     },
-    onError: (error: Error) => {
+    onError: (error: any) => {
+      console.error("Edit user error:", error);
       toast({ 
         title: "Error", 
-        description: error.message || "Failed to update user", 
+        description: error?.message || "Failed to update user", 
         variant: "destructive" 
       });
     },
