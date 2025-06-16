@@ -217,23 +217,107 @@ export default function DocumentChecklistGenerator() {
             </CardContent>
           </Card>
         ) : filteredChecklists.length > 1 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
             {filteredChecklists.map((checklist: DocumentChecklist) => (
-              <Card key={checklist.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <CardTitle className="text-lg">{checklist.title}</CardTitle>
-                  <CardDescription>{checklist.description}</CardDescription>
+              <Card key={checklist.id} className="cursor-pointer hover:shadow-lg transition-all duration-300 border-l-4 border-l-green-500 bg-gradient-to-r from-green-50 to-white">
+                <CardHeader className="pb-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-start space-x-3 min-w-0 flex-1">
+                      <div className="bg-green-100 p-2 rounded-lg flex-shrink-0">
+                        <FileText className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <CardTitle className="text-lg lg:text-xl leading-tight line-clamp-2 mb-2 text-gray-900">
+                          {checklist.title}
+                        </CardTitle>
+                        <CardDescription className="text-sm lg:text-base line-clamp-2 text-gray-600">
+                          {checklist.description}
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end space-y-2 flex-shrink-0 ml-4">
+                      <Badge variant="default" className="bg-green-600 text-white">
+                        {checklist.items?.length || 0} docs
+                      </Badge>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline">{checklist.country}</Badge>
-                      <Badge variant="outline">{checklist.visaType}</Badge>
-                      <Badge variant="outline">{checklist.userType}</Badge>
+                <CardContent className="pt-0">
+                  <div className="space-y-4">
+                    {/* Route Information */}
+                    <div className="bg-white p-3 rounded-lg border">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-gray-700">Application Route</span>
+                        <Info className="h-4 w-4 text-blue-500" />
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="outline" className="text-xs bg-blue-50 border-blue-200">
+                          From: {checklist.country}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs bg-purple-50 border-purple-200">
+                          {checklist.visaType}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs bg-gray-50 border-gray-200">
+                          {checklist.userType}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      {checklist.items?.length || 0} documents required
+
+                    {/* Quick Stats */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {checklist.totalFees && (
+                        <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                          <div className="flex items-center space-x-2">
+                            <DollarSign className="h-4 w-4 text-yellow-600" />
+                            <div>
+                              <div className="text-xs text-yellow-600 font-medium">Total Fees</div>
+                              <div className="text-sm font-bold text-yellow-800">{checklist.totalFees}</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {checklist.estimatedProcessingTime && (
+                        <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                          <div className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4 text-blue-600" />
+                            <div>
+                              <div className="text-xs text-blue-600 font-medium">Processing</div>
+                              <div className="text-sm font-bold text-blue-800">{checklist.estimatedProcessingTime}</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
+
+                    {/* Important Notes Preview */}
+                    {checklist.importantNotes && checklist.importantNotes.length > 0 && (
+                      <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                        <div className="flex items-start space-x-2">
+                          <AlertTriangle className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <div className="text-xs text-orange-600 font-medium mb-1">Important Notes</div>
+                            <div className="text-sm text-orange-800 line-clamp-2">
+                              {checklist.importantNotes[0]}
+                              {checklist.importantNotes.length > 1 && ` +${checklist.importantNotes.length - 1} more`}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Action Button */}
+                    <Button 
+                      className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      onClick={() => {
+                        setSelectedCountry(checklist.country);
+                        setSelectedVisaType(checklist.visaType);
+                        setSelectedUserType(checklist.userType);
+                      }}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      View Complete Checklist
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

@@ -130,6 +130,18 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 16, 2025 - Comprehensive File-Based Document Templates & Enhanced Checklist Hub:**
+- Redesigned Document Templates from text-based to actual file upload/download system with real sample documents
+- Implemented complete file storage infrastructure with proper metadata tracking (paths, sizes, types, upload tracking)
+- Added comprehensive category system including Financial, Academic, Personal, Employment, Travel, Legal, Medical, Insurance, Accommodation, Language, and Others
+- Enhanced Document Checklists as comprehensive information hubs with improved responsive design and detailed application route information
+- Fixed download error handling for templates without file paths with proper user feedback
+- Improved responsive grid layouts for both templates and checklists with mobile-first design approach
+- Added visual hierarchy with color-coded cards, gradient backgrounds, and informational badges
+- Enhanced checklist cards to show application routes, processing times, fees, and important notes preview
+- Implemented comprehensive file upload form with drag-and-drop interface, file validation, and metadata collection
+- Created differentiated user experience: templates for downloadable files, checklists for requirement information hubs
+
 **June 16, 2025 - Complete Origin-Destination Document Management System:**
 - Implemented comprehensive origin-destination country differentiation for all document templates and checklists
 - Enhanced database schema to support originCountries and destinationCountries arrays for precise routing requirements
