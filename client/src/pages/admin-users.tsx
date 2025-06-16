@@ -986,9 +986,42 @@ export default function AdminUsers() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Study Destination</FormLabel>
-                        <FormControl>
-                          <Input {...field} value={field.value || ""} />
-                        </FormControl>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select destination" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Australia">Australia</SelectItem>
+                            <SelectItem value="United States">United States</SelectItem>
+                            <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+                            <SelectItem value="Canada">Canada</SelectItem>
+                            <SelectItem value="Germany">Germany</SelectItem>
+                            <SelectItem value="New Zealand">New Zealand</SelectItem>
+                            <SelectItem value="France">France</SelectItem>
+                            <SelectItem value="Netherlands">Netherlands</SelectItem>
+                            <SelectItem value="Sweden">Sweden</SelectItem>
+                            <SelectItem value="Norway">Norway</SelectItem>
+                            <SelectItem value="Denmark">Denmark</SelectItem>
+                            <SelectItem value="Finland">Finland</SelectItem>
+                            <SelectItem value="Switzerland">Switzerland</SelectItem>
+                            <SelectItem value="Austria">Austria</SelectItem>
+                            <SelectItem value="Ireland">Ireland</SelectItem>
+                            <SelectItem value="Belgium">Belgium</SelectItem>
+                            <SelectItem value="Italy">Italy</SelectItem>
+                            <SelectItem value="Spain">Spain</SelectItem>
+                            <SelectItem value="Portugal">Portugal</SelectItem>
+                            <SelectItem value="Poland">Poland</SelectItem>
+                            <SelectItem value="Czech Republic">Czech Republic</SelectItem>
+                            <SelectItem value="Hungary">Hungary</SelectItem>
+                            <SelectItem value="Singapore">Singapore</SelectItem>
+                            <SelectItem value="South Korea">South Korea</SelectItem>
+                            <SelectItem value="Japan">Japan</SelectItem>
+                            <SelectItem value="Hong Kong">Hong Kong</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
