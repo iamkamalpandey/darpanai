@@ -1071,6 +1071,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (success) {
         invalidateCache('document-templates');
         invalidateCache('admin-document-templates');
+        invalidateCache('dropdown-options');
         res.json({ success: true });
       } else {
         res.status(404).json({ error: 'Document template not found' });
@@ -1078,6 +1079,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting document template:', error);
       res.status(500).json({ error: 'Failed to delete document template' });
+    }
+  });
+
+  // Get unique dropdown options from checklists and templates
+  app.get('/api/dropdown-options', async (req: Request, res: Response) => {
+    try {
+      const cachedData = getCachedData('dropdown-options');
+      if (cachedData) {
+        return res.status(200).json(cachedData);
+      }
+
+      const [checklists, templates] = await Promise.all([
+        storage.getAllDocumentChecklists(),
+        storage.getAllDocumentTemplates()
+      ]);
+
+      const activeChecklists = checklists.filter((checklist: any) => checklist.isActive);
+      const activeTemplates = templates.filter((template: any) => template.isActive);
+
+      const countries = Array.from(new Set([
+        ...activeChecklists.map((c: any) => c.country),
+        ...activeTemplates.map((t: any) => t.country)
+      ])).sort();
+
+      const visaTypes = Array.from(new Set([
+        ...activeChecklists.map((c: any) => c.visaType),
+        ...activeTemplates.map((t: any) => t.visaType)
+      ])).sort();
+
+      const userTypes = Array.from(new Set([
+        ...activeChecklists.map((c: any) => c.userType),
+        ...activeTemplates.map((t: any) => t.userType)
+      ])).sort();
+
+      const options = {
+        countries,
+        visaTypes,
+        userTypes
+      };
+      
+      setCacheData('dropdown-options', options, 30);
+      return res.status(200).json(options);
+    } catch (error) {
+      console.error('Error fetching dropdown options:', error);
+      return res.status(500).json({ error: 'Failed to fetch dropdown options' });
     }
   });
 
@@ -1121,6 +1167,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const checklist = await storage.createDocumentChecklist(req.body);
       invalidateCache('document-checklists');
       invalidateCache('admin-document-checklists');
+      invalidateCache('dropdown-options');
       res.status(201).json(checklist);
     } catch (error) {
       console.error('Error creating document checklist:', error);

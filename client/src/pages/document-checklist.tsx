@@ -68,9 +68,13 @@ export default function DocumentChecklistGenerator() {
     queryKey: ['/api/document-checklists'],
   });
 
-  const countries = ["Nepal", "India", "Pakistan", "Bangladesh", "Sri Lanka", "Vietnam", "China", "USA", "UK", "Canada", "Australia", "Germany", "France", "Netherlands"];
-  const visaTypes = ["Student F-1", "Tourist B-2", "Work H-1B", "Study Permit", "Visitor Visa", "Business B-1", "Transit C-1", "Family Reunification"];
-  const userTypes = ["student", "tourist", "work", "family", "business"];
+  const { data: dropdownOptions } = useQuery({
+    queryKey: ['/api/dropdown-options'],
+  });
+
+  const countries = dropdownOptions?.countries || [];
+  const visaTypes = dropdownOptions?.visaTypes || [];
+  const userTypes = dropdownOptions?.userTypes || [];
 
   const generateChecklist = () => {
     if (selectedCountry && selectedVisaType && selectedUserType) {
