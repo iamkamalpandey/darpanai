@@ -161,37 +161,95 @@ export default function DocumentTemplates() {
         </div>
 
         {/* Templates Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredTemplates.map((template: DocumentTemplate) => (
-            <Card key={template.id} className="flex flex-col hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
-              <CardHeader className="pb-3 flex-shrink-0">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-3 min-w-0 flex-1">
-                    <FileText className="h-5 w-5 text-blue-500 mt-1 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <CardTitle className="text-base lg:text-lg leading-tight line-clamp-2 mb-1">
-                        {template.title}
-                      </CardTitle>
-                      <CardDescription className="text-xs lg:text-sm">
-                        {template.documentType ? 
-                          template.documentType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
-                          'Document'
-                        }
-                      </CardDescription>
+            <Card key={template.id} className="group hover:shadow-lg transition-all duration-200 border border-gray-200 hover:border-blue-300 bg-white">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                      <FileText className="h-4 w-4 text-blue-600" />
                     </div>
+                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                      {template.category}
+                    </Badge>
                   </div>
-                  <Badge variant="secondary" className="text-xs flex-shrink-0 ml-2">
-                    {template.category}
-                  </Badge>
+                  {template.fileName && (
+                    <div className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">
+                      File Available
+                    </div>
+                  )}
                 </div>
+                
+                <CardTitle className="text-base sm:text-lg leading-tight mb-2 group-hover:text-blue-700 transition-colors">
+                  {template.title}
+                </CardTitle>
+                
+                <CardDescription className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
+                  {template.description}
+                </CardDescription>
               </CardHeader>
               
-              <CardContent className="pt-0 flex-1 flex flex-col">
-                <p className="text-xs lg:text-sm text-gray-600 mb-3 line-clamp-2 flex-grow">
-                  {template.description}
-                </p>
-                
-                <div className="space-y-2 mb-4">
+              <CardContent className="pt-0 space-y-4">
+                {/* Countries and Visa Types */}
+                <div className="space-y-3">
+                  {template.countries && template.countries.length > 0 && (
+                    <div>
+                      <div className="text-xs font-medium text-gray-700 mb-1">Countries:</div>
+                      <div className="flex flex-wrap gap-1">
+                        {template.countries.slice(0, 2).map((country) => (
+                          <Badge key={country} variant="secondary" className="text-xs">
+                            {country}
+                          </Badge>
+                        ))}
+                        {template.countries.length > 2 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{template.countries.length - 2} more
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {template.visaTypes && template.visaTypes.length > 0 && (
+                    <div>
+                      <div className="text-xs font-medium text-gray-700 mb-1">Visa Types:</div>
+                      <div className="flex flex-wrap gap-1">
+                        {template.visaTypes.slice(0, 2).map((visaType) => (
+                          <Badge key={visaType} variant="outline" className="text-xs">
+                            {visaType}
+                          </Badge>
+                        ))}
+                        {template.visaTypes.length > 2 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{template.visaTypes.length - 2} more
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Instructions Preview */}
+                {template.instructions && template.instructions.length > 0 && (
+                  <div>
+                    <div className="text-xs font-medium text-gray-700 mb-2">Key Instructions:</div>
+                    <div className="text-xs text-gray-600 space-y-1">
+                      {template.instructions.slice(0, 2).map((instruction, index) => (
+                        <div key={index} className="flex items-start gap-2">
+                          <div className="w-1 h-1 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                          <span className="line-clamp-2">{instruction}</span>
+                        </div>
+                      ))}
+                      {template.instructions.length > 2 && (
+                        <div className="text-xs text-blue-600">+{template.instructions.length - 2} more instructions</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* File Details */}
+                <div className="space-y-2">
                   {template.fileName && (
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-500">File:</span>
