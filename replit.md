@@ -147,6 +147,15 @@ FRONTEND_URL=your_domain_url
 - Added notification badge system showing only unread update counts per individual user
 - Reduced refresh intervals to 1 hour for optimal resource efficiency
 
+**June 16, 2025 - Dynamic Dropdown Options Implementation:**
+- Added API endpoint `/api/dropdown-options` to fetch unique countries, visa types, and user types from database
+- Updated Document Checklist Generator to use dynamic dropdown options instead of hardcoded arrays
+- Updated Document Template Library to use dynamic dropdown options instead of hardcoded arrays
+- Enhanced filter functionality with database-driven options for countries, visa types, and user types
+- Implemented cache invalidation for dropdown options when templates or checklists are modified
+- Created reusable dropdown component pattern for consistent filtering across both user features
+- Synchronized dropdown options between admin-managed content and user-facing interfaces
+
 **June 16, 2025 - Enhanced Country Selection & User Type Forms:**
 - Added Nepal at the top of origin countries list along with Sri Lanka, Vietnam, China, Bangladesh, Pakistan
 - Updated destination countries to include Australia, USA, UK, Canada and other popular study destinations
