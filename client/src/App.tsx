@@ -28,6 +28,8 @@ const AdminUsers = lazy(() => import("@/pages/admin-users"));
 const AdminProfessionalApplications = lazy(() => import("@/pages/admin-professional-applications"));
 const AdminUpdates = lazy(() => import("@/pages/admin-updates"));
 const AdminSettings = lazy(() => import("@/pages/admin-settings"));
+const AdminDocumentTemplates = lazy(() => import("@/pages/admin-document-templates"));
+const AdminDocumentChecklists = lazy(() => import("@/pages/admin-document-checklists"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -154,6 +156,20 @@ function Router() {
         <AdminProtectedRoute path="/admin/settings" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <AdminSettings />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/document-templates">
+        <AdminProtectedRoute path="/admin/document-templates" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminDocumentTemplates />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/document-checklists">
+        <AdminProtectedRoute path="/admin/document-checklists" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminDocumentChecklists />
           </Suspense>
         )} />
       </Route>

@@ -131,6 +131,18 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               active={location === "/admin/updates"}
             />
             <AdminSidebarItem
+              icon={<FileCheck className="h-5 w-5" />}
+              label="Document Templates"
+              href="/admin/document-templates"
+              active={location === "/admin/document-templates"}
+            />
+            <AdminSidebarItem
+              icon={<CheckSquare className="h-5 w-5" />}
+              label="Document Checklists"
+              href="/admin/document-checklists"
+              active={location === "/admin/document-checklists"}
+            />
+            <AdminSidebarItem
               icon={<Settings className="h-5 w-5" />}
               label="System Settings"
               href="/admin/settings"
