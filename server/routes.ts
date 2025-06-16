@@ -998,6 +998,172 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Document Templates API Routes
+  app.get('/api/document-templates', async (req: Request, res: Response) => {
+    try {
+      const cacheKey = 'document-templates';
+      const cached = getCachedData(cacheKey);
+      if (cached) {
+        return res.json(cached);
+      }
+
+      const templates = await storage.getActiveDocumentTemplates();
+      setCacheData(cacheKey, templates, 60); // Cache for 1 hour
+      res.json(templates);
+    } catch (error) {
+      console.error('Error fetching document templates:', error);
+      res.status(500).json({ error: 'Failed to fetch document templates' });
+    }
+  });
+
+  app.get('/api/admin/document-templates', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const cacheKey = 'admin-document-templates';
+      const cached = getCachedData(cacheKey);
+      if (cached) {
+        return res.json(cached);
+      }
+
+      const templates = await storage.getAllDocumentTemplates();
+      setCacheData(cacheKey, templates, 5); // Cache for 5 minutes
+      res.json(templates);
+    } catch (error) {
+      console.error('Error fetching all document templates:', error);
+      res.status(500).json({ error: 'Failed to fetch document templates' });
+    }
+  });
+
+  app.post('/api/admin/document-templates', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const template = await storage.createDocumentTemplate(req.body);
+      invalidateCache('document-templates');
+      invalidateCache('admin-document-templates');
+      res.status(201).json(template);
+    } catch (error) {
+      console.error('Error creating document template:', error);
+      res.status(500).json({ error: 'Failed to create document template' });
+    }
+  });
+
+  app.patch('/api/admin/document-templates/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const template = await storage.updateDocumentTemplate(parseInt(id), req.body);
+      
+      if (template) {
+        invalidateCache('document-templates');
+        invalidateCache('admin-document-templates');
+        res.json(template);
+      } else {
+        res.status(404).json({ error: 'Document template not found' });
+      }
+    } catch (error) {
+      console.error('Error updating document template:', error);
+      res.status(500).json({ error: 'Failed to update document template' });
+    }
+  });
+
+  app.delete('/api/admin/document-templates/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteDocumentTemplate(parseInt(id));
+      
+      if (success) {
+        invalidateCache('document-templates');
+        invalidateCache('admin-document-templates');
+        res.json({ success: true });
+      } else {
+        res.status(404).json({ error: 'Document template not found' });
+      }
+    } catch (error) {
+      console.error('Error deleting document template:', error);
+      res.status(500).json({ error: 'Failed to delete document template' });
+    }
+  });
+
+  // Document Checklists API Routes
+  app.get('/api/document-checklists', async (req: Request, res: Response) => {
+    try {
+      const cacheKey = 'document-checklists';
+      const cached = getCachedData(cacheKey);
+      if (cached) {
+        return res.json(cached);
+      }
+
+      const checklists = await storage.getActiveDocumentChecklists();
+      setCacheData(cacheKey, checklists, 60); // Cache for 1 hour
+      res.json(checklists);
+    } catch (error) {
+      console.error('Error fetching document checklists:', error);
+      res.status(500).json({ error: 'Failed to fetch document checklists' });
+    }
+  });
+
+  app.get('/api/admin/document-checklists', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const cacheKey = 'admin-document-checklists';
+      const cached = getCachedData(cacheKey);
+      if (cached) {
+        return res.json(cached);
+      }
+
+      const checklists = await storage.getAllDocumentChecklists();
+      setCacheData(cacheKey, checklists, 5); // Cache for 5 minutes
+      res.json(checklists);
+    } catch (error) {
+      console.error('Error fetching all document checklists:', error);
+      res.status(500).json({ error: 'Failed to fetch document checklists' });
+    }
+  });
+
+  app.post('/api/admin/document-checklists', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const checklist = await storage.createDocumentChecklist(req.body);
+      invalidateCache('document-checklists');
+      invalidateCache('admin-document-checklists');
+      res.status(201).json(checklist);
+    } catch (error) {
+      console.error('Error creating document checklist:', error);
+      res.status(500).json({ error: 'Failed to create document checklist' });
+    }
+  });
+
+  app.patch('/api/admin/document-checklists/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const checklist = await storage.updateDocumentChecklist(parseInt(id), req.body);
+      
+      if (checklist) {
+        invalidateCache('document-checklists');
+        invalidateCache('admin-document-checklists');
+        res.json(checklist);
+      } else {
+        res.status(404).json({ error: 'Document checklist not found' });
+      }
+    } catch (error) {
+      console.error('Error updating document checklist:', error);
+      res.status(500).json({ error: 'Failed to update document checklist' });
+    }
+  });
+
+  app.delete('/api/admin/document-checklists/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteDocumentChecklist(parseInt(id));
+      
+      if (success) {
+        invalidateCache('document-checklists');
+        invalidateCache('admin-document-checklists');
+        res.json({ success: true });
+      } else {
+        res.status(404).json({ error: 'Document checklist not found' });
+      }
+    } catch (error) {
+      console.error('Error deleting document checklist:', error);
+      res.status(500).json({ error: 'Failed to delete document checklist' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

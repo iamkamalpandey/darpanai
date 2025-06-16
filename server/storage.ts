@@ -1,9 +1,12 @@
 import { 
   users, analyses, appointments, professionalApplications, updates, userUpdateViews,
+  documentTemplates, documentChecklists,
   type User, type InsertUser, type Analysis, type InsertAnalysis, 
   type Appointment, type InsertAppointment, type LoginUser,
   type ProfessionalApplication, type InsertProfessionalApplication,
-  type Update, type InsertUpdate, type UserUpdateView
+  type Update, type InsertUpdate, type UserUpdateView,
+  type DocumentTemplate, type InsertDocumentTemplate,
+  type DocumentChecklist, type InsertDocumentChecklist
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, isNotNull, sql, or, gt } from "drizzle-orm";
@@ -580,6 +583,162 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error fetching user update views:", error);
       return [];
+    }
+  }
+
+  // Document Templates methods
+  async createDocumentTemplate(templateData: InsertDocumentTemplate): Promise<DocumentTemplate> {
+    try {
+      const [template] = await db
+        .insert(documentTemplates)
+        .values(templateData)
+        .returning();
+      return template;
+    } catch (error) {
+      console.error("Error creating document template:", error);
+      throw error;
+    }
+  }
+
+  async getAllDocumentTemplates(): Promise<DocumentTemplate[]> {
+    try {
+      const templates = await db
+        .select()
+        .from(documentTemplates)
+        .orderBy(desc(documentTemplates.createdAt));
+      return templates;
+    } catch (error) {
+      console.error("Error fetching all document templates:", error);
+      return [];
+    }
+  }
+
+  async getActiveDocumentTemplates(): Promise<DocumentTemplate[]> {
+    try {
+      const templates = await db
+        .select()
+        .from(documentTemplates)
+        .where(eq(documentTemplates.isActive, true))
+        .orderBy(desc(documentTemplates.createdAt));
+      return templates;
+    } catch (error) {
+      console.error("Error fetching active document templates:", error);
+      return [];
+    }
+  }
+
+  async getDocumentTemplate(id: number): Promise<DocumentTemplate | undefined> {
+    try {
+      const [template] = await db
+        .select()
+        .from(documentTemplates)
+        .where(eq(documentTemplates.id, id));
+      return template;
+    } catch (error) {
+      console.error("Error fetching document template:", error);
+      return undefined;
+    }
+  }
+
+  async updateDocumentTemplate(id: number, updates: Partial<DocumentTemplate>): Promise<DocumentTemplate | undefined> {
+    try {
+      const [template] = await db
+        .update(documentTemplates)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(documentTemplates.id, id))
+        .returning();
+      return template;
+    } catch (error) {
+      console.error("Error updating document template:", error);
+      return undefined;
+    }
+  }
+
+  async deleteDocumentTemplate(id: number): Promise<boolean> {
+    try {
+      await db.delete(documentTemplates).where(eq(documentTemplates.id, id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting document template:", error);
+      return false;
+    }
+  }
+
+  // Document Checklists methods
+  async createDocumentChecklist(checklistData: InsertDocumentChecklist): Promise<DocumentChecklist> {
+    try {
+      const [checklist] = await db
+        .insert(documentChecklists)
+        .values(checklistData)
+        .returning();
+      return checklist;
+    } catch (error) {
+      console.error("Error creating document checklist:", error);
+      throw error;
+    }
+  }
+
+  async getAllDocumentChecklists(): Promise<DocumentChecklist[]> {
+    try {
+      const checklists = await db
+        .select()
+        .from(documentChecklists)
+        .orderBy(desc(documentChecklists.createdAt));
+      return checklists;
+    } catch (error) {
+      console.error("Error fetching all document checklists:", error);
+      return [];
+    }
+  }
+
+  async getActiveDocumentChecklists(): Promise<DocumentChecklist[]> {
+    try {
+      const checklists = await db
+        .select()
+        .from(documentChecklists)
+        .where(eq(documentChecklists.isActive, true))
+        .orderBy(desc(documentChecklists.createdAt));
+      return checklists;
+    } catch (error) {
+      console.error("Error fetching active document checklists:", error);
+      return [];
+    }
+  }
+
+  async getDocumentChecklist(id: number): Promise<DocumentChecklist | undefined> {
+    try {
+      const [checklist] = await db
+        .select()
+        .from(documentChecklists)
+        .where(eq(documentChecklists.id, id));
+      return checklist;
+    } catch (error) {
+      console.error("Error fetching document checklist:", error);
+      return undefined;
+    }
+  }
+
+  async updateDocumentChecklist(id: number, updates: Partial<DocumentChecklist>): Promise<DocumentChecklist | undefined> {
+    try {
+      const [checklist] = await db
+        .update(documentChecklists)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(documentChecklists.id, id))
+        .returning();
+      return checklist;
+    } catch (error) {
+      console.error("Error updating document checklist:", error);
+      return undefined;
+    }
+  }
+
+  async deleteDocumentChecklist(id: number): Promise<boolean> {
+    try {
+      await db.delete(documentChecklists).where(eq(documentChecklists.id, id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting document checklist:", error);
+      return false;
     }
   }
 }
