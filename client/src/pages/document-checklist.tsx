@@ -72,9 +72,9 @@ export default function DocumentChecklistGenerator() {
     return (checklists as DocumentChecklist[]).filter((checklist: DocumentChecklist) => {
       const matchesSearch = checklist.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           checklist.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCountry = !selectedCountry || checklist.country === selectedCountry;
-      const matchesVisaType = !selectedVisaType || checklist.visaType === selectedVisaType;
-      const matchesUserType = !selectedUserType || checklist.userType === selectedUserType;
+      const matchesCountry = !selectedCountry || selectedCountry === 'all' || checklist.country === selectedCountry;
+      const matchesVisaType = !selectedVisaType || selectedVisaType === 'all' || checklist.visaType === selectedVisaType;
+      const matchesUserType = !selectedUserType || selectedUserType === 'all' || checklist.userType === selectedUserType;
       
       return matchesSearch && matchesCountry && matchesVisaType && matchesUserType && checklist.isActive;
     });
@@ -153,7 +153,7 @@ export default function DocumentChecklistGenerator() {
                       <SelectValue placeholder="Select country" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Countries</SelectItem>
+                      <SelectItem value="all">All Countries</SelectItem>
                       {countries.map((country: string) => (
                         <SelectItem key={country} value={country}>{country}</SelectItem>
                       ))}
@@ -168,7 +168,7 @@ export default function DocumentChecklistGenerator() {
                       <SelectValue placeholder="Select visa type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Visa Types</SelectItem>
+                      <SelectItem value="all">All Visa Types</SelectItem>
                       {visaTypes.map((visaType: string) => (
                         <SelectItem key={visaType} value={visaType}>{visaType}</SelectItem>
                       ))}
@@ -183,7 +183,7 @@ export default function DocumentChecklistGenerator() {
                       <SelectValue placeholder="Select user type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All User Types</SelectItem>
+                      <SelectItem value="all">All User Types</SelectItem>
                       {userTypes.map((userType: string) => (
                         <SelectItem key={userType} value={userType}>{userType}</SelectItem>
                       ))}

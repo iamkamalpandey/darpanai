@@ -1101,17 +1101,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const countries = Array.from(new Set([
         ...activeChecklists.map((c: any) => c.country),
         ...activeTemplates.map((t: any) => t.country)
-      ])).sort();
+      ])).filter(item => item && typeof item === 'string' && item.trim() && item !== 'all').sort();
 
       const visaTypes = Array.from(new Set([
         ...activeChecklists.map((c: any) => c.visaType),
         ...activeTemplates.map((t: any) => t.visaType)
-      ])).sort();
+      ])).filter(item => item && typeof item === 'string' && item.trim() && item !== 'all').sort();
 
       const userTypes = Array.from(new Set([
         ...activeChecklists.map((c: any) => c.userType),
         ...activeTemplates.map((t: any) => t.userType)
-      ])).sort();
+      ])).filter(item => item && typeof item === 'string' && item.trim() && item !== 'all').sort();
 
       const options = {
         countries,
