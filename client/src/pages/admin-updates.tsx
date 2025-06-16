@@ -59,12 +59,17 @@ export default function AdminUpdates() {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => apiRequest("DELETE", `/api/admin/updates/${id}`),
+    mutationFn: async (id: number) => {
+      const response = await apiRequest("DELETE", `/api/admin/updates/${id}`);
+      console.log('Delete response:', response);
+      return response;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/updates"] });
       toast({ title: "Success", description: "Update deleted successfully" });
     },
     onError: (error: any) => {
+      console.error('Delete error:', error);
       toast({ title: "Error", description: error?.message || "Failed to delete update", variant: "destructive" });
     },
   });
@@ -117,7 +122,7 @@ export default function AdminUpdates() {
   };
 
   const handleDelete = (id: number) => {
-    if (confirm("Are you sure you want to delete this update?")) {
+    if (window.confirm("Are you sure you want to delete this update? This action cannot be undone.")) {
       deleteMutation.mutate(id);
     }
   };
