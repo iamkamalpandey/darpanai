@@ -1035,8 +1035,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { getTemplateFile } = await import('./fileStorage');
       const fileBuffer = await getTemplateFile(template.filePath);
       
-      res.setHeader('Content-Disposition', `attachment; filename="${template.fileName}"`);
-      res.setHeader('Content-Type', template.fileType);
+      res.setHeader('Content-Disposition', `attachment; filename="${template.fileName || 'document'}"`);
+      res.setHeader('Content-Type', template.fileType || 'application/octet-stream');
       res.setHeader('Content-Length', template.fileSize || fileBuffer.length);
       
       res.send(fileBuffer);

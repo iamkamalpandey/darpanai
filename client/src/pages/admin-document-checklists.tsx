@@ -155,7 +155,8 @@ export default function AdminDocumentChecklists() {
     csv += 'Required Documents and Steps:\n';
     csv += 'Order,Document Name,Description,Category,Required,Tips\n';
     
-    checklist.items.forEach((item: any) => {
+    const items = Array.isArray(checklist.items) ? checklist.items : [];
+    items.forEach((item: any) => {
       const tips = item.tips ? item.tips.join('; ') : '';
       csv += `${item.order || ''},"${item.name}","${item.description}","${item.category}","${item.required ? 'Yes' : 'No'}","${tips}"\n`;
     });

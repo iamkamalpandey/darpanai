@@ -131,12 +131,16 @@ export default function AdminDocumentTemplates() {
   };
 
   const downloadTemplate = (template: DocumentTemplate) => {
-    const link = document.createElement('a');
-    link.href = `/api/document-templates/${template.id}/download`;
-    link.download = template.fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (template.externalUrl) {
+      window.open(template.externalUrl, '_blank');
+    } else if (template.filePath) {
+      const link = document.createElement('a');
+      link.href = `/api/document-templates/${template.id}/download`;
+      link.download = template.fileName || 'document';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   const formatFileSize = (bytes: number | null) => {
