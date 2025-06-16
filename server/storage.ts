@@ -85,6 +85,22 @@ export interface IStorage {
   markUpdateAsViewed(userId: number, updateId: number): Promise<UserUpdateView>;
   markUpdateActionTaken(userId: number, updateId: number): Promise<UserUpdateView | undefined>;
   getUserUpdateViews(userId: number): Promise<UserUpdateView[]>;
+  
+  // Document Templates methods
+  createDocumentTemplate(template: InsertDocumentTemplate): Promise<DocumentTemplate>;
+  getAllDocumentTemplates(): Promise<DocumentTemplate[]>;
+  getActiveDocumentTemplates(): Promise<DocumentTemplate[]>;
+  getDocumentTemplate(id: number): Promise<DocumentTemplate | undefined>;
+  updateDocumentTemplate(id: number, updates: Partial<DocumentTemplate>): Promise<DocumentTemplate | undefined>;
+  deleteDocumentTemplate(id: number): Promise<boolean>;
+  
+  // Document Checklists methods
+  createDocumentChecklist(checklist: InsertDocumentChecklist): Promise<DocumentChecklist>;
+  getAllDocumentChecklists(): Promise<DocumentChecklist[]>;
+  getActiveDocumentChecklists(): Promise<DocumentChecklist[]>;
+  getDocumentChecklist(id: number): Promise<DocumentChecklist | undefined>;
+  updateDocumentChecklist(id: number, updates: Partial<DocumentChecklist>): Promise<DocumentChecklist | undefined>;
+  deleteDocumentChecklist(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {

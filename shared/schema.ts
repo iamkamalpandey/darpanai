@@ -277,3 +277,157 @@ export type UpdateWithViewStatus = Update & {
 
 export type UserUpdateView = typeof userUpdateViews.$inferSelect;
 export type InsertUserUpdateView = typeof userUpdateViews.$inferInsert;
+
+// Document Templates table
+export const documentTemplates = pgTable("document_templates", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(), // 'financial', 'academic', 'personal', 'employment', 'travel', 'legal'
+  visaTypes: text("visa_types").array().notNull().default([]),
+  countries: text("countries").array().notNull().default([]),
+  template: text("template").notNull(),
+  fields: jsonb("fields").notNull().default([]), // TemplateField[]
+  instructions: text("instructions").array().notNull().default([]),
+  tips: text("tips").array().notNull().default([]),
+  requiredDocuments: text("required_documents").array().notNull().default([]),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Document Checklists table
+export const documentChecklists = pgTable("document_checklists", {
+  id: serial("id").primaryKey(),
+  country: text("country").notNull(),
+  visaType: text("visa_type").notNull(),
+  userType: text("user_type").notNull(), // 'student', 'tourist', 'work', 'family', 'business'
+  categories: jsonb("categories").notNull().default([]), // ChecklistCategory[]
+  estimatedProcessingTime: text("estimated_processing_time").notNull(),
+  fees: jsonb("fees").notNull().default([]), // ChecklistFee[]
+  importantNotes: text("important_notes").array().notNull().default([]),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Document Templates schemas
+export const insertDocumentTemplateSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  category: z.enum(["financial", "academic", "personal", "employment", "travel", "legal"]),
+  visaTypes: z.array(z.string()).default([]),
+  countries: z.array(z.string()).default([]),
+  template: z.string().min(1, "Template content is required"),
+  fields: z.array(z.object({
+    id: z.string(),
+    label: z.string(),
+    type: z.enum(["text", "date", "number", "select", "textarea"]),
+    required: z.boolean(),
+    placeholder: z.string().optional(),
+    options: z.array(z.string()).optional(),
+    validation: z.string().optional(),
+  })).default([]),
+  instructions: z.array(z.string()).default([]),
+  tips: z.array(z.string()).default([]),
+  requiredDocuments: z.array(z.string()).default([]),
+  isActive: z.boolean().default(true),
+});
+
+export const documentTemplateSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  category: z.enum(["financial", "academic", "personal", "employment", "travel", "legal"]),
+  visaTypes: z.array(z.string()).default([]),
+  countries: z.array(z.string()).default([]),
+  template: z.string().min(1, "Template content is required"),
+  fields: z.array(z.object({
+    id: z.string(),
+    label: z.string(),
+    type: z.enum(["text", "date", "number", "select", "textarea"]),
+    required: z.boolean(),
+    placeholder: z.string().optional(),
+    options: z.array(z.string()).optional(),
+    validation: z.string().optional(),
+  })).default([]),
+  instructions: z.array(z.string()).default([]),
+  tips: z.array(z.string()).default([]),
+  requiredDocuments: z.array(z.string()).default([]),
+  isActive: z.boolean().default(true),
+});
+
+// Document Checklists schemas
+export const insertDocumentChecklistSchema = z.object({
+  country: z.string().min(1, "Country is required"),
+  visaType: z.string().min(1, "Visa type is required"),
+  userType: z.enum(["student", "tourist", "work", "family", "business"]),
+  categories: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string(),
+    required: z.boolean(),
+    documents: z.array(z.object({
+      id: z.string(),
+      name: z.string(),
+      description: z.string(),
+      required: z.boolean(),
+      alternatives: z.array(z.string()),
+      format: z.string(),
+      validity: z.string(),
+      tips: z.array(z.string()),
+      templateId: z.string().optional(),
+    })),
+  })).default([]),
+  estimatedProcessingTime: z.string().min(1, "Processing time is required"),
+  fees: z.array(z.object({
+    name: z.string(),
+    amount: z.string(),
+    currency: z.string(),
+    description: z.string(),
+    required: z.boolean(),
+  })).default([]),
+  importantNotes: z.array(z.string()).default([]),
+  isActive: z.boolean().default(true),
+});
+
+export const documentChecklistSchema = z.object({
+  country: z.string().min(1, "Country is required"),
+  visaType: z.string().min(1, "Visa type is required"),
+  userType: z.enum(["student", "tourist", "work", "family", "business"]),
+  categories: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string(),
+    required: z.boolean(),
+    documents: z.array(z.object({
+      id: z.string(),
+      name: z.string(),
+      description: z.string(),
+      required: z.boolean(),
+      alternatives: z.array(z.string()),
+      format: z.string(),
+      validity: z.string(),
+      tips: z.array(z.string()),
+      templateId: z.string().optional(),
+    })),
+  })).default([]),
+  estimatedProcessingTime: z.string().min(1, "Processing time is required"),
+  fees: z.array(z.object({
+    name: z.string(),
+    amount: z.string(),
+    currency: z.string(),
+    description: z.string(),
+    required: z.boolean(),
+  })).default([]),
+  importantNotes: z.array(z.string()).default([]),
+  isActive: z.boolean().default(true),
+});
+
+// Type exports for document templates and checklists
+export type DocumentTemplate = typeof documentTemplates.$inferSelect;
+export type InsertDocumentTemplate = z.infer<typeof insertDocumentTemplateSchema>;
+export type DocumentTemplateFormData = z.infer<typeof documentTemplateSchema>;
+
+export type DocumentChecklist = typeof documentChecklists.$inferSelect;
+export type InsertDocumentChecklist = z.infer<typeof insertDocumentChecklistSchema>;
+export type DocumentChecklistFormData = z.infer<typeof documentChecklistSchema>;
