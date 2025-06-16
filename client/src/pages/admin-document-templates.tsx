@@ -168,6 +168,32 @@ export default function AdminDocumentTemplates() {
     });
   };
 
+  const downloadTemplate = (template: DocumentTemplate) => {
+    const templateData = {
+      title: template.title,
+      description: template.description,
+      category: template.category,
+      content: template.template,
+      fields: template.fields,
+      instructions: template.instructions,
+      tips: template.tips,
+      requiredDocuments: template.requiredDocuments,
+      visaTypes: template.visaTypes,
+      countries: template.countries,
+      lastUpdated: template.updatedAt || template.createdAt
+    };
+
+    const blob = new Blob([JSON.stringify(templateData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${template.title.replace(/\s+/g, '_')}_template.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const resetForm = () => {
     form.reset();
     setEditingTemplate(null);
@@ -381,13 +407,28 @@ export default function AdminDocumentTemplates() {
                       <Button
                         size="sm"
                         variant="outline"
+                        onClick={() => downloadTemplate(template)}
+                        title="Download template"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={template.isActive ? "destructive" : "default"}
                         onClick={() => handleToggleStatus(template)}
                         disabled={updateMutation.isPending}
+                        title={template.isActive ? "Disable template" : "Enable template"}
                       >
                         {template.isActive ? (
-                          <EyeOff className="h-4 w-4" />
+                          <>
+                            <EyeOff className="h-4 w-4 mr-1" />
+                            Disable
+                          </>
                         ) : (
-                          <Eye className="h-4 w-4" />
+                          <>
+                            <Eye className="h-4 w-4 mr-1" />
+                            Enable
+                          </>
                         )}
                       </Button>
                       <Button

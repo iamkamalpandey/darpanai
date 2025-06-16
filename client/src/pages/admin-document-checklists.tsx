@@ -163,6 +163,29 @@ export default function AdminDocumentChecklists() {
     });
   };
 
+  const downloadChecklist = (checklist: DocumentChecklist) => {
+    const checklistData = {
+      country: checklist.country,
+      visaType: checklist.visaType,
+      userType: checklist.userType,
+      categories: checklist.categories,
+      estimatedProcessingTime: checklist.estimatedProcessingTime,
+      fees: checklist.fees,
+      importantNotes: checklist.importantNotes,
+      lastUpdated: checklist.updatedAt || checklist.createdAt
+    };
+
+    const blob = new Blob([JSON.stringify(checklistData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${checklist.country}_${checklist.visaType}_${checklist.userType}_checklist.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const resetForm = () => {
     form.reset();
     setEditingChecklist(null);
