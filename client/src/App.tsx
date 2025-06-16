@@ -4,12 +4,13 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/hooks/use-auth";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { UserProtectedRoute } from "@/components/UserProtectedRoute";
 import { AdminProtectedRoute } from "@/components/AdminProtectedRoute";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
+import Landing from "@/pages/Landing";
 import AuthPage from "@/pages/auth-page";
 
 // Lazy load heavy components for better initial performance
@@ -30,13 +31,29 @@ const LoadingFallback = () => (
 );
 
 function Router() {
+  // HomePage component that shows Landing for guests, Home for authenticated users
+  function HomePage() {
+    const { user, isLoading } = useAuth();
+    
+    if (isLoading) {
+      return <LoadingFallback />;
+    }
+    
+    if (user) {
+      return <Home />;
+    }
+    
+    return <Landing />;
+  }
   return (
     <Switch>
       {/* Public Routes */}
       <Route path="/auth" component={AuthPage} />
       
+      {/* Home Route - Shows Landing for guests, Dashboard for authenticated users */}
+      <Route path="/" component={HomePage} />
+      
       {/* User Routes - Only accessible by regular users */}
-      <UserProtectedRoute path="/" component={Home} />
       <Route path="/analyzer">
         <UserProtectedRoute path="/analyzer" component={() => (
           <Suspense fallback={<LoadingFallback />}>
