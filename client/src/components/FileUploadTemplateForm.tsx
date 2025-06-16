@@ -82,7 +82,10 @@ export function FileUploadTemplateForm({ onSubmit, onCancel, isLoading }: FileUp
     const file = event.target.files?.[0];
     if (file) {
       const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'application/rtf'];
-      if (!allowedTypes.includes(file.type)) {
+      const allowedExtensions = ['.pdf', '.doc', '.docx', '.txt', '.rtf'];
+      const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+      
+      if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
         alert('Invalid file type. Only PDF, DOC, DOCX, TXT, and RTF files are allowed.');
         return;
       }

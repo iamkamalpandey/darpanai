@@ -3,22 +3,13 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Plus, Edit, Trash2, Eye, EyeOff, CheckSquare, Search, MapPin, Clock, Download } from "lucide-react";
+import { Plus, Trash2, Eye, EyeOff, CheckSquare, Search, MapPin, Clock, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
-import { insertDocumentChecklistSchema, type DocumentChecklist, type DocumentChecklistFormData } from "@shared/schema";
-import { SimpleChecklistForm } from "@/components/SimpleChecklistForm";
+import { type DocumentChecklist } from "@shared/schema";
 import { AdminLayout } from "@/components/AdminLayout";
 
 const userTypes = [
@@ -48,15 +39,15 @@ export default function AdminDocumentChecklists() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
   const [selectedUserType, setSelectedUserType] = useState<string>("all");
+  const [selectedVisaType, setSelectedVisaType] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [editingChecklist, setEditingChecklist] = useState<DocumentChecklist | null>(null);
 
   const { data: checklists = [], isLoading } = useQuery({
     queryKey: ['/api/admin/document-checklists'],
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: DocumentChecklistFormData) => {
+    mutationFn: async (data: any) => {
       const response = await fetch('/api/admin/document-checklists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -68,10 +59,7 @@ export default function AdminDocumentChecklists() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/document-checklists'] });
       setIsCreateDialogOpen(false);
-      toast({ title: "Checklist created successfully" });
-    },
-    onError: () => {
-      toast({ title: "Failed to create checklist", variant: "destructive" });
+      toast({ title: "Success", description: "Document checklist created successfully" });
     },
   });
 
@@ -87,11 +75,7 @@ export default function AdminDocumentChecklists() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/document-checklists'] });
-      setEditingChecklist(null);
-      toast({ title: "Checklist updated successfully" });
-    },
-    onError: () => {
-      toast({ title: "Failed to update checklist", variant: "destructive" });
+      toast({ title: "Success", description: "Document checklist updated successfully" });
     },
   });
 
@@ -101,61 +85,21 @@ export default function AdminDocumentChecklists() {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete checklist');
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/document-checklists'] });
-      toast({ title: "Checklist deleted successfully" });
-    },
-    onError: () => {
-      toast({ title: "Failed to delete checklist", variant: "destructive" });
-    },
-  });
-
-  const form = useForm<DocumentChecklistFormData>({
-    resolver: zodResolver(insertDocumentChecklistSchema),
-    defaultValues: {
-      country: "",
-      visaType: "",
-      userType: "student",
-      categories: [],
-      estimatedProcessingTime: "",
-      fees: [],
-      importantNotes: [],
-      isActive: true,
+      toast({ title: "Success", description: "Document checklist deleted successfully" });
     },
   });
 
   const filteredChecklists = checklists.filter((checklist: DocumentChecklist) => {
-    const matchesSearch = checklist.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         checklist.visaType.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCountry = selectedCountry === "all" || checklist.country === selectedCountry;
-    const matchesUserType = selectedUserType === "all" || checklist.userType === selectedUserType;
-    return matchesSearch && matchesCountry && matchesUserType;
+    const matchesSearch = checklist.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         checklist.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCountry = selectedCountry === 'all' || checklist.country === selectedCountry;
+    const matchesUserType = selectedUserType === 'all' || checklist.userType === selectedUserType;
+    const matchesVisaType = selectedVisaType === 'all' || checklist.visaType === selectedVisaType;
+    return matchesSearch && matchesCountry && matchesUserType && matchesVisaType;
   });
-
-  const handleSubmit = (data: DocumentChecklistFormData) => {
-    if (editingChecklist) {
-      updateMutation.mutate({ id: editingChecklist.id, data });
-    } else {
-      createMutation.mutate(data);
-    }
-  };
-
-  const handleEdit = (checklist: DocumentChecklist) => {
-    setEditingChecklist(checklist);
-    form.reset({
-      country: checklist.country,
-      visaType: checklist.visaType,
-      userType: checklist.userType as any,
-      categories: checklist.categories || [],
-      estimatedProcessingTime: checklist.estimatedProcessingTime,
-      fees: checklist.fees || [],
-      importantNotes: checklist.importantNotes,
-      isActive: checklist.isActive,
-    });
-    setIsCreateDialogOpen(true);
-  };
 
   const handleToggleStatus = (checklist: DocumentChecklist) => {
     updateMutation.mutate({
@@ -164,187 +108,64 @@ export default function AdminDocumentChecklists() {
     });
   };
 
-  const downloadChecklist = (checklist: DocumentChecklist) => {
-    const checklistData = {
-      country: checklist.country,
-      visaType: checklist.visaType,
-      userType: checklist.userType,
-      categories: checklist.categories,
-      estimatedProcessingTime: checklist.estimatedProcessingTime,
-      fees: checklist.fees,
-      importantNotes: checklist.importantNotes,
-      lastUpdated: checklist.updatedAt || checklist.createdAt
-    };
-
-    const blob = new Blob([JSON.stringify(checklistData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${checklist.country}_${checklist.visaType}_${checklist.userType}_checklist.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const formatDate = (date: Date | null) => {
+    if (!date) return 'Unknown';
+    return new Date(date).toLocaleDateString();
   };
 
-  const resetForm = () => {
-    form.reset();
-    setEditingChecklist(null);
-    setIsCreateDialogOpen(false);
-  };
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div className="p-8">
+          <div className="text-center">Loading document checklists...</div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="p-8">
+        <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Document Checklists</h1>
-            <p className="text-muted-foreground">
-              Manage country-specific document checklists for visa applications
-            </p>
+            <h1 className="text-3xl font-bold">Document Checklists</h1>
+            <p className="text-gray-600 mt-2">Manage comprehensive document requirement checklists for visa applications</p>
           </div>
+          
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={resetForm}>
+              <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Checklist
+                Create Checklist
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>
-                  {editingChecklist ? "Edit Checklist" : "Create New Checklist"}
-                </DialogTitle>
+                <DialogTitle>Create Document Checklist</DialogTitle>
                 <DialogDescription>
-                  {editingChecklist ? "Update the checklist details below." : "Fill in the details to create a new document checklist."}
+                  Create a comprehensive checklist of required documents for specific visa applications
                 </DialogDescription>
               </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="country"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Country</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select country" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {countries.map((country) => (
-                                <SelectItem key={country} value={country}>
-                                  {country}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="userType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>User Type</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select user type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {userTypes.map((type) => (
-                                <SelectItem key={type.value} value={type.value}>
-                                  {type.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="visaType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Visa Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select visa type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {visaTypes.map((visa) => (
-                              <SelectItem key={visa} value={visa}>
-                                {visa}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="estimatedProcessingTime"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Estimated Processing Time</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., 4-6 weeks" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="isActive"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Active</FormLabel>
-                          <FormDescription>
-                            Make this checklist available to users
-                          </FormDescription>
-                        </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex justify-end space-x-2 pt-4">
-                    <Button type="button" variant="outline" onClick={resetForm}>
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                      {editingChecklist ? "Update" : "Create"} Checklist
-                    </Button>
-                  </div>
-                </form>
-              </Form>
+              <div className="p-4">
+                <p className="text-sm text-gray-600">
+                  Use the main Document Checklists interface to create detailed checklists with multiple documents, 
+                  fees, processing times, and requirements.
+                </p>
+                <Button 
+                  className="mt-4" 
+                  onClick={() => setIsCreateDialogOpen(false)}
+                >
+                  Close
+                </Button>
+              </div>
             </DialogContent>
           </Dialog>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+        {/* Search and Filter Controls */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search checklists..."
               value={searchTerm}
@@ -352,184 +173,214 @@ export default function AdminDocumentChecklists() {
               className="pl-10"
             />
           </div>
-          <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Filter by country" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Countries</SelectItem>
-              {countries.map((country) => (
-                <SelectItem key={country} value={country}>
-                  {country}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedUserType} onValueChange={setSelectedUserType}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Filter by user type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All User Types</SelectItem>
-              {userTypes.map((type) => (
-                <SelectItem key={type.value} value={type.value}>
-                  {type.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          
+          <select
+            value={selectedCountry}
+            onChange={(e) => setSelectedCountry(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All Countries</option>
+            {countries.map((country) => (
+              <option key={country} value={country}>
+                {country}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={selectedVisaType}
+            onChange={(e) => setSelectedVisaType(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All Visa Types</option>
+            {visaTypes.map((visaType) => (
+              <option key={visaType} value={visaType}>
+                {visaType}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={selectedUserType}
+            onChange={(e) => setSelectedUserType(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All User Types</option>
+            {userTypes.map((userType) => (
+              <option key={userType.value} value={userType.value}>
+                {userType.label}
+              </option>
+            ))}
+          </select>
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-20 bg-gray-200 rounded"></div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredChecklists.map((checklist: DocumentChecklist) => (
-              <Card key={checklist.id} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg flex items-center">
-                        <MapPin className="h-4 w-4 mr-2" />
-                        {checklist.country}
+        <div className="mb-4 text-sm text-gray-600">
+          Total: {filteredChecklists.length} checklists
+        </div>
+
+        {/* Checklists Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+          {filteredChecklists.map((checklist: DocumentChecklist) => (
+            <Card key={checklist.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-green-500">
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start space-x-3 min-w-0 flex-1">
+                    <CheckSquare className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <CardTitle className="text-lg leading-tight line-clamp-2 mb-2">
+                        {checklist.title}
                       </CardTitle>
-                      <CardDescription className="mt-1">
-                        {checklist.visaType} • {userTypes.find(t => t.value === checklist.userType)?.label}
+                      <CardDescription className="text-sm line-clamp-2">
+                        {checklist.description}
                       </CardDescription>
                     </div>
+                  </div>
+                  <div className="flex items-center space-x-2 flex-shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleToggleStatus(checklist)}
+                      className="p-1"
+                    >
+                      {checklist.isActive ? 
+                        <Eye className="h-4 w-4 text-green-600" /> : 
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      }
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="p-1 text-red-600">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Checklist</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete "{checklist.title}"? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => deleteMutation.mutate(checklist.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="pt-0">
+                <div className="space-y-4">
+                  {/* Route Information */}
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <div className="flex items-center space-x-4 text-sm">
+                      <div className="flex items-center space-x-1">
+                        <MapPin className="h-4 w-4 text-gray-500" />
+                        <span className="font-medium">From:</span>
+                        <Badge variant="outline">{checklist.country}</Badge>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <span className="font-medium">Type:</span>
+                        <Badge variant="outline">{checklist.visaType}</Badge>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <span className="font-medium">User:</span>
+                        <Badge variant="outline">{checklist.userType}</Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Stats */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-blue-50 p-3 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <CheckSquare className="h-4 w-4 text-blue-600" />
+                        <div>
+                          <div className="text-xs text-blue-600 font-medium">Documents</div>
+                          <div className="text-sm font-bold text-blue-800">
+                            {Array.isArray(checklist.items) ? checklist.items.length : 0} required
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {checklist.estimatedProcessingTime && (
+                      <div className="bg-yellow-50 p-3 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <Clock className="h-4 w-4 text-yellow-600" />
+                          <div>
+                            <div className="text-xs text-yellow-600 font-medium">Processing</div>
+                            <div className="text-sm font-bold text-yellow-800">{checklist.estimatedProcessingTime}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {checklist.totalFees && (
+                      <div className="bg-green-50 p-3 rounded-lg col-span-2">
+                        <div className="flex items-center space-x-2">
+                          <DollarSign className="h-4 w-4 text-green-600" />
+                          <div>
+                            <div className="text-xs text-green-600 font-medium">Total Fees</div>
+                            <div className="text-sm font-bold text-green-800">{checklist.totalFees}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Status and Metadata */}
+                  <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center space-x-2">
+                      <span className="text-gray-500">Status:</span>
                       <Badge variant={checklist.isActive ? "default" : "secondary"}>
                         {checklist.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </div>
+                    <div className="text-gray-500">
+                      Created: {formatDate(checklist.createdAt)}
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2 mt-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      {checklist.estimatedProcessingTime}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Categories:</span>
-                      <Badge variant="outline">
-                        {checklist.categories?.length || 0}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Fees:</span>
-                      <Badge variant="outline">
-                        {checklist.fees?.length || 0}
-                      </Badge>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Created {new Date(checklist.createdAt).toLocaleDateString()}
-                    </div>
-                    <div className="flex items-center justify-between pt-2">
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => downloadChecklist(checklist)}
-                          title="Download checklist"
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={checklist.isActive ? "destructive" : "default"}
-                          onClick={() => handleToggleStatus(checklist)}
-                          disabled={updateMutation.isPending}
-                          title={checklist.isActive ? "Disable checklist" : "Enable checklist"}
-                        >
-                          {checklist.isActive ? (
-                            <>
-                              <EyeOff className="h-4 w-4 mr-1" />
-                              Disable
-                            </>
-                          ) : (
-                            <>
-                              <Eye className="h-4 w-4 mr-1" />
-                              Enable
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEdit(checklist)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button size="sm" variant="outline">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Checklist</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete the checklist for {checklist.country} - {checklist.visaType}? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => deleteMutation.mutate(checklist.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+
+                  {/* Important Notes Preview */}
+                  {checklist.importantNotes && checklist.importantNotes.length > 0 && (
+                    <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                      <div className="text-xs text-orange-600 font-medium mb-1">Important Notes</div>
+                      <div className="text-sm text-orange-800 line-clamp-2">
+                        {checklist.importantNotes[0]}
+                        {checklist.importantNotes.length > 1 && ` +${checklist.importantNotes.length - 1} more`}
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-        {!isLoading && filteredChecklists.length === 0 && (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <CheckSquare className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No checklists found</h3>
-              <p className="text-muted-foreground text-center mb-4">
-                {searchTerm || selectedCountry !== "all" || selectedUserType !== "all"
-                  ? "Try adjusting your search criteria."
-                  : "Get started by creating your first document checklist."}
-              </p>
-              {!searchTerm && selectedCountry === "all" && selectedUserType === "all" && (
-                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button onClick={resetForm}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create First Checklist
-                    </Button>
-                  </DialogTrigger>
-                </Dialog>
-              )}
-            </CardContent>
-          </Card>
+        {filteredChecklists.length === 0 && (
+          <div className="text-center py-12">
+            <CheckSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No checklists found</h3>
+            <p className="text-gray-500 mb-4">
+              {searchTerm || selectedCountry !== 'all' || selectedUserType !== 'all' || selectedVisaType !== 'all'
+                ? "Try adjusting your search or filter criteria."
+                : "Create your first document checklist to get started."
+              }
+            </p>
+            {!searchTerm && selectedCountry === 'all' && selectedUserType === 'all' && selectedVisaType === 'all' && (
+              <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create First Checklist
+              </Button>
+            )}
+          </div>
         )}
       </div>
     </AdminLayout>
