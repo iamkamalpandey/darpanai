@@ -1287,56 +1287,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       
-      // Deep clone and validate request body to prevent reference issues
-      const updateData = JSON.parse(JSON.stringify(req.body));
+      console.log('=== Document Checklist Update Debug ===');
+      console.log('Raw request body:', JSON.stringify(req.body, null, 2));
       
-      // Comprehensive data sanitization with validation
-      if (updateData.items !== undefined) {
-        if (Array.isArray(updateData.items)) {
-          updateData.items = updateData.items.map((item: any) => {
-            // Ensure each item has proper structure
-            const sanitizedItem = {
-              id: item.id || '',
-              name: item.name || '',
-              description: item.description || '',
-              category: item.category || 'documentation',
+      // Create completely clean data object without any JSON parsing
+      const cleanData: any = {};
+      
+      // Handle string fields explicitly
+      if (req.body.title !== undefined) cleanData.title = String(req.body.title);
+      if (req.body.description !== undefined) cleanData.description = String(req.body.description);
+      if (req.body.country !== undefined) cleanData.country = String(req.body.country);
+      if (req.body.visaType !== undefined) cleanData.visaType = String(req.body.visaType);
+      if (req.body.userType !== undefined) cleanData.userType = String(req.body.userType);
+      if (req.body.estimatedProcessingTime !== undefined) cleanData.estimatedProcessingTime = String(req.body.estimatedProcessingTime);
+      if (req.body.totalFees !== undefined) cleanData.totalFees = String(req.body.totalFees);
+      if (req.body.isActive !== undefined) cleanData.isActive = Boolean(req.body.isActive);
+      
+      // Handle importantNotes with strict validation
+      if (req.body.importantNotes !== undefined) {
+        console.log('Processing importantNotes:', req.body.importantNotes);
+        if (Array.isArray(req.body.importantNotes)) {
+          cleanData.importantNotes = req.body.importantNotes
+            .filter((note: any) => note !== null && note !== undefined)
+            .map((note: any) => String(note).trim())
+            .filter((note: string) => note.length > 0 && note.length < 500);
+        } else {
+          cleanData.importantNotes = [];
+        }
+        console.log('Cleaned importantNotes:', cleanData.importantNotes);
+      }
+      
+      // Handle items with complete validation
+      if (req.body.items !== undefined) {
+        console.log('Processing items:', req.body.items?.length || 0);
+        if (Array.isArray(req.body.items)) {
+          cleanData.items = req.body.items.map((item: any, index: number) => {
+            const cleanItem = {
+              id: String(item.id || `item_${index}`).trim(),
+              name: String(item.name || '').trim(),
+              description: String(item.description || '').trim(),
+              category: String(item.category || 'documentation'),
               required: Boolean(item.required),
               completed: Boolean(item.completed),
-              order: Number(item.order) || 0,
-              tips: Array.isArray(item.tips) ? 
-                item.tips.filter((tip: any) => typeof tip === 'string' && tip.trim().length > 0)
-                         .map((tip: any) => String(tip).trim()) : []
+              order: parseInt(String(item.order)) || index + 1,
+              tips: []
             };
-            return sanitizedItem;
+            
+            if (Array.isArray(item.tips)) {
+              cleanItem.tips = item.tips
+                .filter((tip: any) => tip && typeof tip === 'string')
+                .map((tip: any) => String(tip).trim())
+                .filter((tip: string) => tip.length > 0 && tip.length < 200);
+            }
+            
+            return cleanItem;
           });
         } else {
-          updateData.items = [];
+          cleanData.items = [];
         }
+        console.log('Cleaned items count:', cleanData.items?.length || 0);
       }
       
-      if (updateData.importantNotes !== undefined) {
-        if (Array.isArray(updateData.importantNotes)) {
-          // Ensure all notes are valid strings
-          updateData.importantNotes = updateData.importantNotes
-            .filter((note: any) => note !== null && note !== undefined && String(note).trim().length > 0)
-            .map((note: any) => String(note).trim())
-            .slice(0, 10); // Limit to prevent excessive data
-        } else if (typeof updateData.importantNotes === 'string' && updateData.importantNotes.trim().length > 0) {
-          updateData.importantNotes = [String(updateData.importantNotes).trim()];
-        } else {
-          updateData.importantNotes = [];
-        }
+      // Handle array fields
+      if (req.body.originCountries !== undefined) {
+        cleanData.originCountries = Array.isArray(req.body.originCountries) ? req.body.originCountries : [];
+      }
+      if (req.body.destinationCountries !== undefined) {
+        cleanData.destinationCountries = Array.isArray(req.body.destinationCountries) ? req.body.destinationCountries : [];
       }
       
-      // Validate other fields to prevent corruption
-      if (updateData.originCountries !== undefined) {
-        updateData.originCountries = Array.isArray(updateData.originCountries) ? updateData.originCountries : [];
-      }
-      if (updateData.destinationCountries !== undefined) {
-        updateData.destinationCountries = Array.isArray(updateData.destinationCountries) ? updateData.destinationCountries : [];
-      }
+      console.log('Final clean data:', JSON.stringify(cleanData, null, 2));
       
-      const checklist = await storage.updateDocumentChecklist(parseInt(id), updateData);
+      const checklist = await storage.updateDocumentChecklist(parseInt(id), cleanData);
       
       if (checklist) {
         invalidateCache('document-checklists');
