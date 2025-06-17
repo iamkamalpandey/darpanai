@@ -133,14 +133,26 @@ export function SimpleChecklistForm({ initialData, onSubmit, isLoading }: Simple
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Australia">Australia</SelectItem>
-                        <SelectItem value="Canada">Canada</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
                         <SelectItem value="United States">United States</SelectItem>
                         <SelectItem value="United Kingdom">United Kingdom</SelectItem>
-                        <SelectItem value="New Zealand">New Zealand</SelectItem>
+                        <SelectItem value="Canada">Canada</SelectItem>
+                        <SelectItem value="Australia">Australia</SelectItem>
+                        <SelectItem value="China">China</SelectItem>
                         <SelectItem value="Germany">Germany</SelectItem>
                         <SelectItem value="France">France</SelectItem>
                         <SelectItem value="Netherlands">Netherlands</SelectItem>
+                        <SelectItem value="Japan">Japan</SelectItem>
+                        <SelectItem value="South Korea">South Korea</SelectItem>
+                        <SelectItem value="Singapore">Singapore</SelectItem>
+                        <SelectItem value="Switzerland">Switzerland</SelectItem>
+                        <SelectItem value="New Zealand">New Zealand</SelectItem>
+                        <SelectItem value="Ireland">Ireland</SelectItem>
+                        <SelectItem value="Sweden">Sweden</SelectItem>
+                        <SelectItem value="Norway">Norway</SelectItem>
+                        <SelectItem value="Denmark">Denmark</SelectItem>
+                        <SelectItem value="Italy">Italy</SelectItem>
+                        <SelectItem value="Spain">Spain</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

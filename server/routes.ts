@@ -1287,33 +1287,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       
-      // Validate and sanitize request body
-      const updateData = { ...req.body };
+      // Deep clone and validate request body to prevent reference issues
+      const updateData = JSON.parse(JSON.stringify(req.body));
       
-      // Ensure JSON fields are properly formatted
-      if (updateData.items) {
+      // Comprehensive data sanitization with validation
+      if (updateData.items !== undefined) {
         if (Array.isArray(updateData.items)) {
-          updateData.items = updateData.items.map((item: any) => ({
-            ...item,
-            tips: Array.isArray(item.tips) ? item.tips : []
-          }));
+          updateData.items = updateData.items.map((item: any) => {
+            // Ensure each item has proper structure
+            const sanitizedItem = {
+              id: item.id || '',
+              name: item.name || '',
+              description: item.description || '',
+              category: item.category || 'documentation',
+              required: Boolean(item.required),
+              completed: Boolean(item.completed),
+              order: Number(item.order) || 0,
+              tips: Array.isArray(item.tips) ? 
+                item.tips.filter((tip: any) => typeof tip === 'string' && tip.trim().length > 0)
+                         .map((tip: any) => String(tip).trim()) : []
+            };
+            return sanitizedItem;
+          });
         } else {
           updateData.items = [];
         }
       }
       
-      if (updateData.importantNotes) {
+      if (updateData.importantNotes !== undefined) {
         if (Array.isArray(updateData.importantNotes)) {
-          // Ensure all notes are strings and filter out empty ones
+          // Ensure all notes are valid strings
           updateData.importantNotes = updateData.importantNotes
-            .filter((note: any) => typeof note === 'string' && note.trim().length > 0)
-            .map((note: any) => String(note).trim());
-        } else if (typeof updateData.importantNotes === 'string') {
-          // Handle single string case
+            .filter((note: any) => note !== null && note !== undefined && String(note).trim().length > 0)
+            .map((note: any) => String(note).trim())
+            .slice(0, 10); // Limit to prevent excessive data
+        } else if (typeof updateData.importantNotes === 'string' && updateData.importantNotes.trim().length > 0) {
           updateData.importantNotes = [String(updateData.importantNotes).trim()];
         } else {
           updateData.importantNotes = [];
         }
+      }
+      
+      // Validate other fields to prevent corruption
+      if (updateData.originCountries !== undefined) {
+        updateData.originCountries = Array.isArray(updateData.originCountries) ? updateData.originCountries : [];
+      }
+      if (updateData.destinationCountries !== undefined) {
+        updateData.destinationCountries = Array.isArray(updateData.destinationCountries) ? updateData.destinationCountries : [];
       }
       
       const checklist = await storage.updateDocumentChecklist(parseInt(id), updateData);

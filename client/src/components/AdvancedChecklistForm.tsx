@@ -24,10 +24,38 @@ const userTypes = [
 ];
 
 const countries = [
-  "Nepal", "India", "Pakistan", "Bangladesh", "Sri Lanka", "Vietnam", "China",
-  "Philippines", "Indonesia", "Thailand", "Nigeria", "Ghana", "Kenya",
-  "USA", "Canada", "UK", "Australia", "Germany", "France", "Netherlands",
-  "Other"
+  "Other",
+  "USA", 
+  "UK", 
+  "Canada", 
+  "Australia", 
+  "China",
+  "Germany", 
+  "France", 
+  "Netherlands",
+  "Japan",
+  "South Korea",
+  "Singapore",
+  "Switzerland",
+  "New Zealand",
+  "Ireland",
+  "Sweden",
+  "Norway",
+  "Denmark",
+  "Italy",
+  "Spain",
+  "Nepal", 
+  "India", 
+  "Pakistan", 
+  "Bangladesh", 
+  "Sri Lanka", 
+  "Vietnam",
+  "Philippines", 
+  "Indonesia", 
+  "Thailand", 
+  "Nigeria", 
+  "Ghana", 
+  "Kenya"
 ];
 
 const visaTypes = [

@@ -105,8 +105,26 @@ type CompleteFormData = z.infer<typeof completeFormSchema>;
 type LoginFormData = z.infer<typeof loginUserSchema>;
 
 const studyDestinations = [
-  "United States", "United Kingdom", "Canada", "Australia", "Germany", 
-  "France", "Netherlands", "Sweden", "New Zealand", "Ireland", "Other"
+  "Other",
+  "United States", 
+  "United Kingdom", 
+  "Canada", 
+  "Australia", 
+  "China",
+  "Germany", 
+  "France", 
+  "Netherlands", 
+  "Sweden", 
+  "New Zealand", 
+  "Ireland",
+  "Japan",
+  "South Korea",
+  "Singapore",
+  "Switzerland",
+  "Norway",
+  "Denmark",
+  "Italy",
+  "Spain"
 ];
 
 const studyLevels = [
