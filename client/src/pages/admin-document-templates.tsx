@@ -256,16 +256,16 @@ export default function AdminDocumentTemplates() {
         </div>
 
         {/* Templates Grid - Mobile First Responsive */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full min-w-0">
           {filteredTemplates.map((template: DocumentTemplate) => (
-            <Card key={template.id} className="group hover:shadow-lg transition-all duration-200 shadow-sm hover:shadow-md bg-white">
+            <Card key={template.id} className="group hover:shadow-lg transition-all duration-200 shadow-sm hover:shadow-md bg-white w-full min-w-0 max-w-full overflow-hidden">
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center space-x-2">
+                <div className="flex items-start justify-between mb-3 min-w-0">
+                  <div className="flex items-center space-x-2 min-w-0 flex-1 overflow-hidden">
                     <div className="bg-blue-100 p-2 rounded-lg flex-shrink-0">
                       <FileText className="h-5 w-5 text-blue-600" />
                     </div>
-                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 truncate">
                       {template.category}
                     </Badge>
                   </div>
@@ -318,29 +318,29 @@ export default function AdminDocumentTemplates() {
                   </div>
                 </div>
                 
-                <CardTitle className="text-base sm:text-lg leading-tight mb-2 group-hover:text-blue-700 transition-colors">
+                <CardTitle className="text-base sm:text-lg leading-tight mb-2 group-hover:text-blue-700 transition-colors truncate">
                   {template.title}
                 </CardTitle>
                 
-                <CardDescription className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
+                <CardDescription className="text-sm text-gray-600 line-clamp-3 leading-relaxed break-words">
                   {template.description}
                 </CardDescription>
               </CardHeader>
               
-              <CardContent className="pt-0 space-y-4 flex-1">
+              <CardContent className="pt-0 space-y-4 flex-1 min-w-0 overflow-hidden">
                 {/* Countries and Visa Types */}
-                <div className="space-y-3">
+                <div className="space-y-3 min-w-0">
                   {template.countries && template.countries.length > 0 && (
-                    <div>
-                      <div className="text-xs font-medium text-gray-700 mb-1">Countries:</div>
-                      <div className="flex flex-wrap gap-1">
+                    <div className="min-w-0">
+                      <div className="text-xs font-medium text-gray-700 mb-1 truncate">Countries:</div>
+                      <div className="flex flex-wrap gap-1 min-w-0">
                         {template.countries.slice(0, 2).map((country) => (
-                          <Badge key={country} variant="secondary" className="text-xs">
+                          <Badge key={country} variant="secondary" className="text-xs truncate max-w-full">
                             {country}
                           </Badge>
                         ))}
                         {template.countries.length > 2 && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="secondary" className="text-xs whitespace-nowrap">
                             +{template.countries.length - 2} more
                           </Badge>
                         )}
@@ -349,16 +349,16 @@ export default function AdminDocumentTemplates() {
                   )}
                   
                   {template.visaTypes && template.visaTypes.length > 0 && (
-                    <div>
-                      <div className="text-xs font-medium text-gray-700 mb-1">Visa Types:</div>
-                      <div className="flex flex-wrap gap-1">
+                    <div className="min-w-0">
+                      <div className="text-xs font-medium text-gray-700 mb-1 truncate">Visa Types:</div>
+                      <div className="flex flex-wrap gap-1 min-w-0">
                         {template.visaTypes.slice(0, 2).map((visaType) => (
-                          <Badge key={visaType} variant="outline" className="text-xs">
+                          <Badge key={visaType} variant="outline" className="text-xs truncate max-w-full">
                             {visaType}
                           </Badge>
                         ))}
                         {template.visaTypes.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs whitespace-nowrap">
                             +{template.visaTypes.length - 2} more
                           </Badge>
                         )}
@@ -369,28 +369,28 @@ export default function AdminDocumentTemplates() {
 
                 {/* File Information */}
                 {(template.fileName || template.fileSize) && (
-                  <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                  <div className="bg-gray-50 rounded-lg p-3 space-y-2 min-w-0 overflow-hidden">
                     {template.fileName && (
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600">File:</span>
-                        <span className="font-medium text-gray-800 truncate ml-2">{template.fileName}</span>
+                      <div className="flex items-center justify-between text-xs min-w-0">
+                        <span className="text-gray-600 flex-shrink-0">File:</span>
+                        <span className="font-medium text-gray-800 truncate ml-2 min-w-0">{template.fileName}</span>
                       </div>
                     )}
                     {template.fileSize && (
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600">Size:</span>
-                        <span className="text-gray-800">{formatFileSize(template.fileSize)}</span>
+                        <span className="text-gray-600 flex-shrink-0">Size:</span>
+                        <span className="text-gray-800 whitespace-nowrap">{formatFileSize(template.fileSize)}</span>
                       </div>
                     )}
                   </div>
                 )}
 
                 {/* Status Badge */}
-                <div className="flex items-center justify-between">
-                  <Badge variant={template.isActive ? "default" : "secondary"} className="text-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 min-w-0">
+                  <Badge variant={template.isActive ? "default" : "secondary"} className="text-xs w-fit">
                     {template.isActive ? "Active" : "Inactive"}
                   </Badge>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 truncate">
                     Created: {template.createdAt ? new Date(template.createdAt).toLocaleDateString() : 'N/A'}
                   </span>
                 </div>
