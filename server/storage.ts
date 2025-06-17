@@ -735,9 +735,16 @@ export class DatabaseStorage implements IStorage {
         }));
       }
       
-      // Ensure importantNotes is an array
-      if (sanitizedUpdates.importantNotes && !Array.isArray(sanitizedUpdates.importantNotes)) {
-        sanitizedUpdates.importantNotes = [];
+      // Ensure importantNotes is an array and properly formatted
+      if (sanitizedUpdates.importantNotes) {
+        if (Array.isArray(sanitizedUpdates.importantNotes)) {
+          // Filter out empty strings and ensure all items are strings
+          sanitizedUpdates.importantNotes = sanitizedUpdates.importantNotes
+            .filter(note => note && typeof note === 'string' && note.trim().length > 0)
+            .map(note => String(note).trim());
+        } else {
+          sanitizedUpdates.importantNotes = [];
+        }
       }
       
       const [checklist] = await db
@@ -748,7 +755,7 @@ export class DatabaseStorage implements IStorage {
       return checklist;
     } catch (error) {
       console.error("Error updating document checklist:", error);
-      return undefined;
+      throw error; // Re-throw to get better error handling
     }
   }
 

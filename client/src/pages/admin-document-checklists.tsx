@@ -53,6 +53,7 @@ export default function AdminDocumentChecklists() {
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
   const [selectedUserType, setSelectedUserType] = useState<string>("all");
   const [selectedVisaType, setSelectedVisaType] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingChecklist, setEditingChecklist] = useState<DocumentChecklist | null>(null);
 
@@ -99,11 +100,11 @@ export default function AdminDocumentChecklists() {
       // Sanitize data before sending to prevent JSON syntax errors
       const sanitizedData = {
         ...data,
-        items: Array.isArray(data.items) ? data.items.map(item => ({
+        items: Array.isArray(data.items) ? data.items.map((item: any) => ({
           ...item,
           tips: Array.isArray(item.tips) ? item.tips : []
         })) : [],
-        importantNotes: Array.isArray(data.importantNotes) ? data.importantNotes : []
+        importantNotes: Array.isArray(data.importantNotes) ? data.importantNotes.filter((note: any) => note && typeof note === 'string' && note.trim().length > 0) : []
       };
       
       const response = await fetch(`/api/admin/document-checklists/${editingChecklist?.id}`, {
@@ -151,7 +152,10 @@ export default function AdminDocumentChecklists() {
     const matchesCountry = selectedCountry === 'all' || checklist.country === selectedCountry;
     const matchesUserType = selectedUserType === 'all' || checklist.userType === selectedUserType;
     const matchesVisaType = selectedVisaType === 'all' || checklist.visaType === selectedVisaType;
-    return matchesSearch && matchesCountry && matchesUserType && matchesVisaType;
+    const matchesStatus = selectedStatus === 'all' || 
+                         (selectedStatus === 'active' && checklist.isActive) ||
+                         (selectedStatus === 'inactive' && !checklist.isActive);
+    return matchesSearch && matchesCountry && matchesUserType && matchesVisaType && matchesStatus;
   });
 
   const handleToggleStatus = (checklist: DocumentChecklist) => {
