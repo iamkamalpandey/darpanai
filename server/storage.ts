@@ -528,6 +528,10 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUpdate(id: number): Promise<boolean> {
     try {
+      // First delete all user update views for this update
+      await db.delete(userUpdateViews).where(eq(userUpdateViews.updateId, id));
+      
+      // Then delete the update itself
       await db.delete(updates).where(eq(updates.id, id));
       return true;
     } catch (error) {

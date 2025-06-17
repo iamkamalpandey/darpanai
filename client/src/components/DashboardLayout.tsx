@@ -108,7 +108,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </Link>
               ))}
             </nav>
-            <div className="p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+            <div className="mt-auto p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
               <div className="flex items-center p-3 bg-gray-50 rounded-lg mb-3 shadow-sm">
                 <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
                   <span className="text-sm font-semibold text-white">
@@ -172,7 +172,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </Link>
               ))}
             </nav>
-            <div className="p-3 lg:p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
+            <div className="mt-auto p-3 lg:p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
               <div className="flex items-center p-2 lg:p-3 bg-gray-50 rounded-lg mb-3 shadow-sm">
                 <div className="h-8 w-8 lg:h-10 lg:w-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
                   <span className="text-xs lg:text-sm font-semibold text-white">

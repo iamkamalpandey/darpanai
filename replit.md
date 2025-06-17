@@ -137,10 +137,11 @@ FRONTEND_URL=your_domain_url
 - Added comprehensive appointment cancellation with ownership verification, status validation, and proper error handling
 - Enhanced consultation page with confirmation dialog and toast notifications for appointment cancellation
 - Fixed logout button positioning and scaling issues in both user and admin dashboard sidebars
-- Resolved logout button content overlap by removing problematic sticky positioning
+- Resolved logout button content overlap by removing problematic sticky positioning and adding mt-auto for proper bottom alignment
 - Applied responsive sizing improvements to both DashboardLayout and AdminLayout components
 - Enhanced both layouts with proper flex properties, truncation, and responsive padding that scales with sidebar widths
 - Added mobile sidebar auto-close functionality for improved user experience
+- Fixed foreign key constraint error in update deletion by implementing cascade deletion for user_update_views table
 - Built truly responsive layouts with separate mobile and desktop designs optimized for each screen size
 - Implemented comprehensive mobile-first approach with dedicated mobile headers, sidebars, and content areas
 - Created adaptive sidebar widths: 256px (md), 288px (lg), 320px (xl) that scale naturally with screen size
