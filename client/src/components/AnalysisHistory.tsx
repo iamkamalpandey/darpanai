@@ -194,16 +194,16 @@ export default function AnalysisHistory() {
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div>
+          <CardContent className="max-w-full min-w-0 overflow-hidden">
+            <div className="space-y-6 min-w-0">
+              <div className="min-w-0">
                 <h3 className="text-lg font-medium mb-2">Summary</h3>
-                <p className="text-gray-700 dark:text-gray-300">{selectedAnalysis.summary}</p>
+                <p className="text-gray-700 dark:text-gray-300 break-words whitespace-pre-wrap">{selectedAnalysis.summary}</p>
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <h3 className="text-lg font-medium mb-2">Rejection Reasons</h3>
-                <div className="space-y-4">
+                <div className="space-y-4 min-w-0">
                   {(selectedAnalysis.rejectionReasons as RejectionReason[]).map((reason, index) => (
                     <div 
                       key={index} 
@@ -211,37 +211,44 @@ export default function AnalysisHistory() {
                         reason.severity === 'high' ? 'border-red-500' :
                         reason.severity === 'medium' ? 'border-orange-500' :
                         'border-yellow-500'
-                      } pl-4 py-2`}
+                      } pl-4 py-2 min-w-0 overflow-hidden`}
                     >
-                      <h4 className="font-medium">{reason.title}</h4>
-                      <p className="text-gray-600 dark:text-gray-400">{reason.description}</p>
+                      <h4 className="font-medium break-words">{reason.title}</h4>
+                      <p className="text-gray-600 dark:text-gray-400 break-words whitespace-pre-wrap">{reason.description}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <h3 className="text-lg font-medium mb-2">Recommendations</h3>
-                <div className="space-y-3">
+                <div className="space-y-3 min-w-0">
                   {(selectedAnalysis.recommendations as Recommendation[]).map((rec, index) => (
-                    <div key={index} className="bg-primary-50 dark:bg-gray-700 p-3 rounded">
-                      <h4 className="font-medium">{rec.title}</h4>
-                      <p className="text-gray-600 dark:text-gray-400">{rec.description}</p>
+                    <div key={index} className="bg-blue-50 dark:bg-gray-700 p-3 rounded min-w-0 overflow-hidden">
+                      <h4 className="font-medium break-words">{rec.title}</h4>
+                      <p className="text-gray-600 dark:text-gray-400 break-words whitespace-pre-wrap">{rec.description}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <h3 className="text-lg font-medium mb-2">Next Steps</h3>
-                <ol className="list-decimal list-inside space-y-2 pl-2">
+                <div className="space-y-3 min-w-0">
                   {(selectedAnalysis.nextSteps as NextStep[]).map((step, index) => (
-                    <li key={index}>
-                      <span className="font-medium">{step.title}</span>
-                      <p className="text-gray-600 dark:text-gray-400 ml-6">{step.description}</p>
-                    </li>
+                    <div key={index} className="flex flex-col space-y-2 p-3 bg-gray-50 rounded min-w-0">
+                      <div className="flex items-start space-x-3">
+                        <span className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium flex-shrink-0">
+                          {index + 1}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-medium break-words">{step.title}</h4>
+                          <p className="text-gray-600 dark:text-gray-400 break-words whitespace-pre-wrap mt-1">{step.description}</p>
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </ol>
+                </div>
               </div>
             </div>
           </CardContent>
