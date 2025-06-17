@@ -536,11 +536,11 @@ export default function DocumentChecklistGenerator() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {filteredChecklists.map((checklist: DocumentChecklist) => (
                   <Card 
                     key={checklist.id} 
-                    className="group cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 border-l-green-500"
+                    className="group cursor-pointer hover:shadow-lg transition-all duration-200 shadow-sm hover:shadow-md"
                     onClick={() => setViewingChecklist(checklist)}
                   >
                     <CardHeader className="pb-3">

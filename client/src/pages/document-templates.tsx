@@ -102,73 +102,78 @@ export default function DocumentTemplates() {
         </div>
 
         {/* Search and Filter Controls */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+        <div className="space-y-4 mb-4">
+          {/* Search Bar - Full Width */}
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search templates..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 h-10"
             />
           </div>
           
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Categories</option>
-            {categories.map((category) => (
-              <option key={category.value} value={category.value}>
-                {category.label}
-              </option>
-            ))}
-          </select>
+          {/* Filter Controls */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-10"
+            >
+              <option value="">All Categories</option>
+              {categories.map((category) => (
+                <option key={category.value} value={category.value}>
+                  {category.label}
+                </option>
+              ))}
+            </select>
 
-          <select
-            value={selectedCountry}
-            onChange={(e) => setSelectedCountry(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Countries</option>
-            {(dropdownOptions?.countries || []).map((country: string) => (
-              <option key={country} value={country}>{country}</option>
-            ))}
-          </select>
+            <select
+              value={selectedCountry}
+              onChange={(e) => setSelectedCountry(e.target.value)}
+              className="px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-10"
+            >
+              <option value="">All Countries</option>
+              {(dropdownOptions?.countries || []).map((country: string) => (
+                <option key={country} value={country}>{country}</option>
+              ))}
+            </select>
 
-          <select
-            value={selectedVisaType}
-            onChange={(e) => setSelectedVisaType(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">All Visa Types</option>
-            {(dropdownOptions?.visaTypes || []).map((visaType: string) => (
-              <option key={visaType} value={visaType}>{visaType}</option>
-            ))}
-          </select>
+            <select
+              value={selectedVisaType}
+              onChange={(e) => setSelectedVisaType(e.target.value)}
+              className="px-3 py-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-10"
+            >
+              <option value="">All Visa Types</option>
+              {(dropdownOptions?.visaTypes || []).map((visaType: string) => (
+                <option key={visaType} value={visaType}>{visaType}</option>
+              ))}
+            </select>
+          </div>
 
-          <div className="flex items-center justify-between">
+          {/* Results and Clear Filters */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between">
+            <span className="text-sm text-gray-600">
+              {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''} found
+            </span>
             {hasActiveFilters && (
-              <Button variant="outline" size="sm" onClick={clearFilters}>
-                Clear Filters
+              <Button variant="outline" size="sm" onClick={clearFilters} className="w-full sm:w-auto">
+                Clear All Filters
               </Button>
             )}
-            <span className="text-sm text-gray-600">
-              {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''}
-            </span>
           </div>
         </div>
 
         {/* Templates Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredTemplates.map((template: DocumentTemplate) => (
-            <Card key={template.id} className="group hover:shadow-lg transition-all duration-200 border border-gray-200 hover:border-blue-300 bg-white">
+            <Card key={template.id} className="group hover:shadow-lg transition-all duration-200 shadow-sm hover:shadow-md bg-white">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                      <FileText className="h-4 w-4 text-blue-600" />
+                    <div className="bg-blue-100 p-2 rounded-lg flex-shrink-0">
+                      <FileText className="h-5 w-5 text-blue-600" />
                     </div>
                     <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
                       {template.category}
