@@ -83,7 +83,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       />
 
       {/* Mobile sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-card border-r transform transition-transform duration-300 ease-in-out lg:hidden ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-card border-r transform transition-transform duration-300 ease-in-out lg:hidden ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}>
         <div className="flex items-center justify-between p-4 border-b">
@@ -186,7 +186,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* Desktop Admin Sidebar */}
-      <div className="hidden lg:block w-64 border-r bg-card">
+      <div className="hidden lg:block w-56 xl:w-60 border-r bg-card">
         <div className="flex h-full flex-col p-4">
           <div className="flex items-center gap-2 px-2 py-4 border-b mb-4">
             <Shield className="h-6 w-6 text-primary" />
@@ -299,8 +299,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 xl:p-8">
-          <div className="mx-auto max-w-7xl xl:max-w-[1400px]">
+        <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-5 xl:p-6">
+          <div className="mx-auto max-w-full xl:max-w-[1200px] 2xl:max-w-[1400px]">
             {children}
           </div>
         </main>
