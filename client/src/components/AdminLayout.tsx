@@ -95,7 +95,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       />
 
       {/* Mobile sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-[75%] max-w-xs bg-card border-r transform transition-transform duration-300 ease-in-out lg:hidden ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-card border-r transform transition-transform duration-300 ease-in-out lg:hidden ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}>
         <div className="flex items-center justify-between p-4 border-b">
@@ -198,7 +198,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* Desktop Admin Sidebar */}
-      <div className="hidden lg:flex lg:w-[18%] xl:w-[16%] 2xl:w-[14%] border-r bg-card flex-shrink-0">
+      <div className="hidden lg:flex lg:w-64 xl:w-72 border-r bg-card flex-shrink-0">
         <div className="flex h-full flex-col py-4 px-3">
           <div className="flex items-center gap-3 px-2 py-3 mb-6">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
@@ -317,8 +317,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-4">
-          <div className="w-full max-w-none">
+        <main className="flex-1 overflow-auto">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
             {children}
           </div>
         </main>

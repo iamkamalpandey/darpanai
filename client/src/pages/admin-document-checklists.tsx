@@ -200,7 +200,7 @@ export default function AdminDocumentChecklists() {
 
   return (
     <AdminLayout>
-      <div className="p-8">
+      <div>
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold">Document Checklists</h1>
@@ -290,7 +290,7 @@ export default function AdminDocumentChecklists() {
         </div>
 
         {/* Checklists Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
           {filteredChecklists.map((checklist: DocumentChecklist) => (
             <Card key={checklist.id} className="hover:shadow-lg transition-all duration-200 shadow-sm hover:shadow-md bg-white h-full flex flex-col">
               <CardHeader className="pb-4 flex-shrink-0">
