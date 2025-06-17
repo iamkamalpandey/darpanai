@@ -561,7 +561,7 @@ export default function DocumentChecklistGenerator() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 w-full min-w-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 w-full min-w-0 auto-rows-fr">
                 {filteredChecklists.map((checklist: DocumentChecklist) => (
                   <Card 
                     key={checklist.id} 
