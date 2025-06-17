@@ -312,7 +312,7 @@ export const documentChecklists = pgTable("document_checklists", {
   items: jsonb("items").notNull().default([]), // ChecklistItem[]
   estimatedProcessingTime: text("estimated_processing_time").notNull(),
   totalFees: text("total_fees").notNull(),
-  importantNotes: text("important_notes").array().notNull().default([]),
+  importantNotes: jsonb("important_notes").notNull().default([]),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
