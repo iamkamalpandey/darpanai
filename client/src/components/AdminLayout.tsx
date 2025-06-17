@@ -1,24 +1,21 @@
-import { ReactNode, useState } from "react";
-import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
-import { cn } from "@/lib/utils";
-import {
-  Users,
-  BarChart3,
-  Settings,
-  Home,
+import { ReactNode, useState } from 'react';
+import { Link, useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+import { 
+  Shield, 
+  Menu, 
   LogOut,
-  Shield,
+  Users,
   FileText,
   Calendar,
-  Building2,
+  Briefcase,
   Bell,
   FileCheck,
-  CheckSquare,
-  Menu,
-  X,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+  ClipboardCheck,
+  Settings,
+  BarChart3
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface AdminSidebarItemProps {
   icon: React.ReactNode;
@@ -30,27 +27,18 @@ interface AdminSidebarItemProps {
 const AdminSidebarItem = ({ icon, label, href, active }: AdminSidebarItemProps) => {
   return (
     <Link href={href}>
-      <div
-        className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-3 mx-2 transition-all duration-200 cursor-pointer",
-          active 
-            ? "bg-blue-600 text-white shadow-md" 
-            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-        )}
+      <a 
+        className={`group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-colors duration-200 ${
+          active
+            ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
+            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+        }`}
       >
-        <div className={cn(
-          "transition-colors duration-200",
-          active ? "text-white" : "text-gray-500"
-        )}>
+        <span className={`h-4 w-4 shrink-0 ${active ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600'}`}>
           {icon}
-        </div>
-        <span className={cn(
-          "text-sm font-medium transition-colors duration-200",
-          active ? "text-white" : "text-gray-700"
-        )}>
-          {label}
         </span>
-      </div>
+        <span className="truncate">{label}</span>
+      </a>
     </Link>
   );
 };
@@ -60,13 +48,33 @@ interface AdminLayoutProps {
 }
 
 export function AdminLayout({ children }: AdminLayoutProps) {
-  const [location] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logoutMutation } = useAuth();
+  const [location] = useLocation();
+  
+  const { data: user } = useQuery({
+    queryKey: ['/api/user'],
+  });
 
-  const handleLogout = () => {
-    logoutMutation.mutate();
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
+
+  const adminSidebarItems = [
+    { icon: <BarChart3 size={16} />, label: 'Dashboard', href: '/admin' },
+    { icon: <Users size={16} />, label: 'User Management', href: '/admin/users' },
+    { icon: <FileText size={16} />, label: 'Analysis Reports', href: '/admin/analyses' },
+    { icon: <Calendar size={16} />, label: 'Appointments', href: '/admin/appointments' },
+    { icon: <Briefcase size={16} />, label: 'Professional Applications', href: '/admin/professional-applications' },
+    { icon: <Bell size={16} />, label: 'Updates & Notifications', href: '/admin/updates' },
+    { icon: <FileCheck size={16} />, label: 'Document Templates', href: '/admin/document-templates' },
+    { icon: <ClipboardCheck size={16} />, label: 'Document Checklists', href: '/admin/document-checklists' },
+    { icon: <Settings size={16} />, label: 'System Settings', href: '/admin/settings' },
+  ];
 
   // Redirect non-admin users
   if (user?.role !== 'admin') {
@@ -85,249 +93,161 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen flex overflow-hidden bg-gray-100">
-      <div className="flex h-screen w-full max-w-[90%] mx-auto bg-white shadow-xl">
-        {/* Mobile sidebar overlay */}
+    <div className="min-h-screen flex overflow-hidden bg-gray-50">
+      {/* Mobile sidebar overlay */}
       <div 
-        className={`fixed inset-0 z-50 bg-background/80 backdrop-blur-sm lg:hidden ${
+        className={`fixed inset-0 z-50 bg-black/20 backdrop-blur-sm lg:hidden ${
           sidebarOpen ? "block" : "hidden"
         }`}
         onClick={() => setSidebarOpen(false)}
       />
 
       {/* Mobile sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-card border-r transform transition-transform duration-300 ease-in-out lg:hidden ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:hidden ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}>
-        <div className="flex items-center justify-between p-4 border-b">
-          <div className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-primary" />
-            <span className="text-lg font-semibold">Admin Panel</span>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSidebarOpen(false)}
-            className="p-1"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        {user && (
-          <div className="mb-6 px-6 pt-4">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Shield className="h-5 w-5" />
-              </div>
-              <div className="flex flex-1 flex-col overflow-hidden">
-                <span className="text-sm font-medium text-foreground truncate">{user.firstName ? `${user.firstName} ${user.lastName}` : user.username}</span>
-                <span className="text-xs text-muted-foreground truncate">Administrator</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <nav className="flex-1 space-y-1 px-4">
-          <AdminSidebarItem
-            icon={<BarChart3 className="h-5 w-5" />}
-            label="Dashboard"
-            href="/admin"
-            active={location === "/admin"}
-          />
-          <AdminSidebarItem
-            icon={<Users className="h-5 w-5" />}
-            label="User Management"
-            href="/admin/users"
-            active={location === "/admin/users"}
-          />
-          <AdminSidebarItem
-            icon={<FileText className="h-5 w-5" />}
-            label="Analysis Reports"
-            href="/admin/analyses"
-            active={location === "/admin/analyses"}
-          />
-          <AdminSidebarItem
-            icon={<Calendar className="h-5 w-5" />}
-            label="Appointments"
-            href="/admin/appointments"
-            active={location === "/admin/appointments"}
-          />
-          <AdminSidebarItem
-            icon={<Building2 className="h-5 w-5" />}
-            label="Professional Applications"
-            href="/admin/professional-applications"
-            active={location === "/admin/professional-applications"}
-          />
-          <AdminSidebarItem
-            icon={<Bell className="h-5 w-5" />}
-            label="Updates & Notifications"
-            href="/admin/updates"
-            active={location === "/admin/updates"}
-          />
-          <AdminSidebarItem
-            icon={<FileCheck className="h-5 w-5" />}
-            label="Document Templates"
-            href="/admin/document-templates"
-            active={location === "/admin/document-templates"}
-          />
-          <AdminSidebarItem
-            icon={<CheckSquare className="h-5 w-5" />}
-            label="Document Checklists"
-            href="/admin/document-checklists"
-            active={location === "/admin/document-checklists"}
-          />
-          <AdminSidebarItem
-            icon={<Settings className="h-5 w-5" />}
-            label="System Settings"
-            href="/admin/settings"
-            active={location === "/admin/settings"}
-          />
-        </nav>
-
-        <div className="mt-auto border-t pt-4 px-4">
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-muted-foreground"
-            onClick={handleLogout}
-            disabled={logoutMutation.isPending}
-          >
-            <LogOut className="mr-2 h-5 w-5" />
-            {logoutMutation.isPending ? "Logging out..." : "Log out"}
-          </Button>
-        </div>
-      </div>
-
-      {/* Desktop Admin Sidebar */}
-      <div className="hidden lg:flex lg:w-64 xl:w-72 border-r bg-gray-50 flex-shrink-0">
-        <div className="flex h-full flex-col py-4 px-4 w-full">
-          <div className="flex items-center gap-3 px-3 py-4 mb-8 border-b border-gray-200">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600">
-              <Shield className="h-5 w-5 text-white" />
-            </div>
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto px-6 pb-4">
+          <div className="flex h-16 shrink-0 items-center border-b border-gray-200 -mx-6 px-6 mb-4">
+            <Shield className="h-6 w-6 text-blue-600 mr-3" />
             <span className="text-lg font-semibold text-gray-900">Admin Panel</span>
           </div>
-          
-          {user && (
-            <div className="mb-8 px-2">
-              <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-primary">
-                  <Shield className="h-4 w-4" />
+          <nav className="flex flex-1 flex-col">
+            <ul role="list" className="flex flex-1 flex-col gap-y-7">
+              <li>
+                <ul role="list" className="-mx-2 space-y-1">
+                  {adminSidebarItems.map((item) => (
+                    <li key={item.href}>
+                      <AdminSidebarItem 
+                        icon={item.icon}
+                        label={item.label}
+                        href={item.href}
+                        active={location === item.href}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </li>
+              <li className="mt-auto">
+                <div className="flex items-center justify-between px-2 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md">
+                  <div className="flex items-center">
+                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+                      <span className="text-xs font-semibold text-white">
+                        {user?.firstName?.[0]}{user?.lastName?.[0]}
+                      </span>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-gray-900">
+                        {user?.firstName} {user?.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500">Administrator</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex flex-1 flex-col overflow-hidden">
-                  <span className="text-sm font-medium text-foreground truncate">{user.firstName ? `${user.firstName} ${user.lastName}` : user.username}</span>
-                  <span className="text-xs text-muted-foreground/80 truncate">Administrator</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <nav className="flex-1 space-y-1">
-            <AdminSidebarItem
-              icon={<BarChart3 className="h-4 w-4" />}
-              label="Dashboard"
-              href="/admin"
-              active={location === "/admin"}
-            />
-            <AdminSidebarItem
-              icon={<Users className="h-4 w-4" />}
-              label="User Management"
-              href="/admin/users"
-              active={location === "/admin/users"}
-            />
-            <AdminSidebarItem
-              icon={<FileText className="h-4 w-4" />}
-              label="Analysis Reports"
-              href="/admin/analyses"
-              active={location === "/admin/analyses"}
-            />
-            <AdminSidebarItem
-              icon={<Calendar className="h-4 w-4" />}
-              label="Appointments"
-              href="/admin/appointments"
-              active={location === "/admin/appointments"}
-            />
-            <AdminSidebarItem
-              icon={<Building2 className="h-4 w-4" />}
-              label="Professional Applications"
-              href="/admin/professional-applications"
-              active={location === "/admin/professional-applications"}
-            />
-            <AdminSidebarItem
-              icon={<Bell className="h-4 w-4" />}
-              label="Updates & Notifications"
-              href="/admin/updates"
-              active={location === "/admin/updates"}
-            />
-            <AdminSidebarItem
-              icon={<FileCheck className="h-4 w-4" />}
-              label="Document Templates"
-              href="/admin/document-templates"
-              active={location === "/admin/document-templates"}
-            />
-            <AdminSidebarItem
-              icon={<CheckSquare className="h-4 w-4" />}
-              label="Document Checklists"
-              href="/admin/document-checklists"
-              active={location === "/admin/document-checklists"}
-            />
-            <AdminSidebarItem
-              icon={<Settings className="h-4 w-4" />}
-              label="System Settings"
-              href="/admin/settings"
-              active={location === "/admin/settings"}
-            />
+                <button
+                  onClick={handleLogout}
+                  className="mt-3 w-full flex items-center px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-gray-900 group"
+                >
+                  <LogOut className="mr-3 h-4 w-4 text-gray-400 group-hover:text-gray-500" />
+                  Log out
+                </button>
+              </li>
+            </ul>
           </nav>
-
-          <div className="mt-auto pt-4">
-            <div className="px-2">
-              <Button
-                variant="ghost"
-                className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-accent/70 rounded-lg px-3 py-2.5 transition-colors duration-200"
-                onClick={handleLogout}
-                disabled={logoutMutation.isPending}
-              >
-                <LogOut className="mr-3 h-4 w-4" />
-                <span className="text-sm font-normal">
-                  {logoutMutation.isPending ? "Logging out..." : "Log out"}
-                </span>
-              </Button>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Desktop sidebar - Proportional width (20% of screen) */}
+      <div className="hidden lg:flex lg:w-1/5 lg:min-w-[280px] lg:max-w-[320px] lg:flex-col bg-white border-r border-gray-200">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto px-6 pb-4">
+          <div className="flex h-16 shrink-0 items-center border-b border-gray-200 -mx-6 px-6 mb-4">
+            <Shield className="h-6 w-6 text-blue-600 mr-3" />
+            <span className="text-lg font-semibold text-gray-900">Admin Panel</span>
+          </div>
+          <nav className="flex flex-1 flex-col">
+            <ul role="list" className="flex flex-1 flex-col gap-y-7">
+              <li>
+                <ul role="list" className="-mx-2 space-y-1">
+                  {adminSidebarItems.map((item) => (
+                    <li key={item.href}>
+                      <AdminSidebarItem 
+                        icon={item.icon}
+                        label={item.label}
+                        href={item.href}
+                        active={location === item.href}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </li>
+              <li className="mt-auto">
+                <div className="flex items-center justify-between px-2 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md">
+                  <div className="flex items-center">
+                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+                      <span className="text-xs font-semibold text-white">
+                        {user?.firstName?.[0]}{user?.lastName?.[0]}
+                      </span>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-gray-900">
+                        {user?.firstName} {user?.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500">Administrator</p>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="mt-3 w-full flex items-center px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-gray-900 group"
+                >
+                  <LogOut className="mr-3 h-4 w-4 text-gray-400 group-hover:text-gray-500" />
+                  Log out
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+
+      {/* Main content area - Proportional width (80% of screen) */}
+      <div className="flex flex-1 flex-col lg:pl-0">
         {/* Mobile header */}
-        <header className="flex h-12 sm:h-14 items-center border-b px-3 sm:px-4 lg:px-6 bg-white sticky top-0 z-30 lg:hidden">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="mr-2 p-1.5 sm:p-2"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
-            <span className="sr-only">Toggle menu</span>
-          </Button>
-          <div className="ml-auto flex items-center gap-2">
-            <div className="text-xs sm:text-sm text-muted-foreground font-medium">
-              Admin Panel
+        <header className="lg:hidden">
+          <div className="flex items-center justify-between bg-white border-b border-gray-200 px-4 py-1.5 sm:px-6 lg:px-8">
+            <div className="flex items-center">
+              <button
+                className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <span className="sr-only">Open sidebar</span>
+                <Menu className="h-6 w-6" />
+              </button>
+              <div className="ml-4 flex items-center">
+                <Shield className="h-6 w-6 text-blue-600 mr-2" />
+                <span className="text-lg font-semibold text-gray-900">Admin Panel</span>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+                <span className="text-xs font-semibold text-white">
+                  {user?.firstName?.[0]}{user?.lastName?.[0]}
+                </span>
+              </div>
             </div>
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-auto bg-white">
-          <div className="h-full">
-            <div className="h-full bg-gray-50 m-4 rounded-lg border border-gray-200 shadow-sm">
-              <div className="h-full p-6 lg:p-8 overflow-auto">
-                {children}
+        {/* Page content - Clean, spacious design with optimal readability */}
+        <main className="flex-1 overflow-auto bg-gray-50">
+          <div className="h-full p-6 lg:p-8">
+            <div className="max-w-none mx-auto">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 min-h-[calc(100vh-8rem)]">
+                <div className="p-6 lg:p-8">
+                  {children}
+                </div>
               </div>
             </div>
           </div>
         </main>
-        </div>
       </div>
     </div>
   );
