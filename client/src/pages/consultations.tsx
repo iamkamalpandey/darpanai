@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, Loader2, Phone } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -13,12 +13,51 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Appointment } from "@shared/schema";
 
 export default function ConsultationsPage() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const { data: appointments, isLoading, error } = useQuery<Appointment[]>({
     queryKey: ["/api/appointments"],
     retry: false,
+  });
+
+  // Cancel appointment mutation
+  const cancelAppointmentMutation = useMutation({
+    mutationFn: async (appointmentId: number) => {
+      return apiRequest("PATCH", `/api/appointments/${appointmentId}`, {
+        status: "cancelled"
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      toast({
+        title: "Appointment cancelled",
+        description: "Your consultation has been cancelled successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to cancel appointment. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Helper function to get status badge color
@@ -139,9 +178,34 @@ export default function ConsultationsPage() {
                     Requested {format(new Date(appointment.createdAt), "PP")}
                   </span>
                   {appointment.status === "pending" && (
-                    <Button variant="outline" size="sm">
-                      Cancel
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          disabled={cancelAppointmentMutation.isPending}
+                        >
+                          Cancel
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Cancel Consultation</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to cancel this consultation? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => cancelAppointmentMutation.mutate(appointment.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Cancel Consultation
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   )}
                 </div>
               </CardFooter>

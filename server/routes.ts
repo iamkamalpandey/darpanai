@@ -360,6 +360,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cancel user's appointment (requires auth)
+  app.patch('/api/appointments/:id', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const appointmentId = parseInt(req.params.id);
+      const { status } = req.body;
+
+      if (isNaN(appointmentId)) {
+        return res.status(400).json({ error: 'Invalid appointment ID' });
+      }
+
+      if (status !== 'cancelled') {
+        return res.status(400).json({ error: 'Only cancellation is allowed for this endpoint' });
+      }
+
+      // Get the appointment first to verify ownership
+      const appointments = await storage.getUserAppointments(req.user!.id);
+      const appointment = appointments.find(a => a.id === appointmentId);
+
+      if (!appointment) {
+        return res.status(404).json({ error: 'Appointment not found or you do not have permission to modify it' });
+      }
+
+      if (appointment.status === 'cancelled') {
+        return res.status(400).json({ error: 'Appointment is already cancelled' });
+      }
+
+      if (appointment.status === 'completed') {
+        return res.status(400).json({ error: 'Cannot cancel a completed appointment' });
+      }
+
+      const updatedAppointment = await storage.updateAppointmentStatus(appointmentId, status);
+      if (!updatedAppointment) {
+        return res.status(404).json({ error: 'Failed to update appointment' });
+      }
+
+      return res.status(200).json(updatedAppointment);
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      return res.status(500).json({ error: 'Failed to cancel appointment' });
+    }
+  });
+
   // ADMIN ROUTES
   // Helper function to check if user is admin
   const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
