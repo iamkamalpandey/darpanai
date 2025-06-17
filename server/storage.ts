@@ -734,11 +734,10 @@ export class DatabaseStorage implements IStorage {
         }
       }
       
-      // Handle items array with proper JSONB conversion
+      // Handle items array for JSONB column (keep as JavaScript array)
       if (updates.items !== undefined) {
-        let validatedItems: any[] = [];
         if (Array.isArray(updates.items)) {
-          validatedItems = updates.items.map((item: any) => {
+          sanitizedUpdates.items = updates.items.map((item: any) => {
             const validatedItem = {
               id: String(item.id || '').trim(),
               name: String(item.name || '').trim(),
@@ -760,25 +759,24 @@ export class DatabaseStorage implements IStorage {
             
             return validatedItem;
           });
+        } else {
+          sanitizedUpdates.items = [];
         }
-        // Convert to proper JSON string for JSONB storage
-        sanitizedUpdates.items = JSON.stringify(validatedItems);
       }
       
-      // Handle importantNotes array with proper JSONB conversion
+      // Handle importantNotes array for PostgreSQL array column (keep as JavaScript array)
       if (updates.importantNotes !== undefined) {
-        let notesArray: string[] = [];
         if (Array.isArray(updates.importantNotes)) {
-          notesArray = updates.importantNotes
+          sanitizedUpdates.importantNotes = updates.importantNotes
             .filter((note: any) => note !== null && note !== undefined)
             .map((note: any) => String(note).trim())
             .filter((note: string) => note.length > 0);
         } else if (typeof updates.importantNotes === 'string') {
           const trimmedNote = String(updates.importantNotes).trim();
-          notesArray = trimmedNote.length > 0 ? [trimmedNote] : [];
+          sanitizedUpdates.importantNotes = trimmedNote.length > 0 ? [trimmedNote] : [];
+        } else {
+          sanitizedUpdates.importantNotes = [];
         }
-        // Convert to proper JSON string for JSONB storage
-        sanitizedUpdates.importantNotes = JSON.stringify(notesArray);
       }
       
       // Ensure proper timestamp
