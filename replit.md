@@ -130,14 +130,17 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
-**June 17, 2025 - Complete Mobile-First Responsive Design Implementation & User Dashboard Fixes:**
+**June 17, 2025 - Complete Mobile-First Responsive Design Implementation & Dashboard Layout Fixes:**
 - Fixed critical navigation routing issues in DashboardLayout - corrected mismatched route paths causing 404 errors
 - Updated sidebar navigation links to match actual App.tsx routes (Dashboard: '/', Analyses: '/history', Appointments: '/consultations')
 - Implemented user appointment cancellation functionality - added missing PATCH `/api/appointments/:id` endpoint for users to cancel their own appointments
 - Added comprehensive appointment cancellation with ownership verification, status validation, and proper error handling
 - Enhanced consultation page with confirmation dialog and toast notifications for appointment cancellation
-- Fixed logout button positioning and scaling issues in user dashboard sidebar - button now properly scales with sidebar width changes
-- Implemented responsive sizing for user section with proper flex properties and truncation to prevent layout shifts
+- Fixed logout button positioning and scaling issues in both user and admin dashboard sidebars
+- Resolved logout button content overlap by removing problematic sticky positioning
+- Applied responsive sizing improvements to both DashboardLayout and AdminLayout components
+- Enhanced both layouts with proper flex properties, truncation, and responsive padding that scales with sidebar widths
+- Added mobile sidebar auto-close functionality for improved user experience
 - Built truly responsive layouts with separate mobile and desktop designs optimized for each screen size
 - Implemented comprehensive mobile-first approach with dedicated mobile headers, sidebars, and content areas
 - Created adaptive sidebar widths: 256px (md), 288px (lg), 320px (xl) that scale naturally with screen size
