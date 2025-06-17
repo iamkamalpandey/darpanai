@@ -1,6 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
+import { useUnreadUpdates } from '@/hooks/use-unread-updates';
 import { 
   Shield, 
   Menu, 
@@ -10,7 +11,8 @@ import {
   Calendar,
   FileCheck,
   ClipboardCheck,
-  User
+  User,
+  Bell
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -20,6 +22,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [location] = useLocation();
+  const { unreadCount, hasUnread } = useUnreadUpdates();
   
   const { data: user } = useQuery({
     queryKey: ['/api/user'],
@@ -40,7 +43,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { icon: <Calendar size={20} />, label: 'Appointments', href: '/consultations' },
     { icon: <FileCheck size={20} />, label: 'Document Templates', href: '/document-templates' },
     { icon: <ClipboardCheck size={20} />, label: 'Document Checklists', href: '/document-checklist' },
-    { icon: <User size={20} />, label: 'Updates', href: '/updates' },
+    { 
+      icon: <div className="relative">
+        <Bell size={20} />
+        {hasUnread && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
+      </div>, 
+      label: 'Updates', 
+      href: '/updates' 
+    },
   ];
 
   return (
