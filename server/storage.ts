@@ -724,38 +724,73 @@ export class DatabaseStorage implements IStorage {
 
   async updateDocumentChecklist(id: number, updates: Partial<DocumentChecklist>): Promise<DocumentChecklist | undefined> {
     try {
-      // Sanitize JSON fields to prevent syntax errors
-      const sanitizedUpdates = { ...updates };
+      // Deep clone to prevent reference issues and validate all data
+      const sanitizedUpdates: any = {};
       
-      // Ensure array fields are properly formatted
-      if (sanitizedUpdates.items && Array.isArray(sanitizedUpdates.items)) {
-        sanitizedUpdates.items = sanitizedUpdates.items.map(item => ({
-          ...item,
-          tips: Array.isArray(item.tips) ? item.tips : []
-        }));
+      // Copy non-JSON fields directly
+      for (const [key, value] of Object.entries(updates)) {
+        if (key !== 'items' && key !== 'importantNotes') {
+          sanitizedUpdates[key] = value;
+        }
       }
       
-      // Ensure importantNotes is an array and properly formatted
-      if (sanitizedUpdates.importantNotes) {
-        if (Array.isArray(sanitizedUpdates.importantNotes)) {
-          // Filter out empty strings and ensure all items are strings
-          sanitizedUpdates.importantNotes = sanitizedUpdates.importantNotes
-            .filter(note => note && typeof note === 'string' && note.trim().length > 0)
-            .map(note => String(note).trim());
+      // Handle items array with comprehensive validation
+      if (updates.items !== undefined) {
+        if (Array.isArray(updates.items)) {
+          sanitizedUpdates.items = updates.items.map((item: any) => {
+            const validatedItem = {
+              id: String(item.id || '').trim(),
+              name: String(item.name || '').trim(),
+              description: String(item.description || '').trim(),
+              category: String(item.category || 'documentation'),
+              required: Boolean(item.required),
+              completed: Boolean(item.completed),
+              order: parseInt(String(item.order)) || 0,
+              tips: []
+            };
+            
+            // Validate tips array
+            if (Array.isArray(item.tips)) {
+              validatedItem.tips = item.tips
+                .filter((tip: any) => tip && typeof tip === 'string')
+                .map((tip: any) => String(tip).trim())
+                .filter((tip: string) => tip.length > 0);
+            }
+            
+            return validatedItem;
+          });
+        } else {
+          sanitizedUpdates.items = [];
+        }
+      }
+      
+      // Handle importantNotes array with validation
+      if (updates.importantNotes !== undefined) {
+        if (Array.isArray(updates.importantNotes)) {
+          sanitizedUpdates.importantNotes = updates.importantNotes
+            .filter((note: any) => note !== null && note !== undefined)
+            .map((note: any) => String(note).trim())
+            .filter((note: string) => note.length > 0);
+        } else if (typeof updates.importantNotes === 'string') {
+          const trimmedNote = String(updates.importantNotes).trim();
+          sanitizedUpdates.importantNotes = trimmedNote.length > 0 ? [trimmedNote] : [];
         } else {
           sanitizedUpdates.importantNotes = [];
         }
       }
       
+      // Ensure proper timestamp
+      sanitizedUpdates.updatedAt = new Date();
+      
       const [checklist] = await db
         .update(documentChecklists)
-        .set({ ...sanitizedUpdates, updatedAt: new Date() })
+        .set(sanitizedUpdates)
         .where(eq(documentChecklists.id, id))
         .returning();
       return checklist;
     } catch (error) {
       console.error("Error updating document checklist:", error);
-      throw error; // Re-throw to get better error handling
+      throw error;
     }
   }
 
