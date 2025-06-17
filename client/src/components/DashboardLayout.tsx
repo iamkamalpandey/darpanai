@@ -59,9 +59,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-            {children}
+        <main className="flex-1 overflow-auto bg-white">
+          <div className="h-full">
+            <div className="h-full bg-gray-50 m-4 rounded-lg border border-gray-200 shadow-sm">
+              <div className="h-full p-6 lg:p-8 overflow-auto">
+                {children}
+              </div>
+            </div>
           </div>
         </main>
       </div>

@@ -32,21 +32,21 @@ const AdminSidebarItem = ({ icon, label, href, active }: AdminSidebarItemProps) 
     <Link href={href}>
       <div
         className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200 hover:bg-accent/70 cursor-pointer group",
+          "flex items-center gap-3 rounded-lg px-3 py-3 mx-2 transition-all duration-200 cursor-pointer",
           active 
-            ? "bg-primary/10 text-primary font-medium shadow-sm" 
-            : "text-muted-foreground hover:text-foreground"
+            ? "bg-blue-600 text-white shadow-md" 
+            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
         )}
       >
         <div className={cn(
           "transition-colors duration-200",
-          active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+          active ? "text-white" : "text-gray-500"
         )}>
           {icon}
         </div>
         <span className={cn(
-          "text-sm transition-colors duration-200 leading-5",
-          active ? "font-medium text-primary" : "font-normal"
+          "text-sm font-medium transition-colors duration-200",
+          active ? "text-white" : "text-gray-700"
         )}>
           {label}
         </span>
@@ -198,13 +198,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* Desktop Admin Sidebar */}
-      <div className="hidden lg:flex lg:w-64 xl:w-72 border-r bg-card flex-shrink-0">
-        <div className="flex h-full flex-col py-4 px-3">
-          <div className="flex items-center gap-3 px-2 py-3 mb-6">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-              <Shield className="h-4 w-4 text-primary" />
+      <div className="hidden lg:flex lg:w-64 xl:w-72 border-r bg-gray-50 flex-shrink-0">
+        <div className="flex h-full flex-col py-4 px-4 w-full">
+          <div className="flex items-center gap-3 px-3 py-4 mb-8 border-b border-gray-200">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600">
+              <Shield className="h-5 w-5 text-white" />
             </div>
-            <span className="text-base font-medium text-foreground">Admin Panel</span>
+            <span className="text-lg font-semibold text-gray-900">Admin Panel</span>
           </div>
           
           {user && (
@@ -221,7 +221,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             </div>
           )}
 
-          <nav className="flex-1 space-y-0.5">
+          <nav className="flex-1 space-y-1">
             <AdminSidebarItem
               icon={<BarChart3 className="h-4 w-4" />}
               label="Dashboard"
@@ -317,9 +317,13 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-            {children}
+        <main className="flex-1 overflow-auto bg-white">
+          <div className="h-full">
+            <div className="h-full bg-gray-50 m-4 rounded-lg border border-gray-200 shadow-sm">
+              <div className="h-full p-6 lg:p-8 overflow-auto">
+                {children}
+              </div>
+            </div>
           </div>
         </main>
       </div>
