@@ -166,27 +166,27 @@ export default function DocumentTemplates() {
         </div>
 
         {/* Templates Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 w-full min-w-0">
           {filteredTemplates.map((template: DocumentTemplate) => (
-            <Card key={template.id} className="group hover:shadow-lg transition-all duration-200 shadow-sm hover:shadow-md bg-white">
+            <Card key={template.id} className="group hover:shadow-lg transition-all duration-200 shadow-sm hover:shadow-md bg-white w-full min-w-0 max-w-full overflow-hidden">
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center space-x-2">
+                <div className="flex items-start justify-between mb-3 min-w-0">
+                  <div className="flex items-center space-x-2 min-w-0 flex-1 overflow-hidden">
                     <div className="bg-blue-100 p-2 rounded-lg flex-shrink-0">
                       <FileText className="h-5 w-5 text-blue-600" />
                     </div>
-                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 truncate">
                       {template.category}
                     </Badge>
                   </div>
                   {template.fileName && (
-                    <div className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded">
+                    <div className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded flex-shrink-0 ml-2">
                       File Available
                     </div>
                   )}
                 </div>
                 
-                <CardTitle className="text-base sm:text-lg leading-tight mb-2 group-hover:text-blue-700 transition-colors">
+                <CardTitle className="text-base sm:text-lg leading-tight mb-2 group-hover:text-blue-700 transition-colors truncate">
                   {template.title}
                 </CardTitle>
                 

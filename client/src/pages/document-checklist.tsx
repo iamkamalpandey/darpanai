@@ -561,30 +561,30 @@ export default function DocumentChecklistGenerator() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 w-full min-w-0">
                 {filteredChecklists.map((checklist: DocumentChecklist) => (
                   <Card 
                     key={checklist.id} 
-                    className="group cursor-pointer hover:shadow-lg transition-all duration-200 shadow-sm hover:shadow-md"
+                    className="group cursor-pointer hover:shadow-lg transition-all duration-200 shadow-sm hover:shadow-md w-full min-w-0 max-w-full overflow-hidden"
                     onClick={() => setViewingChecklist(checklist)}
                   >
                     <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-3 min-w-0 flex-1">
+                      <div className="flex items-start justify-between min-w-0">
+                        <div className="flex items-start space-x-3 min-w-0 flex-1 overflow-hidden">
                           <div className="bg-green-100 p-2 rounded-lg flex-shrink-0">
                             <FileText className="h-5 w-5 text-green-600" />
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <CardTitle className="text-lg lg:text-xl leading-tight line-clamp-2 mb-2 text-gray-900">
+                          <div className="min-w-0 flex-1 overflow-hidden">
+                            <CardTitle className="text-lg lg:text-xl leading-tight mb-2 text-gray-900 truncate">
                               {checklist.title}
                             </CardTitle>
-                            <CardDescription className="text-sm lg:text-base line-clamp-2 text-gray-600">
+                            <CardDescription className="text-sm lg:text-base text-gray-600 line-clamp-2 break-words">
                               {checklist.description}
                             </CardDescription>
                           </div>
                         </div>
-                        <div className="flex flex-col items-end space-y-2 flex-shrink-0 ml-4">
-                          <Badge variant="default" className="bg-green-600 text-white">
+                        <div className="flex flex-col items-end space-y-2 flex-shrink-0 ml-2">
+                          <Badge variant="default" className="bg-green-600 text-white text-xs whitespace-nowrap">
                             {checklist.items?.length || 0} docs
                           </Badge>
                         </div>
@@ -593,35 +593,35 @@ export default function DocumentChecklistGenerator() {
                     <CardContent className="pt-0">
                       <div className="space-y-4">
                         {/* Route Information */}
-                        <div className="bg-white p-3 rounded-lg border">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-gray-700">Application Route</span>
-                            <Info className="h-4 w-4 text-blue-500" />
+                        <div className="bg-white p-3 rounded-lg border min-w-0 overflow-hidden">
+                          <div className="flex items-center justify-between mb-2 min-w-0">
+                            <span className="text-sm font-medium text-gray-700 truncate">Application Route</span>
+                            <Info className="h-4 w-4 text-blue-500 flex-shrink-0" />
                           </div>
-                          <div className="flex flex-wrap gap-2">
-                            <Badge variant="outline" className="text-xs bg-blue-50 border-blue-200">
+                          <div className="flex flex-wrap gap-1 sm:gap-2 min-w-0">
+                            <Badge variant="outline" className="text-xs bg-blue-50 border-blue-200 truncate max-w-full">
                               {checklist.country}
                             </Badge>
-                            <Badge variant="outline" className="text-xs bg-purple-50 border-purple-200">
+                            <Badge variant="outline" className="text-xs bg-purple-50 border-purple-200 truncate max-w-full">
                               {checklist.visaType}
                             </Badge>
-                            <Badge variant="outline" className="text-xs bg-gray-50 border-gray-200">
+                            <Badge variant="outline" className="text-xs bg-gray-50 border-gray-200 truncate max-w-full">
                               {checklist.userType}
                             </Badge>
                           </div>
                         </div>
 
                         {/* Quick Info */}
-                        <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-sm min-w-0">
                           {checklist.totalFees && (
-                            <div className="flex items-center space-x-2">
-                              <DollarSign className="h-4 w-4 text-green-600" />
+                            <div className="flex items-center space-x-2 min-w-0 overflow-hidden">
+                              <DollarSign className="h-4 w-4 text-green-600 flex-shrink-0" />
                               <span className="text-gray-600 truncate">{checklist.totalFees}</span>
                             </div>
                           )}
                           {checklist.estimatedProcessingTime && (
-                            <div className="flex items-center space-x-2">
-                              <Clock className="h-4 w-4 text-blue-600" />
+                            <div className="flex items-center space-x-2 min-w-0 overflow-hidden">
+                              <Clock className="h-4 w-4 text-blue-600 flex-shrink-0" />
                               <span className="text-gray-600 truncate">{checklist.estimatedProcessingTime}</span>
                             </div>
                           )}
