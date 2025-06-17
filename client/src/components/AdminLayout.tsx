@@ -299,8 +299,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6">
-          <div className="mx-auto max-w-7xl">
+        <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6 xl:p-8">
+          <div className="mx-auto max-w-7xl xl:max-w-[1400px]">
             {children}
           </div>
         </main>
