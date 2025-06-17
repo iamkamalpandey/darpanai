@@ -85,11 +85,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}>
           <div className="flex flex-col h-full">
-            <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-gray-50 flex-shrink-0">
               <Shield className="h-6 w-6 text-blue-600 mr-3" />
               <span className="text-lg font-semibold text-gray-900">VisaAnalyzer</span>
             </div>
-            <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
+            <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto min-h-0">
               {sidebarItems.map((item) => (
                 <Link key={item.href} href={item.href}>
                   <div 
@@ -98,6 +98,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         ? 'bg-blue-50 text-blue-700 shadow-sm border-l-4 border-blue-600'
                         : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
                     }`}
+                    onClick={() => setSidebarOpen(false)}
                   >
                     <span className={`h-5 w-5 shrink-0 ${location === item.href ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600'}`}>
                       {item.icon}
@@ -107,8 +108,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </Link>
               ))}
             </nav>
-            <div className="p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
-              <div className="flex items-center p-3 bg-white rounded-lg mb-3 shadow-sm">
+            <div className="sticky bottom-0 p-4 border-t border-gray-200 bg-white shadow-lg flex-shrink-0 z-10">
+              <div className="flex items-center p-3 bg-gray-50 rounded-lg mb-3 shadow-sm">
                 <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
                   <span className="text-sm font-semibold text-white">
                     {user?.firstName?.[0]}{user?.lastName?.[0]}
@@ -125,7 +126,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors min-h-[40px]"
+                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors min-h-[40px] shadow-sm"
               >
                 <LogOut className="mr-2 h-4 w-4 flex-shrink-0" />
                 <span className="truncate">Log out</span>
@@ -149,11 +150,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         {/* Desktop Sidebar */}
         <div className="w-64 lg:w-72 xl:w-80 bg-white border-r border-gray-200 flex-shrink-0">
           <div className="flex flex-col h-screen">
-            <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-gray-50">
+            <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-gray-50 flex-shrink-0">
               <Shield className="h-6 w-6 text-blue-600 mr-3" />
               <span className="text-lg font-semibold text-gray-900">VisaAnalyzer</span>
             </div>
-            <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
               {sidebarItems.map((item) => (
                 <Link key={item.href} href={item.href}>
                   <div 
@@ -171,8 +172,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </Link>
               ))}
             </nav>
-            <div className="p-3 lg:p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
-              <div className="flex items-center p-2 lg:p-3 bg-white rounded-lg mb-3 shadow-sm">
+            <div className="sticky bottom-0 p-3 lg:p-4 border-t border-gray-200 bg-white shadow-lg flex-shrink-0 z-10">
+              <div className="flex items-center p-2 lg:p-3 bg-gray-50 rounded-lg mb-3 shadow-sm">
                 <div className="h-8 w-8 lg:h-10 lg:w-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
                   <span className="text-xs lg:text-sm font-semibold text-white">
                     {user?.firstName?.[0]}{user?.lastName?.[0]}
@@ -189,7 +190,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center justify-center px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors min-h-[36px] lg:min-h-[40px]"
+                className="w-full flex items-center justify-center px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors min-h-[36px] lg:min-h-[40px] shadow-sm"
               >
                 <LogOut className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4 flex-shrink-0" />
                 <span className="truncate">Log out</span>
