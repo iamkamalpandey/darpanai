@@ -130,22 +130,19 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
-**June 17, 2025 - Apple-Inspired Centered Container Layout & Enhanced Mobile Design:**
-- Implemented Apple-inspired centered container layout system following standard web design principles
-- Replaced edge-to-edge content with centered max-w-7xl containers for optimal readability and visual balance
-- Enhanced sidebar typography with Apple design standards: clean font weights, 16px icons, subtle color usage
-- Updated desktop sidebar to fixed widths (lg:w-64 xl:w-72) for better proportional balance with centered content
-- Optimized mobile sidebar to w-80 max-w-[85vw] for improved touch-friendly navigation experience
-- Applied responsive padding system (px-4 sm:px-6 lg:px-8 py-6 lg:py-8) for consistent content spacing
-- Updated all grid layouts to md:grid-cols-2 xl:grid-cols-3 for optimal card distribution within centered containers
-- Enhanced active states with primary colors, subtle shadows, and smooth 200ms transitions throughout navigation
-- Improved user profile cards with subtle background styling and optimized spacing for better visual hierarchy
-- Implemented logout button optimization with consistent styling matching navigation items
-- Created responsive breakpoint system that scales appropriately from mobile to large desktop displays
-- Enhanced touch-friendly interactions with proper button sizing and hover states across all components
-- Applied minimal visual noise principle with clean typography hierarchy and subtle color usage
-- Optimized content centering to prevent excessive line lengths while maintaining visual balance
-- Implemented professional appearance with optimal space utilization following modern web design standards
+**June 17, 2025 - Proportional Layout System with Centered Container Design:**
+- Implemented proportional scaling layout system where both sidebar and main content scale together within 90% screen width
+- Applied gray background with white container and subtle shadow for clear visual separation and professional appearance
+- Enhanced sidebar with light gray background (bg-gray-50) and blue branding header for optimal visual hierarchy
+- Created centered container approach with 5% margins on each side for balanced composition and proper breathing room
+- Updated both AdminLayout and DashboardLayout to use consistent proportional scaling architecture
+- Maintained Apple-inspired design principles with clean typography, 16px icons, and minimal visual noise
+- Implemented fixed sidebar widths (256px/288px) that scale proportionally within the constrained layout container
+- Enhanced mobile responsiveness with touch-friendly navigation and adaptive sidebar behavior
+- Applied rounded containers with subtle borders and shadows for modern, professional interface design
+- Created clear visual separation between sidebar navigation and main content areas
+- Optimized layout to prevent content from stretching too wide while maintaining excellent readability
+- Established consistent spacing and padding system throughout the proportionally scaled interface
 
 **June 16, 2025 - Comprehensive Mobile-First Responsive Design & Full System Testing:**
 - Completed mobile-first responsive design implementation across entire application with optimal touch interfaces

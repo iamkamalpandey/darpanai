@@ -13,7 +13,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen flex overflow-hidden bg-gray-100">
       <div className="flex h-screen w-full max-w-[90%] mx-auto bg-white shadow-xl">
-      {/* Mobile sidebar */}
+        {/* Mobile sidebar */}
       <div 
         className={`fixed inset-0 z-50 bg-background/80 backdrop-blur-sm lg:hidden ${
           sidebarOpen ? "block" : "hidden"
