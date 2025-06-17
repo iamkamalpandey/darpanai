@@ -74,8 +74,6 @@ export function SimpleChecklistForm({ initialData, onSubmit, isLoading }: Simple
     name: "items",
   });
 
-
-
   const addChecklistItem = () => {
     const newItem = {
       id: `item_${Date.now()}`,
@@ -94,6 +92,12 @@ export function SimpleChecklistForm({ initialData, onSubmit, isLoading }: Simple
   const addImportantNote = () => {
     const currentNotes = form.getValues("importantNotes") || [];
     form.setValue("importantNotes", [...currentNotes, ""]);
+  };
+
+  const removeImportantNote = (index: number) => {
+    const currentNotes = form.getValues("importantNotes") || [];
+    const updatedNotes = currentNotes.filter((_, i) => i !== index);
+    form.setValue("importantNotes", updatedNotes);
   };
 
   return (
@@ -435,8 +439,8 @@ export function SimpleChecklistForm({ initialData, onSubmit, isLoading }: Simple
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
-            {noteFields.map((field, index) => (
-              <div key={field.id} className="flex gap-2">
+            {(form.watch("importantNotes") || []).map((_: string, index: number) => (
+              <div key={index} className="flex gap-2">
                 <FormField
                   control={form.control}
                   name={`importantNotes.${index}`}
@@ -456,7 +460,7 @@ export function SimpleChecklistForm({ initialData, onSubmit, isLoading }: Simple
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => removeNote(index)}
+                  onClick={() => removeImportantNote(index)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
