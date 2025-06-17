@@ -74,10 +74,7 @@ export function SimpleChecklistForm({ initialData, onSubmit, isLoading }: Simple
     name: "items",
   });
 
-  const { fields: noteFields, append: appendNote, remove: removeNote } = useFieldArray({
-    control: form.control,
-    name: "importantNotes",
-  });
+
 
   const addChecklistItem = () => {
     const newItem = {
@@ -95,7 +92,8 @@ export function SimpleChecklistForm({ initialData, onSubmit, isLoading }: Simple
   };
 
   const addImportantNote = () => {
-    appendNote("");
+    const currentNotes = form.getValues("importantNotes") || [];
+    form.setValue("importantNotes", [...currentNotes, ""]);
   };
 
   return (

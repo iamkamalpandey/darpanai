@@ -435,22 +435,35 @@ export default function AdminDocumentTemplates() {
             </DialogHeader>
             
             <AdvancedTemplateForm
-              onSuccess={() => {
-                queryClient.invalidateQueries({ queryKey: ['/api/admin/document-templates'] });
-                toast({
-                  title: "Success",
-                  description: `Template ${editingTemplate ? 'updated' : 'created'} successfully`,
-                });
+              onSubmit={async (formData: FormData) => {
+                try {
+                  if (editingTemplate) {
+                    await updateMutation.mutateAsync({ id: editingTemplate.id, data: formData });
+                  } else {
+                    await createMutation.mutateAsync(formData);
+                  }
+                  queryClient.invalidateQueries({ queryKey: ['/api/admin/document-templates'] });
+                  toast({
+                    title: "Success",
+                    description: `Template ${editingTemplate ? 'updated' : 'created'} successfully`,
+                  });
+                  setIsCreateDialogOpen(false);
+                  setEditingTemplate(null);
+                } catch (error: any) {
+                  toast({
+                    title: "Error",
+                    description: error.message || `Failed to ${editingTemplate ? 'update' : 'create'} template`,
+                    variant: "destructive",
+                  });
+                }
+              }}
+              onCancel={() => {
                 setIsCreateDialogOpen(false);
                 setEditingTemplate(null);
               }}
-              onError={(error: any) => {
-                toast({
-                  title: "Error",
-                  description: error.message || `Failed to ${editingTemplate ? 'update' : 'create'} template`,
-                  variant: "destructive",
-                });
-              }}
+              isLoading={createMutation.isPending || updateMutation.isPending}
+              initialData={editingTemplate}
+              mode={editingTemplate ? "edit" : "create"}
             />
           </DialogContent>
         </Dialog>
