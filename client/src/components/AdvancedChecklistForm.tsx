@@ -90,6 +90,7 @@ export function AdvancedChecklistForm({
 }: AdvancedChecklistFormProps) {
   const form = useForm<InsertDocumentChecklist>({
     resolver: zodResolver(insertDocumentChecklistSchema),
+    mode: "onBlur", // Validate on blur for immediate feedback
     defaultValues: {
       title: initialData?.title || "",
       description: initialData?.description || "",
@@ -123,6 +124,65 @@ export function AdvancedChecklistForm({
       tips: [],
       sampleUrl: "",
     });
+  };
+
+  // Enhanced validation function to check all required fields
+  const validateAllRequiredFields = () => {
+    const formValues = form.getValues();
+    const errors: string[] = [];
+
+    // Check basic required fields
+    if (!formValues.title?.trim()) errors.push("Title is required");
+    if (!formValues.description?.trim()) errors.push("Description is required");
+    if (!formValues.country?.trim()) errors.push("Country is required");
+    if (!formValues.visaType?.trim()) errors.push("Visa type is required");
+    if (!formValues.estimatedProcessingTime?.trim()) errors.push("Processing time is required");
+    if (!formValues.totalFees?.trim()) errors.push("Total fees is required");
+
+    // Check checklist items have required fields
+    if (!formValues.items || formValues.items.length === 0) {
+      errors.push("At least one checklist item is required");
+    } else {
+      formValues.items.forEach((item, index) => {
+        if (!item.name?.trim()) errors.push(`Item ${index + 1}: Name is required`);
+        if (!item.description?.trim()) errors.push(`Item ${index + 1}: Description is required`);
+      });
+    }
+
+    return errors;
+  };
+
+  // Enhanced submit handler with validation
+  const handleSubmit = async (data: InsertDocumentChecklist) => {
+    const validationErrors = validateAllRequiredFields();
+    
+    if (validationErrors.length > 0) {
+      // Show all validation errors
+      validationErrors.forEach(error => {
+        console.error("Validation Error:", error);
+      });
+      
+      // Focus on first invalid field
+      const firstErrorField = document.querySelector('.text-red-500, [aria-invalid="true"]') as HTMLElement;
+      if (firstErrorField) {
+        firstErrorField.focus();
+        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      
+      return;
+    }
+
+    // Filter out empty notes and tips
+    const cleanedData = {
+      ...data,
+      importantNotes: noteItems.filter(note => note.trim().length > 0),
+      items: data.items.map(item => ({
+        ...item,
+        tips: item.tips?.filter(tip => tip.trim().length > 0) || []
+      }))
+    };
+
+    await onSubmit(cleanedData);
   };
 
   const addNewNote = () => {
@@ -218,7 +278,7 @@ export function AdvancedChecklistForm({
       
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <Accordion type="single" collapsible defaultValue="basic-info" className="w-full">
               
               {/* Basic Information */}

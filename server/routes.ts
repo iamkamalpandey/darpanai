@@ -1272,7 +1272,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/admin/document-checklists', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
-      const checklist = await storage.createDocumentChecklist(req.body);
+      console.log('=== Document Checklist Create Debug ===');
+      console.log('Raw request body:', JSON.stringify(req.body, null, 2));
+      
+      // Validate required fields before processing
+      const requiredFields = ['title', 'description', 'country', 'visaType', 'estimatedProcessingTime', 'totalFees'];
+      const missingFields = requiredFields.filter(field => !req.body[field] || String(req.body[field]).trim().length === 0);
+      
+      if (missingFields.length > 0) {
+        return res.status(400).json({ 
+          error: `Missing required fields: ${missingFields.join(', ')}` 
+        });
+      }
+
+      // Validate checklist items
+      if (!req.body.items || !Array.isArray(req.body.items) || req.body.items.length === 0) {
+        return res.status(400).json({ 
+          error: 'At least one checklist item is required' 
+        });
+      }
+
+      // Validate each item has required fields
+      const itemErrors: string[] = [];
+      req.body.items.forEach((item: any, index: number) => {
+        if (!item.name || String(item.name).trim().length === 0) {
+          itemErrors.push(`Item ${index + 1}: Name is required`);
+        }
+        if (!item.description || String(item.description).trim().length === 0) {
+          itemErrors.push(`Item ${index + 1}: Description is required`);
+        }
+      });
+
+      if (itemErrors.length > 0) {
+        return res.status(400).json({ 
+          error: `Item validation errors: ${itemErrors.join(', ')}` 
+        });
+      }
+
+      // Create clean data object with validated fields
+      const cleanData = {
+        title: String(req.body.title).trim(),
+        description: String(req.body.description).trim(),
+        country: String(req.body.country).trim(),
+        visaType: String(req.body.visaType).trim(),
+        userType: String(req.body.userType || 'student').trim(),
+        estimatedProcessingTime: String(req.body.estimatedProcessingTime).trim(),
+        totalFees: String(req.body.totalFees).trim(),
+        isActive: req.body.isActive !== undefined ? Boolean(req.body.isActive) : true,
+        importantNotes: Array.isArray(req.body.importantNotes) ? 
+          req.body.importantNotes.filter((note: any) => note && String(note).trim().length > 0) : [],
+        items: req.body.items.map((item: any, index: number) => ({
+          id: String(item.id || `item-${Date.now()}-${index}`).trim(),
+          name: String(item.name).trim(),
+          description: String(item.description).trim(),
+          category: String(item.category || 'documentation'),
+          required: Boolean(item.required),
+          completed: Boolean(item.completed),
+          order: parseInt(String(item.order)) || index + 1,
+          tips: Array.isArray(item.tips) ? 
+            item.tips.filter((tip: any) => tip && String(tip).trim().length > 0) : []
+        }))
+      };
+
+      console.log('Final clean data for create:', JSON.stringify(cleanData, null, 2));
+      
+      const checklist = await storage.createDocumentChecklist(cleanData);
       invalidateCache('document-checklists');
       invalidateCache('admin-document-checklists');
       invalidateCache('dropdown-options');
@@ -1290,18 +1354,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('=== Document Checklist Update Debug ===');
       console.log('Raw request body:', JSON.stringify(req.body, null, 2));
       
-      // Create completely clean data object without any JSON parsing
+      // Validate required fields before processing
+      const requiredFields = ['title', 'description', 'country', 'visaType', 'estimatedProcessingTime', 'totalFees'];
+      const missingFields = requiredFields.filter(field => !req.body[field] || String(req.body[field]).trim().length === 0);
+      
+      if (missingFields.length > 0) {
+        return res.status(400).json({ 
+          error: `Missing required fields: ${missingFields.join(', ')}` 
+        });
+      }
+
+      // Validate checklist items
+      if (!req.body.items || !Array.isArray(req.body.items) || req.body.items.length === 0) {
+        return res.status(400).json({ 
+          error: 'At least one checklist item is required' 
+        });
+      }
+
+      // Validate each item has required fields
+      const itemErrors: string[] = [];
+      req.body.items.forEach((item: any, index: number) => {
+        if (!item.name || String(item.name).trim().length === 0) {
+          itemErrors.push(`Item ${index + 1}: Name is required`);
+        }
+        if (!item.description || String(item.description).trim().length === 0) {
+          itemErrors.push(`Item ${index + 1}: Description is required`);
+        }
+      });
+
+      if (itemErrors.length > 0) {
+        return res.status(400).json({ 
+          error: `Item validation errors: ${itemErrors.join(', ')}` 
+        });
+      }
+      
+      // Create completely clean data object after validation
       const cleanData: any = {};
       
-      // Handle string fields explicitly
-      if (req.body.title !== undefined) cleanData.title = String(req.body.title);
-      if (req.body.description !== undefined) cleanData.description = String(req.body.description);
-      if (req.body.country !== undefined) cleanData.country = String(req.body.country);
-      if (req.body.visaType !== undefined) cleanData.visaType = String(req.body.visaType);
-      if (req.body.userType !== undefined) cleanData.userType = String(req.body.userType);
-      if (req.body.estimatedProcessingTime !== undefined) cleanData.estimatedProcessingTime = String(req.body.estimatedProcessingTime);
-      if (req.body.totalFees !== undefined) cleanData.totalFees = String(req.body.totalFees);
-      if (req.body.isActive !== undefined) cleanData.isActive = Boolean(req.body.isActive);
+      // Handle string fields explicitly with trimming
+      cleanData.title = String(req.body.title).trim();
+      cleanData.description = String(req.body.description).trim();
+      cleanData.country = String(req.body.country).trim();
+      cleanData.visaType = String(req.body.visaType).trim();
+      cleanData.userType = String(req.body.userType || 'student').trim();
+      cleanData.estimatedProcessingTime = String(req.body.estimatedProcessingTime).trim();
+      cleanData.totalFees = String(req.body.totalFees).trim();
+      cleanData.isActive = req.body.isActive !== undefined ? Boolean(req.body.isActive) : true;
       
       // Handle importantNotes with strict validation
       if (req.body.importantNotes !== undefined) {
