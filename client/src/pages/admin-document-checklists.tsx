@@ -96,16 +96,60 @@ export default function AdminDocumentChecklists() {
   });
 
   const editUpdateMutation = useMutation({
-    mutationFn: async (data: any) => {
-      // Sanitize data before sending to prevent JSON syntax errors
-      const sanitizedData = {
-        ...data,
-        items: Array.isArray(data.items) ? data.items.map((item: any) => ({
-          ...item,
-          tips: Array.isArray(item.tips) ? item.tips : []
-        })) : [],
-        importantNotes: Array.isArray(data.importantNotes) ? data.importantNotes.filter((note: any) => note && typeof note === 'string' && note.trim().length > 0) : []
-      };
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      // Comprehensive data sanitization to prevent JSON corruption
+      const sanitizedData: any = {};
+      
+      // Handle string fields explicitly
+      if (data.title !== undefined) sanitizedData.title = String(data.title).trim();
+      if (data.description !== undefined) sanitizedData.description = String(data.description).trim();
+      if (data.country !== undefined) sanitizedData.country = String(data.country).trim();
+      if (data.visaType !== undefined) sanitizedData.visaType = String(data.visaType).trim();
+      if (data.userType !== undefined) sanitizedData.userType = String(data.userType).trim();
+      if (data.estimatedProcessingTime !== undefined) sanitizedData.estimatedProcessingTime = String(data.estimatedProcessingTime).trim();
+      if (data.totalFees !== undefined) sanitizedData.totalFees = String(data.totalFees).trim();
+      if (data.isActive !== undefined) sanitizedData.isActive = Boolean(data.isActive);
+      
+      // Handle importantNotes with strict validation
+      if (data.importantNotes !== undefined) {
+        if (Array.isArray(data.importantNotes)) {
+          sanitizedData.importantNotes = data.importantNotes
+            .filter((note: any) => note !== null && note !== undefined)
+            .map((note: any) => String(note).trim())
+            .filter((note: string) => note.length > 0 && note.length < 500);
+        } else {
+          sanitizedData.importantNotes = [];
+        }
+      }
+      
+      // Handle items with complete validation
+      if (data.items !== undefined) {
+        if (Array.isArray(data.items)) {
+          sanitizedData.items = data.items.map((item: any, index: number) => ({
+            id: String(item.id || `item_${index}`).trim(),
+            name: String(item.name || '').trim(),
+            description: String(item.description || '').trim(),
+            category: String(item.category || 'documentation'),
+            required: Boolean(item.required),
+            completed: Boolean(item.completed),
+            order: parseInt(String(item.order)) || index + 1,
+            tips: Array.isArray(item.tips) ? 
+              item.tips.filter((tip: any) => tip && typeof tip === 'string')
+                       .map((tip: any) => String(tip).trim())
+                       .filter((tip: string) => tip.length > 0 && tip.length < 200) : []
+          }));
+        } else {
+          sanitizedData.items = [];
+        }
+      }
+      
+      // Handle array fields
+      if (data.originCountries !== undefined) {
+        sanitizedData.originCountries = Array.isArray(data.originCountries) ? data.originCountries : [];
+      }
+      if (data.destinationCountries !== undefined) {
+        sanitizedData.destinationCountries = Array.isArray(data.destinationCountries) ? data.destinationCountries : [];
+      }
       
       const response = await fetch(`/api/admin/document-checklists/${editingChecklist?.id}`, {
         method: 'PATCH',
