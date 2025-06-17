@@ -73,7 +73,7 @@ export default function AdminProfessionalApplications() {
   // Update application status mutation
   const updateStatusMutation = useMutation({
     mutationFn: (data: { id: number; status: string; adminNotes?: string }) =>
-      apiRequest(`/api/admin/professional-applications/${data.id}/status`, "PATCH", {
+      apiRequest("PATCH", `/api/admin/professional-applications/${data.id}/status`, {
         status: data.status,
         adminNotes: data.adminNotes,
       }),
