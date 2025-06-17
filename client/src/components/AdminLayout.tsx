@@ -32,12 +32,24 @@ const AdminSidebarItem = ({ icon, label, href, active }: AdminSidebarItemProps) 
     <Link href={href}>
       <div
         className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:bg-accent cursor-pointer",
-          active ? "bg-accent text-accent-foreground" : "text-muted-foreground"
+          "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200 hover:bg-accent/70 cursor-pointer group",
+          active 
+            ? "bg-primary/10 text-primary font-medium shadow-sm" 
+            : "text-muted-foreground hover:text-foreground"
         )}
       >
-        {icon}
-        <span>{label}</span>
+        <div className={cn(
+          "transition-colors duration-200",
+          active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+        )}>
+          {icon}
+        </div>
+        <span className={cn(
+          "text-sm transition-colors duration-200 leading-5",
+          active ? "font-medium text-primary" : "font-normal"
+        )}>
+          {label}
+        </span>
       </div>
     </Link>
   );
@@ -187,93 +199,99 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
       {/* Desktop Admin Sidebar */}
       <div className="hidden lg:flex lg:w-[18%] xl:w-[16%] 2xl:w-[14%] border-r bg-card flex-shrink-0">
-        <div className="flex h-full flex-col p-3">
-          <div className="flex items-center gap-2 px-2 py-4 border-b mb-4">
-            <Shield className="h-6 w-6 text-primary" />
-            <span className="text-lg font-semibold">Admin Panel</span>
+        <div className="flex h-full flex-col py-4 px-3">
+          <div className="flex items-center gap-3 px-2 py-3 mb-6">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+              <Shield className="h-4 w-4 text-primary" />
+            </div>
+            <span className="text-base font-medium text-foreground">Admin Panel</span>
           </div>
           
           {user && (
-            <div className="mb-6 px-2">
-              <div className="flex items-center gap-2 overflow-hidden">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Shield className="h-5 w-5" />
+            <div className="mb-8 px-2">
+              <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-primary">
+                  <Shield className="h-4 w-4" />
                 </div>
                 <div className="flex flex-1 flex-col overflow-hidden">
                   <span className="text-sm font-medium text-foreground truncate">{user.firstName ? `${user.firstName} ${user.lastName}` : user.username}</span>
-                  <span className="text-xs text-muted-foreground truncate">Administrator</span>
+                  <span className="text-xs text-muted-foreground/80 truncate">Administrator</span>
                 </div>
               </div>
             </div>
           )}
 
-          <nav className="flex-1 space-y-1">
+          <nav className="flex-1 space-y-0.5">
             <AdminSidebarItem
-              icon={<BarChart3 className="h-5 w-5" />}
+              icon={<BarChart3 className="h-4 w-4" />}
               label="Dashboard"
               href="/admin"
               active={location === "/admin"}
             />
             <AdminSidebarItem
-              icon={<Users className="h-5 w-5" />}
+              icon={<Users className="h-4 w-4" />}
               label="User Management"
               href="/admin/users"
               active={location === "/admin/users"}
             />
             <AdminSidebarItem
-              icon={<FileText className="h-5 w-5" />}
+              icon={<FileText className="h-4 w-4" />}
               label="Analysis Reports"
               href="/admin/analyses"
               active={location === "/admin/analyses"}
             />
             <AdminSidebarItem
-              icon={<Calendar className="h-5 w-5" />}
+              icon={<Calendar className="h-4 w-4" />}
               label="Appointments"
               href="/admin/appointments"
               active={location === "/admin/appointments"}
             />
             <AdminSidebarItem
-              icon={<Building2 className="h-5 w-5" />}
+              icon={<Building2 className="h-4 w-4" />}
               label="Professional Applications"
               href="/admin/professional-applications"
               active={location === "/admin/professional-applications"}
             />
             <AdminSidebarItem
-              icon={<Bell className="h-5 w-5" />}
+              icon={<Bell className="h-4 w-4" />}
               label="Updates & Notifications"
               href="/admin/updates"
               active={location === "/admin/updates"}
             />
             <AdminSidebarItem
-              icon={<FileCheck className="h-5 w-5" />}
+              icon={<FileCheck className="h-4 w-4" />}
               label="Document Templates"
               href="/admin/document-templates"
               active={location === "/admin/document-templates"}
             />
             <AdminSidebarItem
-              icon={<CheckSquare className="h-5 w-5" />}
+              icon={<CheckSquare className="h-4 w-4" />}
               label="Document Checklists"
               href="/admin/document-checklists"
               active={location === "/admin/document-checklists"}
             />
             <AdminSidebarItem
-              icon={<Settings className="h-5 w-5" />}
+              icon={<Settings className="h-4 w-4" />}
               label="System Settings"
               href="/admin/settings"
               active={location === "/admin/settings"}
             />
           </nav>
 
-          <div className="mt-auto border-t pt-4">
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-muted-foreground"
-              onClick={handleLogout}
-              disabled={logoutMutation.isPending}
-            >
-              <LogOut className="mr-2 h-5 w-5" />
-              {logoutMutation.isPending ? "Logging out..." : "Log out"}
-            </Button>
+          <div className="mt-auto pt-4">
+            <div className="px-2">
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-accent/70 rounded-lg px-3 py-2.5 transition-colors duration-200"
+                onClick={handleLogout}
+                disabled={logoutMutation.isPending}
+              >
+                <LogOut className="mr-3 h-4 w-4" />
+                <span className="text-sm font-normal">
+                  {logoutMutation.isPending ? "Logging out..." : "Log out"}
+                </span>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
