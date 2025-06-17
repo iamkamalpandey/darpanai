@@ -646,21 +646,136 @@ export default function AdminUsers() {
               A list of all users in the system with their details and analysis usage
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Study Info</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Analyses</TableHead>
-                    <TableHead>Joined</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
+          <CardContent className="p-0 sm:p-6">
+            {/* Mobile Layout */}
+            <div className="sm:hidden">
+              <div className="space-y-3 p-4">
+                {filteredUsers.map((user) => (
+                  <Card key={user.id} className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="font-medium text-base">{user.firstName} {user.lastName}</div>
+                          <div className="text-sm text-gray-600">@{user.username}</div>
+                        </div>
+                        <div className="flex gap-1">
+                          <Badge variant={getRoleBadgeVariant(user.role)} className="text-xs">
+                            {user.role}
+                          </Badge>
+                          <Badge variant={getStatusBadgeVariant(user.status)} className="text-xs">
+                            {user.status}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 gap-2 text-sm">
+                        <div className="flex items-center">
+                          <Mail className="h-3 w-3 mr-2 text-gray-400 flex-shrink-0" />
+                          <span className="truncate">{user.email}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Phone className="h-3 w-3 mr-2 text-gray-400 flex-shrink-0" />
+                          <span>{user.phoneNumber}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <MapPin className="h-3 w-3 mr-2 text-gray-400 flex-shrink-0" />
+                          <span>{user.city}, {user.country}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <GraduationCap className="h-3 w-3 mr-2 text-gray-400 flex-shrink-0" />
+                          <span>{user.studyDestination}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <div className="text-sm">
+                          <span className="font-medium">{user.analysisCount}/{user.maxAnalyses}</span>
+                          <span className="text-gray-500 ml-1">analyses</span>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => openUserDetails(user)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              editForm.reset({
+                                username: user.username,
+                                email: user.email,
+                                firstName: user.firstName,
+                                lastName: user.lastName,
+                                phoneNumber: user.phoneNumber,
+                                role: user.role as "user" | "admin",
+                                status: user.status as "active" | "suspended" | "inactive",
+                                maxAnalyses: user.maxAnalyses,
+                                studyDestination: user.studyDestination,
+                                city: user.city,
+                                country: user.country,
+                                studyLevel: user.studyLevel,
+                                counsellingMode: user.counsellingMode,
+                                fundingSource: user.fundingSource,
+                              });
+                              setEditUserOpen(true);
+                            }}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete User</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete {user.firstName} {user.lastName}? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteUserMutation.mutate(user.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Desktop Table Layout */}
+            <div className="hidden sm:block">
+              <div className="rounded-md border overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[120px]">User</TableHead>
+                      <TableHead className="min-w-[160px]">Contact</TableHead>
+                      <TableHead className="min-w-[140px]">Study Info</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Analyses</TableHead>
+                      <TableHead>Joined</TableHead>
+                      <TableHead className="text-right min-w-[120px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
                 <TableBody>
                   {filteredUsers.map((user) => (
                     <TableRow key={user.id}>
@@ -794,7 +909,8 @@ export default function AdminUsers() {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
             </div>
           </CardContent>
         </Card>

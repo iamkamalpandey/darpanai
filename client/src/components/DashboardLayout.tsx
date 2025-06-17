@@ -35,12 +35,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const sidebarItems = [
-    { icon: <Home size={20} />, label: 'Dashboard', href: '/dashboard' },
-    { icon: <FileText size={20} />, label: 'My Analyses', href: '/analyses' },
-    { icon: <Calendar size={20} />, label: 'Appointments', href: '/appointments' },
+    { icon: <Home size={20} />, label: 'Dashboard', href: '/' },
+    { icon: <FileText size={20} />, label: 'My Analyses', href: '/history' },
+    { icon: <Calendar size={20} />, label: 'Appointments', href: '/consultations' },
     { icon: <FileCheck size={20} />, label: 'Document Templates', href: '/document-templates' },
-    { icon: <ClipboardCheck size={20} />, label: 'Document Checklists', href: '/document-checklists' },
-    { icon: <User size={20} />, label: 'Profile', href: '/profile' },
+    { icon: <ClipboardCheck size={20} />, label: 'Document Checklists', href: '/document-checklist' },
+    { icon: <User size={20} />, label: 'Updates', href: '/updates' },
   ];
 
   return (
