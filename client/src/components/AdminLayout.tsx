@@ -231,11 +231,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </div>
 
         {/* Desktop Content */}
-        <div className="flex-1 flex flex-col min-w-0">
-          <main className="flex-1 p-6 lg:p-8 overflow-auto">
-            <div className="max-w-none">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div className="p-6 lg:p-8">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <main className="flex-1 p-6 lg:p-8 overflow-auto min-w-0">
+            <div className="max-w-none min-w-0">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 w-full min-w-0 max-w-full overflow-hidden">
+                <div className="p-6 lg:p-8 min-w-0 overflow-hidden">
                   {children}
                 </div>
               </div>
