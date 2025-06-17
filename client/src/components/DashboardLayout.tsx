@@ -35,164 +35,29 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const sidebarItems = [
-    { icon: <Home size={16} />, label: 'Dashboard', href: '/dashboard' },
-    { icon: <FileText size={16} />, label: 'My Analyses', href: '/analyses' },
-    { icon: <Calendar size={16} />, label: 'Appointments', href: '/appointments' },
-    { icon: <FileCheck size={16} />, label: 'Document Templates', href: '/document-templates' },
-    { icon: <ClipboardCheck size={16} />, label: 'Document Checklists', href: '/document-checklists' },
-    { icon: <User size={16} />, label: 'Profile', href: '/profile' },
+    { icon: <Home size={20} />, label: 'Dashboard', href: '/dashboard' },
+    { icon: <FileText size={20} />, label: 'My Analyses', href: '/analyses' },
+    { icon: <Calendar size={20} />, label: 'Appointments', href: '/appointments' },
+    { icon: <FileCheck size={20} />, label: 'Document Templates', href: '/document-templates' },
+    { icon: <ClipboardCheck size={20} />, label: 'Document Checklists', href: '/document-checklists' },
+    { icon: <User size={20} />, label: 'Profile', href: '/profile' },
   ];
 
   return (
-    <div className="min-h-screen flex overflow-hidden bg-gray-50">
-      {/* Mobile sidebar overlay */}
-      <div 
-        className={`fixed inset-0 z-50 bg-black/20 backdrop-blur-sm lg:hidden ${
-          sidebarOpen ? "block" : "hidden"
-        }`}
-        onClick={() => setSidebarOpen(false)}
-      />
-
-      {/* Mobile sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out lg:hidden ${
-        sidebarOpen ? "translate-x-0" : "-translate-x-full"
-      }`}>
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto px-6 pb-4">
-          <div className="flex h-16 shrink-0 items-center border-b border-gray-200 -mx-6 px-6 mb-4">
-            <Shield className="h-6 w-6 text-blue-600 mr-3" />
-            <span className="text-lg font-semibold text-gray-900">VisaAnalyzer</span>
-          </div>
-          <nav className="flex flex-1 flex-col">
-            <ul role="list" className="flex flex-1 flex-col gap-y-7">
-              <li>
-                <ul role="list" className="-mx-2 space-y-1">
-                  {sidebarItems.map((item) => (
-                    <li key={item.href}>
-                      <Link href={item.href}>
-                        <a 
-                          className={`group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-colors duration-200 ${
-                            location === item.href
-                              ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
-                              : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                          }`}
-                        >
-                          <span className={`h-4 w-4 shrink-0 ${location === item.href ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600'}`}>
-                            {item.icon}
-                          </span>
-                          <span className="truncate">{item.label}</span>
-                        </a>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-              <li className="mt-auto">
-                <div className="flex items-center justify-between px-2 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md">
-                  <div className="flex items-center">
-                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                      <span className="text-xs font-semibold text-white">
-                        {user?.firstName?.[0]}{user?.lastName?.[0]}
-                      </span>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-900">
-                        {user?.firstName} {user?.lastName}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {user?.analysisCount || 0}/{user?.maxAnalyses || 3} analyses used
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="mt-3 w-full flex items-center px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-gray-900 group"
-                >
-                  <LogOut className="mr-3 h-4 w-4 text-gray-400 group-hover:text-gray-500" />
-                  Log out
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </div>
-
-      {/* Desktop sidebar - Optimal proportional width (22% of screen) */}
-      <div className="hidden lg:flex lg:w-[22%] lg:min-w-[300px] lg:max-w-[350px] lg:flex-col bg-white border-r border-gray-200">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto px-6 pb-4">
-          <div className="flex h-16 shrink-0 items-center border-b border-gray-200 -mx-6 px-6 mb-4">
-            <Shield className="h-6 w-6 text-blue-600 mr-3" />
-            <span className="text-lg font-semibold text-gray-900">VisaAnalyzer</span>
-          </div>
-          <nav className="flex flex-1 flex-col">
-            <ul role="list" className="flex flex-1 flex-col gap-y-7">
-              <li>
-                <ul role="list" className="-mx-2 space-y-1">
-                  {sidebarItems.map((item) => (
-                    <li key={item.href}>
-                      <Link href={item.href}>
-                        <a 
-                          className={`group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-colors duration-200 ${
-                            location === item.href
-                              ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
-                              : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                          }`}
-                        >
-                          <span className={`h-4 w-4 shrink-0 ${location === item.href ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600'}`}>
-                            {item.icon}
-                          </span>
-                          <span className="truncate">{item.label}</span>
-                        </a>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-              <li className="mt-auto">
-                <div className="flex items-center justify-between px-2 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md">
-                  <div className="flex items-center">
-                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                      <span className="text-xs font-semibold text-white">
-                        {user?.firstName?.[0]}{user?.lastName?.[0]}
-                      </span>
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-900">
-                        {user?.firstName} {user?.lastName}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {user?.analysisCount || 0}/{user?.maxAnalyses || 3} analyses used
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="mt-3 w-full flex items-center px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-gray-900 group"
-                >
-                  <LogOut className="mr-3 h-4 w-4 text-gray-400 group-hover:text-gray-500" />
-                  Log out
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </div>
-
-      {/* Main content area - Proportional width (80% of screen) */}
-      <div className="flex flex-1 flex-col lg:pl-0">
-        {/* Mobile header */}
-        <header className="lg:hidden">
-          <div className="flex items-center justify-between bg-white border-b border-gray-200 px-4 py-1.5 sm:px-6 lg:px-8">
+    <>
+      {/* Mobile Layout (hidden on md and larger) */}
+      <div className="md:hidden min-h-screen bg-gray-50">
+        {/* Mobile Header */}
+        <header className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-40">
+          <div className="flex items-center justify-between">
             <div className="flex items-center">
               <button
-                className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                className="p-2 -ml-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                 onClick={() => setSidebarOpen(true)}
               >
-                <span className="sr-only">Open sidebar</span>
                 <Menu className="h-6 w-6" />
               </button>
-              <div className="ml-4 flex items-center">
+              <div className="ml-2 flex items-center">
                 <Shield className="h-6 w-6 text-blue-600 mr-2" />
                 <span className="text-lg font-semibold text-gray-900">VisaAnalyzer</span>
               </div>
@@ -207,19 +72,145 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </header>
 
-        {/* Page content - Clean, spacious design with optimal readability */}
-        <main className="flex-1 overflow-auto bg-gray-50">
-          <div className="h-full p-6 lg:p-8">
-            <div className="max-w-none mx-auto">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 min-h-[calc(100vh-8rem)]">
+        {/* Mobile Sidebar Overlay */}
+        <div 
+          className={`fixed inset-0 z-50 bg-black/20 backdrop-blur-sm transition-opacity ${
+            sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+          onClick={() => setSidebarOpen(false)}
+        />
+
+        {/* Mobile Sidebar */}
+        <div className={`fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}>
+          <div className="flex flex-col h-full">
+            <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-gray-50">
+              <Shield className="h-6 w-6 text-blue-600 mr-3" />
+              <span className="text-lg font-semibold text-gray-900">VisaAnalyzer</span>
+            </div>
+            <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
+              {sidebarItems.map((item) => (
+                <Link key={item.href} href={item.href}>
+                  <div 
+                    className={`group flex gap-x-3 rounded-lg p-3 text-sm font-medium leading-6 transition-all duration-200 cursor-pointer ${
+                      location === item.href
+                        ? 'bg-blue-50 text-blue-700 shadow-sm border-l-4 border-blue-600'
+                        : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className={`h-5 w-5 shrink-0 ${location === item.href ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600'}`}>
+                      {item.icon}
+                    </span>
+                    <span className="truncate">{item.label}</span>
+                  </div>
+                </Link>
+              ))}
+            </nav>
+            <div className="p-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center p-3 bg-white rounded-lg mb-3 shadow-sm">
+                <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
+                  <span className="text-sm font-semibold text-white">
+                    {user?.firstName?.[0]}{user?.lastName?.[0]}
+                  </span>
+                </div>
+                <div className="ml-3 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {user?.firstName} {user?.lastName}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {user?.analysisCount || 0}/{user?.maxAnalyses || 3} analyses used
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Log out
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Content */}
+        <main className="p-4 pb-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="p-4 sm:p-6">
+              {children}
+            </div>
+          </div>
+        </main>
+      </div>
+
+      {/* Desktop Layout (hidden below md) */}
+      <div className="hidden md:flex min-h-screen bg-gray-50">
+        {/* Desktop Sidebar */}
+        <div className="w-64 lg:w-72 xl:w-80 bg-white border-r border-gray-200 flex-shrink-0">
+          <div className="flex flex-col h-screen">
+            <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-gray-50">
+              <Shield className="h-6 w-6 text-blue-600 mr-3" />
+              <span className="text-lg font-semibold text-gray-900">VisaAnalyzer</span>
+            </div>
+            <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+              {sidebarItems.map((item) => (
+                <Link key={item.href} href={item.href}>
+                  <div 
+                    className={`group flex gap-x-3 rounded-lg p-3 text-sm font-medium leading-6 transition-all duration-200 cursor-pointer ${
+                      location === item.href
+                        ? 'bg-blue-50 text-blue-700 shadow-sm border-l-4 border-blue-600'
+                        : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className={`h-5 w-5 shrink-0 ${location === item.href ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600'}`}>
+                      {item.icon}
+                    </span>
+                    <span className="truncate">{item.label}</span>
+                  </div>
+                </Link>
+              ))}
+            </nav>
+            <div className="p-4 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center p-3 bg-white rounded-lg mb-3 shadow-sm">
+                <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
+                  <span className="text-sm font-semibold text-white">
+                    {user?.firstName?.[0]}{user?.lastName?.[0]}
+                  </span>
+                </div>
+                <div className="ml-3 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {user?.firstName} {user?.lastName}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {user?.analysisCount || 0}/{user?.maxAnalyses || 3} analyses used
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Log out
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Content */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <main className="flex-1 p-6 lg:p-8 overflow-auto">
+            <div className="max-w-none">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200">
                 <div className="p-6 lg:p-8">
                   {children}
                 </div>
               </div>
             </div>
-          </div>
-        </main>
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
