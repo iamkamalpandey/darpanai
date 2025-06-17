@@ -285,7 +285,7 @@ export function SimpleChecklistForm({ initialData, onSubmit, isLoading }: Simple
           </CardHeader>
           <CardContent className="space-y-4">
             {itemFields.map((field, index) => (
-              <Card key={field.id} className="border-l-4 border-l-blue-500">
+              <Card key={field.id} className="shadow-sm hover:shadow-md transition-all duration-200 bg-white">
                 <CardContent className="pt-4">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-2">

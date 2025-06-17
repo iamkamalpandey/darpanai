@@ -292,7 +292,7 @@ export default function AdminDocumentChecklists() {
         {/* Checklists Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           {filteredChecklists.map((checklist: DocumentChecklist) => (
-            <Card key={checklist.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-green-500 h-full flex flex-col">
+            <Card key={checklist.id} className="hover:shadow-lg transition-all duration-200 shadow-sm hover:shadow-md bg-white h-full flex flex-col">
               <CardHeader className="pb-4 flex-shrink-0">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start space-x-2 min-w-0 flex-1">

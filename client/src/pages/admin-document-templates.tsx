@@ -88,10 +88,13 @@ export default function AdminDocumentTemplates() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      return apiRequest(`/api/admin/document-templates/${id}`, {
+      const response = await fetch(`/api/admin/document-templates/${id}`, {
         method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+      if (!response.ok) throw new Error('Failed to update template');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/document-templates'] });
@@ -112,9 +115,11 @@ export default function AdminDocumentTemplates() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/admin/document-templates/${id}`, {
+      const response = await fetch(`/api/admin/document-templates/${id}`, {
         method: 'DELETE',
       });
+      if (!response.ok) throw new Error('Failed to delete template');
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/document-templates'] });
@@ -430,7 +435,6 @@ export default function AdminDocumentTemplates() {
             </DialogHeader>
             
             <AdvancedTemplateForm
-              template={editingTemplate}
               onSuccess={() => {
                 queryClient.invalidateQueries({ queryKey: ['/api/admin/document-templates'] });
                 toast({
