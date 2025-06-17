@@ -83,6 +83,19 @@ export default function DocumentChecklistGenerator() {
     });
   }, [checklists, searchTerm, selectedCountry, selectedVisaType, selectedUserType]);
 
+  // Check if any filters are active
+  const hasActiveFilters = searchTerm || (selectedCountry && selectedCountry !== 'all') || 
+                          (selectedVisaType && selectedVisaType !== 'all') || 
+                          (selectedUserType && selectedUserType !== 'all');
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedCountry('');
+    setSelectedVisaType('');
+    setSelectedUserType('');
+  };
+
   const items = viewingChecklist?.items || [];
   const progress = items.length > 0 
     ? (items.filter((item: DocumentChecklistItem) => completedDocuments.has(item.id)).length / items.length) * 100 
@@ -264,64 +277,75 @@ export default function DocumentChecklistGenerator() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="search">Search</Label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="search"
-                        placeholder="Search checklists..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
+                <div className="space-y-4">
+                  {/* Search Bar - Full Width */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search checklists..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 h-10"
+                    />
+                  </div>
+                  
+                  {/* Filter Controls */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className="space-y-2">
+                      <Label>Destination Country</Label>
+                      <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="Select country" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Countries</SelectItem>
+                          {countries.map((country: string) => (
+                            <SelectItem key={country} value={country}>{country}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label>Destination Country</Label>
-                    <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select country" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Countries</SelectItem>
-                        {countries.map((country: string) => (
-                          <SelectItem key={country} value={country}>{country}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                    <div className="space-y-2">
+                      <Label>Visa Type</Label>
+                      <Select value={selectedVisaType} onValueChange={setSelectedVisaType}>
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="Select visa type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Visa Types</SelectItem>
+                          {visaTypes.map((visaType: string) => (
+                            <SelectItem key={visaType} value={visaType}>{visaType}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label>Visa Type</Label>
-                    <Select value={selectedVisaType} onValueChange={setSelectedVisaType}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select visa type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Visa Types</SelectItem>
-                        {visaTypes.map((visaType: string) => (
-                          <SelectItem key={visaType} value={visaType}>{visaType}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>User Type</Label>
-                    <Select value={selectedUserType} onValueChange={setSelectedUserType}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select user type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All User Types</SelectItem>
-                        {userTypes.map((userType: string) => (
+                    <div className="space-y-2">
+                      <Label>User Type</Label>
+                      <Select value={selectedUserType} onValueChange={setSelectedUserType}>
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="Select user type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All User Types</SelectItem>
+                          {userTypes.map((userType: string) => (
                           <SelectItem key={userType} value={userType}>{userType}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                  
+                  {/* Results and Clear Filters */}
+                  <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between pt-4 border-t">
+                    <span className="text-sm text-gray-600">
+                      {filteredChecklists.length} checklist{filteredChecklists.length !== 1 ? 's' : ''} found
+                    </span>
+                    {hasActiveFilters && (
+                      <Button variant="outline" size="sm" onClick={clearFilters} className="w-full sm:w-auto">
+                        Clear All Filters
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>
