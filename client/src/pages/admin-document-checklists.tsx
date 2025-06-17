@@ -96,18 +96,39 @@ export default function AdminDocumentChecklists() {
 
   const editUpdateMutation = useMutation({
     mutationFn: async (data: any) => {
+      // Sanitize data before sending to prevent JSON syntax errors
+      const sanitizedData = {
+        ...data,
+        items: Array.isArray(data.items) ? data.items.map(item => ({
+          ...item,
+          tips: Array.isArray(item.tips) ? item.tips : []
+        })) : [],
+        importantNotes: Array.isArray(data.importantNotes) ? data.importantNotes : []
+      };
+      
       const response = await fetch(`/api/admin/document-checklists/${editingChecklist?.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(sanitizedData),
       });
-      if (!response.ok) throw new Error('Failed to update checklist');
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || 'Failed to update checklist');
+      }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/document-checklists'] });
       setEditingChecklist(null);
       toast({ title: "Success", description: "Document checklist updated successfully" });
+    },
+    onError: (error: Error) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to update checklist",
+        variant: "destructive"
+      });
     },
   });
 

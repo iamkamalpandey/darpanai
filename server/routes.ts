@@ -1286,7 +1286,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/admin/document-checklists/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const checklist = await storage.updateDocumentChecklist(parseInt(id), req.body);
+      
+      // Validate and sanitize request body
+      const updateData = req.body;
+      
+      // Ensure JSON fields are properly formatted
+      if (updateData.items) {
+        updateData.items = Array.isArray(updateData.items) ? updateData.items : [];
+      }
+      if (updateData.importantNotes) {
+        updateData.importantNotes = Array.isArray(updateData.importantNotes) ? updateData.importantNotes : [];
+      }
+      
+      const checklist = await storage.updateDocumentChecklist(parseInt(id), updateData);
       
       if (checklist) {
         invalidateCache('document-checklists');

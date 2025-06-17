@@ -724,9 +724,25 @@ export class DatabaseStorage implements IStorage {
 
   async updateDocumentChecklist(id: number, updates: Partial<DocumentChecklist>): Promise<DocumentChecklist | undefined> {
     try {
+      // Sanitize JSON fields to prevent syntax errors
+      const sanitizedUpdates = { ...updates };
+      
+      // Ensure array fields are properly formatted
+      if (sanitizedUpdates.items && Array.isArray(sanitizedUpdates.items)) {
+        sanitizedUpdates.items = sanitizedUpdates.items.map(item => ({
+          ...item,
+          tips: Array.isArray(item.tips) ? item.tips : []
+        }));
+      }
+      
+      // Ensure importantNotes is an array
+      if (sanitizedUpdates.importantNotes && !Array.isArray(sanitizedUpdates.importantNotes)) {
+        sanitizedUpdates.importantNotes = [];
+      }
+      
       const [checklist] = await db
         .update(documentChecklists)
-        .set({ ...updates, updatedAt: new Date() })
+        .set({ ...sanitizedUpdates, updatedAt: new Date() })
         .where(eq(documentChecklists.id, id))
         .returning();
       return checklist;
