@@ -11,7 +11,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="min-h-screen flex overflow-hidden bg-gray-100">
+      <div className="flex h-screen w-full max-w-[90%] mx-auto bg-white shadow-xl">
       {/* Mobile sidebar */}
       <div 
         className={`fixed inset-0 z-50 bg-background/80 backdrop-blur-sm lg:hidden ${
@@ -60,16 +61,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Page content */}
         <main className="flex-1 overflow-auto bg-white">
-          <div className="h-full flex justify-center">
-            <div className="w-full max-w-[70%] h-full">
-              <div className="h-full bg-gray-50 m-4 rounded-lg border border-gray-200 shadow-sm">
-                <div className="h-full p-6 lg:p-8 overflow-auto">
-                  {children}
-                </div>
+          <div className="h-full">
+            <div className="h-full bg-gray-50 m-4 rounded-lg border border-gray-200 shadow-sm">
+              <div className="h-full p-6 lg:p-8 overflow-auto">
+                {children}
               </div>
             </div>
           </div>
         </main>
+        </div>
       </div>
     </div>
   );
