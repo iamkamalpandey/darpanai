@@ -130,19 +130,24 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
-**June 17, 2025 - Complete Mobile-First Responsive Design Implementation:**
+**June 17, 2025 - Complete Mobile-First Responsive Design Implementation & Navigation Fix:**
+- Fixed critical navigation routing issues in DashboardLayout - corrected mismatched route paths causing 404 errors
+- Updated sidebar navigation links to match actual App.tsx routes (Dashboard: '/', Analyses: '/history', Appointments: '/consultations')
 - Built truly responsive layouts with separate mobile and desktop designs optimized for each screen size
-- Implemented mobile-first approach with dedicated mobile headers, sidebars, and content areas for optimal touch interaction
+- Implemented comprehensive mobile-first approach with dedicated mobile headers, sidebars, and content areas
 - Created adaptive sidebar widths: 256px (md), 288px (lg), 320px (xl) that scale naturally with screen size
 - Enhanced mobile navigation with sticky headers, smooth slide-out sidebars, and backdrop blur effects
 - Applied clean visual hierarchy with rounded corners (rounded-xl), subtle shadows, and professional spacing
-- Implemented touch-friendly buttons with proper padding and hover states for excellent mobile UX
+- Implemented mobile-responsive tables with card-based mobile layouts and horizontal scroll for desktop
+- Fixed admin users table with separate mobile card layout and desktop table with proper overflow handling
+- Enhanced touch-friendly buttons with proper padding and hover states for excellent mobile UX
 - Used fragment-based layout separation to ensure clean mobile vs desktop rendering without layout conflicts
 - Enhanced active states with blue accent colors, left border indicators, and smooth 200ms transitions
 - Optimized content containers with responsive padding (p-4 sm:p-6 lg:p-8) for all device sizes
 - Created consistent 20px icon sizes and improved typography hierarchy throughout both layouts
 - Applied gray-50 background with white content cards for excellent readability and modern appearance
 - Established mobile breakpoint at 768px (md) for optimal tablet and desktop experience
+- Fixed responsiveness issues across admin pages including document templates with mobile-first grid layouts
 
 **June 16, 2025 - Comprehensive Mobile-First Responsive Design & Full System Testing:**
 - Completed mobile-first responsive design implementation across entire application with optimal touch interfaces
