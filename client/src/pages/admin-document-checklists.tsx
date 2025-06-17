@@ -151,7 +151,7 @@ export default function AdminDocumentChecklists() {
         sanitizedData.destinationCountries = Array.isArray(data.destinationCountries) ? data.destinationCountries : [];
       }
       
-      const response = await fetch(`/api/admin/document-checklists/${editingChecklist?.id}`, {
+      const response = await fetch(`/api/admin/document-checklists/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(sanitizedData),
@@ -576,7 +576,7 @@ export default function AdminDocumentChecklists() {
                 mode="edit"
                 onSubmit={async (data) => {
                   return new Promise<void>((resolve, reject) => {
-                    editUpdateMutation.mutate(data, {
+                    editUpdateMutation.mutate({ id: editingChecklist!.id, data: data }, {
                       onSuccess: () => resolve(),
                       onError: (error) => reject(error)
                     });
