@@ -1293,7 +1293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Ensure JSON fields are properly formatted
       if (updateData.items) {
         if (Array.isArray(updateData.items)) {
-          updateData.items = updateData.items.map(item => ({
+          updateData.items = updateData.items.map((item: any) => ({
             ...item,
             tips: Array.isArray(item.tips) ? item.tips : []
           }));
@@ -1306,8 +1306,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (Array.isArray(updateData.importantNotes)) {
           // Ensure all notes are strings and filter out empty ones
           updateData.importantNotes = updateData.importantNotes
-            .filter(note => typeof note === 'string' && note.trim().length > 0)
-            .map(note => String(note).trim());
+            .filter((note: any) => typeof note === 'string' && note.trim().length > 0)
+            .map((note: any) => String(note).trim());
         } else if (typeof updateData.importantNotes === 'string') {
           // Handle single string case
           updateData.importantNotes = [String(updateData.importantNotes).trim()];
