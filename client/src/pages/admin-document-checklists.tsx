@@ -289,8 +289,8 @@ export default function AdminDocumentChecklists() {
           Total: {filteredChecklists.length} checklists
         </div>
 
-        {/* Checklists Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 w-full min-w-0 auto-rows-fr">
+        {/* Checklists Grid - Maximum 3 cards per row for better UX */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full min-w-0 auto-rows-fr">
           {filteredChecklists.map((checklist: DocumentChecklist) => (
             <Card key={checklist.id} className="hover:shadow-lg transition-all duration-200 shadow-sm hover:shadow-md bg-white h-full flex flex-col w-full min-w-0 max-w-full overflow-hidden">
               <CardHeader className="pb-4 flex-shrink-0">
