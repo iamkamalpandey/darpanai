@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Trash2, Eye, EyeOff, FileText, Search, Download, Upload, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { type DocumentTemplate } from "@shared/schema";
 import { AdminLayout } from "@/components/AdminLayout";
 import { AdvancedTemplateForm } from "@/components/AdvancedTemplateForm";
@@ -26,6 +26,14 @@ const categories = [
   { value: "language", label: "Language" },
   { value: "others", label: "Others" }
 ];
+
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
 
 export default function AdminDocumentTemplates() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -54,73 +62,91 @@ export default function AdminDocumentTemplates() {
         method: 'POST',
         body: formData,
       });
-      if (!response.ok) throw new Error('Failed to create template');
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error || 'Failed to create template');
+      }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/document-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dropdown-options'] });
+      toast({
+        title: "Success",
+        description: "Template created successfully",
+      });
       setIsCreateDialogOpen(false);
-      toast({ title: "Success", description: "Document template uploaded successfully" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create template",
+        variant: "destructive",
+      });
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<DocumentTemplate> }) => {
-      const response = await fetch(`/api/admin/document-templates/${id}`, {
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      return apiRequest(`/api/admin/document-templates/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error('Failed to update template');
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/document-templates'] });
-      setEditingTemplate(null);
-      toast({ title: "Success", description: "Document template updated successfully" });
-    },
-  });
-
-  const editUpdateMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      const response = await fetch(`/api/admin/document-templates/${editingTemplate?.id}`, {
-        method: 'PATCH',
-        body: formData,
+      queryClient.invalidateQueries({ queryKey: ['/api/dropdown-options'] });
+      toast({
+        title: "Success",
+        description: "Template updated successfully",
       });
-      if (!response.ok) throw new Error('Failed to update template');
-      return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/document-templates'] });
-      setEditingTemplate(null);
-      toast({ title: "Success", description: "Document template updated successfully" });
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update template",
+        variant: "destructive",
+      });
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`/api/admin/document-templates/${id}`, {
+      return apiRequest(`/api/admin/document-templates/${id}`, {
         method: 'DELETE',
       });
-      if (!response.ok) throw new Error('Failed to delete template');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/document-templates'] });
-      toast({ title: "Success", description: "Document template deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/dropdown-options'] });
+      toast({
+        title: "Success",
+        description: "Template deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete template",
+        variant: "destructive",
+      });
     },
   });
 
   const filteredTemplates = templates.filter((template: DocumentTemplate) => {
     const matchesSearch = template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         template.description.toLowerCase().includes(searchTerm.toLowerCase());
+      template.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !selectedCategory || template.category === selectedCategory;
-    const matchesCountry = !selectedCountry || template.countries.includes(selectedCountry);
-    const matchesVisaType = !selectedVisaType || template.visaTypes.includes(selectedVisaType);
+    const matchesCountry = !selectedCountry || 
+      (template.countries && template.countries.includes(selectedCountry));
+    const matchesVisaType = !selectedVisaType || 
+      (template.visaTypes && template.visaTypes.includes(selectedVisaType));
+    
     return matchesSearch && matchesCategory && matchesCountry && matchesVisaType;
   });
 
   const handleSubmit = async (formData: FormData) => {
-    await createMutation.mutateAsync(formData);
+    createMutation.mutate(formData);
   };
 
   const handleToggleStatus = (template: DocumentTemplate) => {
@@ -131,30 +157,25 @@ export default function AdminDocumentTemplates() {
   };
 
   const downloadTemplate = (template: DocumentTemplate) => {
-    if (template.externalUrl) {
-      window.open(template.externalUrl, '_blank');
-    } else if (template.filePath) {
-      const link = document.createElement('a');
-      link.href = `/api/document-templates/${template.id}/download`;
-      link.download = template.fileName || 'document';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    if (template.filePath) {
+      window.open(`/api/document-templates/${template.id}/download`, '_blank');
+    } else {
+      toast({
+        title: "No file available",
+        description: "This template doesn't have a downloadable file.",
+        variant: "destructive",
+      });
     }
-  };
-
-  const formatFileSize = (bytes: number | null) => {
-    if (!bytes) return 'Unknown';
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
   };
 
   if (isLoading) {
     return (
       <AdminLayout>
-        <div className="p-8">
-          <div className="text-center">Loading document templates...</div>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Loading templates...</p>
+          </div>
         </div>
       </AdminLayout>
     );
@@ -162,41 +183,23 @@ export default function AdminDocumentTemplates() {
 
   return (
     <AdminLayout>
-      <div className="p-8">
-        <div className="flex justify-between items-center mb-8">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Document Templates</h1>
-            <p className="text-gray-600 mt-2">Manage uploadable sample documents for visa applications</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Document Templates</h1>
+            <p className="text-gray-600 mt-1">Manage downloadable document templates for users</p>
           </div>
-          
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Upload className="h-4 w-4 mr-2" />
-                Upload Template
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Upload Document Template</DialogTitle>
-                <DialogDescription>
-                  Upload sample document files that users can download as templates
-                </DialogDescription>
-              </DialogHeader>
-              <AdvancedTemplateForm
-                onSubmit={handleSubmit}
-                onCancel={() => setIsCreateDialogOpen(false)}
-                isLoading={createMutation.isPending}
-                mode="create"
-              />
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => setIsCreateDialogOpen(true)} className="w-full sm:w-auto">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Template
+          </Button>
         </div>
 
-        {/* Search and Filter Controls */}
-        <div className="space-y-4 mb-8">
+        {/* Filters */}
+        <div className="space-y-4">
           <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Search templates..."
               value={searchTerm}
@@ -248,24 +251,18 @@ export default function AdminDocumentTemplates() {
         </div>
 
         {/* Templates Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredTemplates.map((template: DocumentTemplate) => (
-            <Card key={template.id} className="hover:shadow-lg transition-shadow h-full flex flex-col">
-              <CardHeader className="pb-3 flex-shrink-0">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-start space-x-2 min-w-0 flex-1">
-                    <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 mt-1 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <CardTitle className="text-sm sm:text-base lg:text-lg leading-tight break-words hyphens-auto line-clamp-2">
-                        {template.title}
-                      </CardTitle>
-                      <CardDescription className="text-xs sm:text-sm mt-1 break-words line-clamp-1">
-                        {template.documentType ? 
-                          template.documentType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
-                          'Document'
-                        }
-                      </CardDescription>
+            <Card key={template.id} className="group hover:shadow-lg transition-all duration-200 shadow-sm hover:shadow-md bg-white">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="bg-blue-100 p-2 rounded-lg flex-shrink-0">
+                      <FileText className="h-5 w-5 text-blue-600" />
                     </div>
+                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                      {template.category}
+                    </Badge>
                   </div>
                   <div className="flex items-center space-x-1 flex-shrink-0">
                     <Button
@@ -299,7 +296,7 @@ export default function AdminDocumentTemplates() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete Template</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Are you sure you want to delete "{template.title}"? This action cannot be undone.
+                            Are you sure you want to delete this template? This action cannot be undone.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -315,59 +312,44 @@ export default function AdminDocumentTemplates() {
                     </AlertDialog>
                   </div>
                 </div>
+                
+                <CardTitle className="text-base sm:text-lg leading-tight mb-2 group-hover:text-blue-700 transition-colors">
+                  {template.title}
+                </CardTitle>
+                
+                <CardDescription className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
+                  {template.description}
+                </CardDescription>
               </CardHeader>
               
-              <CardContent className="pt-0">
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">{template.description}</p>
-                
+              <CardContent className="pt-0 space-y-4 flex-1">
+                {/* Countries and Visa Types */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">File:</span>
-                    <span className="font-medium">{template.fileName}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Size:</span>
-                    <span>{formatFileSize(template.fileSize)}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Category:</span>
-                    <Badge variant="secondary">{template.category}</Badge>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Status:</span>
-                    <Badge variant={template.isActive ? "default" : "secondary"}>
-                      {template.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                  </div>
-
                   {template.countries && template.countries.length > 0 && (
-                    <div className="text-sm">
-                      <span className="text-gray-500 block mb-1">Countries:</span>
+                    <div>
+                      <div className="text-xs font-medium text-gray-700 mb-1">Countries:</div>
                       <div className="flex flex-wrap gap-1">
-                        {template.countries.slice(0, 3).map((country, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
+                        {template.countries.slice(0, 2).map((country) => (
+                          <Badge key={country} variant="secondary" className="text-xs">
                             {country}
                           </Badge>
                         ))}
-                        {template.countries.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{template.countries.length - 3} more
+                        {template.countries.length > 2 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{template.countries.length - 2} more
                           </Badge>
                         )}
                       </div>
                     </div>
                   )}
-
+                  
                   {template.visaTypes && template.visaTypes.length > 0 && (
-                    <div className="text-sm">
-                      <span className="text-gray-500 block mb-1">Visa Types:</span>
+                    <div>
+                      <div className="text-xs font-medium text-gray-700 mb-1">Visa Types:</div>
                       <div className="flex flex-wrap gap-1">
-                        {template.visaTypes.slice(0, 2).map((visa, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {visa}
+                        {template.visaTypes.slice(0, 2).map((visaType) => (
+                          <Badge key={visaType} variant="outline" className="text-xs">
+                            {visaType}
                           </Badge>
                         ))}
                         {template.visaTypes.length > 2 && (
@@ -380,65 +362,92 @@ export default function AdminDocumentTemplates() {
                   )}
                 </div>
 
-                <div className="mt-4 pt-4 border-t">
-                  <Button
-                    onClick={() => downloadTemplate(template)}
-                    className="w-full"
-                    size="sm"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Template
-                  </Button>
+                {/* File Information */}
+                {(template.fileName || template.fileSize) && (
+                  <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                    {template.fileName && (
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-600">File:</span>
+                        <span className="font-medium text-gray-800 truncate ml-2">{template.fileName}</span>
+                      </div>
+                    )}
+                    {template.fileSize && (
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-600">Size:</span>
+                        <span className="text-gray-800">{formatFileSize(template.fileSize)}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Status Badge */}
+                <div className="flex items-center justify-between">
+                  <Badge variant={template.isActive ? "default" : "secondary"} className="text-xs">
+                    {template.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                  <span className="text-xs text-gray-500">
+                    Created: {template.createdAt ? new Date(template.createdAt).toLocaleDateString() : 'N/A'}
+                  </span>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
+        {/* Empty State */}
         {filteredTemplates.length === 0 && (
           <div className="text-center py-12">
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No templates found</h3>
             <p className="text-gray-500 mb-4">
               {searchTerm || selectedCategory 
-                ? "Try adjusting your search or filter criteria."
-                : "Upload your first document template to get started."
+                ? "Try adjusting your search or filter criteria to find relevant templates."
+                : "Document templates are currently being prepared. Please check back soon."
               }
             </p>
-            {!searchTerm && !selectedCategory && (
-              <Button onClick={() => setIsCreateDialogOpen(true)}>
-                <Upload className="h-4 w-4 mr-2" />
-                Upload First Template
-              </Button>
-            )}
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create First Template
+            </Button>
           </div>
         )}
 
-        {/* Edit Dialog */}
-        <Dialog open={!!editingTemplate} onOpenChange={() => setEditingTemplate(null)}>
+        {/* Create/Edit Dialog */}
+        <Dialog open={isCreateDialogOpen || !!editingTemplate} onOpenChange={(open) => {
+          if (!open) {
+            setIsCreateDialogOpen(false);
+            setEditingTemplate(null);
+          }
+        }}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Edit Document Template</DialogTitle>
+              <DialogTitle>
+                {editingTemplate ? `Edit Template: ${editingTemplate.title}` : 'Create New Template'}
+              </DialogTitle>
               <DialogDescription>
-                Update the template information and file
+                Fill in the details to {editingTemplate ? 'update' : 'create'} a document template.
               </DialogDescription>
             </DialogHeader>
-            {editingTemplate && (
-              <AdvancedTemplateForm
-                initialData={editingTemplate}
-                mode="edit"
-                onSubmit={async (data: FormData) => {
-                  return new Promise<void>((resolve, reject) => {
-                    editUpdateMutation.mutate(data, {
-                      onSuccess: () => resolve(),
-                      onError: (error) => reject(error)
-                    });
-                  });
-                }}
-                onCancel={() => setEditingTemplate(null)}
-                isLoading={editUpdateMutation.isPending}
-              />
-            )}
+            
+            <AdvancedTemplateForm
+              template={editingTemplate}
+              onSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ['/api/admin/document-templates'] });
+                toast({
+                  title: "Success",
+                  description: `Template ${editingTemplate ? 'updated' : 'created'} successfully`,
+                });
+                setIsCreateDialogOpen(false);
+                setEditingTemplate(null);
+              }}
+              onError={(error: any) => {
+                toast({
+                  title: "Error",
+                  description: error.message || `Failed to ${editingTemplate ? 'update' : 'create'} template`,
+                  variant: "destructive",
+                });
+              }}
+            />
           </DialogContent>
         </Dialog>
       </div>
