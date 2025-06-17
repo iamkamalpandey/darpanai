@@ -330,10 +330,11 @@ export default function DocumentChecklistGenerator() {
                         <SelectContent>
                           <SelectItem value="all">All User Types</SelectItem>
                           {userTypes.map((userType: string) => (
-                          <SelectItem key={userType} value={userType}>{userType}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                            <SelectItem key={userType} value={userType}>{userType}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   
                   {/* Results and Clear Filters */}

@@ -41,19 +41,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top bar with mobile menu button */}
-        <header className="flex h-14 items-center border-b px-4 lg:px-6">
+        <header className="flex h-12 sm:h-14 items-center border-b px-3 sm:px-4 lg:px-6 bg-white sticky top-0 z-30">
           <Button
             variant="ghost"
             size="icon"
-            className="mr-2 lg:hidden"
+            className="mr-2 lg:hidden p-1.5 sm:p-2"
             onClick={() => setSidebarOpen(true)}
           >
-            <Menu className="h-5 w-5" />
+            <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
             <span className="sr-only">Toggle menu</span>
           </Button>
           <div className="ml-auto flex items-center gap-2">
-            <div className="text-sm text-muted-foreground">
-              Visa Rejection Analyzer
+            <div className="text-xs sm:text-sm text-muted-foreground font-medium">
+              VisaAnalyzer Pro
             </div>
           </div>
         </header>
