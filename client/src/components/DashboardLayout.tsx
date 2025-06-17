@@ -23,7 +23,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   
   const { data: user } = useQuery({
     queryKey: ['/api/user'],
-  });
+  }) as { data: any };
 
   const handleLogout = async () => {
     try {
@@ -38,7 +38,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { icon: <Home size={16} />, label: 'Dashboard', href: '/dashboard' },
     { icon: <FileText size={16} />, label: 'My Analyses', href: '/analyses' },
     { icon: <Calendar size={16} />, label: 'Appointments', href: '/appointments' },
-    { icon: <FileTemplate size={16} />, label: 'Document Templates', href: '/document-templates' },
+    { icon: <FileCheck size={16} />, label: 'Document Templates', href: '/document-templates' },
     { icon: <ClipboardCheck size={16} />, label: 'Document Checklists', href: '/document-checklists' },
     { icon: <User size={16} />, label: 'Profile', href: '/profile' },
   ];
@@ -117,8 +117,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </div>
 
-      {/* Desktop sidebar - Proportional width (20% of screen) */}
-      <div className="hidden lg:flex lg:w-1/5 lg:min-w-[280px] lg:max-w-[320px] lg:flex-col bg-white border-r border-gray-200">
+      {/* Desktop sidebar - Optimal proportional width (22% of screen) */}
+      <div className="hidden lg:flex lg:w-[22%] lg:min-w-[300px] lg:max-w-[350px] lg:flex-col bg-white border-r border-gray-200">
         <div className="flex grow flex-col gap-y-5 overflow-y-auto px-6 pb-4">
           <div className="flex h-16 shrink-0 items-center border-b border-gray-200 -mx-6 px-6 mb-4">
             <Shield className="h-6 w-6 text-blue-600 mr-3" />

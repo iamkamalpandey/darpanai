@@ -27,8 +27,8 @@ interface AdminSidebarItemProps {
 const AdminSidebarItem = ({ icon, label, href, active }: AdminSidebarItemProps) => {
   return (
     <Link href={href}>
-      <a 
-        className={`group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-colors duration-200 ${
+      <div 
+        className={`group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-colors duration-200 cursor-pointer ${
           active
             ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
             : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
@@ -38,7 +38,7 @@ const AdminSidebarItem = ({ icon, label, href, active }: AdminSidebarItemProps) 
           {icon}
         </span>
         <span className="truncate">{label}</span>
-      </a>
+      </div>
     </Link>
   );
 };
@@ -53,7 +53,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   
   const { data: user } = useQuery({
     queryKey: ['/api/user'],
-  });
+  }) as { data: any };
 
   const handleLogout = async () => {
     try {
@@ -156,8 +156,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </div>
       </div>
 
-      {/* Desktop sidebar - Proportional width (20% of screen) */}
-      <div className="hidden lg:flex lg:w-1/5 lg:min-w-[280px] lg:max-w-[320px] lg:flex-col bg-white border-r border-gray-200">
+      {/* Desktop sidebar - Optimal proportional width (22% of screen) */}
+      <div className="hidden lg:flex lg:w-[22%] lg:min-w-[300px] lg:max-w-[350px] lg:flex-col bg-white border-r border-gray-200">
         <div className="flex grow flex-col gap-y-5 overflow-y-auto px-6 pb-4">
           <div className="flex h-16 shrink-0 items-center border-b border-gray-200 -mx-6 px-6 mb-4">
             <Shield className="h-6 w-6 text-blue-600 mr-3" />
