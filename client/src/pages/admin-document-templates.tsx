@@ -40,6 +40,7 @@ export default function AdminDocumentTemplates() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedVisaType, setSelectedVisaType] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<DocumentTemplate | null>(null);
   const { toast } = useToast();
@@ -146,8 +147,11 @@ export default function AdminDocumentTemplates() {
       (template.countries && template.countries.includes(selectedCountry));
     const matchesVisaType = !selectedVisaType || 
       (template.visaTypes && template.visaTypes.includes(selectedVisaType));
+    const matchesStatus = !selectedStatus || 
+      (selectedStatus === 'active' && template.isActive) ||
+      (selectedStatus === 'inactive' && !template.isActive);
     
-    return matchesSearch && matchesCategory && matchesCountry && matchesVisaType;
+    return matchesSearch && matchesCategory && matchesCountry && matchesVisaType && matchesStatus;
   });
 
   const handleSubmit = async (formData: FormData) => {
@@ -213,7 +217,7 @@ export default function AdminDocumentTemplates() {
             />
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
@@ -247,6 +251,16 @@ export default function AdminDocumentTemplates() {
               {dropdownOptions.visaTypes.map((visaType: string) => (
                 <option key={visaType} value={visaType}>{visaType}</option>
               ))}
+            </select>
+
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            >
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
             </select>
           </div>
 

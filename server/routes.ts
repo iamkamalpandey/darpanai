@@ -1288,14 +1288,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       
       // Validate and sanitize request body
-      const updateData = req.body;
+      const updateData = { ...req.body };
       
       // Ensure JSON fields are properly formatted
       if (updateData.items) {
-        updateData.items = Array.isArray(updateData.items) ? updateData.items : [];
+        if (Array.isArray(updateData.items)) {
+          updateData.items = updateData.items.map(item => ({
+            ...item,
+            tips: Array.isArray(item.tips) ? item.tips : []
+          }));
+        } else {
+          updateData.items = [];
+        }
       }
+      
       if (updateData.importantNotes) {
-        updateData.importantNotes = Array.isArray(updateData.importantNotes) ? updateData.importantNotes : [];
+        if (Array.isArray(updateData.importantNotes)) {
+          // Ensure all notes are strings and filter out empty ones
+          updateData.importantNotes = updateData.importantNotes
+            .filter(note => typeof note === 'string' && note.trim().length > 0)
+            .map(note => String(note).trim());
+        } else if (typeof updateData.importantNotes === 'string') {
+          // Handle single string case
+          updateData.importantNotes = [String(updateData.importantNotes).trim()];
+        } else {
+          updateData.importantNotes = [];
+        }
       }
       
       const checklist = await storage.updateDocumentChecklist(parseInt(id), updateData);
