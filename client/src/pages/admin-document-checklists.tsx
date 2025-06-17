@@ -290,18 +290,18 @@ export default function AdminDocumentChecklists() {
         </div>
 
         {/* Checklists Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6 w-full min-w-0">
           {filteredChecklists.map((checklist: DocumentChecklist) => (
-            <Card key={checklist.id} className="hover:shadow-lg transition-all duration-200 shadow-sm hover:shadow-md bg-white h-full flex flex-col">
+            <Card key={checklist.id} className="hover:shadow-lg transition-all duration-200 shadow-sm hover:shadow-md bg-white h-full flex flex-col w-full min-w-0 max-w-full overflow-hidden">
               <CardHeader className="pb-4 flex-shrink-0">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-start space-x-2 min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2 min-w-0">
+                  <div className="flex items-start space-x-2 min-w-0 flex-1 overflow-hidden">
                     <CheckSquare className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 mt-1 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <CardTitle className="text-sm sm:text-base lg:text-lg leading-tight break-words hyphens-auto line-clamp-2 mb-2">
+                    <div className="min-w-0 flex-1 overflow-hidden">
+                      <CardTitle className="text-sm sm:text-base lg:text-lg leading-tight mb-2 truncate">
                         {checklist.title}
                       </CardTitle>
-                      <CardDescription className="text-xs sm:text-sm break-words line-clamp-2">
+                      <CardDescription className="text-xs sm:text-sm line-clamp-2 break-words">
                         {checklist.description}
                       </CardDescription>
                     </div>
@@ -356,35 +356,35 @@ export default function AdminDocumentChecklists() {
                 </div>
               </CardHeader>
               
-              <CardContent className="pt-0">
-                <div className="space-y-4">
+              <CardContent className="pt-0 min-w-0 overflow-hidden">
+                <div className="space-y-4 min-w-0">
                   {/* Route Information */}
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <div className="flex items-center space-x-4 text-sm">
-                      <div className="flex items-center space-x-1">
-                        <MapPin className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">From:</span>
-                        <Badge variant="outline">{checklist.country}</Badge>
+                  <div className="bg-gray-50 p-3 rounded-lg min-w-0 overflow-hidden">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm min-w-0">
+                      <div className="flex items-center space-x-1 min-w-0">
+                        <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                        <span className="font-medium flex-shrink-0">From:</span>
+                        <Badge variant="outline" className="truncate max-w-full">{checklist.country}</Badge>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <span className="font-medium">Type:</span>
-                        <Badge variant="outline">{checklist.visaType}</Badge>
+                      <div className="flex items-center space-x-1 min-w-0">
+                        <span className="font-medium flex-shrink-0">Type:</span>
+                        <Badge variant="outline" className="truncate max-w-full">{checklist.visaType}</Badge>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <span className="font-medium">User:</span>
-                        <Badge variant="outline">{checklist.userType}</Badge>
+                      <div className="flex items-center space-x-1 min-w-0">
+                        <span className="font-medium flex-shrink-0">User:</span>
+                        <Badge variant="outline" className="truncate max-w-full">{checklist.userType}</Badge>
                       </div>
                     </div>
                   </div>
 
                   {/* Quick Stats */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-blue-50 p-3 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <CheckSquare className="h-4 w-4 text-blue-600" />
-                        <div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
+                    <div className="bg-blue-50 p-3 rounded-lg min-w-0 overflow-hidden">
+                      <div className="flex items-center space-x-2 min-w-0">
+                        <CheckSquare className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                        <div className="min-w-0 overflow-hidden">
                           <div className="text-xs text-blue-600 font-medium">Documents</div>
-                          <div className="text-sm font-bold text-blue-800">
+                          <div className="text-sm font-bold text-blue-800 truncate">
                             {Array.isArray(checklist.items) ? checklist.items.length : 0} required
                           </div>
                         </div>
@@ -392,24 +392,24 @@ export default function AdminDocumentChecklists() {
                     </div>
                     
                     {checklist.estimatedProcessingTime && (
-                      <div className="bg-yellow-50 p-3 rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <Clock className="h-4 w-4 text-yellow-600" />
-                          <div>
+                      <div className="bg-yellow-50 p-3 rounded-lg min-w-0 overflow-hidden">
+                        <div className="flex items-center space-x-2 min-w-0">
+                          <Clock className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+                          <div className="min-w-0 overflow-hidden">
                             <div className="text-xs text-yellow-600 font-medium">Processing</div>
-                            <div className="text-sm font-bold text-yellow-800">{checklist.estimatedProcessingTime}</div>
+                            <div className="text-sm font-bold text-yellow-800 truncate">{checklist.estimatedProcessingTime}</div>
                           </div>
                         </div>
                       </div>
                     )}
 
                     {checklist.totalFees && (
-                      <div className="bg-green-50 p-3 rounded-lg col-span-2">
-                        <div className="flex items-center space-x-2">
-                          <DollarSign className="h-4 w-4 text-green-600" />
-                          <div>
+                      <div className="bg-green-50 p-3 rounded-lg col-span-1 sm:col-span-2 min-w-0 overflow-hidden">
+                        <div className="flex items-center space-x-2 min-w-0">
+                          <DollarSign className="h-4 w-4 text-green-600 flex-shrink-0" />
+                          <div className="min-w-0 overflow-hidden">
                             <div className="text-xs text-green-600 font-medium">Total Fees</div>
-                            <div className="text-sm font-bold text-green-800">{checklist.totalFees}</div>
+                            <div className="text-sm font-bold text-green-800 truncate">{checklist.totalFees}</div>
                           </div>
                         </div>
                       </div>
@@ -417,23 +417,23 @@ export default function AdminDocumentChecklists() {
                   </div>
 
                   {/* Status and Metadata */}
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-gray-500">Status:</span>
-                      <Badge variant={checklist.isActive ? "default" : "secondary"}>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm min-w-0">
+                    <div className="flex items-center space-x-2 min-w-0">
+                      <span className="text-gray-500 flex-shrink-0">Status:</span>
+                      <Badge variant={checklist.isActive ? "default" : "secondary"} className="truncate">
                         {checklist.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </div>
-                    <div className="text-gray-500">
+                    <div className="text-gray-500 text-xs sm:text-sm truncate">
                       Created: {formatDate(checklist.createdAt)}
                     </div>
                   </div>
 
                   {/* Important Notes Preview */}
                   {checklist.importantNotes && checklist.importantNotes.length > 0 && (
-                    <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
-                      <div className="text-xs text-orange-600 font-medium mb-1">Important Notes</div>
-                      <div className="text-sm text-orange-800 line-clamp-2">
+                    <div className="bg-orange-50 p-3 rounded-lg border border-orange-200 min-w-0 overflow-hidden">
+                      <div className="text-xs text-orange-600 font-medium mb-1 truncate">Important Notes</div>
+                      <div className="text-sm text-orange-800 line-clamp-2 break-words">
                         {checklist.importantNotes[0]}
                         {checklist.importantNotes.length > 1 && ` +${checklist.importantNotes.length - 1} more`}
                       </div>
@@ -441,15 +441,15 @@ export default function AdminDocumentChecklists() {
                   )}
 
                   {/* Download Checklist as Excel Button */}
-                  <div className="pt-3 border-t">
+                  <div className="pt-3 border-t min-w-0">
                     <Button
                       onClick={() => downloadChecklistAsExcel(checklist)}
                       className="w-full text-sm"
                       size="sm"
                       variant="outline"
                     >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download Excel
+                      <Download className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">Download Excel</span>
                     </Button>
                   </div>
                 </div>

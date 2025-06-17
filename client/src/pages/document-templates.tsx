@@ -190,25 +190,25 @@ export default function DocumentTemplates() {
                   {template.title}
                 </CardTitle>
                 
-                <CardDescription className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
+                <CardDescription className="text-sm text-gray-600 line-clamp-3 leading-relaxed break-words">
                   {template.description}
                 </CardDescription>
               </CardHeader>
               
-              <CardContent className="pt-0 space-y-4">
+              <CardContent className="pt-0 space-y-4 min-w-0 overflow-hidden">
                 {/* Countries and Visa Types */}
-                <div className="space-y-3">
+                <div className="space-y-3 min-w-0">
                   {template.countries && template.countries.length > 0 && (
-                    <div>
-                      <div className="text-xs font-medium text-gray-700 mb-1">Countries:</div>
-                      <div className="flex flex-wrap gap-1">
+                    <div className="min-w-0">
+                      <div className="text-xs font-medium text-gray-700 mb-1 truncate">Countries:</div>
+                      <div className="flex flex-wrap gap-1 min-w-0">
                         {template.countries.slice(0, 2).map((country) => (
-                          <Badge key={country} variant="secondary" className="text-xs">
+                          <Badge key={country} variant="secondary" className="text-xs truncate max-w-full">
                             {country}
                           </Badge>
                         ))}
                         {template.countries.length > 2 && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="secondary" className="text-xs whitespace-nowrap">
                             +{template.countries.length - 2} more
                           </Badge>
                         )}
@@ -217,16 +217,16 @@ export default function DocumentTemplates() {
                   )}
                   
                   {template.visaTypes && template.visaTypes.length > 0 && (
-                    <div>
-                      <div className="text-xs font-medium text-gray-700 mb-1">Visa Types:</div>
-                      <div className="flex flex-wrap gap-1">
+                    <div className="min-w-0">
+                      <div className="text-xs font-medium text-gray-700 mb-1 truncate">Visa Types:</div>
+                      <div className="flex flex-wrap gap-1 min-w-0">
                         {template.visaTypes.slice(0, 2).map((visaType) => (
-                          <Badge key={visaType} variant="outline" className="text-xs">
+                          <Badge key={visaType} variant="outline" className="text-xs truncate max-w-full">
                             {visaType}
                           </Badge>
                         ))}
                         {template.visaTypes.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs whitespace-nowrap">
                             +{template.visaTypes.length - 2} more
                           </Badge>
                         )}
