@@ -594,35 +594,52 @@ export default function DocumentChecklistGenerator() {
                       <div className="space-y-4">
                         {/* Route Information */}
                         <div className="bg-white p-3 rounded-lg border min-w-0 overflow-hidden">
-                          <div className="flex items-center justify-between mb-2 min-w-0">
+                          <div className="flex items-center justify-between mb-3 min-w-0">
                             <span className="text-sm font-medium text-gray-700 truncate">Application Route</span>
                             <Info className="h-4 w-4 text-blue-500 flex-shrink-0" />
                           </div>
-                          <div className="flex flex-wrap gap-1 sm:gap-2 min-w-0">
-                            <Badge variant="outline" className="text-xs bg-blue-50 border-blue-200 truncate max-w-full">
-                              {checklist.country}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs bg-purple-50 border-purple-200 truncate max-w-full">
-                              {checklist.visaType}
-                            </Badge>
-                            <Badge variant="outline" className="text-xs bg-gray-50 border-gray-200 truncate max-w-full">
-                              {checklist.userType}
-                            </Badge>
+                          <div className="space-y-2">
+                            <div className="flex flex-col space-y-2">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs text-gray-500 w-12 flex-shrink-0">From:</span>
+                                <Badge variant="outline" className="text-xs bg-blue-50 border-blue-200 flex-shrink-0">
+                                  {checklist.country}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs text-gray-500 w-12 flex-shrink-0">Type:</span>
+                                <Badge variant="outline" className="text-xs bg-purple-50 border-purple-200 flex-shrink-0">
+                                  {checklist.visaType}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs text-gray-500 w-12 flex-shrink-0">User:</span>
+                                <Badge variant="outline" className="text-xs bg-gray-50 border-gray-200 flex-shrink-0">
+                                  {checklist.userType}
+                                </Badge>
+                              </div>
+                            </div>
                           </div>
                         </div>
 
                         {/* Quick Info */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-sm min-w-0">
+                        <div className="space-y-3 text-sm min-w-0">
                           {checklist.totalFees && (
-                            <div className="flex items-center space-x-2 min-w-0 overflow-hidden">
-                              <DollarSign className="h-4 w-4 text-green-600 flex-shrink-0" />
-                              <span className="text-gray-600 truncate">{checklist.totalFees}</span>
+                            <div className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
+                              <div className="flex items-center space-x-2 min-w-0">
+                                <DollarSign className="h-4 w-4 text-green-600 flex-shrink-0" />
+                                <span className="text-green-700 font-medium text-xs">Total Fees</span>
+                              </div>
+                              <span className="text-green-800 font-semibold text-sm whitespace-nowrap">{checklist.totalFees}</span>
                             </div>
                           )}
                           {checklist.estimatedProcessingTime && (
-                            <div className="flex items-center space-x-2 min-w-0 overflow-hidden">
-                              <Clock className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                              <span className="text-gray-600 truncate">{checklist.estimatedProcessingTime}</span>
+                            <div className="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
+                              <div className="flex items-center space-x-2 min-w-0">
+                                <Clock className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                                <span className="text-blue-700 font-medium text-xs">Processing Time</span>
+                              </div>
+                              <span className="text-blue-800 font-semibold text-sm whitespace-nowrap">{checklist.estimatedProcessingTime}</span>
                             </div>
                           )}
                         </div>

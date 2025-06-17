@@ -329,38 +329,54 @@ export default function AdminDocumentTemplates() {
               
               <CardContent className="pt-0 space-y-4 flex-1 min-w-0 overflow-hidden">
                 {/* Countries and Visa Types */}
-                <div className="space-y-3 min-w-0">
+                <div className="bg-gray-50 p-3 rounded-lg space-y-3 min-w-0">
                   {template.countries && template.countries.length > 0 && (
                     <div className="min-w-0">
-                      <div className="text-xs font-medium text-gray-700 mb-1 truncate">Countries:</div>
-                      <div className="flex flex-wrap gap-1 min-w-0">
-                        {template.countries.slice(0, 2).map((country) => (
-                          <Badge key={country} variant="secondary" className="text-xs truncate max-w-full">
-                            {country}
-                          </Badge>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-700">Countries</span>
+                        <span className="text-xs text-gray-500">({template.countries.length} total)</span>
+                      </div>
+                      <div className="space-y-1">
+                        {template.countries.slice(0, 3).map((country, index) => (
+                          <div key={country} className="flex items-center justify-between py-1">
+                            <span className="text-xs text-gray-600">{index + 1}.</span>
+                            <Badge variant="secondary" className="text-xs flex-shrink-0 ml-2">
+                              {country}
+                            </Badge>
+                          </div>
                         ))}
-                        {template.countries.length > 2 && (
-                          <Badge variant="secondary" className="text-xs whitespace-nowrap">
-                            +{template.countries.length - 2} more
-                          </Badge>
+                        {template.countries.length > 3 && (
+                          <div className="text-center">
+                            <Badge variant="secondary" className="text-xs">
+                              +{template.countries.length - 3} more countries
+                            </Badge>
+                          </div>
                         )}
                       </div>
                     </div>
                   )}
                   
                   {template.visaTypes && template.visaTypes.length > 0 && (
-                    <div className="min-w-0">
-                      <div className="text-xs font-medium text-gray-700 mb-1 truncate">Visa Types:</div>
-                      <div className="flex flex-wrap gap-1 min-w-0">
-                        {template.visaTypes.slice(0, 2).map((visaType) => (
-                          <Badge key={visaType} variant="outline" className="text-xs truncate max-w-full">
-                            {visaType}
-                          </Badge>
+                    <div className="min-w-0 border-t border-gray-200 pt-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-700">Visa Types</span>
+                        <span className="text-xs text-gray-500">({template.visaTypes.length} total)</span>
+                      </div>
+                      <div className="space-y-1">
+                        {template.visaTypes.slice(0, 3).map((visaType, index) => (
+                          <div key={visaType} className="flex items-center justify-between py-1">
+                            <span className="text-xs text-gray-600">{index + 1}.</span>
+                            <Badge variant="outline" className="text-xs flex-shrink-0 ml-2">
+                              {visaType}
+                            </Badge>
+                          </div>
                         ))}
-                        {template.visaTypes.length > 2 && (
-                          <Badge variant="outline" className="text-xs whitespace-nowrap">
-                            +{template.visaTypes.length - 2} more
-                          </Badge>
+                        {template.visaTypes.length > 3 && (
+                          <div className="text-center">
+                            <Badge variant="outline" className="text-xs">
+                              +{template.visaTypes.length - 3} more types
+                            </Badge>
+                          </div>
                         )}
                       </div>
                     </div>

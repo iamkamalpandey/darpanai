@@ -360,19 +360,24 @@ export default function AdminDocumentChecklists() {
                 <div className="space-y-4 min-w-0">
                   {/* Route Information */}
                   <div className="bg-gray-50 p-3 rounded-lg min-w-0 overflow-hidden">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm min-w-0">
-                      <div className="flex items-center space-x-1 min-w-0">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-1">
                         <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                        <span className="font-medium flex-shrink-0">From:</span>
-                        <Badge variant="outline" className="truncate max-w-full">{checklist.country}</Badge>
+                        <span className="text-sm font-medium text-gray-700">Application Route</span>
                       </div>
-                      <div className="flex items-center space-x-1 min-w-0">
-                        <span className="font-medium flex-shrink-0">Type:</span>
-                        <Badge variant="outline" className="truncate max-w-full">{checklist.visaType}</Badge>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500 w-12 flex-shrink-0">From:</span>
+                        <Badge variant="outline" className="text-xs bg-blue-50 border-blue-200 flex-shrink-0">{checklist.country}</Badge>
                       </div>
-                      <div className="flex items-center space-x-1 min-w-0">
-                        <span className="font-medium flex-shrink-0">User:</span>
-                        <Badge variant="outline" className="truncate max-w-full">{checklist.userType}</Badge>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500 w-12 flex-shrink-0">Type:</span>
+                        <Badge variant="outline" className="text-xs bg-purple-50 border-purple-200 flex-shrink-0">{checklist.visaType}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500 w-12 flex-shrink-0">User:</span>
+                        <Badge variant="outline" className="text-xs bg-gray-50 border-gray-200 flex-shrink-0">{checklist.userType}</Badge>
                       </div>
                     </div>
                   </div>
