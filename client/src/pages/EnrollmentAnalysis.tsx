@@ -252,10 +252,19 @@ export default function EnrollmentAnalysis() {
             </div>
             <Button 
               variant="outline" 
-              onClick={() => setSelectedAnalysis(null)}
+              onClick={() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('id')) {
+                  // If we came from My Analysis with an ID, go back there
+                  window.location.href = '/my-analysis';
+                } else {
+                  // Otherwise just clear the analysis to show upload form
+                  setSelectedAnalysis(null);
+                }
+              }}
               className="w-full sm:w-auto"
             >
-              ← Back to Upload
+              ← Back to My Analysis
             </Button>
           </div>
           
