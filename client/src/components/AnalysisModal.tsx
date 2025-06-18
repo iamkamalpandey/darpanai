@@ -77,16 +77,54 @@ interface EnrollmentAnalysis {
 export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: AnalysisModalProps) {
   const [analysis, setAnalysis] = useState<VisaRejectionAnalysis | EnrollmentAnalysis | null>(null);
 
-  // Fetch visa rejection analysis
-  const { data: visaAnalysis, isLoading: visaLoading } = useQuery<VisaRejectionAnalysis>({
+  // Fetch visa rejection analysis with detailed data
+  const { data: visaAnalysis, isLoading: visaLoading } = useQuery<any>({
     queryKey: ['/api/analyses', analysisId],
     enabled: isOpen && analysisType === 'visa_rejection' && !!analysisId,
+    select: (data) => {
+      // Transform the data to match our interface expectations
+      const analysis = Array.isArray(data) ? data[0] : data;
+      if (!analysis) return null;
+      
+      return {
+        id: analysis.id,
+        filename: analysis.filename,
+        createdAt: analysis.createdAt,
+        country: analysis.country,
+        visaType: analysis.visaType,
+        isPublic: analysis.isPublic,
+        rejectionReasons: analysis.analysisResults?.rejectionReasons || analysis.rejectionReasons || [],
+        nextSteps: analysis.analysisResults?.nextSteps || analysis.nextSteps || [],
+        tips: analysis.analysisResults?.tips || analysis.tips || [],
+        summary: analysis.analysisResults?.summary || analysis.summary || '',
+        recommendations: analysis.analysisResults?.recommendations || analysis.recommendations || []
+      };
+    }
   });
 
-  // Fetch enrollment analysis
-  const { data: enrollmentAnalysis, isLoading: enrollmentLoading } = useQuery<EnrollmentAnalysis>({
+  // Fetch enrollment analysis with detailed data
+  const { data: enrollmentAnalysis, isLoading: enrollmentLoading } = useQuery<any>({
     queryKey: ['/api/enrollment-analyses', analysisId],
     enabled: isOpen && analysisType === 'enrollment' && !!analysisId,
+    select: (data) => {
+      // Transform the data to match our interface expectations
+      const analysis = Array.isArray(data) ? data[0] : data;
+      if (!analysis) return null;
+      
+      return {
+        id: analysis.id,
+        filename: analysis.filename,
+        createdAt: analysis.createdAt,
+        institutionCountry: analysis.institutionCountry,
+        studentCountry: analysis.studentCountry,
+        visaType: analysis.visaType,
+        summary: analysis.summary || '',
+        compliance: analysis.compliance || { status: 'unknown', score: 0, details: [] },
+        recommendations: analysis.recommendations || [],
+        requiredDocuments: analysis.requiredDocuments || [],
+        nextSteps: analysis.nextSteps || []
+      };
+    }
   });
 
   useEffect(() => {
