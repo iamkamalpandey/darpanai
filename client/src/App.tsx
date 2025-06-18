@@ -21,6 +21,7 @@ const ConsultationsPage = lazy(() => import("@/pages/consultations"));
 const UpdatesPage = lazy(() => import("@/pages/updates"));
 const DocumentTemplates = lazy(() => import("@/pages/document-templates"));
 const DocumentChecklist = lazy(() => import("@/pages/document-checklist"));
+const EnrollmentAnalysis = lazy(() => import("@/pages/EnrollmentAnalysis"));
 const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
 const AdminAnalyses = lazy(() => import("@/pages/admin-analyses"));
 const AdminAppointments = lazy(() => import("@/pages/admin-appointments"));
