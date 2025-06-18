@@ -296,30 +296,73 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getAllAnalysesWithUsers(): Promise<any[]> {
-    const result = await db
-      .select({
-        id: analyses.id,
-        userId: analyses.userId,
-        fileName: analyses.filename,
-        analysisResults: {
-          summary: analyses.summary,
-          rejectionReasons: analyses.rejectionReasons,
-          recommendations: analyses.recommendations,
-          nextSteps: analyses.nextSteps,
-        },
-        createdAt: analyses.createdAt,
-        isPublic: analyses.isPublic,
-        user: {
-          username: users.username,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          email: users.email,
-        }
-      })
-      .from(analyses)
-      .leftJoin(users, eq(analyses.userId, users.id))
-      .orderBy(desc(analyses.createdAt));
-    return result;
+    try {
+      // Get visa/rejection analyses
+      const visaAnalyses = await db
+        .select({
+          id: analyses.id,
+          userId: analyses.userId,
+          fileName: analyses.filename,
+          analysisType: sql<string>`'visa_analysis'`.as('analysisType'),
+          analysisResults: {
+            summary: analyses.summary,
+            rejectionReasons: analyses.rejectionReasons,
+            recommendations: analyses.recommendations,
+            nextSteps: analyses.nextSteps,
+          },
+          createdAt: analyses.createdAt,
+          isPublic: analyses.isPublic,
+          user: {
+            username: users.username,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+          }
+        })
+        .from(analyses)
+        .leftJoin(users, eq(analyses.userId, users.id));
+
+      // Get enrollment analyses
+      const enrollmentAnalysesData = await db
+        .select({
+          id: enrollmentAnalyses.id,
+          userId: enrollmentAnalyses.userId,
+          fileName: enrollmentAnalyses.filename,
+          analysisType: sql<string>`'enrollment_analysis'`.as('analysisType'),
+          analysisResults: {
+            summary: enrollmentAnalyses.summary,
+            institutionName: enrollmentAnalyses.institutionName,
+            studentName: enrollmentAnalyses.studentName,
+            programName: enrollmentAnalyses.programName,
+            documentType: enrollmentAnalyses.documentType,
+            analysisScore: enrollmentAnalyses.analysisScore,
+            confidence: enrollmentAnalyses.confidence,
+            keyFindings: enrollmentAnalyses.keyFindings,
+            missingInformation: enrollmentAnalyses.missingInformation,
+            recommendations: enrollmentAnalyses.recommendations,
+            nextSteps: enrollmentAnalyses.nextSteps,
+          },
+          createdAt: enrollmentAnalyses.createdAt,
+          isPublic: enrollmentAnalyses.isPublic,
+          user: {
+            username: users.username,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+          }
+        })
+        .from(enrollmentAnalyses)
+        .leftJoin(users, eq(enrollmentAnalyses.userId, users.id));
+
+      // Combine both types and sort by creation date
+      const allAnalyses = [...visaAnalyses, ...enrollmentAnalysesData]
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      return allAnalyses;
+    } catch (error) {
+      console.error('Error fetching all analyses with users:', error);
+      return [];
+    }
   }
 
   async getPublicAnalyses(): Promise<Analysis[]> {

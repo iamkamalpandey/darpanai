@@ -17,6 +17,7 @@ interface AnalysisData {
   id: number;
   userId: number;
   fileName: string;
+  analysisType?: 'visa_analysis' | 'enrollment_analysis';
   analysisResults: {
     summary?: string;
     rejectionReasons?: Array<{
@@ -33,6 +34,23 @@ interface AnalysisData {
       title: string;
       description: string;
     }> | string;
+    // Enrollment analysis specific fields
+    institutionName?: string;
+    studentName?: string;
+    programName?: string;
+    documentType?: string;
+    analysisScore?: number;
+    confidence?: number;
+    keyFindings?: Array<{
+      title: string;
+      description: string;
+      importance: 'high' | 'medium' | 'low';
+    }>;
+    missingInformation?: Array<{
+      field: string;
+      description: string;
+      impact: string;
+    }>;
   };
   createdAt: string;
   isPublic: boolean;
@@ -314,6 +332,13 @@ export default function AdminAnalyses() {
                       </TableCell>
                       <TableCell>
                         <div className="max-w-md space-y-2">
+                          {/* Analysis Type Badge */}
+                          <div className="mb-2">
+                            <Badge variant="secondary" className="text-xs">
+                              {analysis.analysisType === 'enrollment_analysis' ? 'Enrollment Analysis' : 'Visa Analysis'}
+                            </Badge>
+                          </div>
+                          
                           {analysis.analysisResults?.summary ? (
                             <div className="bg-gray-50 p-3 rounded-lg border">
                               <p className="text-sm text-gray-800 font-medium mb-2">Analysis Summary:</p>
@@ -325,10 +350,37 @@ export default function AdminAnalyses() {
                             <p className="text-sm text-gray-400 italic">No summary available</p>
                           )}
                           
+                          {/* Enrollment Analysis specific info */}
+                          {analysis.analysisType === 'enrollment_analysis' && (
+                            <div className="space-y-1">
+                              {analysis.analysisResults?.institutionName && (
+                                <div className="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded">
+                                  Institution: {analysis.analysisResults.institutionName}
+                                </div>
+                              )}
+                              {analysis.analysisResults?.programName && (
+                                <div className="text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded">
+                                  Program: {analysis.analysisResults.programName}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Show key findings for enrollment analysis */}
+                          {analysis.analysisType === 'enrollment_analysis' && analysis.analysisResults?.keyFindings && (
+                            <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                              {Array.isArray(analysis.analysisResults.keyFindings) 
+                                ? analysis.analysisResults.keyFindings.length 
+                                : 0} key finding(s) identified
+                            </div>
+                          )}
+                          
                           {/* Show recommendations count */}
                           {analysis.analysisResults?.recommendations && (
                             <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                              {analysis.analysisResults.recommendations.length} recommendation(s) provided
+                              {Array.isArray(analysis.analysisResults.recommendations) 
+                                ? analysis.analysisResults.recommendations.length 
+                                : 0} recommendation(s) provided
                             </div>
                           )}
                           
@@ -475,6 +527,63 @@ export default function AdminAnalyses() {
                     </Card>
                   )}
 
+                  {/* Key Findings (Enrollment Analysis) */}
+                  {selectedAnalysis.analysisType === 'enrollment_analysis' && selectedAnalysis.analysisResults?.keyFindings && Array.isArray(selectedAnalysis.analysisResults.keyFindings) && selectedAnalysis.analysisResults.keyFindings.length > 0 && (
+                    <Card className="border-l-4 border-l-blue-500">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                          Key Findings ({selectedAnalysis.analysisResults.keyFindings.length})
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {selectedAnalysis.analysisResults.keyFindings.map((finding: any, idx: number) => (
+                            <div key={idx} className="bg-gray-50 p-4 rounded-lg border">
+                              <div className="flex items-start justify-between mb-2">
+                                <h4 className="font-medium text-gray-900">{finding.title}</h4>
+                                <Badge variant={finding.importance === 'high' ? 'destructive' : finding.importance === 'medium' ? 'secondary' : 'outline'} className="text-xs">
+                                  {finding.importance}
+                                </Badge>
+                              </div>
+                              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                {finding.description}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Missing Information (Enrollment Analysis) */}
+                  {selectedAnalysis.analysisType === 'enrollment_analysis' && selectedAnalysis.analysisResults?.missingInformation && Array.isArray(selectedAnalysis.analysisResults.missingInformation) && selectedAnalysis.analysisResults.missingInformation.length > 0 && (
+                    <Card className="border-l-4 border-l-orange-500">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                          <AlertTriangle className="h-5 w-5 text-orange-600" />
+                          Missing Information ({selectedAnalysis.analysisResults.missingInformation.length})
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {selectedAnalysis.analysisResults.missingInformation.map((missing: any, idx: number) => (
+                            <div key={idx} className="bg-gray-50 p-4 rounded-lg border">
+                              <h4 className="font-medium text-gray-900 mb-2">{missing.field}</h4>
+                              <p className="text-gray-700 leading-relaxed mb-2">
+                                {missing.description}
+                              </p>
+                              <div className="bg-orange-50 p-3 rounded border border-orange-200">
+                                <p className="text-sm font-medium text-orange-800 mb-1">Impact:</p>
+                                <p className="text-sm text-orange-700">{missing.impact}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
                   {/* Recommendations */}
                   {selectedAnalysis.analysisResults?.recommendations && selectedAnalysis.analysisResults.recommendations.length > 0 && (
                     <Card className="border-l-4 border-l-green-500">
@@ -486,9 +595,23 @@ export default function AdminAnalyses() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
-                          {selectedAnalysis.analysisResults.recommendations.map((rec, idx) => (
+                          {selectedAnalysis.analysisResults.recommendations.map((rec: any, idx: number) => (
                             <div key={idx} className="bg-gray-50 p-4 rounded-lg border">
-                              <h4 className="font-medium text-gray-900 mb-2">{rec.title}</h4>
+                              <div className="flex items-start justify-between mb-2">
+                                <h4 className="font-medium text-gray-900">{rec.title}</h4>
+                                <div className="flex gap-2">
+                                  {rec.priority && (
+                                    <Badge variant={rec.priority === 'urgent' ? 'destructive' : rec.priority === 'important' ? 'secondary' : 'outline'} className="text-xs">
+                                      {rec.priority}
+                                    </Badge>
+                                  )}
+                                  {rec.category && (
+                                    <Badge variant="outline" className="text-xs">
+                                      {rec.category}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
                               <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                                 {rec.description}
                               </p>
