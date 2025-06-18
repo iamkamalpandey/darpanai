@@ -63,10 +63,12 @@ export default function AnalysisHub() {
     }
   };
 
-  // Combine all analyses
-  const allAnalyses = [...visaAnalyses, ...enrollmentAnalyses].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  // Combine all analyses with optimized sorting
+  const allAnalyses = useMemo(() => {
+    return [...visaAnalyses, ...enrollmentAnalyses].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [visaAnalyses, enrollmentAnalyses]);
 
   // Memoized filtered analyses for performance
   const filteredAnalyses = useMemo(() => {

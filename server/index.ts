@@ -24,8 +24,8 @@ const app = express();
 
 // Enable compression for all responses to reduce bandwidth
 app.use(compression({
-  level: 6, // Good balance between compression and CPU usage
-  threshold: 1024, // Only compress responses larger than 1KB
+  level: 9, // Maximum compression for better performance
+  threshold: 512, // Compress responses larger than 512 bytes
 }));
 
 app.use(express.json());

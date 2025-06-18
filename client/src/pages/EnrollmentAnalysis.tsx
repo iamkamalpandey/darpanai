@@ -69,9 +69,11 @@ export default function EnrollmentAnalysis() {
   const queryClient = useQueryClient();
   const [location] = useLocation();
 
-  // Fetch user's enrollment analyses
+  // Fetch user's enrollment analyses with optimized caching
   const { data: analyses = [], isLoading } = useQuery<EnrollmentAnalysis[]>({
     queryKey: ['/api/enrollment-analyses'],
+    staleTime: 20 * 60 * 1000, // 20 minutes
+    refetchOnMount: false,
   });
 
   // Fetch current user for quota checking

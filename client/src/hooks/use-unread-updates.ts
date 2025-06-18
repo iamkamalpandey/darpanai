@@ -4,7 +4,8 @@ import { type UpdateWithViewStatus } from "@shared/schema";
 export function useUnreadUpdates() {
   const { data: updates = [] } = useQuery<UpdateWithViewStatus[]>({
     queryKey: ["/api/updates"],
-    refetchInterval: 300000, // Refetch every 5 minutes for notifications
+    refetchInterval: 900000, // Refetch every 15 minutes for better performance
+    staleTime: 10 * 60 * 1000, // 10 minutes stale time
   });
 
   const unreadCount = updates.filter(update => !update.isViewed).length;

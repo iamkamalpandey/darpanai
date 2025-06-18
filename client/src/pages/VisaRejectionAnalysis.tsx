@@ -51,9 +51,11 @@ export default function VisaRejectionAnalysis() {
   const queryClient = useQueryClient();
   const [location] = useLocation();
 
-  // Fetch user's visa rejection analyses
+  // Fetch user's visa rejection analyses with optimized caching
   const { data: analyses = [], isLoading } = useQuery<VisaAnalysis[]>({
     queryKey: ['/api/analyses'],
+    staleTime: 20 * 60 * 1000, // 20 minutes
+    refetchOnMount: false,
   });
 
   // Fetch current user for quota checking
