@@ -17,11 +17,13 @@ import AuthPage from "@/pages/auth-page";
 // Lazy load heavy components for better initial performance
 const VisaAnalyzer = lazy(() => import("@/pages/VisaAnalyzer"));
 const AnalysisHistory = lazy(() => import("@/pages/AnalysisHistory"));
+const AnalysisHub = lazy(() => import("@/pages/AnalysisHub"));
+const VisaRejectionAnalysis = lazy(() => import("@/pages/VisaRejectionAnalysis"));
+const EnrollmentAnalysis = lazy(() => import("@/pages/EnrollmentAnalysis"));
 const ConsultationsPage = lazy(() => import("@/pages/consultations"));
 const UpdatesPage = lazy(() => import("@/pages/updates"));
 const DocumentTemplates = lazy(() => import("@/pages/document-templates"));
 const DocumentChecklist = lazy(() => import("@/pages/document-checklist"));
-const EnrollmentAnalysis = lazy(() => import("@/pages/EnrollmentAnalysis"));
 const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
 const AdminAnalyses = lazy(() => import("@/pages/admin-analyses"));
 const AdminAppointments = lazy(() => import("@/pages/admin-appointments"));
@@ -113,6 +115,20 @@ function Router() {
         <UserProtectedRoute path="/enrollment-analysis" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <EnrollmentAnalysis />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/my-analysis">
+        <UserProtectedRoute path="/my-analysis" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AnalysisHub />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/visa-analysis">
+        <UserProtectedRoute path="/visa-analysis" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <VisaRejectionAnalysis />
           </Suspense>
         )} />
       </Route>
