@@ -82,16 +82,17 @@ export default function EnrollmentAnalysis() {
 
   // Handle URL parameter to load specific analysis
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.split('?')[1] || '');
+    const urlParams = new URLSearchParams(window.location.search);
     const analysisId = urlParams.get('id');
     
-    if (analysisId && analyses.length > 0) {
+    if (analysisId && analyses.length > 0 && !selectedAnalysis) {
       const targetAnalysis = analyses.find(analysis => analysis.id === parseInt(analysisId));
       if (targetAnalysis) {
+        console.log('Loading analysis from URL:', targetAnalysis);
         setSelectedAnalysis(targetAnalysis);
       }
     }
-  }, [location, analyses]);
+  }, [analyses, selectedAnalysis]);
 
   // Upload and analyze document mutation
   const analyzeMutation = useMutation({
