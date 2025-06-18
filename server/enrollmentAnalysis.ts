@@ -157,12 +157,13 @@ Please analyze this document thoroughly and provide a JSON response with the fol
   "orientationDate": "string (orientation date and time)",
   "passportDetails": "string (passport number and expiry date)",
   "supportServices": "string (available student support services)",
-  "summary": "string (comprehensive summary including all financial details, scholarship terms, health cover arrangements, compliance requirements, deadlines, and key obligations from the document)",
+  "summary": "string (extremely detailed comprehensive summary including ALL extracted information: complete financial breakdown, detailed scholarship terms and conditions, health cover arrangements with providers and dates, compliance requirements with specific acts and codes, all deadlines with exact dates, visa obligations, payment schedules, bank details, orientation information, passport details, support services, conditions of offer, and any other document-specific information found)",
   "keyFindings": [
     {
-      "title": "string (e.g., 'VU Block Model International Scholarship Awarded', 'OSHC Coverage Arranged', 'English Requirements Met')",
-      "description": "string (detailed explanation of the finding including specific amounts, dates, and conditions)",
-      "importance": "high|medium|low"
+      "title": "string (specific finding title with exact details from document)",
+      "description": "string (comprehensive explanation including all relevant amounts, percentages, dates, requirements, conditions, and implications)",
+      "importance": "high|medium|low",
+      "category": "financial|academic|visa|health|accommodation|scholarship|compliance|deadline|requirement|other"
     }
   ],
   "missingInformation": [
@@ -236,7 +237,19 @@ For Offer Letters specifically, extract and highlight:
 - Institution contact details including phone, email, and physical address
 - Special support services and student declaration requirements
 
-Extract ALL available information from the document to provide complete analysis for international students. Include all numerical amounts, percentages, dates, contact information, payment details, and specific requirements found in the document.`;
+CRITICAL EXTRACTION REQUIREMENTS:
+1. Extract EVERY piece of information present in the document - leave nothing unanalyzed
+2. For missing fields, use "Not specified in document" or "Information not available" - never leave fields empty
+3. Capture ALL numerical values with their context (fees, amounts, percentages, scores, dates, phone numbers)
+4. Extract ALL names, addresses, contact details, and identification numbers exactly as written
+5. Document ALL conditions, requirements, obligations, and deadlines with complete details
+6. Include ALL institutional information, course codes, and regulatory references
+7. Preserve exact wording from the document for important terms and conditions
+8. Extract ALL payment information including schedules, methods, and banking details
+9. Document ALL dates including deadlines, start dates, orientation, and expiry dates
+10. Include ALL support services, contact methods, and additional information provided
+
+Be extremely thorough and detailed in your analysis. This analysis may be used for critical decisions, so accuracy and completeness are essential.`;
 
     console.log(`Starting OpenAI analysis for ${documentType}: ${filename}`);
     

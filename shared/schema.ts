@@ -498,6 +498,7 @@ export const enrollmentAnalysisResponseSchema = z.object({
     title: z.string(),
     description: z.string(),
     importance: z.enum(["high", "medium", "low"]),
+    category: z.enum(["financial", "academic", "visa", "health", "accommodation", "scholarship", "compliance", "deadline", "requirement", "other"]).optional(),
   })),
   missingInformation: z.array(z.object({
     field: z.string(),

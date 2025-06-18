@@ -337,36 +337,106 @@ export default function EnrollmentAnalysis() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6 space-y-4">
-                    {selectedAnalysis.institutionName && (
-                      <div>
-                        <span className="font-medium text-gray-600">Institution:</span>
-                        <p className="text-gray-800">{selectedAnalysis.institutionName}</p>
-                      </div>
-                    )}
-                    {selectedAnalysis.studentName && (
-                      <div>
-                        <span className="font-medium text-gray-600">Student (from document):</span>
-                        <p className="text-gray-800">{selectedAnalysis.studentName}</p>
-                      </div>
-                    )}
-                    {selectedAnalysis.programName && (
-                      <div>
-                        <span className="font-medium text-gray-600">Program:</span>
-                        <p className="text-gray-800">{selectedAnalysis.programName}</p>
-                      </div>
-                    )}
-                    {selectedAnalysis.programLevel && (
-                      <div>
-                        <span className="font-medium text-gray-600">Level:</span>
-                        <p className="text-gray-800">{selectedAnalysis.programLevel}</p>
-                      </div>
-                    )}
-                    {selectedAnalysis.startDate && (
-                      <div>
-                        <span className="font-medium text-gray-600">Start Date:</span>
-                        <p className="text-gray-800">{selectedAnalysis.startDate}</p>
-                      </div>
-                    )}
+                    <div>
+                      <span className="font-medium text-gray-600">Institution:</span>
+                      <p className="text-gray-800">{selectedAnalysis.institutionName || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Student (from document):</span>
+                      <p className="text-gray-800">{selectedAnalysis.studentName || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Student ID:</span>
+                      <p className="text-gray-800">{selectedAnalysis.studentId || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Program:</span>
+                      <p className="text-gray-800">{selectedAnalysis.programName || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Level:</span>
+                      <p className="text-gray-800">{selectedAnalysis.programLevel || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Start Date:</span>
+                      <p className="text-gray-800">{selectedAnalysis.startDate || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">End Date:</span>
+                      <p className="text-gray-800">{selectedAnalysis.endDate || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Institution Country:</span>
+                      <p className="text-gray-800">{selectedAnalysis.institutionCountry || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Visa Type:</span>
+                      <p className="text-gray-800">{selectedAnalysis.visaType || "Not specified in document"}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Additional Document Details Card */}
+                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                  <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2 text-purple-800">
+                      <FileText className="h-5 w-5" />
+                      Document Details & Support
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-4">
+                    <div>
+                      <span className="font-medium text-gray-600">Health Cover Details:</span>
+                      <p className="text-gray-800">{selectedAnalysis.healthCover || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">English Test Score:</span>
+                      <p className="text-gray-800">{selectedAnalysis.englishTestScore || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Institution Contact:</span>
+                      <p className="text-gray-800">{selectedAnalysis.institutionContact || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Visa Obligations:</span>
+                      <p className="text-gray-800">{selectedAnalysis.visaObligations || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Orientation Date:</span>
+                      <p className="text-gray-800">{selectedAnalysis.orientationDate || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Passport Details:</span>
+                      <p className="text-gray-800">{selectedAnalysis.passportDetails || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Support Services:</span>
+                      <p className="text-gray-800">{selectedAnalysis.supportServices || "Not specified in document"}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Payment & Banking Information Card */}
+                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                  <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2 text-green-800">
+                      <CreditCard className="h-5 w-5" />
+                      Payment & Banking Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-4">
+                    <div>
+                      <span className="font-medium text-gray-600">Payment Schedule:</span>
+                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.paymentSchedule || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Bank Details:</span>
+                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.bankDetails || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Conditions of Offer:</span>
+                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.conditionsOfOffer || "Not specified in document"}</p>
+                    </div>
                   </CardContent>
                 </Card>
 
