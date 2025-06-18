@@ -13,6 +13,7 @@ import { Upload, FileText, CheckCircle, AlertCircle, Clock, DollarSign, Graduati
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { CustomCTA } from '@/components/CustomCTA';
 
 interface EnrollmentAnalysis {
   id: number;
@@ -656,6 +657,9 @@ export default function EnrollmentAnalysis() {
             </CardContent>
           </Card>
         )}
+
+        {/* Customized CTA Section for Enrollment Analysis */}
+        <CustomCTA variant="enrollment-analysis" source="enrollment-analysis-page" className="mt-8" />
       </div>
     </DashboardLayout>
   );

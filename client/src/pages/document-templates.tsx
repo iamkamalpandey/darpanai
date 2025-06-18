@@ -9,6 +9,7 @@ import { FileText, Search, Download, Filter } from "lucide-react";
 import { type DocumentTemplate } from "@shared/schema";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { ConsultationForm } from "@/components/ConsultationForm";
+import { CustomCTA } from "@/components/CustomCTA";
 
 const categories = [
   { value: "financial", label: "Financial" },

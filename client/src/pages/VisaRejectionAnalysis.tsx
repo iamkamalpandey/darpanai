@@ -10,6 +10,7 @@ import { Upload, FileText, AlertTriangle, Clock, TrendingUp, Sparkles, Target, C
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { CustomCTA } from '@/components/CustomCTA';
 
 interface RejectionReason {
   title: string;
@@ -399,6 +400,9 @@ export default function VisaRejectionAnalysis() {
             </CardContent>
           </Card>
         )}
+
+        {/* Customized CTA Section for Visa Analysis */}
+        <CustomCTA variant="visa-analysis" source="visa-analysis-page" className="mt-8" />
       </div>
     </DashboardLayout>
   );

@@ -382,30 +382,7 @@ export default function Home() {
         )}
 
         {/* Customized CTA Section for Dashboard */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-white text-center">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-              Ready to Take the Next Step?
-            </h2>
-            <p className="text-blue-100 mb-6 text-sm sm:text-base">
-              Join thousands of successful students who used our expert guidance to achieve their study abroad dreams. Get personalized consultation tailored to your specific situation.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <ConsultationForm 
-                buttonVariant="default" 
-                buttonSize="lg"
-                buttonText="Schedule Expert Consultation"
-                className="bg-white text-blue-600 hover:bg-gray-50 text-base px-8 py-3 shadow-lg"
-                source="dashboard-cta"
-              />
-              <div className="flex items-center gap-2 text-sm text-blue-100">
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Free 15-minute consultation available</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <CustomCTA variant="dashboard" source="dashboard-cta" />
 
         {/* Support Section */}
         <div className="text-center space-y-4 max-w-2xl mx-auto">
