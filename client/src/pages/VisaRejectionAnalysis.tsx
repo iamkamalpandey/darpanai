@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, FileText, AlertTriangle, Clock, TrendingUp, Sparkles, Target, CheckCircle } from 'lucide-react';
+import { Upload, FileText, AlertTriangle, Clock, TrendingUp, Sparkles, Target, CheckCircle, Calendar, Shield } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { format } from "date-fns";
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { DashboardLayout } from '@/components/DashboardLayout';
@@ -50,6 +52,14 @@ export default function VisaRejectionAnalysis() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [location] = useLocation();
+
+  // Enhanced number formatting for comprehensive display of numerical figures
+  const formatNumericalInfo = (text: string) => {
+    return text.replace(
+      /(\$[\d,]+(?:\.\d{2})?(?:\s*(?:CAD|USD|AUD|per\s+(?:year|semester|month|week)?))?|(?:CAD|USD|AUD|EUR|GBP|₹|¥)\s*[\d,]+(?:\.\d{2})?|€[\d,]+(?:\.\d{2})?|£[\d,]+(?:\.\d{2})?|₹[\d,]+(?:\.\d{2})?|\d+(?:\.\d+)?\s*(?:years?|semesters?|months?|weeks?|days?|hours?|credits?|units?)|(?:19|20)\d{2}(?:-(?:19|20)?\d{2})?|\d+(?:\.\d+)?%(?:\s*(?:scholarship|coverage|reduction|discount|off))?|\d+(?:\.\d+)?\s*(?:GPA|CGPA|IELTS|TOEFL|SAT|ACT|score)|(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s*(?:19|20)?\d{2}|\d{1,2}(?:st|nd|rd|th)\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)(?:\s+(?:19|20)?\d{2})?|(?:Fall|Spring|Summer|Winter)\s+(?:19|20)?\d{2}|\d+(?:\.\d+)?\s*(?:per\s+(?:year|semester|month|week|credit|hour))|tuition\s+(?:fees?|costs?)\s*(?:of\s+)?\$?[\d,]+(?:\.\d{2})?|application\s+fee\s*(?:of\s+)?\$?[\d,]+(?:\.\d{2})?|scholarship\s+(?:of\s+|worth\s+)?\$?[\d,]+(?:\.\d{2})?)/gi,
+      '<span class="font-bold text-blue-800 bg-blue-100 px-2 py-0.5 rounded-md border border-blue-200">$1</span>'
+    );
+  };
 
   // Fetch user's visa rejection analyses with optimized caching
   const { data: analyses = [], isLoading } = useQuery<VisaAnalysis[]>({
@@ -426,6 +436,170 @@ export default function VisaRejectionAnalysis() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Analysis Details Modal */}
+        {selectedAnalysis && (
+          <Dialog open={!!selectedAnalysis} onOpenChange={() => setSelectedAnalysis(null)}>
+            <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+              <div className="space-y-6">
+                {/* Analysis Header */}
+                <div className="bg-white rounded-lg border p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-semibold text-gray-900">Visa Analysis Results</h2>
+                      <p className="text-gray-600 mt-1">{selectedAnalysis.filename}</p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => setSelectedAnalysis(null)}>
+                      ← Back to My Analysis
+                    </Button>
+                  </div>
+
+                  {/* Quick Info Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                          <span className="font-medium">Document Type</span>
+                        </div>
+                        <p className="text-sm text-gray-600">Visa Document</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Calendar className="h-5 w-5 text-green-600" />
+                          <span className="font-medium">Analysis Date</span>
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          {format(new Date(selectedAnalysis.createdAt), "MMM dd, yyyy")}
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Shield className="h-5 w-5 text-purple-600" />
+                          <span className="font-medium">Status</span>
+                        </div>
+                        <p className="text-sm text-gray-600">Analysis Complete</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Tabbed Content */}
+                  <Tabs defaultValue="overview" className="space-y-6">
+                    <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm border">
+                      <TabsTrigger value="overview" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">Overview</TabsTrigger>
+                      <TabsTrigger value="issues" className="data-[state=active]:bg-red-50 data-[state=active]:text-red-700">Issues Found</TabsTrigger>
+                      <TabsTrigger value="recommendations" className="data-[state=active]:bg-green-50 data-[state=active]:text-green-700">Recommendations</TabsTrigger>
+                      <TabsTrigger value="next-steps" className="data-[state=active]:bg-purple-50 data-[state=active]:text-purple-700">Next Steps</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="overview" className="space-y-6">
+                      {/* Document Summary */}
+                      {selectedAnalysis.analysisResults?.summary && (
+                        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+                            <CardTitle className="text-xl text-gray-800">Document Summary</CardTitle>
+                          </CardHeader>
+                          <CardContent className="p-6">
+                            <div 
+                              className="whitespace-pre-wrap text-gray-700 leading-relaxed"
+                              dangerouslySetInnerHTML={{ 
+                                __html: formatNumericalInfo(selectedAnalysis.analysisResults.summary) 
+                              }}
+                            />
+                          </CardContent>
+                        </Card>
+                      )}
+                    </TabsContent>
+
+                    <TabsContent value="issues" className="space-y-6">
+                      {selectedAnalysis.analysisResults?.rejectionReasons?.map((reason, index) => (
+                        <Card key={index} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                          <CardContent className="p-6">
+                            <div className="flex items-start justify-between mb-3">
+                              <h3 className="font-semibold text-lg text-gray-800">{reason.title}</h3>
+                              <Badge variant={reason.severity === 'high' ? 'destructive' : reason.severity === 'medium' ? 'default' : 'secondary'}>
+                                {reason.severity}
+                              </Badge>
+                            </div>
+                            <div 
+                              className="text-gray-700 leading-relaxed"
+                              dangerouslySetInnerHTML={{ 
+                                __html: formatNumericalInfo(reason.description) 
+                              }}
+                            />
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </TabsContent>
+
+                    <TabsContent value="recommendations" className="space-y-6">
+                      {selectedAnalysis.analysisResults?.recommendations?.map((recommendation, index) => (
+                        <Card key={index} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                          <CardContent className="p-6">
+                            <h3 className="font-semibold text-lg text-gray-800 mb-3">{recommendation.title}</h3>
+                            <div 
+                              className="text-gray-700 leading-relaxed"
+                              dangerouslySetInnerHTML={{ 
+                                __html: formatNumericalInfo(recommendation.description) 
+                              }}
+                            />
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </TabsContent>
+
+                    <TabsContent value="next-steps" className="space-y-6">
+                      {Array.isArray(selectedAnalysis.analysisResults?.nextSteps) 
+                        ? selectedAnalysis.analysisResults.nextSteps.map((step, index) => (
+                            <Card key={index} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                              <CardContent className="p-6">
+                                <div className="flex items-start gap-4">
+                                  <div className="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold flex-shrink-0 mt-1">
+                                    {index + 1}
+                                  </div>
+                                  <div className="flex-1">
+                                    <h3 className="font-semibold text-lg text-gray-800 mb-3">
+                                      {typeof step === 'string' ? `Step ${index + 1}` : (step as any).title}
+                                    </h3>
+                                    <div 
+                                      className="text-gray-700 leading-relaxed"
+                                      dangerouslySetInnerHTML={{ 
+                                        __html: formatNumericalInfo(
+                                          typeof step === 'string' ? step : (step as any).description
+                                        ) 
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))
+                        : selectedAnalysis.analysisResults?.nextSteps && (
+                            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                              <CardContent className="p-6">
+                                <div 
+                                  className="text-gray-700 leading-relaxed whitespace-pre-wrap"
+                                  dangerouslySetInnerHTML={{ 
+                                    __html: formatNumericalInfo(selectedAnalysis.analysisResults.nextSteps) 
+                                  }}
+                                />
+                              </CardContent>
+                            </Card>
+                          )
+                      }
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         )}
 
         {/* Customized CTA Section for Visa Analysis */}
