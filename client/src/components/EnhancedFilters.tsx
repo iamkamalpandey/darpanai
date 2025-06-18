@@ -137,7 +137,7 @@ export function EnhancedFilters({
   ], [dropdownOptions.countries]);
 
   const visaTypeOptions = useMemo(() => [
-    { value: "", label: "All Visa Types" },
+    { value: "all", label: "All Visa Types" },
     ...(dropdownOptions.visaTypes || []).map(type => ({
       value: type,
       label: type
@@ -145,7 +145,7 @@ export function EnhancedFilters({
   ], [dropdownOptions.visaTypes]);
 
   const userTypeOptions = useMemo(() => [
-    { value: "", label: "All User Types" },
+    { value: "all", label: "All User Types" },
     ...(dropdownOptions.userTypes || []).map(type => ({
       value: type,
       label: type
@@ -155,7 +155,7 @@ export function EnhancedFilters({
   const categoryOptions = useMemo(() => {
     if (dropdownOptions.categories?.length) {
       return [
-        { value: "", label: "All Categories" },
+        { value: "all", label: "All Categories" },
         ...dropdownOptions.categories.map(cat => ({
           value: cat,
           label: cat.charAt(0).toUpperCase() + cat.slice(1)
@@ -169,20 +169,22 @@ export function EnhancedFilters({
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (filters.searchTerm) count++;
-    if (filters.category) count++;
-    if (filters.country) count++;
-    if (filters.visaType) count++;
-    if (filters.userType) count++;
-    if (filters.status) count++;
+    if (filters.category && filters.category !== "all") count++;
+    if (filters.country && filters.country !== "all") count++;
+    if (filters.visaType && filters.visaType !== "all") count++;
+    if (filters.userType && filters.userType !== "all") count++;
+    if (filters.status && filters.status !== "all") count++;
     if (filters.dateRange) count++;
-    if (filters.analysisType) count++;
-    if (filters.severity) count++;
+    if (filters.analysisType && filters.analysisType !== "all") count++;
+    if (filters.severity && filters.severity !== "all") count++;
     if (filters.isPublic !== null && filters.isPublic !== undefined) count++;
     return count;
   }, [filters]);
 
   const updateFilter = (key: keyof FilterOptions, value: any) => {
-    onFiltersChange({ ...filters, [key]: value });
+    // Convert "all" values to undefined to clear the filter
+    const actualValue = value === "all" ? undefined : value;
+    onFiltersChange({ ...filters, [key]: actualValue });
   };
 
   const clearAllFilters = () => {
