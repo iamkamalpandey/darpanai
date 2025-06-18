@@ -86,6 +86,8 @@ export default function DocumentTemplates() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    } else {
+      console.warn('No download URL or file path available for template:', template.title);
     }
   };
 

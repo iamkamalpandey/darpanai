@@ -156,7 +156,7 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
     }
   };
 
-  const renderVisaRejectionAnalysis = (data: VisaRejectionAnalysis) => (
+  const renderVisaRejectionAnalysis = (data: any) => (
     <div className="space-y-6">
       {/* Header Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -183,35 +183,70 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
           {data.visaType && (
             <Badge variant="outline">{data.visaType}</Badge>
           )}
+          <Badge variant={data.isPublic ? "default" : "secondary"}>
+            {data.isPublic ? "Public" : "Private"}
+          </Badge>
         </div>
       </div>
 
       <Separator />
+
+      {/* Analysis Summary */}
+      {data.summary && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              Analysis Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{data.summary}</p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Rejection Reasons */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <XCircle className="h-5 w-5 text-red-600" />
-            Rejection Reasons ({data.rejectionReasons?.length || 0})
+            Rejection Reasons ({Array.isArray(data.rejectionReasons) ? data.rejectionReasons.length : 0})
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {data.rejectionReasons?.map((reason, index) => (
-            <div key={index} className="border rounded-lg p-4 space-y-2">
-              <div className="flex items-start justify-between gap-3">
-                <h4 className="font-medium text-gray-900">{reason.title}</h4>
-                <div className="flex gap-2">
-                  <Badge className={getSeverityColor(reason.severity)}>
-                    {reason.severity}
-                  </Badge>
-                  <Badge variant="outline">{reason.category}</Badge>
+          {Array.isArray(data.rejectionReasons) && data.rejectionReasons.length > 0 ? (
+            data.rejectionReasons.map((reason: any, index: number) => (
+              <div key={index} className="border rounded-lg p-4 space-y-3 bg-red-50/30">
+                <div className="flex items-start justify-between gap-3">
+                  <h4 className="font-semibold text-gray-900 text-base">{reason.title || `Reason ${index + 1}`}</h4>
+                  <div className="flex gap-2 flex-shrink-0">
+                    {reason.severity && (
+                      <Badge className={getSeverityColor(reason.severity)}>
+                        {reason.severity}
+                      </Badge>
+                    )}
+                    {reason.category && (
+                      <Badge variant="outline">{reason.category}</Badge>
+                    )}
+                  </div>
                 </div>
+                <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+                  {reason.description || 'No detailed description available.'}
+                </p>
+                {reason.impact && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                    <p className="text-yellow-800 text-sm font-medium">Impact:</p>
+                    <p className="text-yellow-700 text-sm">{reason.impact}</p>
+                  </div>
+                )}
               </div>
-              <p className="text-gray-700 text-sm leading-relaxed">{reason.description}</p>
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <XCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500">No detailed rejection reasons available in this analysis</p>
             </div>
-          )) || (
-            <p className="text-gray-500 text-center py-4">No rejection reasons available</p>
           )}
         </CardContent>
       </Card>
@@ -226,15 +261,21 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {data.nextSteps.map((step, index) => (
+            {data.nextSteps.map((step: any, index: number) => (
               <div key={index} className="border rounded-lg p-4 space-y-2">
                 <div className="flex items-start justify-between gap-3">
-                  <h4 className="font-medium text-gray-900">{step.title}</h4>
-                  <Badge className={getPriorityColor(step.priority)}>
-                    {step.priority}
-                  </Badge>
+                  <h4 className="font-medium text-gray-900">
+                    {typeof step === 'string' ? step : (step.title || `Step ${index + 1}`)}
+                  </h4>
+                  {typeof step === 'object' && step.priority && (
+                    <Badge className={getPriorityColor(step.priority)}>
+                      {step.priority}
+                    </Badge>
+                  )}
                 </div>
-                <p className="text-gray-700 text-sm leading-relaxed">{step.description}</p>
+                {typeof step === 'object' && step.description && (
+                  <p className="text-gray-700 text-sm leading-relaxed">{step.description}</p>
+                )}
               </div>
             ))}
           </CardContent>
@@ -252,10 +293,12 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {data.tips.map((tip, index) => (
+              {data.tips.map((tip: any, index: number) => (
                 <li key={index} className="flex items-start gap-2">
                   <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 text-sm">{tip}</span>
+                  <span className="text-gray-700 text-sm">
+                    {typeof tip === 'string' ? tip : (tip.description || 'No description available')}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -413,12 +456,14 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
           </CardHeader>
           <CardContent>
             <ol className="space-y-2">
-              {data.nextSteps.map((step, index) => (
+              {data.nextSteps.map((step: any, index: number) => (
                 <li key={index} className="flex items-start gap-3">
                   <span className="bg-orange-100 text-orange-800 text-xs font-medium px-2 py-1 rounded-full min-w-[1.5rem] text-center">
                     {index + 1}
                   </span>
-                  <span className="text-gray-700 text-sm">{step}</span>
+                  <span className="text-gray-700 text-sm">
+                    {typeof step === 'string' ? step : (step.description || step.step || 'No description available')}
+                  </span>
                 </li>
               ))}
             </ol>
