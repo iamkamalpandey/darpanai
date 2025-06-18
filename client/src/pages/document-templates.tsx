@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { type DocumentTemplate } from "@shared/schema";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { ConsultationForm } from "@/components/ConsultationForm";
 import { CustomCTA } from "@/components/CustomCTA";
+import { EnhancedFilters, FilterOptions, searchInText } from "@/components/EnhancedFilters";
 
 const categories = [
   { value: "financial", label: "Financial" },
@@ -26,10 +27,7 @@ const categories = [
 ];
 
 export default function DocumentTemplates() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState("");
-  const [selectedVisaType, setSelectedVisaType] = useState("");
+  const [filters, setFilters] = useState<FilterOptions>({});
 
   const { data: templates = [], isLoading } = useQuery<DocumentTemplate[]>({
     queryKey: ['/api/document-templates'],
@@ -43,15 +41,41 @@ export default function DocumentTemplates() {
     queryKey: ['/api/dropdown-options'],
   });
 
-  const filteredTemplates = templates.filter((template: DocumentTemplate) => {
-    const matchesSearch = template.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         template.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || template.category === selectedCategory;
-    const matchesCountry = !selectedCountry || (template.countries && template.countries.includes(selectedCountry));
-    const matchesVisaType = !selectedVisaType || (template.visaTypes && template.visaTypes.includes(selectedVisaType));
-    
-    return matchesSearch && matchesCategory && matchesCountry && matchesVisaType;
-  });
+  const filteredTemplates = useMemo(() => {
+    let filtered = templates;
+
+    // Text search across multiple fields
+    if (filters.searchTerm) {
+      filtered = filtered.filter(template => 
+        searchInText(template, filters.searchTerm!, [
+          'title',
+          'description',
+          'category'
+        ])
+      );
+    }
+
+    // Category filter
+    if (filters.category) {
+      filtered = filtered.filter(template => template.category === filters.category);
+    }
+
+    // Country filter
+    if (filters.country) {
+      filtered = filtered.filter(template => 
+        template.countries && template.countries.includes(filters.country!)
+      );
+    }
+
+    // Visa type filter
+    if (filters.visaType) {
+      filtered = filtered.filter(template => 
+        template.visaTypes && template.visaTypes.includes(filters.visaType!)
+      );
+    }
+
+    return filtered;
+  }, [templates, filters]);
 
   const downloadTemplate = (template: DocumentTemplate) => {
     if (template.externalUrl) {
@@ -74,13 +98,10 @@ export default function DocumentTemplates() {
   };
 
   const clearFilters = () => {
-    setSearchTerm("");
-    setSelectedCategory("");
-    setSelectedCountry("");
-    setSelectedVisaType("");
+    setFilters({});
   };
 
-  const hasActiveFilters = searchTerm || selectedCategory || selectedCountry || selectedVisaType;
+  const hasActiveFilters = Object.keys(filters).length > 0;
 
   if (isLoading) {
     return (

@@ -228,6 +228,19 @@ export default function AdminAnalyses() {
           </div>
         </div>
 
+        {/* Enhanced Filters */}
+        <EnhancedFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          config={{
+            showSearch: true,
+            showPublicFilter: true,
+            showDateRange: true,
+            showSeverity: true,
+          }}
+          resultCount={filteredAnalyses.length}
+        />
+
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
@@ -280,57 +293,7 @@ export default function AdminAnalyses() {
           </Card>
         </div>
 
-        {/* Filters */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Filter className="h-4 w-4 mr-2" />
-              Filters & Search
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="search" className="text-sm font-medium">Search</Label>
-                <Input
-                  id="search"
-                  placeholder="Search by filename or user..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="status" className="text-sm font-medium">Visibility</Label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Reports</SelectItem>
-                    <SelectItem value="public">Public Only</SelectItem>
-                    <SelectItem value="private">Private Only</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="date" className="text-sm font-medium">Analysis Date</Label>
-                <Select value={dateFilter} onValueChange={setDateFilter}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Time</SelectItem>
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="week">This Week</SelectItem>
-                    <SelectItem value="month">This Month</SelectItem>
-                    <SelectItem value="year">This Year</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
 
         {/* Analyses Table */}
         <Card>
