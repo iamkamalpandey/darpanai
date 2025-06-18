@@ -135,31 +135,123 @@ export default function AdminAnalyses() {
   const filteredAnalyses = useMemo(() => {
     let filtered = (analyses as AnalysisData[]) || [];
 
+    // Search filter
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
       filtered = filtered.filter((analysis: AnalysisData) => 
-        analysis.fileName.toLowerCase().includes(searchTerm) ||
+        analysis.fileName?.toLowerCase().includes(searchTerm) ||
         analysis.user?.firstName?.toLowerCase().includes(searchTerm) ||
         analysis.user?.lastName?.toLowerCase().includes(searchTerm) ||
         analysis.user?.email?.toLowerCase().includes(searchTerm) ||
-        JSON.stringify(analysis.analysisResults).toLowerCase().includes(searchTerm)
+        analysis.user?.username?.toLowerCase().includes(searchTerm) ||
+        analysis.analysisResults?.summary?.toLowerCase().includes(searchTerm) ||
+        analysis.analysisResults?.institutionName?.toLowerCase().includes(searchTerm) ||
+        analysis.analysisResults?.programName?.toLowerCase().includes(searchTerm) ||
+        JSON.stringify(analysis.analysisResults?.keyFindings || []).toLowerCase().includes(searchTerm) ||
+        JSON.stringify(analysis.analysisResults?.rejectionReasons || []).toLowerCase().includes(searchTerm)
       );
     }
 
+    // Analysis type filter
     if (filters.analysisType && filters.analysisType !== 'all') {
       filtered = filtered.filter((analysis: AnalysisData) => analysis.analysisType === filters.analysisType);
     }
 
-    if (filters.severity) {
+    // Severity filter (for visa analyses)
+    if (filters.severity && filters.severity !== 'all') {
       filtered = filtered.filter((analysis: AnalysisData) => 
         analysis.analysisResults?.rejectionReasons?.some((reason: any) => 
           reason.severity === filters.severity
+        ) ||
+        analysis.analysisResults?.keyFindings?.some((finding: any) => 
+          finding.importance === filters.severity
         )
       );
     }
 
+    // Country filter
+    if (filters.country && filters.country !== 'all') {
+      filtered = filtered.filter((analysis: AnalysisData) => 
+        analysis.analysisResults?.institutionName?.toLowerCase().includes(filters.country!.toLowerCase()) ||
+        analysis.user?.country?.toLowerCase().includes(filters.country!.toLowerCase())
+      );
+    }
+
+    // Public/Private filter
     if (filters.isPublic !== null && filters.isPublic !== undefined) {
       filtered = filtered.filter((analysis: AnalysisData) => analysis.isPublic === filters.isPublic);
+    }
+
+    // Date range filter
+    if (filters.dateRange && filters.dateRange !== 'all') {
+      const now = new Date();
+      const filterDate = new Date();
+      
+      switch (filters.dateRange) {
+        case 'today':
+          filterDate.setHours(0, 0, 0, 0);
+          break;
+        case 'week':
+          filterDate.setDate(now.getDate() - 7);
+          break;
+        case 'month':
+          filterDate.setMonth(now.getMonth() - 1);
+          break;
+        case 'year':
+          filterDate.setFullYear(now.getFullYear() - 1);
+          break;
+        default:
+          filterDate.setFullYear(1970); // Show all
+      }
+      
+      filtered = filtered.filter((analysis: AnalysisData) => 
+        new Date(analysis.createdAt) >= filterDate
+      );
+    }
+
+    // Sorting
+    if (filters.sortBy) {
+      filtered.sort((a: AnalysisData, b: AnalysisData) => {
+        let aValue, bValue;
+        
+        switch (filters.sortBy) {
+          case 'date-desc':
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          case 'date-asc':
+            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          case 'name-asc':
+            aValue = a.fileName?.toLowerCase() || '';
+            bValue = b.fileName?.toLowerCase() || '';
+            return aValue.localeCompare(bValue);
+          case 'name-desc':
+            aValue = a.fileName?.toLowerCase() || '';
+            bValue = b.fileName?.toLowerCase() || '';
+            return bValue.localeCompare(aValue);
+          case 'user-asc':
+            aValue = `${a.user?.firstName || ''} ${a.user?.lastName || ''}`.toLowerCase();
+            bValue = `${b.user?.firstName || ''} ${b.user?.lastName || ''}`.toLowerCase();
+            return aValue.localeCompare(bValue);
+          case 'user-desc':
+            aValue = `${a.user?.firstName || ''} ${a.user?.lastName || ''}`.toLowerCase();
+            bValue = `${b.user?.firstName || ''} ${b.user?.lastName || ''}`.toLowerCase();
+            return bValue.localeCompare(aValue);
+          case 'type-asc':
+            aValue = a.analysisType || '';
+            bValue = b.analysisType || '';
+            return aValue.localeCompare(bValue);
+          case 'type-desc':
+            aValue = a.analysisType || '';
+            bValue = b.analysisType || '';
+            return bValue.localeCompare(aValue);
+          default:
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+      });
+    } else {
+      // Default sort by date descending
+      filtered.sort((a: AnalysisData, b: AnalysisData) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
     }
 
     return filtered;
@@ -249,16 +341,20 @@ export default function AdminAnalyses() {
             </Button>
           </div>
           
-          {/* Header Info Cards - Exactly like user dashboard */}
+          {/* Header Info Cards - Show actual data */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Building2 className="h-5 w-5 text-blue-600" />
-                  <span className="font-medium">Institution</span>
+                  <span className="font-medium">
+                    {selectedAnalysis.analysisType === 'enrollment_analysis' ? 'Institution' : 'Document Type'}
+                  </span>
                 </div>
                 <p className="text-sm text-gray-600 break-words">
-                  {selectedAnalysis.analysisResults?.institutionName || 'Australia'}
+                  {selectedAnalysis.analysisResults?.institutionName || 
+                   selectedAnalysis.analysisResults?.documentType || 
+                   'Not specified'}
                 </p>
               </CardContent>
             </Card>
@@ -267,10 +363,12 @@ export default function AdminAnalyses() {
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <User className="h-5 w-5 text-green-600" />
-                  <span className="font-medium">Student Origin</span>
+                  <span className="font-medium">Student</span>
                 </div>
                 <p className="text-sm text-gray-600">
-                  {selectedAnalysis.user ? `${selectedAnalysis.user.firstName} ${selectedAnalysis.user.lastName}` : 'Nepal'}
+                  {selectedAnalysis.user ? 
+                    `${selectedAnalysis.user.firstName} ${selectedAnalysis.user.lastName}` : 
+                    selectedAnalysis.analysisResults?.studentName || 'Not specified'}
                 </p>
               </CardContent>
             </Card>
@@ -279,9 +377,14 @@ export default function AdminAnalyses() {
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Globe className="h-5 w-5 text-purple-600" />
-                  <span className="font-medium">Visa Type</span>
+                  <span className="font-medium">
+                    {selectedAnalysis.analysisType === 'enrollment_analysis' ? 'Program' : 'Analysis Type'}
+                  </span>
                 </div>
-                <p className="text-sm text-gray-600">Student Visa (subclass 500)</p>
+                <p className="text-sm text-gray-600">
+                  {selectedAnalysis.analysisResults?.programName || 
+                   (selectedAnalysis.analysisType === 'visa_analysis' ? 'Visa Analysis' : 'Enrollment Analysis')}
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -306,8 +409,7 @@ export default function AdminAnalyses() {
                   <div 
                     className="whitespace-pre-wrap text-gray-700 leading-relaxed break-words"
                     dangerouslySetInnerHTML={{ 
-                      __html: formatNumericalInfo(selectedAnalysis.analysisResults?.summary || 
-                        `This document is a Confirmation of Enrolment (CoE) for ${selectedAnalysis.analysisResults?.studentName || 'the student'}, confirming their enrollment in the ${selectedAnalysis.analysisResults?.programName || 'Bachelor of Early Childhood Education'} program at ${selectedAnalysis.analysisResults?.institutionName || 'Victoria University'}, Australia. It outlines the course details, tuition fees, and health cover arrangements.`) 
+                      __html: formatNumericalInfo(selectedAnalysis.analysisResults?.summary || 'No summary available for this analysis.') 
                     }}
                   />
                 </CardContent>
@@ -324,26 +426,41 @@ export default function AdminAnalyses() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6 space-y-4">
-                    <div>
-                      <span className="font-medium text-gray-600">Institution:</span>
-                      <p className="text-gray-800 break-words">
-                        {selectedAnalysis.analysisResults?.institutionName || 'Victoria University'}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Program:</span>
-                      <p className="text-gray-800 break-words">
-                        {selectedAnalysis.analysisResults?.programName || 'Bachelor of Early Childhood Education'}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Level:</span>
-                      <p className="text-gray-800">undergraduate</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Start Date:</span>
-                      <p className="text-gray-800">July 28, 2025</p>
-                    </div>
+                    {selectedAnalysis.analysisResults?.institutionName && (
+                      <div>
+                        <span className="font-medium text-gray-600">Institution:</span>
+                        <p className="text-gray-800 break-words">
+                          {selectedAnalysis.analysisResults.institutionName}
+                        </p>
+                      </div>
+                    )}
+                    {selectedAnalysis.analysisResults?.programName && (
+                      <div>
+                        <span className="font-medium text-gray-600">Program:</span>
+                        <p className="text-gray-800 break-words">
+                          {selectedAnalysis.analysisResults.programName}
+                        </p>
+                      </div>
+                    )}
+                    {selectedAnalysis.analysisResults?.documentType && (
+                      <div>
+                        <span className="font-medium text-gray-600">Document Type:</span>
+                        <p className="text-gray-800">{selectedAnalysis.analysisResults.documentType}</p>
+                      </div>
+                    )}
+                    {selectedAnalysis.analysisResults?.studentName && (
+                      <div>
+                        <span className="font-medium text-gray-600">Student Name:</span>
+                        <p className="text-gray-800">{selectedAnalysis.analysisResults.studentName}</p>
+                      </div>
+                    )}
+                    {!selectedAnalysis.analysisResults?.institutionName && 
+                     !selectedAnalysis.analysisResults?.programName && 
+                     !selectedAnalysis.analysisResults?.documentType && (
+                      <div className="text-gray-500 text-center py-4">
+                        No academic information available for this analysis.
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -355,33 +472,10 @@ export default function AdminAnalyses() {
                       Financial Information
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-6 space-y-4">
-                    <div>
-                      <span className="font-medium text-gray-600">Tuition:</span>
-                      <div 
-                        className="text-gray-800 break-words"
-                        dangerouslySetInnerHTML={{ 
-                          __html: formatNumericalInfo('$AU 12,880 AUD') 
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Scholarship:</span>
-                      <div 
-                        className="text-gray-800 break-words"
-                        dangerouslySetInnerHTML={{ 
-                          __html: formatNumericalInfo('20% off the first two semesters tuition fee AUD') 
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Total Cost:</span>
-                      <div 
-                        className="text-gray-800 break-words"
-                        dangerouslySetInnerHTML={{ 
-                          __html: formatNumericalInfo('$AU 95,958 AUD') 
-                        }}
-                      />
+                  <CardContent className="p-6">
+                    <div className="text-gray-500 text-center py-8">
+                      <DollarSign className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p>Financial information is integrated within the analysis summary and recommendations.</p>
                     </div>
                   </CardContent>
                 </Card>
