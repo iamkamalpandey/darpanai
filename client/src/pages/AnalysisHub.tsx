@@ -4,12 +4,10 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { Pagination } from '@/components/Pagination';
 import { EnhancedFilters, FilterOptions, searchInText, filterByDateRange } from '@/components/EnhancedFilters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileText, GraduationCap, Calendar, User, Building2, Globe, AlertTriangle, TrendingUp, ArrowLeft, CheckCircle } from 'lucide-react';
+import { FileText, GraduationCap, Calendar, User, Building2, Globe, AlertTriangle } from 'lucide-react';
 import { Link } from 'wouter';
 
 interface Analysis {
@@ -31,21 +29,7 @@ interface Analysis {
   summary?: string;
 }
 
-interface AnalysisDetail {
-  id: number;
-  filename: string;
-  createdAt: string;
-  analysisResults?: any;
-  summary?: string;
-  country?: string;
-  visaType?: string;
-  isPublic?: boolean;
-  institutionCountry?: string;
-  studentCountry?: string;
-}
-
 export default function AnalysisHub() {
-  const [selectedAnalysis, setSelectedAnalysis] = useState<{id: number, type: 'visa_rejection' | 'enrollment'} | null>(null);
   const [filters, setFilters] = useState<FilterOptions>({});
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
@@ -67,22 +51,13 @@ export default function AnalysisHub() {
     select: (data) => data.map(item => ({ ...item, type: 'enrollment' as const }))
   });
 
-  // Fetch detailed analysis when selected
-  const { data: analysisDetail, isLoading: detailLoading } = useQuery<AnalysisDetail>({
-    queryKey: [
-      selectedAnalysis?.type === 'visa_rejection' ? '/api/analyses' : '/api/enrollment-analyses',
-      selectedAnalysis?.id
-    ],
-    enabled: !!selectedAnalysis,
-  });
-
-  // Handle viewing analysis inline
+  // Navigate to existing analysis pages that work properly
   const viewAnalysis = (id: number, type: 'visa_rejection' | 'enrollment') => {
-    setSelectedAnalysis({ id, type });
-  };
-
-  const backToList = () => {
-    setSelectedAnalysis(null);
+    if (type === 'enrollment') {
+      window.location.href = `/enrollment-analysis-results/${id}`;
+    } else {
+      window.location.href = `/visa-analysis-results/${id}`;
+    }
   };
 
   // Combine all analyses
@@ -97,11 +72,11 @@ export default function AnalysisHub() {
     // Text search across multiple fields
     if (filters.searchTerm) {
       filtered = filtered.filter(analysis => 
-        searchInText(analysis.filename, filters.searchTerm) ||
-        searchInText(analysis.summary, filters.searchTerm) ||
-        searchInText(analysis.institutionCountry, filters.searchTerm) ||
-        searchInText(analysis.studentCountry, filters.searchTerm) ||
-        searchInText(analysis.visaType, filters.searchTerm)
+        searchInText(analysis.filename, filters.searchTerm, false) ||
+        searchInText(analysis.summary, filters.searchTerm, false) ||
+        searchInText(analysis.institutionCountry, filters.searchTerm, false) ||
+        searchInText(analysis.studentCountry, filters.searchTerm, false) ||
+        searchInText(analysis.visaType, filters.searchTerm, false)
       );
     }
 
@@ -159,339 +134,9 @@ export default function AnalysisHub() {
     );
   };
 
-  // Render detailed analysis view
-  const renderAnalysisDetail = () => {
-    if (!selectedAnalysis || !analysisDetail) return null;
-
-    return (
-      <div className="space-y-6">
-        {/* Back button and header */}
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={backToList} className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Analysis List
-          </Button>
-        </div>
-
-        {/* Important Disclaimer */}
-        <Card className="border-amber-200 bg-amber-50">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm">
-                <p className="font-medium text-amber-800 mb-2">Important Legal Disclaimer</p>
-                <p className="text-amber-700 leading-relaxed">
-                  This analysis is for informational purposes only and should not be considered as professional {selectedAnalysis.type === 'visa_rejection' ? 'immigration' : 'education'} advice. 
-                  Always consult with qualified {selectedAnalysis.type === 'visa_rejection' ? 'immigration experts or lawyers' : 'education consultants and immigration advisors'} before making any decisions. 
-                  This tool and company will not be liable for any financial or other losses caused by decisions made based on this analysis.
-                  Make your decisions based on professional expert guidance and your own thorough research.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Analysis Header */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${selectedAnalysis.type === 'visa_rejection' ? 'bg-blue-100' : 'bg-green-100'}`}>
-              {selectedAnalysis.type === 'visa_rejection' ? (
-                <FileText className="h-5 w-5 text-blue-600" />
-              ) : (
-                <GraduationCap className="h-5 w-5 text-green-600" />
-              )}
-            </div>
-            <div>
-              <p className="font-medium text-gray-900">
-                {selectedAnalysis.type === 'visa_rejection' ? 'Visa Document Analysis' : 'Enrollment Document Analysis'}
-              </p>
-              <p className="text-sm text-gray-600">{analysisDetail.filename}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 text-sm text-gray-600">
-            <span className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              {new Date(analysisDetail.createdAt).toLocaleDateString()}
-            </span>
-            {analysisDetail.country && (
-              <span className="flex items-center gap-1">
-                <Globe className="h-4 w-4" />
-                {analysisDetail.country}
-              </span>
-            )}
-            {analysisDetail.institutionCountry && (
-              <span className="flex items-center gap-1">
-                <Globe className="h-4 w-4" />
-                {analysisDetail.studentCountry} → {analysisDetail.institutionCountry}
-              </span>
-            )}
-            {analysisDetail.visaType && (
-              <Badge variant="outline">{analysisDetail.visaType}</Badge>
-            )}
-            {selectedAnalysis.type === 'visa_rejection' && analysisDetail.isPublic !== undefined && (
-              <Badge variant={analysisDetail.isPublic ? "default" : "secondary"}>
-                {analysisDetail.isPublic ? "Public" : "Private"}
-              </Badge>
-            )}
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Structured Analysis Display */}
-        {selectedAnalysis.type === 'enrollment' ? (
-          <div className="space-y-6">
-            {/* Document Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-green-600" />
-                  Document Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-gray-800 leading-relaxed">{analysisDetail.summary}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Academic Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <GraduationCap className="h-5 w-5 text-green-600" />
-                  Academic Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {(analysisDetail as any).institutionName && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Institution:</p>
-                      <p className="text-gray-900">{(analysisDetail as any).institutionName}</p>
-                    </div>
-                  )}
-                  {(analysisDetail as any).programName && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Program:</p>
-                      <p className="text-gray-900">{(analysisDetail as any).programName}</p>
-                    </div>
-                  )}
-                  {(analysisDetail as any).programLevel && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Level:</p>
-                      <p className="text-gray-900">{(analysisDetail as any).programLevel}</p>
-                    </div>
-                  )}
-                  {(analysisDetail as any).startDate && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Start Date:</p>
-                      <p className="text-gray-900">{(analysisDetail as any).startDate}</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Financial Information */}
-            {((analysisDetail as any).tuitionAmount || (analysisDetail as any).totalCost || (analysisDetail as any).scholarshipAmount) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-blue-600" />
-                    Financial Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {(analysisDetail as any).tuitionAmount && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Tuition:</p>
-                        <p className="text-gray-900">{(analysisDetail as any).tuitionAmount} {(analysisDetail as any).currency || ''}</p>
-                      </div>
-                    )}
-                    {(analysisDetail as any).scholarshipAmount && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Scholarship:</p>
-                        <p className="text-gray-900">{(analysisDetail as any).scholarshipAmount}</p>
-                      </div>
-                    )}
-                    {(analysisDetail as any).totalCost && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-600">Total Cost:</p>
-                        <p className="text-gray-900">{(analysisDetail as any).totalCost} {(analysisDetail as any).currency || ''}</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Key Findings */}
-            {(analysisDetail as any).keyFindings && Array.isArray((analysisDetail as any).keyFindings) && (analysisDetail as any).keyFindings.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    Key Findings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {(analysisDetail as any).keyFindings.map((finding: any, index: number) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
-                        <span className="text-gray-800">{typeof finding === 'string' ? finding : finding.description || finding.text || JSON.stringify(finding)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Recommendations */}
-            {(analysisDetail as any).recommendations && Array.isArray((analysisDetail as any).recommendations) && (analysisDetail as any).recommendations.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-amber-600" />
-                    Recommendations
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {(analysisDetail as any).recommendations.map((rec: any, index: number) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <div className="w-1.5 h-1.5 bg-amber-600 rounded-full mt-2 flex-shrink-0"></div>
-                        <span className="text-gray-800">{typeof rec === 'string' ? rec : rec.description || rec.text || JSON.stringify(rec)}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Next Steps */}
-            {(analysisDetail as any).nextSteps && Array.isArray((analysisDetail as any).nextSteps) && (analysisDetail as any).nextSteps.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <ArrowLeft className="h-5 w-5 text-blue-600" />
-                    Next Steps
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {(analysisDetail as any).nextSteps.map((step: any, index: number) => (
-                      <div key={index} className="flex items-start gap-3">
-                        <div className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium flex-shrink-0">
-                          {index + 1}
-                        </div>
-                        <span className="text-gray-800 flex-1 break-words">{typeof step === 'string' ? step : step.description || step.text || JSON.stringify(step)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        ) : (
-          // Visa analysis display
-          <div className="space-y-6">
-            {/* Complete Original Analysis */}
-            {analysisDetail.analysisResults && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    Complete Visa Analysis Report
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="whitespace-pre-wrap text-gray-800 leading-relaxed text-sm break-words font-mono">
-                      {typeof analysisDetail.analysisResults === 'string' 
-                        ? analysisDetail.analysisResults 
-                        : JSON.stringify(analysisDetail.analysisResults, null, 2).replace(/[{}"]/g, '').replace(/,\s*$/gm, '')
-                      }
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Summary - Fallback */}
-            {!analysisDetail.analysisResults && analysisDetail.summary && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    Visa Analysis Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="whitespace-pre-wrap text-gray-800 leading-relaxed break-words">{analysisDetail.summary}</div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
-
-        {/* Professional Guidance Recommendation */}
-        <Card className={`border-${selectedAnalysis.type === 'visa_rejection' ? 'blue' : 'green'}-200 bg-${selectedAnalysis.type === 'visa_rejection' ? 'blue' : 'green'}-50`}>
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <CheckCircle className={`h-5 w-5 text-${selectedAnalysis.type === 'visa_rejection' ? 'blue' : 'green'}-600 mt-0.5 flex-shrink-0`} />
-              <div className="text-sm">
-                <p className={`font-medium text-${selectedAnalysis.type === 'visa_rejection' ? 'blue' : 'green'}-800 mb-2`}>
-                  {selectedAnalysis.type === 'visa_rejection' ? 'Next Steps Recommendation' : 'Professional Guidance Recommended'}
-                </p>
-                <p className={`text-${selectedAnalysis.type === 'visa_rejection' ? 'blue' : 'green'}-700 leading-relaxed`}>
-                  {selectedAnalysis.type === 'visa_rejection' ? (
-                    <>
-                      Based on this analysis, we strongly recommend consulting with qualified immigration experts who can provide 
-                      personalized guidance for your specific situation. Consider booking a consultation with our certified immigration advisors 
-                      who can help you understand these findings and create an actionable plan for your visa application process.
-                    </>
-                  ) : (
-                    <>
-                      Based on this enrollment document analysis, we recommend consulting with qualified education consultants and immigration advisors 
-                      who can verify this information with the issuing institution and provide personalized guidance for your study abroad journey. 
-                      Consider booking a consultation with our certified education advisors who can help you understand these findings and create 
-                      a comprehensive plan for your academic and visa application process.
-                    </>
-                  )}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  };
-
-  // Show detailed view if analysis is selected
-  if (selectedAnalysis) {
-    return (
-      <DashboardLayout>
-        <ScrollArea className="h-[calc(100vh-8rem)]">
-          {detailLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center">
-                <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-gray-600">Loading analysis...</p>
-              </div>
-            </div>
-          ) : (
-            renderAnalysisDetail()
-          )}
-        </ScrollArea>
-      </DashboardLayout>
-    );
-  }
+  const totalPages = Math.ceil(filteredAnalyses.length / itemsPerPage);
+  const totalVisaPages = Math.ceil(filteredVisaAnalyses.length / itemsPerPage);
+  const totalEnrollmentPages = Math.ceil(filteredEnrollmentAnalyses.length / itemsPerPage);
 
   return (
     <DashboardLayout>
@@ -614,6 +259,7 @@ export default function AnalysisHub() {
                 currentPage={currentPage}
                 totalItems={filteredAnalyses.length}
                 itemsPerPage={itemsPerPage}
+                totalPages={totalPages}
                 onPageChange={setCurrentPage}
               />
             )}
@@ -684,6 +330,7 @@ export default function AnalysisHub() {
                 currentPage={currentPage}
                 totalItems={filteredVisaAnalyses.length}
                 itemsPerPage={itemsPerPage}
+                totalPages={totalVisaPages}
                 onPageChange={setCurrentPage}
               />
             )}
@@ -772,6 +419,7 @@ export default function AnalysisHub() {
                 currentPage={currentPage}
                 totalItems={filteredEnrollmentAnalyses.length}
                 itemsPerPage={itemsPerPage}
+                totalPages={totalEnrollmentPages}
                 onPageChange={setCurrentPage}
               />
             )}
