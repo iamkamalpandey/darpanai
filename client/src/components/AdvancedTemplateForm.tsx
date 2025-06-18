@@ -26,7 +26,7 @@ const categories = [
   { value: "insurance", label: "Insurance" },
   { value: "accommodation", label: "Accommodation" },
   { value: "language", label: "Language" },
-  { value: "other", label: "Other" },
+  { value: "others", label: "Others" },
 ];
 
 const countries = [

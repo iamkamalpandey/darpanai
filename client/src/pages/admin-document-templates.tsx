@@ -465,6 +465,8 @@ export default function AdminDocumentTemplates() {
             </DialogHeader>
             
             <AdvancedTemplateForm
+              initialData={editingTemplate}
+              mode={editingTemplate ? "edit" : "create"}
               onSubmit={async (formData: FormData) => {
                 try {
                   if (editingTemplate) {
