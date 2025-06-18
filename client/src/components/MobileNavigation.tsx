@@ -30,11 +30,11 @@ interface NavItem {
 
 const userNavItems: NavItem[] = [
   { icon: <Home className="h-5 w-5" />, label: "Dashboard", href: "/" },
-  { icon: <FileText className="h-5 w-5" />, label: "Analyze Document", href: "/analyze" },
-  { icon: <FileCheck className="h-5 w-5" />, label: "Document Templates", href: "/document-templates" },
-  { icon: <CheckSquare className="h-5 w-5" />, label: "Document Checklists", href: "/document-checklist" },
-  { icon: <Calendar className="h-5 w-5" />, label: "Book Consultation", href: "/consultation" },
-  { icon: <Building2 className="h-5 w-5" />, label: "Professional Plan", href: "/professional" },
+  { icon: <FileText className="h-5 w-5" />, label: "My Analysis", href: "/my-analysis" },
+  { icon: <Shield className="h-5 w-5" />, label: "Visa Analysis", href: "/visa-analysis" },
+  { icon: <FileCheck className="h-5 w-5" />, label: "Enrollment Analysis", href: "/enrollment-analysis" },
+  { icon: <Calendar className="h-5 w-5" />, label: "Appointments", href: "/consultations" },
+  { icon: <CheckSquare className="h-5 w-5" />, label: "Resources", href: "/document-templates" },
 ];
 
 const adminNavItems: NavItem[] = [

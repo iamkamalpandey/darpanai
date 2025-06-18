@@ -69,17 +69,24 @@ function Router() {
       <Route path="/" component={HomePage} />
       
       {/* User Routes - Only accessible by regular users */}
-      <Route path="/analyzer">
-        <UserProtectedRoute path="/analyzer" component={() => (
+      <Route path="/my-analysis">
+        <UserProtectedRoute path="/my-analysis" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <VisaAnalyzer />
+            <AnalysisHub />
           </Suspense>
         )} />
       </Route>
-      <Route path="/history">
-        <UserProtectedRoute path="/history" component={() => (
+      <Route path="/visa-analysis">
+        <UserProtectedRoute path="/visa-analysis" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <AnalysisHistory />
+            <VisaRejectionAnalysis />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/enrollment-analysis">
+        <UserProtectedRoute path="/enrollment-analysis" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <EnrollmentAnalysis />
           </Suspense>
         )} />
       </Route>

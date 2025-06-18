@@ -28,7 +28,7 @@ interface SidebarItemProps {
   compact?: boolean;
 }
 
-const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
+const SidebarItem = ({ icon, label, href, active, compact }: SidebarItemProps) => {
   return (
     <Link href={href}>
       <div
@@ -71,6 +71,7 @@ const UpdatesNotificationBadge = () => {
 export function DashboardSidebar() {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
+  const [resourcesOpen, setResourcesOpen] = useState(true);
 
   const handleLogout = () => {
     logoutMutation.mutate();
@@ -121,12 +122,6 @@ export function DashboardSidebar() {
           label="Enrollment Analysis"
           href="/enrollment-analysis"
           active={location === "/enrollment-analysis"}
-        />
-        <SidebarItem
-          icon={<Phone className="h-5 w-5" />}
-          label="Consultations"
-          href="/consultations"
-          active={location === "/consultations"}
         />
         {/* Resources Section with Collapsible Submenu */}
         <div className="space-y-2">
