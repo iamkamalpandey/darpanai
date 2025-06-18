@@ -130,6 +130,21 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 18, 2025 - Customized Call-to-Action System with Consultation Tracking:**
+- Implemented comprehensive CustomCTA component with page-specific variants for targeted consultation booking
+- Added consultation source tracking to monitor which pages generate the most consultation requests
+- Created 6 specialized CTA variants: dashboard, visa-analysis, enrollment-analysis, resources, appointments, and generic
+- Enhanced ConsultationForm component with source parameter for detailed analytics and conversion tracking
+- Deployed customized CTAs across all major pages: Home, Visa Analysis, Enrollment Analysis, Document Templates, Document Checklists, and Consultations
+- Each CTA variant features tailored messaging, icons, colors, and additional actions specific to the page context
+- Dashboard CTA includes quick navigation to analysis types and resources with gradient blue-purple design
+- Visa Analysis CTA emphasizes rejection recovery with specialized expert messaging and red accent colors
+- Enrollment Analysis CTA focuses on document compliance verification with green accent colors
+- Resources CTA highlights personalized document guidance with purple accent colors and resource navigation
+- Appointments CTA promotes follow-up consultations with blue accent colors for existing users
+- Fixed server-side TypeScript type error in document checklist creation by properly validating userType enum values
+- All consultation bookings now include source tracking for comprehensive conversion analytics and user journey insights
+
 **June 18, 2025 - Complete Study Abroad Analysis Platform & Resources Consolidation:**
 - Revamped entire platform from visa rejection focus to comprehensive "Study Abroad Analysis" branding and messaging
 - Updated home dashboard hero section: "Simplifying Your Study Abroad Journey" with comprehensive AI-powered analysis messaging

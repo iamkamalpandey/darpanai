@@ -1475,12 +1475,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create clean data object with validated fields
+      const userType = ['student', 'tourist', 'work', 'family', 'business'].includes(String(req.body.userType).trim()) 
+        ? String(req.body.userType).trim() as "student" | "tourist" | "work" | "family" | "business"
+        : 'student' as const;
+
       const cleanData = {
         title: String(req.body.title).trim(),
         description: String(req.body.description).trim(),
         country: String(req.body.country).trim(),
         visaType: String(req.body.visaType).trim(),
-        userType: String(req.body.userType || 'student').trim(),
+        userType,
         estimatedProcessingTime: String(req.body.estimatedProcessingTime).trim(),
         totalFees: String(req.body.totalFees).trim(),
         isActive: req.body.isActive !== undefined ? Boolean(req.body.isActive) : true,

@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { CalendarIcon, Loader2, Phone } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { ConsultationForm } from "@/components/ConsultationForm";
+import { CustomCTA } from "@/components/CustomCTA";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -213,6 +214,9 @@ export default function ConsultationsPage() {
           ))}
         </div>
       )}
+
+      {/* Customized CTA Section for Appointments */}
+      <CustomCTA variant="appointments" source="consultations-page" />
     </DashboardLayout>
   );
 }
