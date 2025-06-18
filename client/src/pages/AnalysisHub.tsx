@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { AnalysisModal } from '@/components/AnalysisModal';
+import { Pagination } from '@/components/Pagination';
 import { EnhancedFilters, FilterOptions, searchInText, filterByDateRange } from '@/components/EnhancedFilters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +36,13 @@ export default function AnalysisHub() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalAnalysisId, setModalAnalysisId] = useState<number | null>(null);
   const [modalAnalysisType, setModalAnalysisType] = useState<'visa_rejection' | 'enrollment' | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   // Fetch visa rejection analyses
   const { data: visaAnalyses = [] } = useQuery<Analysis[]>({

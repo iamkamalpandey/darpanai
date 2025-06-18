@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -108,6 +108,11 @@ export default function AdminUsers() {
   const [dateFilter, setDateFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, roleFilter, statusFilter, dateFilter]);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -791,7 +796,7 @@ export default function AdminUsers() {
                     </TableRow>
                   </TableHeader>
                 <TableBody>
-                  {filteredUsers.map((user) => (
+                  {paginatedUsers.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>
                         <div>
@@ -926,6 +931,20 @@ export default function AdminUsers() {
                 </Table>
               </div>
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  totalItems={filteredUsers.length}
+                  itemsPerPage={itemsPerPage}
+                  showPageInfo={true}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
 
