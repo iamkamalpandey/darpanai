@@ -29,13 +29,13 @@ const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
   return (
     <Link href={href}>
       <div 
-        className={`group flex gap-x-3 rounded-lg p-3 text-sm font-medium leading-6 transition-all duration-200 cursor-pointer ${
+        className={`group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 cursor-pointer ${
           active
-            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg border-l-4 border-blue-300'
-            : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+            ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
+            : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
         }`}
       >
-        <span className={`h-5 w-5 shrink-0 ${active ? 'text-white' : 'text-slate-400 group-hover:text-blue-400'}`}>
+        <span className={`h-5 w-5 shrink-0 ${active ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'}`}>
           {icon}
         </span>
         <span className="truncate">{label}</span>
@@ -144,35 +144,35 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         />
 
         {/* Mobile Sidebar */}
-        <div className={`fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-gradient-to-b from-slate-900 to-slate-800 shadow-2xl transform transition-transform duration-300 ease-in-out ${
+        <div className={`fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}>
           <div className="flex flex-col h-full">
-            <div className="flex items-center h-16 px-6 border-b border-slate-700 bg-slate-800/50 flex-shrink-0">
-              <Shield className="h-6 w-6 text-blue-400 mr-3" />
-              <span className="text-lg font-semibold text-white">Study Abroad</span>
+            <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-white flex-shrink-0">
+              <Shield className="h-6 w-6 text-blue-600 mr-3" />
+              <span className="text-lg font-semibold text-gray-900">Study Abroad</span>
             </div>
-            <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto min-h-0">
+            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto min-h-0">
               {sidebarItems.map((item, index) => (
                 <div key={item.href || `submenu-${index}`}>
                   {item.isSubmenu ? (
                     <div>
                       <button
                         onClick={() => setResourcesOpen(!resourcesOpen)}
-                        className="w-full group flex gap-x-3 rounded-lg p-3 text-sm font-medium leading-6 transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-700/50"
+                        className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                       >
-                        <span className="h-5 w-5 shrink-0 text-slate-400 group-hover:text-blue-400">
+                        <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-gray-500">
                           {item.icon}
                         </span>
                         <span className="truncate flex-1 text-left">{item.label}</span>
                         {resourcesOpen ? (
-                          <ChevronDown className="h-4 w-4 text-slate-400" />
+                          <ChevronDown className="h-4 w-4 text-gray-400" />
                         ) : (
-                          <ChevronRight className="h-4 w-4 text-slate-400" />
+                          <ChevronRight className="h-4 w-4 text-gray-400" />
                         )}
                       </button>
                       {resourcesOpen && item.submenuItems && (
-                        <div className="ml-8 mt-2 space-y-1">
+                        <div className="ml-8 mt-1 space-y-1">
                           {item.submenuItems.map((subItem) => (
                             <div key={subItem.href} onClick={() => setSidebarOpen(false)}>
                               <SidebarItem 
@@ -200,34 +200,34 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               ))}
             </nav>
             
-            {/* Sticky Bottom Mobile User Profile & Logout */}
-            <div className="sticky bottom-4 mt-auto p-4">
-              <div className="bg-slate-800/80 backdrop-blur-md rounded-xl p-4 border border-slate-700/50 shadow-lg">
-                {/* User Profile */}
-                <div className="flex items-center mb-3">
-                  <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm font-semibold text-white">
-                      {user?.firstName?.[0]}{user?.lastName?.[0]}
-                    </span>
+            {/* Floating Mobile User Profile & Logout */}
+            <div className="sticky bottom-4 mt-auto mx-3 mb-4">
+              <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center min-w-0 flex-1">
+                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-medium text-white">
+                        {user?.firstName?.[0]}{user?.lastName?.[0]}
+                      </span>
+                    </div>
+                    <div className="ml-3 min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {user?.firstName} {user?.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {user?.analysisCount || 0}/{user?.maxAnalyses || 3} analyses
+                      </p>
+                    </div>
                   </div>
-                  <div className="ml-3 min-w-0 flex-1">
-                    <p className="text-sm font-medium text-white truncate">
-                      {user?.firstName} {user?.lastName}
-                    </p>
-                    <p className="text-xs text-slate-300 truncate">
-                      {user?.analysisCount || 0}/{user?.maxAnalyses || 3} analyses used
-                    </p>
-                  </div>
+                  
+                  <button
+                    onClick={handleLogout}
+                    className="ml-3 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-md transition-colors"
+                    title="Sign out"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </button>
                 </div>
-                
-                {/* Logout Button */}
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
-                >
-                  <LogOut className="mr-2 h-4 w-4 flex-shrink-0" />
-                  <span>Sign Out</span>
-                </button>
               </div>
             </div>
           </div>
@@ -246,36 +246,36 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Desktop Layout (hidden below md) */}
       <div className="hidden md:flex min-h-screen bg-gray-50">
         {/* Desktop Sidebar */}
-        <div className="w-64 lg:w-72 xl:w-80 bg-gradient-to-b from-slate-900 to-slate-800 flex-shrink-0 relative">
+        <div className="w-64 lg:w-72 xl:w-80 bg-white border-r border-gray-200 flex-shrink-0 relative">
           <div className="flex flex-col h-screen">
             {/* Header */}
-            <div className="flex items-center h-16 px-6 border-b border-slate-700 bg-slate-800/50 flex-shrink-0">
-              <Shield className="h-6 w-6 text-blue-400 mr-3" />
-              <span className="text-lg font-semibold text-white">Study Abroad</span>
+            <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-white flex-shrink-0">
+              <Shield className="h-6 w-6 text-blue-600 mr-3" />
+              <span className="text-lg font-semibold text-gray-900">Study Abroad</span>
             </div>
             
             {/* Navigation */}
-            <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
+            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto min-h-0">
               {sidebarItems.map((item, index) => (
                 <div key={item.href || `submenu-${index}`}>
                   {item.isSubmenu ? (
                     <div>
                       <button
                         onClick={() => setResourcesOpen(!resourcesOpen)}
-                        className="w-full group flex gap-x-3 rounded-lg p-3 text-sm font-medium leading-6 transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-700/50"
+                        className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                       >
-                        <span className="h-5 w-5 shrink-0 text-slate-400 group-hover:text-blue-400">
+                        <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-gray-500">
                           {item.icon}
                         </span>
                         <span className="truncate flex-1 text-left">{item.label}</span>
                         {resourcesOpen ? (
-                          <ChevronDown className="h-4 w-4 text-slate-400" />
+                          <ChevronDown className="h-4 w-4 text-gray-400" />
                         ) : (
-                          <ChevronRight className="h-4 w-4 text-slate-400" />
+                          <ChevronRight className="h-4 w-4 text-gray-400" />
                         )}
                       </button>
                       {resourcesOpen && item.submenuItems && (
-                        <div className="ml-8 mt-2 space-y-1">
+                        <div className="ml-8 mt-1 space-y-1">
                           {item.submenuItems.map((subItem) => (
                             <SidebarItem 
                               key={subItem.href}
@@ -300,34 +300,34 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               ))}
             </nav>
             
-            {/* Sticky Bottom User Profile & Logout */}
-            <div className="sticky bottom-4 mt-auto p-4">
-              <div className="bg-slate-800/80 backdrop-blur-md rounded-xl p-4 border border-slate-700/50 shadow-lg">
-                {/* User Profile */}
-                <div className="flex items-center mb-3">
-                  <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm font-semibold text-white">
-                      {user?.firstName?.[0]}{user?.lastName?.[0]}
-                    </span>
+            {/* Floating User Profile & Logout */}
+            <div className="sticky bottom-4 mt-auto mx-3 mb-4">
+              <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center min-w-0 flex-1">
+                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-medium text-white">
+                        {user?.firstName?.[0]}{user?.lastName?.[0]}
+                      </span>
+                    </div>
+                    <div className="ml-3 min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {user?.firstName} {user?.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {user?.analysisCount || 0}/{user?.maxAnalyses || 3} analyses
+                      </p>
+                    </div>
                   </div>
-                  <div className="ml-3 min-w-0 flex-1">
-                    <p className="text-sm font-medium text-white truncate">
-                      {user?.firstName} {user?.lastName}
-                    </p>
-                    <p className="text-xs text-slate-300 truncate">
-                      {user?.analysisCount || 0}/{user?.maxAnalyses || 3} analyses used
-                    </p>
-                  </div>
+                  
+                  <button
+                    onClick={handleLogout}
+                    className="ml-3 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-md transition-colors"
+                    title="Sign out"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </button>
                 </div>
-                
-                {/* Logout Button */}
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
-                >
-                  <LogOut className="mr-2 h-4 w-4 flex-shrink-0" />
-                  <span>Sign Out</span>
-                </button>
               </div>
             </div>
           </div>
