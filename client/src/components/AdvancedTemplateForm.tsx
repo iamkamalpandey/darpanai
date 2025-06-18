@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -65,19 +65,52 @@ export function AdvancedTemplateForm({
   const form = useForm<DocumentTemplateUpload>({
     resolver: zodResolver(documentTemplateUploadSchema),
     defaultValues: {
-      title: initialData?.title || "",
-      description: initialData?.description || "",
-      documentType: initialData?.documentType || "",
-      category: initialData?.category || "financial",
-      visaTypes: initialData?.visaTypes || [],
-      countries: initialData?.countries || [],
-      instructions: initialData?.instructions || [],
-      tips: initialData?.tips || [],
-      requirements: initialData?.requirements || [],
-      isActive: initialData?.isActive !== undefined ? initialData.isActive : true,
-      externalUrl: initialData?.externalUrl || "",
+      title: "",
+      description: "",
+      documentType: "",
+      category: "financial",
+      visaTypes: [],
+      countries: [],
+      instructions: [],
+      tips: [],
+      requirements: [],
+      isActive: true,
+      externalUrl: "",
     },
   });
+
+  // Reset form values when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        title: initialData.title || "",
+        description: initialData.description || "",
+        documentType: initialData.documentType || "",
+        category: initialData.category || "financial",
+        visaTypes: initialData.visaTypes || [],
+        countries: initialData.countries || [],
+        instructions: initialData.instructions || [],
+        tips: initialData.tips || [],
+        requirements: initialData.requirements || [],
+        isActive: initialData.isActive !== undefined ? initialData.isActive : true,
+        externalUrl: initialData.externalUrl || "",
+      });
+    } else {
+      form.reset({
+        title: "",
+        description: "",
+        documentType: "",
+        category: "financial",
+        visaTypes: [],
+        countries: [],
+        instructions: [],
+        tips: [],
+        requirements: [],
+        isActive: true,
+        externalUrl: "",
+      });
+    }
+  }, [initialData, form]);
 
   const handleFileChange = (file: File | null) => {
     if (!file) return;

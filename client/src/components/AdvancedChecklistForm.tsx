@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -92,16 +92,16 @@ export function AdvancedChecklistForm({
     resolver: zodResolver(insertDocumentChecklistSchema),
     mode: "onBlur", // Validate on blur for immediate feedback
     defaultValues: {
-      title: initialData?.title || "",
-      description: initialData?.description || "",
-      country: initialData?.country || "",
-      visaType: initialData?.visaType || "",
-      userType: initialData?.userType || "student",
-      items: initialData?.items || [],
-      estimatedProcessingTime: initialData?.estimatedProcessingTime || "",
-      totalFees: initialData?.totalFees || "",
-      importantNotes: initialData?.importantNotes || [],
-      isActive: initialData?.isActive !== undefined ? initialData.isActive : true,
+      title: "",
+      description: "",
+      country: "",
+      visaType: "",
+      userType: "student",
+      items: [],
+      estimatedProcessingTime: "",
+      totalFees: "",
+      importantNotes: [],
+      isActive: true,
     },
   });
 
@@ -110,7 +110,40 @@ export function AdvancedChecklistForm({
     name: "items",
   });
 
-  const [noteItems, setNoteItems] = useState<string[]>(initialData?.importantNotes || []);
+  const [noteItems, setNoteItems] = useState<string[]>([]);
+
+  // Reset form values when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        title: initialData.title || "",
+        description: initialData.description || "",
+        country: initialData.country || "",
+        visaType: initialData.visaType || "",
+        userType: initialData.userType || "student",
+        items: initialData.items || [],
+        estimatedProcessingTime: initialData.estimatedProcessingTime || "",
+        totalFees: initialData.totalFees || "",
+        importantNotes: initialData.importantNotes || [],
+        isActive: initialData.isActive !== undefined ? initialData.isActive : true,
+      });
+      setNoteItems(initialData.importantNotes || []);
+    } else {
+      form.reset({
+        title: "",
+        description: "",
+        country: "",
+        visaType: "",
+        userType: "student",
+        items: [],
+        estimatedProcessingTime: "",
+        totalFees: "",
+        importantNotes: [],
+        isActive: true,
+      });
+      setNoteItems([]);
+    }
+  }, [initialData, form]);
 
   const addNewItem = () => {
     appendItem({

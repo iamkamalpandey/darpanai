@@ -494,8 +494,6 @@ export default function AdminDocumentTemplates() {
                 setEditingTemplate(null);
               }}
               isLoading={createMutation.isPending || updateMutation.isPending}
-              initialData={editingTemplate}
-              mode={editingTemplate ? "edit" : "create"}
             />
           </DialogContent>
         </Dialog>
