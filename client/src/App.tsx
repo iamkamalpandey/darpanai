@@ -139,6 +139,13 @@ function Router() {
           </Suspense>
         )} />
       </Route>
+      <Route path="/analysis/:id">
+        <UserProtectedRoute path="/analysis/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <VisaAnalyzer />
+          </Suspense>
+        )} />
+      </Route>
       
       {/* Admin Routes - Only accessible by admin users */}
       <Route path="/admin">

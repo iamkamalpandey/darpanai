@@ -204,22 +204,11 @@ export default function AnalysisHub() {
                           </div>
                         </div>
                         <div className="flex flex-col gap-2">
-                          {analysis.type === 'visa_rejection' ? (
-                            <Link href={`/analyzer?analysis=${analysis.id}`}>
-                              <Button variant="outline" size="sm" className="w-full">
-                                View Analysis
-                              </Button>
-                            </Link>
-                          ) : (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => setSelectedAnalysis(analysis)}
-                              className="w-full"
-                            >
+                          <Link href={`/analysis/${analysis.id}`}>
+                            <Button variant="outline" size="sm" className="w-full">
                               View Analysis
                             </Button>
-                          )}
+                          </Link>
                         </div>
                       </div>
                     </CardContent>
@@ -282,7 +271,7 @@ export default function AnalysisHub() {
                             </div>
                           </div>
                         </div>
-                        <Link href={`/analyzer?analysis=${analysis.id}`}>
+                        <Link href={`/analysis/${analysis.id}`}>
                           <Button variant="outline" size="sm">
                             View Analysis
                           </Button>

@@ -91,7 +91,7 @@ const publicFilterOptions = [
 ];
 
 const defaultCategories = [
-  { value: "", label: "All Categories" },
+  { value: "all", label: "All Categories" },
   { value: "financial", label: "Financial" },
   { value: "academic", label: "Academic" },
   { value: "personal", label: "Personal" },
@@ -129,7 +129,7 @@ export function EnhancedFilters({
 
   // Memoized dropdown options to prevent unnecessary re-renders
   const countryOptions = useMemo(() => [
-    { value: "", label: "All Countries" },
+    { value: "all", label: "All Countries" },
     ...(dropdownOptions.countries || []).map(country => ({
       value: country,
       label: country
