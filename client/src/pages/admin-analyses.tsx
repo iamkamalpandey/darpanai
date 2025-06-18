@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Eye, Download, User, Calendar, CheckCircle, AlertTriangle, Info, TrendingUp } from "lucide-react";
+import { FileText, Eye, Download, User, Calendar, CheckCircle, AlertTriangle, Info, TrendingUp, DollarSign, GraduationCap, Shield, Home } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
 interface AnalysisData {
@@ -70,6 +70,8 @@ export default function AdminAnalyses() {
   const [analysisDetailsOpen, setAnalysisDetailsOpen] = useState(false);
 
   const itemsPerPage = 9;
+
+
 
   // Fetch analyses with optimized caching
   const { data: analyses = [], isLoading } = useQuery<AnalysisData[]>({
@@ -737,7 +739,7 @@ export default function AdminAnalyses() {
                                       </div>
                                     )}
                                     <div className="mt-2 text-xs text-purple-600 font-medium">
-                                      Step {idx + 1} of {selectedAnalysis.analysisResults.nextSteps.length}
+                                      Step {idx + 1} of {selectedAnalysis.analysisResults.nextSteps?.length || 0}
                                     </div>
                                   </div>
                                 </div>
