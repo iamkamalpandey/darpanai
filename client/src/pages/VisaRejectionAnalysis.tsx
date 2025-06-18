@@ -22,16 +22,23 @@ interface RejectionReason {
 interface VisaAnalysis {
   id: number;
   filename: string;
-  originalText: string;
-  analysisResults: {
-    rejectionReasons: RejectionReason[];
-    recommendations: Array<{
+  originalText?: string;
+  analysisResults?: {
+    rejectionReasons?: RejectionReason[];
+    recommendations?: Array<{
       title: string;
       description: string;
       priority: string;
     }>;
-    summary: string;
+    summary?: string;
   };
+  rejectionReasons?: RejectionReason[];
+  recommendations?: Array<{
+    title: string;
+    description: string;
+    priority: string;
+  }>;
+  summary?: string;
   createdAt: string;
 }
 
@@ -210,7 +217,7 @@ export default function VisaRejectionAnalysis() {
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-                    {selectedAnalysis.analysisResults.summary}
+                    {(selectedAnalysis as any)?.analysisResults?.summary || (selectedAnalysis as any)?.summary || 'No summary available'}
                   </div>
                 </CardContent>
               </Card>
@@ -218,7 +225,7 @@ export default function VisaRejectionAnalysis() {
 
             <TabsContent value="reasons" className="space-y-6">
               <div className="grid gap-6">
-                {selectedAnalysis.analysisResults.rejectionReasons.map((reason, index) => (
+                {((selectedAnalysis as any)?.analysisResults?.rejectionReasons || (selectedAnalysis as any)?.rejectionReasons || []).map((reason: any, index: number) => (
                   <Card key={index}>
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-3">
@@ -236,7 +243,7 @@ export default function VisaRejectionAnalysis() {
 
             <TabsContent value="recommendations" className="space-y-6">
               <div className="grid gap-6">
-                {selectedAnalysis.analysisResults.recommendations.map((rec, index) => (
+                {((selectedAnalysis as any)?.analysisResults?.recommendations || (selectedAnalysis as any)?.recommendations || []).map((rec: any, index: number) => (
                   <Card key={index}>
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-3">
