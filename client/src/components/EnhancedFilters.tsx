@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { format, parseISO, isAfter, isBefore, subDays, subMonths, subYears } from "date-fns";
 
 export interface FilterOptions {
+  search?: string;
   searchTerm?: string;
   category?: string;
   country?: string;
@@ -119,7 +120,7 @@ export function EnhancedFilters({
   placeholder = "Search..."
 }: EnhancedFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [searchDebounce, setSearchDebounce] = useState(filters.search || "");
+  const [searchDebounce, setSearchDebounce] = useState(filters?.search || "");
 
   // Debounced search to reduce API calls
   useEffect(() => {

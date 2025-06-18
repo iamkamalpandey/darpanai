@@ -213,6 +213,7 @@ export default function AdminAnalyses() {
 
         {/* Enhanced Filters */}
         <EnhancedFilters
+          filters={filters}
           onFiltersChange={handleFiltersChange}
           showAnalysisType={true}
           showSeverity={true}
