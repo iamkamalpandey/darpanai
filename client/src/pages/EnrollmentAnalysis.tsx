@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { Upload, FileText, CheckCircle, AlertCircle, Clock, DollarSign, GraduationCap, Building2, User, Calendar, TrendingUp } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, Clock, DollarSign, GraduationCap, Building2, User, Calendar, TrendingUp, Globe, FileCheck, Sparkles, Target } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -48,54 +48,22 @@ interface EnrollmentAnalysis {
     priority: 'urgent' | 'important' | 'suggested';
     category: 'documentation' | 'financial' | 'academic' | 'visa' | 'preparation';
   }>;
-  nextSteps: Array<{
-    step: string;
-    description: string;
-    deadline?: string;
-    category: 'immediate' | 'short_term' | 'long_term';
-  }>;
-  isValid: boolean;
-  expiryDate?: string;
-  complianceIssues: Array<{
-    issue: string;
-    severity: 'critical' | 'moderate' | 'minor';
-    resolution: string;
-  }>;
-  analysisScore: number;
-  confidence: number;
-  processingTime: number;
-  tokensUsed: number;
+  nextSteps: string[];
   createdAt: string;
 }
-
-const documentTypes = [
-  { value: 'i20', label: 'I-20 Form (USA)' },
-  { value: 'cas', label: 'CAS Letter (UK)' },
-  { value: 'coe', label: 'COE - Confirmation of Enrollment (Australia)' },
-  { value: 'admission_letter', label: 'Admission Letter' },
-  { value: 'offer_letter', label: 'Offer Letter' },
-  { value: 'confirmation_enrollment', label: 'Enrollment Confirmation' },
-  { value: 'enrollment_letter', label: 'Enrollment Letter' },
-  { value: 'visa_letter', label: 'Visa Support Letter' },
-  { value: 'sponsor_letter', label: 'Sponsorship Letter' },
-  { value: 'financial_guarantee', label: 'Financial Guarantee Letter' },
-  { value: 'other', label: 'Other Document' }
-];
 
 export default function EnrollmentAnalysis() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [documentType, setDocumentType] = useState<string>('');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedAnalysis, setSelectedAnalysis] = useState<EnrollmentAnalysis | null>(null);
-  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch user's enrollment analyses
-  const { data: analyses = [], isLoading: analysesLoading } = useQuery({
+  const { data: analyses = [], isLoading } = useQuery<EnrollmentAnalysis[]>({
     queryKey: ['/api/enrollment-analyses'],
-    enabled: true
-  }) as { data: EnrollmentAnalysis[]; isLoading: boolean };
+  });
 
   // Fetch current user for quota checking
   const { data: user } = useQuery({
@@ -155,572 +123,529 @@ export default function EnrollmentAnalysis() {
     onDrop,
     accept: {
       'application/pdf': ['.pdf'],
+      'image/jpeg': ['.jpg', '.jpeg'],
       'image/png': ['.png'],
-      'image/jpeg': ['.jpg', '.jpeg']
     },
-    maxFiles: 1,
-    maxSize: 10 * 1024 * 1024 // 10MB
+    maxSize: 10 * 1024 * 1024, // 10MB
+    multiple: false,
   });
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = () => {
     if (!selectedFile || !documentType) {
       toast({
         title: "Missing Information",
-        description: "Please select a document and document type.",
+        description: "Please select both a file and document type.",
         variant: "destructive"
       });
       return;
     }
 
-    if (user && user.analysisCount >= user.maxAnalyses) {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to analyze documents.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check user's quota
+    if (user.analysisCount >= user.maxAnalyses) {
       toast({
         title: "Analysis Limit Reached",
-        description: `You've used all ${user.maxAnalyses} analyses. Please upgrade your plan or contact support.`,
+        description: "You have reached your analysis limit. Please contact support to increase your quota.",
         variant: "destructive"
       });
       return;
     }
 
+    // Start analysis with progress simulation
     setUploadProgress(10);
-    analyzeMutation.mutate({ file: selectedFile, documentType });
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return 90;
+        }
+        return prev + Math.random() * 15;
+      });
+    }, 1000);
+
+    analyzeMutation.mutate({ file: selectedFile, documentType }, {
+      onSettled: () => {
+        clearInterval(progressInterval);
+        setUploadProgress(100);
+        setTimeout(() => setUploadProgress(0), 1000);
+      }
+    });
   };
 
-  const formatCurrency = (amount: string, currency: string = 'USD') => {
-    if (!amount) return 'N/A';
-    return `${currency} ${amount}`;
-  };
+  const documentTypes = [
+    { value: 'i20', label: 'I-20 Form (USA)', icon: '🇺🇸' },
+    { value: 'cas', label: 'CAS Letter (UK)', icon: '🇬🇧' },
+    { value: 'coe', label: 'COE Document (Australia)', icon: '🇦🇺' },
+    { value: 'admission_letter', label: 'Admission Letter', icon: '📧' },
+    { value: 'visa_letter', label: 'Visa Support Letter', icon: '📋' },
+    { value: 'sponsor_letter', label: 'Sponsor Letter', icon: '💼' },
+    { value: 'financial_guarantee', label: 'Financial Guarantee', icon: '💰' },
+    { value: 'other', label: 'Other Document', icon: '📄' },
+  ];
 
-  const getImportanceColor = (importance: string) => {
+  const getImportanceBadgeColor = (importance: 'high' | 'medium' | 'low') => {
     switch (importance) {
-      case 'high': return 'destructive';
-      case 'medium': return 'default';
-      case 'low': return 'secondary';
-      default: return 'default';
+      case 'high': return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'low': return 'bg-green-100 text-green-800 border-green-200';
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityBadgeColor = (priority: 'urgent' | 'important' | 'suggested') => {
     switch (priority) {
-      case 'urgent': return 'destructive';
-      case 'important': return 'default';
-      case 'suggested': return 'secondary';
-      default: return 'default';
+      case 'urgent': return 'bg-red-100 text-red-800 border-red-200';
+      case 'important': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'suggested': return 'bg-blue-100 text-blue-800 border-blue-200';
     }
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'critical': return 'destructive';
-      case 'moderate': return 'default';
-      case 'minor': return 'secondary';
-      default: return 'default';
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'documentation': return <FileText className="h-4 w-4" />;
+      case 'financial': return <DollarSign className="h-4 w-4" />;
+      case 'academic': return <GraduationCap className="h-4 w-4" />;
+      case 'visa': return <Globe className="h-4 w-4" />;
+      case 'preparation': return <Target className="h-4 w-4" />;
+      default: return <CheckCircle className="h-4 w-4" />;
     }
   };
 
-  const canAnalyze = user && user.analysisCount < user.maxAnalyses;
-  const remainingAnalyses = user ? user.maxAnalyses - user.analysisCount : 0;
+  if (selectedAnalysis) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <div className="container mx-auto px-4 py-8 max-w-6xl">
+          <div className="mb-8">
+            <Button 
+              variant="outline" 
+              onClick={() => setSelectedAnalysis(null)}
+              className="mb-4 hover:bg-blue-50"
+            >
+              ← Back to Upload
+            </Button>
+            
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl p-8 mb-8">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="bg-white/10 p-3 rounded-xl backdrop-blur-sm">
+                  <FileCheck className="h-8 w-8" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold mb-2">Analysis Complete</h1>
+                  <p className="text-blue-100 text-lg">{selectedAnalysis.filename}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                {selectedAnalysis.institutionCountry && (
+                  <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Building2 className="h-5 w-5" />
+                      <span className="font-medium">Institution</span>
+                    </div>
+                    <p className="text-sm text-blue-100">{selectedAnalysis.institutionCountry}</p>
+                  </div>
+                )}
+                {selectedAnalysis.studentCountry && (
+                  <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <User className="h-5 w-5" />
+                      <span className="font-medium">Student Origin</span>
+                    </div>
+                    <p className="text-sm text-blue-100">{selectedAnalysis.studentCountry}</p>
+                  </div>
+                )}
+                {selectedAnalysis.visaType && (
+                  <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Globe className="h-5 w-5" />
+                      <span className="font-medium">Visa Type</span>
+                    </div>
+                    <p className="text-sm text-blue-100">{selectedAnalysis.visaType}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <Tabs defaultValue="overview" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm border">
+              <TabsTrigger value="overview" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">Overview</TabsTrigger>
+              <TabsTrigger value="findings" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">Key Findings</TabsTrigger>
+              <TabsTrigger value="recommendations" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">Recommendations</TabsTrigger>
+              <TabsTrigger value="next-steps" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">Next Steps</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="space-y-6">
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+                  <CardTitle className="text-xl text-gray-800">Document Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                    {selectedAnalysis.summary}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                  <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2 text-green-800">
+                      <GraduationCap className="h-5 w-5" />
+                      Academic Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-4">
+                    {selectedAnalysis.institutionName && (
+                      <div>
+                        <span className="font-medium text-gray-600">Institution:</span>
+                        <p className="text-gray-800">{selectedAnalysis.institutionName}</p>
+                      </div>
+                    )}
+                    {selectedAnalysis.programName && (
+                      <div>
+                        <span className="font-medium text-gray-600">Program:</span>
+                        <p className="text-gray-800">{selectedAnalysis.programName}</p>
+                      </div>
+                    )}
+                    {selectedAnalysis.programLevel && (
+                      <div>
+                        <span className="font-medium text-gray-600">Level:</span>
+                        <p className="text-gray-800">{selectedAnalysis.programLevel}</p>
+                      </div>
+                    )}
+                    {selectedAnalysis.startDate && (
+                      <div>
+                        <span className="font-medium text-gray-600">Start Date:</span>
+                        <p className="text-gray-800">{selectedAnalysis.startDate}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                  <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2 text-blue-800">
+                      <DollarSign className="h-5 w-5" />
+                      Financial Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-4">
+                    {selectedAnalysis.tuitionAmount && (
+                      <div>
+                        <span className="font-medium text-gray-600">Tuition:</span>
+                        <p className="text-gray-800">{selectedAnalysis.tuitionAmount} {selectedAnalysis.currency}</p>
+                      </div>
+                    )}
+                    {selectedAnalysis.scholarshipAmount && (
+                      <div>
+                        <span className="font-medium text-gray-600">Scholarship:</span>
+                        <p className="text-gray-800">{selectedAnalysis.scholarshipAmount} {selectedAnalysis.currency}</p>
+                      </div>
+                    )}
+                    {selectedAnalysis.totalCost && (
+                      <div>
+                        <span className="font-medium text-gray-600">Total Cost:</span>
+                        <p className="font-semibold text-gray-800">{selectedAnalysis.totalCost} {selectedAnalysis.currency}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="findings" className="space-y-6">
+              <div className="grid gap-6">
+                {selectedAnalysis.keyFindings.map((finding, index) => (
+                  <Card key={index} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="font-semibold text-lg text-gray-800">{finding.title}</h3>
+                        <Badge className={`${getImportanceBadgeColor(finding.importance)} border`}>
+                          {finding.importance}
+                        </Badge>
+                      </div>
+                      <p className="text-gray-700 leading-relaxed">{finding.description}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {selectedAnalysis.missingInformation.length > 0 && (
+                <Card className="shadow-lg border-0 bg-yellow-50/80 backdrop-blur-sm border-yellow-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-yellow-800">
+                      <AlertCircle className="h-5 w-5" />
+                      Missing Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {selectedAnalysis.missingInformation.map((missing, index) => (
+                      <div key={index} className="bg-white/60 p-4 rounded-lg">
+                        <div className="font-medium text-yellow-900 mb-1">{missing.field}</div>
+                        <div className="text-sm text-yellow-800 mb-2">{missing.description}</div>
+                        <div className="text-xs text-yellow-700 font-medium">Impact: {missing.impact}</div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="recommendations" className="space-y-6">
+              <div className="grid gap-6">
+                {selectedAnalysis.recommendations.map((rec, index) => (
+                  <Card key={index} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          {getCategoryIcon(rec.category)}
+                          <h3 className="font-semibold text-lg text-gray-800">{rec.title}</h3>
+                        </div>
+                        <Badge className={`${getPriorityBadgeColor(rec.priority)} border`}>
+                          {rec.priority}
+                        </Badge>
+                      </div>
+                      <p className="text-gray-700 leading-relaxed">{rec.description}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="next-steps" className="space-y-6">
+              <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-blue-800">
+                    <Target className="h-5 w-5" />
+                    Your Next Steps
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {selectedAnalysis.nextSteps.map((step, index) => (
+                      <div key={index} className="flex items-start gap-4 p-4 bg-white/60 rounded-lg">
+                        <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-semibold text-sm">
+                          {index + 1}
+                        </div>
+                        <p className="text-gray-700 leading-relaxed">{step}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
-      <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-bold">Enrollment Confirmation Analysis</h1>
-        <p className="text-muted-foreground">
-          Upload your I-20, CAS letter, admission letter, or enrollment confirmation for AI-powered analysis
-        </p>
-        {user && (
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span>Remaining analyses: {remainingAnalyses}</span>
-            <span>Total used: {user.analysisCount}/{user.maxAnalyses}</span>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+        <div className="container mx-auto px-4 py-16 max-w-6xl">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="flex justify-center mb-6">
+              <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
+                <GraduationCap className="h-12 w-12 text-white" />
+              </div>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
+              Enrollment Document Analysis
+            </h1>
+            <p className="text-xl text-blue-100 mb-8 leading-relaxed max-w-3xl mx-auto">
+              Get comprehensive AI-powered insights on your enrollment documents including country requirements, visa information, financial analysis, and personalized next steps for your study abroad journey.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4 text-sm">
+              <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+                <CheckCircle className="h-4 w-4" />
+                <span>I-20, CAS, COE Support</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+                <Building2 className="h-4 w-4" />
+                <span>Country Detection</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+                <DollarSign className="h-4 w-4" />
+                <span>Financial Analysis</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+                <TrendingUp className="h-4 w-4" />
+                <span>Next Steps Guidance</span>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="container mx-auto px-4 py-8 max-w-6xl -mt-8 relative z-10">
         {/* Upload Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="w-5 h-5" />
-              Upload Document
+        <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-sm mb-8">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+            <CardTitle className="flex items-center gap-2 text-2xl text-gray-800">
+              <Sparkles className="h-6 w-6 text-blue-600" />
+              Upload Your Document
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* File Upload */}
-            <div
-              {...getRootProps()}
-              className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-                isDragActive
-                  ? 'border-primary bg-primary/10'
-                  : 'border-gray-300 hover:border-gray-400'
-              } ${!canAnalyze ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              <input {...getInputProps()} disabled={!canAnalyze} />
-              <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              {selectedFile ? (
-                <div>
-                  <p className="font-medium">{selectedFile.name}</p>
-                  <p className="text-sm text-gray-500">
-                    {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
-                  </p>
+          <CardContent className="p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Document Type Selection */}
+              <div className="space-y-4">
+                <label className="text-sm font-medium text-gray-700">Select Document Type</label>
+                <Select value={documentType} onValueChange={setDocumentType}>
+                  <SelectTrigger className="h-12 text-base border-2 border-gray-200 hover:border-blue-300 transition-colors">
+                    <SelectValue placeholder="Choose your document type..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {documentTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        <div className="flex items-center gap-2">
+                          <span>{type.icon}</span>
+                          <span>{type.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* File Upload Area */}
+              <div className="space-y-4">
+                <label className="text-sm font-medium text-gray-700">Upload Document</label>
+                <div
+                  {...getRootProps()}
+                  className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-200 ${
+                    isDragActive
+                      ? 'border-blue-400 bg-blue-50'
+                      : selectedFile
+                      ? 'border-green-400 bg-green-50'
+                      : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                  }`}
+                >
+                  <input {...getInputProps()} />
+                  <div className="flex flex-col items-center gap-3">
+                    {selectedFile ? (
+                      <>
+                        <FileCheck className="h-12 w-12 text-green-600" />
+                        <div>
+                          <p className="font-medium text-green-800">{selectedFile.name}</p>
+                          <p className="text-sm text-green-600">
+                            {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-12 w-12 text-gray-400" />
+                        <div>
+                          <p className="font-medium text-gray-700">
+                            {isDragActive ? 'Drop your file here' : 'Drag & drop or click to upload'}
+                          </p>
+                          <p className="text-sm text-gray-500">PDF, JPG, PNG up to 10MB</p>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <div>
-                  <p className="text-lg font-medium">
-                    {canAnalyze ? 'Drop your document here or click to browse' : 'Analysis limit reached'}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    PDF, PNG, or JPG files up to 10MB
-                  </p>
-                </div>
-              )}
+              </div>
             </div>
 
-            {/* Document Type Selection */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Document Type</label>
-              <Select value={documentType} onValueChange={setDocumentType} disabled={!canAnalyze}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select document type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {documentTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Upload Progress */}
-            {analyzeMutation.isPending && (
-              <div className="space-y-2">
+            {/* Analysis Progress */}
+            {uploadProgress > 0 && (
+              <div className="mt-6 space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Analyzing document...</span>
-                  <span>{uploadProgress}%</span>
+                  <span className="text-gray-600">Analyzing document...</span>
+                  <span className="text-blue-600 font-medium">{Math.round(uploadProgress)}%</span>
                 </div>
-                <Progress value={uploadProgress} />
+                <Progress value={uploadProgress} className="h-2" />
               </div>
             )}
 
-            {/* Analyze Button */}
-            <Button
-              onClick={handleAnalyze}
-              disabled={!selectedFile || !documentType || analyzeMutation.isPending || !canAnalyze}
-              className="w-full"
-            >
-              {analyzeMutation.isPending ? 'Analyzing...' : 'Analyze Document'}
-            </Button>
-
-            {!canAnalyze && (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  You've reached your analysis limit. Please upgrade your plan or contact support for more analyses.
-                </AlertDescription>
-              </Alert>
-            )}
+            {/* Action Buttons */}
+            <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
+              <div className="text-sm text-gray-600">
+                {user && (
+                  <span>
+                    Analysis quota: {user.analysisCount}/{user.maxAnalyses} used
+                  </span>
+                )}
+              </div>
+              <Button
+                onClick={handleAnalyze}
+                disabled={!selectedFile || !documentType || analyzeMutation.isPending}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                {analyzeMutation.isPending ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Analyzing...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    Analyze Document
+                  </div>
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Recent Analyses */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="w-5 h-5" />
-              Recent Analyses
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {analysesLoading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-gray-100 rounded animate-pulse" />
-                ))}
-              </div>
-            ) : analyses.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">
-                No analyses yet. Upload your first document to get started.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {analyses.slice(0, 5).map((analysis) => (
+        {/* Previous Analyses */}
+        {analyses.length > 0 && (
+          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-xl text-gray-800">
+                <Clock className="h-5 w-5 text-gray-600" />
+                Previous Analyses
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid gap-4">
+                {analyses.map((analysis) => (
                   <div
                     key={analysis.id}
-                    className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between p-4 bg-gray-50 hover:bg-blue-50 rounded-lg cursor-pointer transition-colors duration-200 border border-gray-200 hover:border-blue-300"
                     onClick={() => setSelectedAnalysis(analysis)}
                   >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <p className="font-medium truncate">{analysis.filename}</p>
-                        <p className="text-sm text-gray-500 capitalize">
-                          {analysis.documentType.replace('_', ' ')}
-                        </p>
-                        {analysis.institutionName && (
-                          <p className="text-sm text-gray-600">{analysis.institutionName}</p>
-                        )}
+                    <div className="flex items-center gap-4">
+                      <div className="bg-blue-100 p-2 rounded-lg">
+                        <FileText className="h-5 w-5 text-blue-600" />
                       </div>
-                      <div className="text-right">
-                        <Badge variant={analysis.isValid ? 'default' : 'destructive'}>
-                          {analysis.analysisScore}%
-                        </Badge>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(analysis.createdAt).toLocaleDateString()}
-                        </p>
+                      <div>
+                        <h3 className="font-medium text-gray-800">{analysis.filename}</h3>
+                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                          <span className="capitalize">{analysis.documentType.replace('_', ' ')}</span>
+                          {analysis.institutionCountry && (
+                            <span className="flex items-center gap-1">
+                              <Building2 className="h-3 w-3" />
+                              {analysis.institutionCountry}
+                            </span>
+                          )}
+                          <span>{new Date(analysis.createdAt).toLocaleDateString()}</span>
+                        </div>
                       </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-blue-600">
+                      <span className="text-sm font-medium">View Analysis</span>
+                      <CheckCircle className="h-4 w-4" />
                     </div>
                   </div>
                 ))}
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
-
-      {/* Analysis Results */}
-      {selectedAnalysis && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Analysis Results: {selectedAnalysis.filename}
-            </CardTitle>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="capitalize">
-                {selectedAnalysis.documentType.replace('_', ' ')}
-              </Badge>
-              <Badge variant={selectedAnalysis.isValid ? 'default' : 'destructive'}>
-                {selectedAnalysis.isValid ? 'Valid' : 'Issues Found'}
-              </Badge>
-              <Badge variant="secondary">
-                Score: {selectedAnalysis.analysisScore}%
-              </Badge>
-              <Badge variant="secondary">
-                Confidence: {selectedAnalysis.confidence}%
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-6">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="findings">Findings</TabsTrigger>
-                <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
-                <TabsTrigger value="next-steps">Next Steps</TabsTrigger>
-                <TabsTrigger value="issues">Issues</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="overview" className="space-y-4">
-                <div className="prose max-w-none">
-                  <h3>Summary</h3>
-                  <p className="whitespace-pre-wrap">{selectedAnalysis.summary}</p>
-                </div>
-
-                {/* Quick Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {selectedAnalysis.institutionName && (
-                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                      <Building2 className="w-5 h-5 text-blue-600" />
-                      <div>
-                        <p className="text-sm text-gray-600">Institution</p>
-                        <p className="font-medium text-sm">{selectedAnalysis.institutionName}</p>
-                        {selectedAnalysis.institutionCountry && (
-                          <p className="text-xs text-gray-500">{selectedAnalysis.institutionCountry}</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  {selectedAnalysis.programLevel && (
-                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                      <GraduationCap className="w-5 h-5 text-green-600" />
-                      <div>
-                        <p className="text-sm text-gray-600">Level</p>
-                        <p className="font-medium text-sm capitalize">{selectedAnalysis.programLevel}</p>
-                      </div>
-                    </div>
-                  )}
-                  {selectedAnalysis.totalCost && (
-                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                      <DollarSign className="w-5 h-5 text-yellow-600" />
-                      <div>
-                        <p className="text-sm text-gray-600">Total Cost</p>
-                        <p className="font-medium text-sm">
-                          {formatCurrency(selectedAnalysis.totalCost, selectedAnalysis.currency)}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  {selectedAnalysis.startDate && (
-                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                      <Calendar className="w-5 h-5 text-purple-600" />
-                      <div>
-                        <p className="text-sm text-gray-600">Start Date</p>
-                        <p className="font-medium text-sm">{selectedAnalysis.startDate}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="details" className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-4">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <User className="w-5 h-5" />
-                      Student Information
-                    </h3>
-                    <div className="space-y-2">
-                      {selectedAnalysis.studentName && (
-                        <div>
-                          <label className="text-sm text-gray-600">Name</label>
-                          <p className="font-medium">{selectedAnalysis.studentName}</p>
-                        </div>
-                      )}
-                      {selectedAnalysis.studentId && (
-                        <div>
-                          <label className="text-sm text-gray-600">Student ID</label>
-                          <p className="font-medium">{selectedAnalysis.studentId}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <GraduationCap className="w-5 h-5" />
-                      Program Information
-                    </h3>
-                    <div className="space-y-2">
-                      {selectedAnalysis.programName && (
-                        <div>
-                          <label className="text-sm text-gray-600">Program</label>
-                          <p className="font-medium">{selectedAnalysis.programName}</p>
-                        </div>
-                      )}
-                      {selectedAnalysis.programLevel && (
-                        <div>
-                          <label className="text-sm text-gray-600">Level</label>
-                          <p className="font-medium capitalize">{selectedAnalysis.programLevel}</p>
-                        </div>
-                      )}
-                      {selectedAnalysis.visaType && (
-                        <div>
-                          <label className="text-sm text-gray-600">Visa Type</label>
-                          <p className="font-medium">{selectedAnalysis.visaType}</p>
-                        </div>
-                      )}
-                      {selectedAnalysis.studentCountry && (
-                        <div>
-                          <label className="text-sm text-gray-600">Student Country</label>
-                          <p className="font-medium">{selectedAnalysis.studentCountry}</p>
-                        </div>
-                      )}
-                      <div className="grid grid-cols-2 gap-4">
-                        {selectedAnalysis.startDate && (
-                          <div>
-                            <label className="text-sm text-gray-600">Start Date</label>
-                            <p className="font-medium">{selectedAnalysis.startDate}</p>
-                          </div>
-                        )}
-                        {selectedAnalysis.endDate && (
-                          <div>
-                            <label className="text-sm text-gray-600">End Date</label>
-                            <p className="font-medium">{selectedAnalysis.endDate}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <DollarSign className="w-5 h-5" />
-                      Financial Information
-                    </h3>
-                    <div className="space-y-2">
-                      {selectedAnalysis.tuitionAmount && (
-                        <div>
-                          <label className="text-sm text-gray-600">Tuition</label>
-                          <p className="font-medium">
-                            {formatCurrency(selectedAnalysis.tuitionAmount, selectedAnalysis.currency)}
-                          </p>
-                        </div>
-                      )}
-                      {selectedAnalysis.scholarshipAmount && (
-                        <div>
-                          <label className="text-sm text-gray-600">Scholarship</label>
-                          <p className="font-medium">
-                            {formatCurrency(selectedAnalysis.scholarshipAmount, selectedAnalysis.currency)}
-                          </p>
-                        </div>
-                      )}
-                      {selectedAnalysis.totalCost && (
-                        <div>
-                          <label className="text-sm text-gray-600">Total Cost</label>
-                          <p className="font-medium">
-                            {formatCurrency(selectedAnalysis.totalCost, selectedAnalysis.currency)}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5" />
-                      Analysis Metrics
-                    </h3>
-                    <div className="space-y-2">
-                      <div>
-                        <label className="text-sm text-gray-600">Analysis Score</label>
-                        <p className="font-medium">{selectedAnalysis.analysisScore}%</p>
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-600">AI Confidence</label>
-                        <p className="font-medium">{selectedAnalysis.confidence}%</p>
-                      </div>
-                      <div>
-                        <label className="text-sm text-gray-600">Processing Time</label>
-                        <p className="font-medium">{(selectedAnalysis.processingTime / 1000).toFixed(2)}s</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="findings" className="space-y-4">
-                <h3 className="font-semibold">Key Findings</h3>
-                {selectedAnalysis.keyFindings.length === 0 ? (
-                  <p className="text-gray-500">No specific findings identified.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {selectedAnalysis.keyFindings.map((finding, index) => (
-                      <div key={index} className="p-4 border rounded-lg">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium">{finding.title}</h4>
-                          <Badge variant={getImportanceColor(finding.importance)}>
-                            {finding.importance}
-                          </Badge>
-                        </div>
-                        <p className="text-gray-700">{finding.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {selectedAnalysis.missingInformation.length > 0 && (
-                  <>
-                    <Separator />
-                    <h3 className="font-semibold">Missing Information</h3>
-                    <div className="space-y-3">
-                      {selectedAnalysis.missingInformation.map((missing, index) => (
-                        <div key={index} className="p-4 border rounded-lg bg-yellow-50">
-                          <h4 className="font-medium">{missing.field}</h4>
-                          <p className="text-gray-700 mb-2">{missing.description}</p>
-                          <p className="text-sm text-yellow-700">
-                            <strong>Impact:</strong> {missing.impact}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </TabsContent>
-
-              <TabsContent value="recommendations" className="space-y-4">
-                <h3 className="font-semibold">Recommendations</h3>
-                {selectedAnalysis.recommendations.length === 0 ? (
-                  <p className="text-gray-500">No specific recommendations at this time.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {selectedAnalysis.recommendations.map((rec, index) => (
-                      <div key={index} className="p-4 border rounded-lg">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium">{rec.title}</h4>
-                          <div className="flex gap-2">
-                            <Badge variant={getPriorityColor(rec.priority)}>
-                              {rec.priority}
-                            </Badge>
-                            <Badge variant="outline" className="capitalize">
-                              {rec.category}
-                            </Badge>
-                          </div>
-                        </div>
-                        <p className="text-gray-700">{rec.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="next-steps" className="space-y-4">
-                <h3 className="font-semibold">Next Steps</h3>
-                {selectedAnalysis.nextSteps.length === 0 ? (
-                  <p className="text-gray-500">No specific next steps identified.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {selectedAnalysis.nextSteps.map((step, index) => (
-                      <div key={index} className="p-4 border rounded-lg">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium">{step.step}</h4>
-                          <div className="flex gap-2">
-                            <Badge variant="outline" className="capitalize">
-                              {step.category.replace('_', ' ')}
-                            </Badge>
-                            {step.deadline && (
-                              <Badge variant="secondary">
-                                {step.deadline}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <p className="text-gray-700">{step.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="issues" className="space-y-4">
-                <h3 className="font-semibold">Compliance Issues</h3>
-                {selectedAnalysis.complianceIssues.length === 0 ? (
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle className="w-5 h-5" />
-                    <span>No compliance issues identified</span>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {selectedAnalysis.complianceIssues.map((issue, index) => (
-                      <div key={index} className="p-4 border rounded-lg bg-red-50">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium">{issue.issue}</h4>
-                          <Badge variant={getSeverityColor(issue.severity)}>
-                            {issue.severity}
-                          </Badge>
-                        </div>
-                        <p className="text-gray-700 mb-2"><strong>Resolution:</strong> {issue.resolution}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {selectedAnalysis.expiryDate && (
-                  <>
-                    <Separator />
-                    <Alert>
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        <strong>Document Expiry:</strong> This document expires on {selectedAnalysis.expiryDate}
-                      </AlertDescription>
-                    </Alert>
-                  </>
-                )}
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
