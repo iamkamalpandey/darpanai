@@ -533,12 +533,21 @@ export default function AdminAnalyses() {
                       {(() => {
                         const summary = selectedAnalysis.analysisResults?.summary || '';
                         
-                        // Extract financial information from document analysis
+                        // Extract comprehensive financial and terms information from document analysis
                         const tuitionMatch = summary.match(/tuition\s+fees?[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+(?:per\s+(?:year|semester|term)|annually|yearly)?)/gi) ||
                                             summary.match(/fees?[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+(?:per\s+(?:year|semester|term)|annually|yearly)?)/gi);
                         const healthCoverMatch = summary.match(/health\s+cover[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+)/gi);
                         const totalCostMatch = summary.match(/total\s+cost[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+)/gi);
-                        const scholarshipMatch = summary.match(/scholarship[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+)/gi);
+                        
+                        // Enhanced scholarship extraction with terms and conditions
+                        const scholarshipMatch = summary.match(/scholarship[^.!?]*(?:[A-Z$€£¥₹₽]+[\d,.\s]+|[\d]+%)[^.!?]*/gi);
+                        const scholarshipTerms = summary.match(/scholarship[^.!?]*(?:terms|conditions|requirements|criteria|eligibility)[^.!?]*[.!?]/gi);
+                        
+                        // Extract terms and conditions
+                        const termsMatch = summary.match(/(?:terms|conditions|requirements|obligations|stipulations)[^.!?]*[.!?]/gi);
+                        const deadlineMatch = summary.match(/(?:deadline|due date|must be|required by)[^.!?]*[.!?]/gi);
+                        const complianceMatch = summary.match(/(?:compliance|must comply|adhere to|follow)[^.!?]*[.!?]/gi);
+                        
                         const financialAmounts = summary.match(/[A-Z$€£¥₹₽]+\s*[\d,]+(?:\.\d{2})?\s*(?:per\s+(?:year|semester|term)|annually|yearly)?/gi);
 
                         const hasFinancialInfo = tuitionMatch || healthCoverMatch || totalCostMatch || scholarshipMatch || financialAmounts;
@@ -582,11 +591,63 @@ export default function AdminAnalyses() {
 
                             {scholarshipMatch && (
                               <div>
-                                <span className="font-medium text-gray-600">Scholarship:</span>
+                                <span className="font-medium text-gray-600">Scholarship Details:</span>
                                 <div className="text-gray-800 mt-1">
                                   {scholarshipMatch.map((match, index) => (
-                                    <div key={index} className="inline-block bg-blue-50 text-blue-700 px-2 py-1 rounded mr-2 mb-1">
-                                      {match.replace(/scholarship[:\s]*/gi, '').trim()}
+                                    <div key={index} className="bg-blue-50 text-blue-700 px-3 py-2 rounded mr-2 mb-2 block">
+                                      {match.trim()}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {scholarshipTerms && (
+                              <div>
+                                <span className="font-medium text-gray-600">Scholarship Terms & Conditions:</span>
+                                <div className="text-gray-800 mt-1">
+                                  {scholarshipTerms.map((term, index) => (
+                                    <div key={index} className="bg-amber-50 text-amber-800 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-amber-300">
+                                      {term.trim()}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {termsMatch && (
+                              <div>
+                                <span className="font-medium text-gray-600">Terms & Conditions:</span>
+                                <div className="text-gray-800 mt-1">
+                                  {termsMatch.map((term, index) => (
+                                    <div key={index} className="bg-gray-50 text-gray-700 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-gray-300">
+                                      {term.trim()}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {deadlineMatch && (
+                              <div>
+                                <span className="font-medium text-gray-600">Important Deadlines:</span>
+                                <div className="text-gray-800 mt-1">
+                                  {deadlineMatch.map((deadline, index) => (
+                                    <div key={index} className="bg-red-50 text-red-800 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-red-300">
+                                      {deadline.trim()}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {complianceMatch && (
+                              <div>
+                                <span className="font-medium text-gray-600">Compliance Requirements:</span>
+                                <div className="text-gray-800 mt-1">
+                                  {complianceMatch.map((compliance, index) => (
+                                    <div key={index} className="bg-purple-50 text-purple-800 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-purple-300">
+                                      {compliance.trim()}
                                     </div>
                                   ))}
                                 </div>
