@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ConsultationForm } from '@/components/ConsultationForm';
+import { CustomCTA } from '@/components/CustomCTA';
 import { 
   Search, 
   Filter, 
@@ -660,6 +661,9 @@ export default function DocumentChecklistGenerator() {
             )}
           </>
         )}
+
+        {/* Customized CTA Section for Document Checklist */}
+        <CustomCTA variant="resources" source="document-checklist-page" />
       </div>
     </DashboardLayout>
   );

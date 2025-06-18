@@ -425,6 +425,9 @@ export default function DocumentTemplates() {
             </p>
           </div>
         </div>
+
+        {/* Customized CTA Section for Document Templates */}
+        <CustomCTA variant="resources" source="document-templates-page" />
       </div>
     </DashboardLayout>
   );
