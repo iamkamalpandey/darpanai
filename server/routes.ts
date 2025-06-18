@@ -1527,7 +1527,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...activeTemplates.flatMap((t: any) => t.countries || [])
       ])).filter(item => item && typeof item === 'string' && item.trim() && item !== 'all');
       
-      const countries = [...new Set([...extractedCountries, "Other"])].sort((a, b) => {
+      const countries = Array.from(new Set([...extractedCountries, "Other"])).sort((a, b) => {
         if (a === "Other") return 1;
         if (b === "Other") return -1;
         return a.localeCompare(b);
@@ -1539,7 +1539,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...activeTemplates.flatMap((t: any) => t.visaTypes || [])
       ])).filter(item => item && typeof item === 'string' && item.trim() && item !== 'all');
       
-      const visaTypes = [...new Set([...extractedVisaTypes, "Other"])].sort((a, b) => {
+      const visaTypes = Array.from(new Set([...extractedVisaTypes, "Other"])).sort((a, b) => {
         if (a === "Other") return 1;
         if (b === "Other") return -1;
         return a.localeCompare(b);
@@ -1550,7 +1550,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...activeChecklists.map((c: any) => c.userType)
       ])).filter(item => item && typeof item === 'string' && item.trim() && item !== 'all');
       
-      const userTypes = [...new Set([...extractedUserTypes, "Other"])].sort((a, b) => {
+      const userTypes = Array.from(new Set([...extractedUserTypes, "Other"])).sort((a, b) => {
         if (a === "Other") return 1;
         if (b === "Other") return -1;
         return a.localeCompare(b);
@@ -1558,7 +1558,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get dynamic categories from database, add "Other" as contingency
       const dynamicCategories = categories.map(cat => cat.name);
-      const categoriesWithOther = [...new Set([...dynamicCategories, "Others"])].sort((a, b) => {
+      const categoriesWithOther = Array.from(new Set([...dynamicCategories, "Others"])).sort((a, b) => {
         if (a === "Others") return 1;
         if (b === "Others") return -1;
         return a.localeCompare(b);
@@ -1566,7 +1566,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get dynamic document types from database, add "Other" as contingency
       const dynamicDocumentTypes = documentTypes.map(type => type.name);
-      const documentTypesWithOther = [...new Set([...dynamicDocumentTypes, "Other"])].sort((a, b) => {
+      const documentTypesWithOther = Array.from(new Set([...dynamicDocumentTypes, "Other"])).sort((a, b) => {
         if (a === "Other") return 1;
         if (b === "Other") return -1;
         return a.localeCompare(b);

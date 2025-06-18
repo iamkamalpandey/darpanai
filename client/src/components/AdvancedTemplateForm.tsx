@@ -35,6 +35,12 @@ export function AdvancedTemplateForm({
   const [dragActive, setDragActive] = useState(false);
   const [uploadMethod, setUploadMethod] = useState<'file' | 'url'>('file');
 
+  // Fetch dynamic dropdown options
+  const { data: dropdownOptions, isLoading: isLoadingOptions } = useQuery({
+    queryKey: ['/api/dropdown-options'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
   const form = useForm<DocumentTemplateUpload>({
     resolver: zodResolver(documentTemplateUploadSchema),
     defaultValues: {
@@ -325,16 +331,16 @@ export function AdvancedTemplateForm({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Category *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingOptions}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a category" />
+                              <SelectValue placeholder={isLoadingOptions ? "Loading categories..." : "Select a category"} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {categories.map((category) => (
-                              <SelectItem key={category.value} value={category.value}>
-                                {category.label}
+                            {dropdownOptions?.categories?.map((category: string) => (
+                              <SelectItem key={category} value={category.toLowerCase()}>
+                                {category}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -422,7 +428,7 @@ export function AdvancedTemplateForm({
                     <div>
                       <Label className="text-base font-medium">Visa Types</Label>
                       <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border rounded-md p-3">
-                        {visaTypes.map((visaType) => (
+                        {dropdownOptions?.visaTypes?.map((visaType: string) => (
                           <label key={visaType} className="flex items-center space-x-2 cursor-pointer">
                             <input
                               type="checkbox"
@@ -446,7 +452,7 @@ export function AdvancedTemplateForm({
                     <div>
                       <Label className="text-base font-medium">Countries</Label>
                       <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border rounded-md p-3">
-                        {countries.map((country) => (
+                        {dropdownOptions?.countries?.map((country: string) => (
                           <label key={country} className="flex items-center space-x-2 cursor-pointer">
                             <input
                               type="checkbox"
