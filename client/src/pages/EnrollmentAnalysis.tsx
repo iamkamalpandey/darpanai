@@ -396,9 +396,15 @@ export default function EnrollmentAnalysis() {
                       const deadlineMatch = summary.match(/(?:deadline|due date|must be|required by)[^.!?]*[.!?]/gi);
                       const complianceMatch = summary.match(/(?:compliance|must comply|adhere to|follow)[^.!?]*[.!?]/gi);
                       
+                      // Offer letter specific information extraction
+                      const paymentScheduleMatch = summary.match(/(?:payment schedule|study period|instalment|payment due)[^.!?]*(?:\$|AUD|USD|CAD|GBP|€|£)[^.!?]*[.!?]/gi);
+                      const bankDetailsMatch = summary.match(/(?:BSB|account number|bank details|swift code|reference)[^.!?]*[.!?]/gi);
+                      const orientationMatch = summary.match(/(?:orientation|welcome|first day|course start)[^.!?]*[.!?]/gi);
+                      const conditionsMatch = summary.match(/(?:conditions of offer|prerequisites|requirements before)[^.!?]*[.!?]/gi);
+                      
                       const financialAmounts = summary.match(/[A-Z$€£¥₹₽]+\s*[\d,]+(?:\.\d{2})?\s*(?:per\s+(?:year|semester|term)|annually|yearly)?/gi);
 
-                      const hasFinancialInfo = tuitionMatch || healthCoverMatch || totalCostMatch || scholarshipMatch || financialAmounts;
+                      const hasFinancialInfo = tuitionMatch || healthCoverMatch || totalCostMatch || scholarshipMatch || financialAmounts || paymentScheduleMatch;
 
                       if (!hasFinancialInfo) {
                         return (
@@ -496,6 +502,58 @@ export default function EnrollmentAnalysis() {
                                 {complianceMatch.map((compliance, index) => (
                                   <div key={index} className="bg-purple-50 text-purple-800 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-purple-300">
                                     {compliance.trim()}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {paymentScheduleMatch && (
+                            <div>
+                              <span className="font-medium text-gray-600">Payment Schedule:</span>
+                              <div className="text-gray-800 mt-1">
+                                {paymentScheduleMatch.map((payment, index) => (
+                                  <div key={index} className="bg-green-50 text-green-800 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-green-300">
+                                    {payment.trim()}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {bankDetailsMatch && (
+                            <div>
+                              <span className="font-medium text-gray-600">Bank Details & Payment Information:</span>
+                              <div className="text-gray-800 mt-1">
+                                {bankDetailsMatch.map((bank, index) => (
+                                  <div key={index} className="bg-indigo-50 text-indigo-800 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-indigo-300">
+                                    {bank.trim()}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {orientationMatch && (
+                            <div>
+                              <span className="font-medium text-gray-600">Orientation & Important Dates:</span>
+                              <div className="text-gray-800 mt-1">
+                                {orientationMatch.map((orientation, index) => (
+                                  <div key={index} className="bg-yellow-50 text-yellow-800 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-yellow-300">
+                                    {orientation.trim()}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {conditionsMatch && (
+                            <div>
+                              <span className="font-medium text-gray-600">Conditions of Offer:</span>
+                              <div className="text-gray-800 mt-1">
+                                {conditionsMatch.map((condition, index) => (
+                                  <div key={index} className="bg-orange-50 text-orange-800 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-orange-300">
+                                    {condition.trim()}
                                   </div>
                                 ))}
                               </div>
