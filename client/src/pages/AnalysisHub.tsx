@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { AnalysisModal } from '@/components/AnalysisModal';
 import { EnhancedFilters, FilterOptions, searchInText, filterByDateRange } from '@/components/EnhancedFilters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +32,9 @@ interface Analysis {
 export default function AnalysisHub() {
   const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis | null>(null);
   const [filters, setFilters] = useState<FilterOptions>({});
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalAnalysisId, setModalAnalysisId] = useState<number | null>(null);
+  const [modalAnalysisType, setModalAnalysisType] = useState<'visa_rejection' | 'enrollment' | null>(null);
 
   // Fetch visa rejection analyses
   const { data: visaAnalyses = [] } = useQuery<Analysis[]>({
@@ -48,6 +52,19 @@ export default function AnalysisHub() {
   const allAnalyses = [...visaAnalyses, ...enrollmentAnalyses].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
+
+  // Handle opening analysis modal
+  const openAnalysisModal = (analysisId: number, analysisType: 'visa_rejection' | 'enrollment') => {
+    setModalAnalysisId(analysisId);
+    setModalAnalysisType(analysisType);
+    setModalOpen(true);
+  };
+
+  const closeAnalysisModal = () => {
+    setModalOpen(false);
+    setModalAnalysisId(null);
+    setModalAnalysisType(null);
+  };
 
   // Memoized filtered analyses for performance
   const filteredAnalyses = useMemo(() => {
@@ -204,11 +221,14 @@ export default function AnalysisHub() {
                           </div>
                         </div>
                         <div className="flex flex-col gap-2">
-                          <Link href={`/analysis/${analysis.id}`}>
-                            <Button variant="outline" size="sm" className="w-full">
-                              View Analysis
-                            </Button>
-                          </Link>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => openAnalysisModal(analysis.id, analysis.type)}
+                          >
+                            View Analysis
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
@@ -271,11 +291,13 @@ export default function AnalysisHub() {
                             </div>
                           </div>
                         </div>
-                        <Link href={`/analysis/${analysis.id}`}>
-                          <Button variant="outline" size="sm">
-                            View Analysis
-                          </Button>
-                        </Link>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => openAnalysisModal(analysis.id, 'visa_rejection')}
+                        >
+                          View Analysis
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -340,8 +362,8 @@ export default function AnalysisHub() {
                         </div>
                         <Button 
                           variant="outline" 
-                          size="sm" 
-                          onClick={() => setSelectedAnalysis(analysis)}
+                          size="sm"
+                          onClick={() => openAnalysisModal(analysis.id, 'enrollment')}
                         >
                           View Analysis
                         </Button>
@@ -374,6 +396,14 @@ export default function AnalysisHub() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Analysis Modal */}
+      <AnalysisModal
+        analysisId={modalAnalysisId}
+        analysisType={modalAnalysisType}
+        isOpen={modalOpen}
+        onClose={closeAnalysisModal}
+      />
     </DashboardLayout>
   );
 }
