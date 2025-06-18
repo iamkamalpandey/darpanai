@@ -197,31 +197,28 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               ))}
             </nav>
             
-            {/* Fixed Bottom Mobile User Profile & Logout */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-900 via-slate-800 to-transparent">
-              <div className="bg-slate-700/50 backdrop-blur-sm rounded-xl p-4 border border-slate-600/50 shadow-xl">
+            {/* Sticky Bottom Mobile User Profile & Logout */}
+            <div className="sticky bottom-4 mt-auto p-4">
+              <div className="bg-slate-800/80 backdrop-blur-md rounded-xl p-4 border border-slate-700/50 shadow-lg">
                 {/* User Profile */}
-                <div className="flex items-center mb-4">
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 ring-2 ring-blue-400/30">
-                    <span className="text-sm font-bold text-white">
+                <div className="flex items-center mb-3">
+                  <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-semibold text-white">
                       {user?.firstName?.[0]}{user?.lastName?.[0]}
                     </span>
                   </div>
                   <div className="ml-3 min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-white truncate">
+                    <p className="text-sm font-medium text-white truncate">
                       {user?.firstName} {user?.lastName}
                     </p>
-                    <p className="text-xs text-blue-300 truncate flex items-center">
-                      <Shield className="h-3 w-3 mr-1" />
-                      Administrator
-                    </p>
+                    <p className="text-xs text-slate-300 truncate">Administrator</p>
                   </div>
                 </div>
                 
                 {/* Logout Button */}
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center justify-center px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
                 >
                   <LogOut className="mr-2 h-4 w-4 flex-shrink-0" />
                   <span>Sign Out</span>
@@ -298,31 +295,28 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               ))}
             </nav>
             
-            {/* Fixed Bottom User Profile & Logout */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-900 via-slate-800 to-transparent">
-              <div className="bg-slate-700/50 backdrop-blur-sm rounded-xl p-4 border border-slate-600/50 shadow-xl">
+            {/* Sticky Bottom User Profile & Logout */}
+            <div className="sticky bottom-4 mt-auto p-4">
+              <div className="bg-slate-800/80 backdrop-blur-md rounded-xl p-4 border border-slate-700/50 shadow-lg">
                 {/* User Profile */}
-                <div className="flex items-center mb-4">
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 ring-2 ring-blue-400/30">
-                    <span className="text-sm font-bold text-white">
+                <div className="flex items-center mb-3">
+                  <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-semibold text-white">
                       {user?.firstName?.[0]}{user?.lastName?.[0]}
                     </span>
                   </div>
                   <div className="ml-3 min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-white truncate">
+                    <p className="text-sm font-medium text-white truncate">
                       {user?.firstName} {user?.lastName}
                     </p>
-                    <p className="text-xs text-blue-300 truncate flex items-center">
-                      <Shield className="h-3 w-3 mr-1" />
-                      Administrator
-                    </p>
+                    <p className="text-xs text-slate-300 truncate">Administrator</p>
                   </div>
                 </div>
                 
                 {/* Logout Button */}
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center justify-center px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
+                  className="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
                 >
                   <LogOut className="mr-2 h-4 w-4 flex-shrink-0" />
                   <span>Sign Out</span>
@@ -333,10 +327,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </div>
 
         {/* Desktop Content */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 bg-slate-100">
           <main className="flex-1 p-6 lg:p-8 min-w-0">
             <div className="max-w-none min-w-0">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 w-full min-w-0 max-w-full">
+              <div className="bg-white rounded-lg shadow-sm border border-slate-200 w-full min-w-0 max-w-full">
                 <div className="p-6 lg:p-8 min-w-0">
                   {children}
                 </div>
