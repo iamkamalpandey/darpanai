@@ -55,7 +55,7 @@ interface EnhancedFiltersProps {
 }
 
 const dateRangeOptions = [
-  { value: "", label: "All Time" },
+  { value: "all", label: "All Time" },
   { value: "today", label: "Today" },
   { value: "week", label: "This Week" },
   { value: "month", label: "This Month" },
@@ -63,7 +63,7 @@ const dateRangeOptions = [
 ];
 
 const statusOptions = [
-  { value: "", label: "All Status" },
+  { value: "all", label: "All Status" },
   { value: "active", label: "Active" },
   { value: "inactive", label: "Inactive" },
   { value: "pending", label: "Pending" },
@@ -72,13 +72,13 @@ const statusOptions = [
 ];
 
 const analysisTypeOptions = [
-  { value: "", label: "All Types" },
+  { value: "all", label: "All Types" },
   { value: "visa_rejection", label: "Visa Rejection" },
   { value: "enrollment", label: "Enrollment" },
 ];
 
 const severityOptions = [
-  { value: "", label: "All Severities" },
+  { value: "all", label: "All Severities" },
   { value: "high", label: "High" },
   { value: "medium", label: "Medium" },
   { value: "low", label: "Low" },
@@ -315,8 +315,8 @@ export function EnhancedFilters({
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Category</label>
                   <Select
-                    value={filters.category || ""}
-                    onValueChange={(value) => updateFilter('category', value || undefined)}
+                    value={filters.category || "all"}
+                    onValueChange={(value) => updateFilter('category', value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
@@ -336,8 +336,8 @@ export function EnhancedFilters({
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Country</label>
                   <Select
-                    value={filters.country || ""}
-                    onValueChange={(value) => updateFilter('country', value || undefined)}
+                    value={filters.country || "all"}
+                    onValueChange={(value) => updateFilter('country', value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select country" />
@@ -357,8 +357,8 @@ export function EnhancedFilters({
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Visa Type</label>
                   <Select
-                    value={filters.visaType || ""}
-                    onValueChange={(value) => updateFilter('visaType', value || undefined)}
+                    value={filters.visaType || "all"}
+                    onValueChange={(value) => updateFilter('visaType', value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select visa type" />
@@ -378,8 +378,8 @@ export function EnhancedFilters({
                 <div className="space-y-2">
                   <label className="text-sm font-medium">User Type</label>
                   <Select
-                    value={filters.userType || ""}
-                    onValueChange={(value) => updateFilter('userType', value || undefined)}
+                    value={filters.userType || "all"}
+                    onValueChange={(value) => updateFilter('userType', value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select user type" />
