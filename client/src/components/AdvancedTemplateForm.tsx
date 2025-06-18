@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,34 +15,6 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Plus, Trash2, Upload, FileText, X } from "lucide-react";
 import { documentTemplateUploadSchema, type DocumentTemplateUpload } from "@shared/schema";
-
-const categories = [
-  { value: "financial", label: "Financial" },
-  { value: "academic", label: "Academic" },
-  { value: "personal", label: "Personal" },
-  { value: "employment", label: "Employment" },
-  { value: "travel", label: "Travel" },
-  { value: "legal", label: "Legal" },
-  { value: "medical", label: "Medical" },
-  { value: "insurance", label: "Insurance" },
-  { value: "accommodation", label: "Accommodation" },
-  { value: "language", label: "Language" },
-  { value: "others", label: "Others" },
-];
-
-const countries = [
-  "Nepal", "India", "Pakistan", "Bangladesh", "Sri Lanka", "Vietnam", "China",
-  "Philippines", "Indonesia", "Thailand", "Nigeria", "Ghana", "Kenya",
-  "USA", "Canada", "UK", "Australia", "Germany", "France", "Netherlands",
-  "Other"
-];
-
-const visaTypes = [
-  "Student F-1", "Tourist B-2", "Work H-1B", "Study Permit", "Visitor Visa",
-  "Business B-1", "Transit C-1", "Family Reunification", "Investment E-2",
-  "Artist O-1", "Researcher J-1", "Spouse/Partner", "Working Holiday",
-  "Permanent Residence", "Refugee/Asylum", "Other"
-];
 
 interface AdvancedTemplateFormProps {
   onSubmit: (data: FormData) => Promise<void>;

@@ -6,7 +6,7 @@ import { storage } from "./storage";
 import { extractTextFromDocument } from "./fileProcessing";
 import { analyzeRejectionLetter } from "./openai";
 import { analyzeEnrollmentDocument } from "./enrollmentAnalysis";
-import { analysisResponseSchema, professionalApplicationSchema, insertDocumentTemplateSchema, insertEnrollmentAnalysisSchema } from "@shared/schema";
+import { analysisResponseSchema, professionalApplicationSchema, insertDocumentTemplateSchema, insertEnrollmentAnalysisSchema, insertDocumentCategorySchema, insertDocumentTypeSchema } from "@shared/schema";
 import { z } from 'zod';
 import { setupAuth } from "./auth";
 
@@ -1140,6 +1140,152 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin Document Categories Management Routes
+
+  // Get all document categories (admin only)
+  app.get('/api/admin/document-categories', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const cached = getCachedData('admin-document-categories');
+      if (cached) return res.status(200).json(cached);
+      
+      const categories = await storage.getAllDocumentCategories();
+      setCacheData('admin-document-categories', categories, 5);
+      return res.status(200).json(categories);
+    } catch (error) {
+      console.error('Error fetching document categories:', error);
+      return res.status(500).json({ error: 'Failed to fetch document categories' });
+    }
+  });
+
+  // Create document category (admin only)
+  app.post('/api/admin/document-categories', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertDocumentCategorySchema.parse(req.body);
+      const category = await storage.createDocumentCategory(validatedData);
+      invalidateCache('document-categories');
+      invalidateCache('dropdown-options');
+      return res.status(201).json(category);
+    } catch (error) {
+      console.error('Error creating document category:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid category data', details: error.errors });
+      }
+      return res.status(500).json({ error: 'Failed to create document category' });
+    }
+  });
+
+  // Update document category (admin only)
+  app.patch('/api/admin/document-categories/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const category = await storage.updateDocumentCategory(id, updates);
+      
+      if (!category) {
+        return res.status(404).json({ error: 'Document category not found' });
+      }
+      
+      invalidateCache('document-categories');
+      invalidateCache('dropdown-options');
+      return res.status(200).json(category);
+    } catch (error) {
+      console.error('Error updating document category:', error);
+      return res.status(500).json({ error: 'Failed to update document category' });
+    }
+  });
+
+  // Delete document category (admin only)
+  app.delete('/api/admin/document-categories/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteDocumentCategory(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Document category not found' });
+      }
+      
+      invalidateCache('document-categories');
+      invalidateCache('dropdown-options');
+      return res.status(200).json({ message: 'Document category deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting document category:', error);
+      return res.status(500).json({ error: 'Failed to delete document category' });
+    }
+  });
+
+  // Admin Document Types Management Routes
+
+  // Get all document types (admin only)
+  app.get('/api/admin/document-types', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const cached = getCachedData('admin-document-types');
+      if (cached) return res.status(200).json(cached);
+      
+      const types = await storage.getAllDocumentTypes();
+      setCacheData('admin-document-types', types, 5);
+      return res.status(200).json(types);
+    } catch (error) {
+      console.error('Error fetching document types:', error);
+      return res.status(500).json({ error: 'Failed to fetch document types' });
+    }
+  });
+
+  // Create document type (admin only)
+  app.post('/api/admin/document-types', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertDocumentTypeSchema.parse(req.body);
+      const type = await storage.createDocumentType(validatedData);
+      invalidateCache('document-types');
+      invalidateCache('dropdown-options');
+      return res.status(201).json(type);
+    } catch (error) {
+      console.error('Error creating document type:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid document type data', details: error.errors });
+      }
+      return res.status(500).json({ error: 'Failed to create document type' });
+    }
+  });
+
+  // Update document type (admin only)
+  app.patch('/api/admin/document-types/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      const type = await storage.updateDocumentType(id, updates);
+      
+      if (!type) {
+        return res.status(404).json({ error: 'Document type not found' });
+      }
+      
+      invalidateCache('document-types');
+      invalidateCache('dropdown-options');
+      return res.status(200).json(type);
+    } catch (error) {
+      console.error('Error updating document type:', error);
+      return res.status(500).json({ error: 'Failed to update document type' });
+    }
+  });
+
+  // Delete document type (admin only)
+  app.delete('/api/admin/document-types/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteDocumentType(id);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Document type not found' });
+      }
+      
+      invalidateCache('document-types');
+      invalidateCache('dropdown-options');
+      return res.status(200).json({ message: 'Document type deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting document type:', error);
+      return res.status(500).json({ error: 'Failed to delete document type' });
+    }
+  });
+
   // Admin Updates Management Routes
 
   // Get all updates (admin only)
@@ -1357,7 +1503,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get unique dropdown options from checklists and templates
+  // Get unique dropdown options from database
   app.get('/api/dropdown-options', async (req: Request, res: Response) => {
     try {
       const cachedData = getCachedData('dropdown-options');
@@ -1365,33 +1511,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(200).json(cachedData);
       }
 
-      const [checklists, templates] = await Promise.all([
+      const [checklists, templates, categories, documentTypes] = await Promise.all([
         storage.getAllDocumentChecklists(),
-        storage.getAllDocumentTemplates()
+        storage.getAllDocumentTemplates(),
+        storage.getActiveDocumentCategories(),
+        storage.getActiveDocumentTypes()
       ]);
 
       const activeChecklists = checklists.filter((checklist: any) => checklist.isActive);
       const activeTemplates = templates.filter((template: any) => template.isActive);
 
-      const countries = Array.from(new Set([
+      // Extract countries from templates and checklists, add "Other" as contingency
+      const extractedCountries = Array.from(new Set([
         ...activeChecklists.map((c: any) => c.country),
-        ...activeTemplates.map((t: any) => t.country)
-      ])).filter(item => item && typeof item === 'string' && item.trim() && item !== 'all').sort();
+        ...activeTemplates.flatMap((t: any) => t.countries || [])
+      ])).filter(item => item && typeof item === 'string' && item.trim() && item !== 'all');
+      
+      const countries = [...new Set([...extractedCountries, "Other"])].sort((a, b) => {
+        if (a === "Other") return 1;
+        if (b === "Other") return -1;
+        return a.localeCompare(b);
+      });
 
-      const visaTypes = Array.from(new Set([
+      // Extract visa types, add "Other" as contingency
+      const extractedVisaTypes = Array.from(new Set([
         ...activeChecklists.map((c: any) => c.visaType),
-        ...activeTemplates.map((t: any) => t.visaType)
-      ])).filter(item => item && typeof item === 'string' && item.trim() && item !== 'all').sort();
+        ...activeTemplates.flatMap((t: any) => t.visaTypes || [])
+      ])).filter(item => item && typeof item === 'string' && item.trim() && item !== 'all');
+      
+      const visaTypes = [...new Set([...extractedVisaTypes, "Other"])].sort((a, b) => {
+        if (a === "Other") return 1;
+        if (b === "Other") return -1;
+        return a.localeCompare(b);
+      });
 
-      const userTypes = Array.from(new Set([
-        ...activeChecklists.map((c: any) => c.userType),
-        ...activeTemplates.map((t: any) => t.userType)
-      ])).filter(item => item && typeof item === 'string' && item.trim() && item !== 'all').sort();
+      // Extract user types, add "Other" as contingency
+      const extractedUserTypes = Array.from(new Set([
+        ...activeChecklists.map((c: any) => c.userType)
+      ])).filter(item => item && typeof item === 'string' && item.trim() && item !== 'all');
+      
+      const userTypes = [...new Set([...extractedUserTypes, "Other"])].sort((a, b) => {
+        if (a === "Other") return 1;
+        if (b === "Other") return -1;
+        return a.localeCompare(b);
+      });
+
+      // Get dynamic categories from database, add "Other" as contingency
+      const dynamicCategories = categories.map(cat => cat.name);
+      const categoriesWithOther = [...new Set([...dynamicCategories, "Others"])].sort((a, b) => {
+        if (a === "Others") return 1;
+        if (b === "Others") return -1;
+        return a.localeCompare(b);
+      });
+
+      // Get dynamic document types from database, add "Other" as contingency
+      const dynamicDocumentTypes = documentTypes.map(type => type.name);
+      const documentTypesWithOther = [...new Set([...dynamicDocumentTypes, "Other"])].sort((a, b) => {
+        if (a === "Other") return 1;
+        if (b === "Other") return -1;
+        return a.localeCompare(b);
+      });
 
       const options = {
         countries,
         visaTypes,
-        userTypes
+        userTypes,
+        categories: categoriesWithOther,
+        documentTypes: documentTypesWithOther
       };
       
       setCacheData('dropdown-options', options, 30);
