@@ -234,21 +234,62 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <span className="text-lg font-semibold text-gray-900">VisaAnalyzer</span>
             </div>
             <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
-              {sidebarItems.map((item) => (
-                <Link key={item.href} href={item.href}>
-                  <div 
-                    className={`group flex gap-x-3 rounded-lg p-3 text-sm font-medium leading-6 transition-all duration-200 cursor-pointer ${
-                      location === item.href
-                        ? 'bg-blue-50 text-blue-700 shadow-sm border-l-4 border-blue-600'
-                        : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    <span className={`h-5 w-5 shrink-0 ${location === item.href ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600'}`}>
-                      {item.icon}
-                    </span>
-                    <span className="truncate">{item.label}</span>
-                  </div>
-                </Link>
+              {sidebarItems.map((item, index) => (
+                <div key={item.href || `submenu-${index}`}>
+                  {item.isSubmenu ? (
+                    <div>
+                      <button
+                        onClick={() => setResourcesOpen(!resourcesOpen)}
+                        className="w-full group flex gap-x-3 rounded-lg p-3 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                      >
+                        <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-600">
+                          {item.icon}
+                        </span>
+                        <span className="truncate flex-1 text-left">{item.label}</span>
+                        {resourcesOpen ? (
+                          <ChevronDown className="h-4 w-4 text-gray-400" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-gray-400" />
+                        )}
+                      </button>
+                      {resourcesOpen && item.submenuItems && (
+                        <div className="ml-8 mt-2 space-y-1">
+                          {item.submenuItems.map((subItem) => (
+                            <Link key={subItem.href} href={subItem.href}>
+                              <div 
+                                className={`group flex gap-x-3 rounded-lg p-2 text-sm font-medium leading-6 transition-all duration-200 cursor-pointer ${
+                                  location === subItem.href
+                                    ? 'bg-blue-50 text-blue-700 shadow-sm border-l-4 border-blue-600'
+                                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                                }`}
+                              >
+                                <span className={`h-4 w-4 shrink-0 ${location === subItem.href ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600'}`}>
+                                  {subItem.icon}
+                                </span>
+                                <span className="truncate">{subItem.label}</span>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : item.href ? (
+                    <Link href={item.href}>
+                      <div 
+                        className={`group flex gap-x-3 rounded-lg p-3 text-sm font-medium leading-6 transition-all duration-200 cursor-pointer ${
+                          location === item.href
+                            ? 'bg-blue-50 text-blue-700 shadow-sm border-l-4 border-blue-600'
+                            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className={`h-5 w-5 shrink-0 ${location === item.href ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600'}`}>
+                          {item.icon}
+                        </span>
+                        <span className="truncate">{item.label}</span>
+                      </div>
+                    </Link>
+                  ) : null}
+                </div>
               ))}
             </nav>
             <div className="mt-auto p-3 lg:p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">

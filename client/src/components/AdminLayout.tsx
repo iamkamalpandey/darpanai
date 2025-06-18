@@ -13,7 +13,10 @@ import {
   FileCheck,
   ClipboardCheck,
   Settings,
-  BarChart3
+  BarChart3,
+  ChevronDown,
+  ChevronRight,
+  FolderOpen
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -49,6 +52,7 @@ interface AdminLayoutProps {
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
   const [location] = useLocation();
   
   const { data: user } = useQuery({
@@ -71,8 +75,15 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: <Calendar size={20} />, label: 'Appointments', href: '/admin/appointments' },
     { icon: <Briefcase size={20} />, label: 'Professional Applications', href: '/admin/professional-applications' },
     { icon: <Bell size={20} />, label: 'Updates & Notifications', href: '/admin/updates' },
-    { icon: <FileCheck size={20} />, label: 'Document Templates', href: '/admin/document-templates' },
-    { icon: <ClipboardCheck size={20} />, label: 'Document Checklists', href: '/admin/document-checklists' },
+    { 
+      icon: <FolderOpen size={20} />, 
+      label: 'Resources Management', 
+      isSubmenu: true,
+      submenuItems: [
+        { icon: <FileCheck size={18} />, label: 'Document Templates', href: '/admin/document-templates' },
+        { icon: <ClipboardCheck size={18} />, label: 'Document Checklists', href: '/admin/document-checklists' },
+      ]
+    },
     { icon: <Settings size={20} />, label: 'System Settings', href: '/admin/settings' },
   ];
 
@@ -139,14 +150,49 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <span className="text-lg font-semibold text-gray-900">Admin Panel</span>
             </div>
             <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto min-h-0">
-              {adminSidebarItems.map((item) => (
-                <div key={item.href} onClick={() => setSidebarOpen(false)}>
-                  <AdminSidebarItem 
-                    icon={item.icon}
-                    label={item.label}
-                    href={item.href}
-                    active={location === item.href}
-                  />
+              {adminSidebarItems.map((item, index) => (
+                <div key={item.href || `submenu-${index}`}>
+                  {item.isSubmenu ? (
+                    <div>
+                      <button
+                        onClick={() => setResourcesOpen(!resourcesOpen)}
+                        className="w-full group flex gap-x-3 rounded-lg p-3 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                      >
+                        <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-600">
+                          {item.icon}
+                        </span>
+                        <span className="truncate flex-1 text-left">{item.label}</span>
+                        {resourcesOpen ? (
+                          <ChevronDown className="h-4 w-4 text-gray-400" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-gray-400" />
+                        )}
+                      </button>
+                      {resourcesOpen && item.submenuItems && (
+                        <div className="ml-8 mt-2 space-y-1">
+                          {item.submenuItems.map((subItem) => (
+                            <div key={subItem.href} onClick={() => setSidebarOpen(false)}>
+                              <AdminSidebarItem 
+                                icon={subItem.icon}
+                                label={subItem.label}
+                                href={subItem.href}
+                                active={location === subItem.href}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : item.href ? (
+                    <div onClick={() => setSidebarOpen(false)}>
+                      <AdminSidebarItem 
+                        icon={item.icon}
+                        label={item.label}
+                        href={item.href}
+                        active={location === item.href}
+                      />
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </nav>
@@ -195,14 +241,47 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <span className="text-lg font-semibold text-gray-900">Admin Panel</span>
             </div>
             <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
-              {adminSidebarItems.map((item) => (
-                <AdminSidebarItem 
-                  key={item.href}
-                  icon={item.icon}
-                  label={item.label}
-                  href={item.href}
-                  active={location === item.href}
-                />
+              {adminSidebarItems.map((item, index) => (
+                <div key={item.href || `submenu-${index}`}>
+                  {item.isSubmenu ? (
+                    <div>
+                      <button
+                        onClick={() => setResourcesOpen(!resourcesOpen)}
+                        className="w-full group flex gap-x-3 rounded-lg p-3 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                      >
+                        <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-600">
+                          {item.icon}
+                        </span>
+                        <span className="truncate flex-1 text-left">{item.label}</span>
+                        {resourcesOpen ? (
+                          <ChevronDown className="h-4 w-4 text-gray-400" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-gray-400" />
+                        )}
+                      </button>
+                      {resourcesOpen && item.submenuItems && (
+                        <div className="ml-8 mt-2 space-y-1">
+                          {item.submenuItems.map((subItem) => (
+                            <AdminSidebarItem 
+                              key={subItem.href}
+                              icon={subItem.icon}
+                              label={subItem.label}
+                              href={subItem.href}
+                              active={location === subItem.href}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : item.href ? (
+                    <AdminSidebarItem 
+                      icon={item.icon}
+                      label={item.label}
+                      href={item.href}
+                      active={location === item.href}
+                    />
+                  ) : null}
+                </div>
               ))}
             </nav>
             <div className="mt-auto p-3 lg:p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
