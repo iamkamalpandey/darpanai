@@ -269,39 +269,33 @@ export default function EnrollmentAnalysis() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            {selectedAnalysis.institutionCountry && (
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Building2 className="h-5 w-5 text-blue-600" />
-                    <span className="font-medium">Institution</span>
-                  </div>
-                  <p className="text-sm text-gray-600">{selectedAnalysis.institutionCountry}</p>
-                </CardContent>
-              </Card>
-            )}
-            {selectedAnalysis.studentCountry && (
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <User className="h-5 w-5 text-green-600" />
-                    <span className="font-medium">Student Origin</span>
-                  </div>
-                  <p className="text-sm text-gray-600">{selectedAnalysis.studentCountry}</p>
-                </CardContent>
-              </Card>
-            )}
-            {selectedAnalysis.visaType && (
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Globe className="h-5 w-5 text-purple-600" />
-                    <span className="font-medium">Visa Type</span>
-                  </div>
-                  <p className="text-sm text-gray-600">{selectedAnalysis.visaType}</p>
-                </CardContent>
-              </Card>
-            )}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  <span className="font-medium">Document Type</span>
+                </div>
+                <p className="text-sm text-gray-600">{selectedAnalysis.documentType}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Calendar className="h-5 w-5 text-green-600" />
+                  <span className="font-medium">Analysis Date</span>
+                </div>
+                <p className="text-sm text-gray-600">{new Date(selectedAnalysis.createdAt).toLocaleDateString()}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileCheck className="h-5 w-5 text-purple-600" />
+                  <span className="font-medium">Analysis Type</span>
+                </div>
+                <p className="text-sm text-gray-600">Enrollment Document</p>
+              </CardContent>
+            </Card>
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">

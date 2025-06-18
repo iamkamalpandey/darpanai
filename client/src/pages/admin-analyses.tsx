@@ -361,13 +361,11 @@ export default function AdminAnalyses() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <User className="h-5 w-5 text-green-600" />
-                  <span className="font-medium">Student</span>
+                  <Calendar className="h-5 w-5 text-green-600" />
+                  <span className="font-medium">Analysis Date</span>
                 </div>
                 <p className="text-sm text-gray-600">
-                  {selectedAnalysis.user ? 
-                    `${selectedAnalysis.user.firstName} ${selectedAnalysis.user.lastName}` : 
-                    selectedAnalysis.analysisResults?.studentName || 'Not specified'}
+                  {new Date(selectedAnalysis.createdAt).toLocaleDateString()}
                 </p>
               </CardContent>
             </Card>
