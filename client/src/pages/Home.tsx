@@ -58,24 +58,30 @@ export default function Home() {
           <div className="max-w-4xl mx-auto">
             <div className="text-center">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight">
-                Turn Your Visa Rejection Into Success
+                Simplifying Your Study Abroad Journey
               </h1>
               <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed">
-                Get expert AI analysis of your rejection letter and personalized guidance to strengthen your next application
+                Comprehensive AI-powered analysis for visa rejections, enrollment documents, and personalized guidance for study abroad success
               </p>
               
               {/* Primary CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-6 sm:mb-8">
-                <Link href="/analyzer" className="w-full sm:w-auto">
+                <Link href="/visa-analysis" className="w-full sm:w-auto">
                   <Button size="lg" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-3">
                     <Upload className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                    Analyze My Rejection Letter
+                    Analyze Rejection Letter
+                  </Button>
+                </Link>
+                <Link href="/enrollment-analysis" className="w-full sm:w-auto">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-3">
+                    <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                    Analyze Enrollment Document
                   </Button>
                 </Link>
                 <ConsultationForm 
-                  buttonVariant="outline" 
+                  buttonVariant="secondary" 
                   buttonSize="lg"
-                  buttonText="Book Free Consultation"
+                  buttonText="Book Consultation"
                   className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 py-3"
                 />
               </div>
@@ -84,7 +90,11 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-                  <span>AI-Powered Analysis</span>
+                  <span>AI-Powered Document Analysis</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
+                  <span>Country-Specific Guidance</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
