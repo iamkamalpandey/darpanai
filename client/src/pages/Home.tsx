@@ -123,7 +123,7 @@ export default function Home() {
                     Visa Analysis
                   </CardTitle>
                   <CardDescription className="text-gray-600">
-                    Get detailed insights into your visa documents - both approvals and rejections with key information
+                    Get detailed insights into your visa documents - both approvals and rejections with key information. For informational purposes only - consult immigration experts for decisions.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -162,7 +162,7 @@ export default function Home() {
                     Enrollment Document Analysis
                   </CardTitle>
                   <CardDescription className="text-gray-600">
-                    Verify and analyze your university enrollment documents for accuracy
+                    Verify and analyze your university enrollment documents for accuracy. For informational purposes only - consult education experts for decisions.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">

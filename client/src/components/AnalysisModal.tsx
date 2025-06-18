@@ -338,117 +338,62 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
 
       <Separator />
 
-      {/* Summary */}
-      {data.summary && (
+      {/* Complete Original Analysis */}
+      {data.analysisResults && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-gray-600" />
-              Analysis Summary
+              <FileText className="h-5 w-5 text-green-600" />
+              Complete Enrollment Analysis Report
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{data.summary}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Eligibility Assessment */}
-      {data.eligibilityAssessment && data.eligibilityAssessment.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              Eligibility Assessment
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {data.eligibilityAssessment.map((item, index) => (
-              <div key={index} className="border-l-4 border-green-500 pl-4">
-                <div className="flex items-center justify-between mb-1">
-                  <h4 className="font-medium text-gray-900">{item.title}</h4>
-                  <Badge className={getStatusColor(item.status)}>
-                    {item.status}
-                  </Badge>
-                </div>
-                <p className="text-sm text-gray-600">{item.description}</p>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="whitespace-pre-wrap text-gray-800 leading-relaxed text-sm break-words font-mono">
+                {typeof data.analysisResults === 'string' 
+                  ? data.analysisResults 
+                  : JSON.stringify(data.analysisResults, null, 2).replace(/[{}"]/g, '').replace(/,\s*$/gm, '')
+                }
               </div>
-            ))}
+            </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Document Verification */}
-      {data.documentVerification && data.documentVerification.length > 0 && (
+      {/* Summary - Fallback */}
+      {!data.analysisResults && data.summary && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-blue-600" />
-              Document Verification
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {data.documentVerification.map((item, index) => (
-              <div key={index} className="border-l-4 border-blue-500 pl-4">
-                <div className="flex items-center justify-between mb-1">
-                  <h4 className="font-medium text-gray-900">{item.title}</h4>
-                  <Badge className={getStatusColor(item.status)}>
-                    {item.status}
-                  </Badge>
-                </div>
-                <p className="text-sm text-gray-600">{item.description}</p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Recommendations */}
-      {data.recommendations && data.recommendations.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-purple-600" />
-              Recommendations
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {data.recommendations.map((rec, index) => (
-              <div key={index} className="border-l-4 border-purple-500 pl-4">
-                <h4 className="font-medium text-gray-900">{rec.title}</h4>
-                <p className="text-sm text-gray-600 mt-1">{rec.description}</p>
-                <Badge className={getPriorityColor(rec.priority)}>
-                  {rec.priority}
-                </Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Next Steps */}
-      {data.nextSteps && data.nextSteps.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-orange-600" />
-              Next Steps
+              <FileText className="h-5 w-5 text-green-600" />
+              Enrollment Analysis Summary
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ol className="space-y-2">
-              {data.nextSteps.map((step, index) => (
-                <li key={index} className="flex gap-3 text-sm">
-                  <span className="bg-orange-100 text-orange-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
-                    {index + 1}
-                  </span>
-                  <span className="text-gray-700">{step.title}: {step.description}</span>
-                </li>
-              ))}
-            </ol>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="whitespace-pre-wrap text-gray-800 leading-relaxed break-words">{data.summary}</div>
+            </div>
           </CardContent>
         </Card>
       )}
+
+      {/* Professional Guidance Recommendation */}
+      <Card className="border-green-200 bg-green-50">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm">
+              <p className="font-medium text-green-800 mb-2">Professional Guidance Recommended</p>
+              <p className="text-green-700 leading-relaxed">
+                Based on this enrollment document analysis, we recommend consulting with qualified education consultants and immigration advisors 
+                who can verify this information with the issuing institution and provide personalized guidance for your study abroad journey. 
+                Consider booking a consultation with our certified education advisors who can help you understand these findings and create 
+                a comprehensive plan for your academic and visa application process.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 
