@@ -298,19 +298,7 @@ export function AdvancedTemplateForm({
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="documentType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Document Type *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., bank_statement, sop, recommendation_letter" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+
                   </div>
 
                   <FormField

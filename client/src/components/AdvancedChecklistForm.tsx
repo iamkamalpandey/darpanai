@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,55 +16,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Plus, Trash2, CheckSquare, X, Move, FileText } from "lucide-react";
 import { insertDocumentChecklistSchema, type InsertDocumentChecklist } from "@shared/schema";
 
-const userTypes = [
-  { value: "student", label: "Student" },
-  { value: "tourist", label: "Tourist" },
-  { value: "work", label: "Work" },
-  { value: "family", label: "Family" },
-  { value: "business", label: "Business" },
-];
 
-const countries = [
-  "Other",
-  "USA", 
-  "UK", 
-  "Canada", 
-  "Australia", 
-  "China",
-  "Germany", 
-  "France", 
-  "Netherlands",
-  "Japan",
-  "South Korea",
-  "Singapore",
-  "Switzerland",
-  "New Zealand",
-  "Ireland",
-  "Sweden",
-  "Norway",
-  "Denmark",
-  "Italy",
-  "Spain",
-  "Nepal", 
-  "India", 
-  "Pakistan", 
-  "Bangladesh", 
-  "Sri Lanka", 
-  "Vietnam",
-  "Philippines", 
-  "Indonesia", 
-  "Thailand", 
-  "Nigeria", 
-  "Ghana", 
-  "Kenya"
-];
-
-const visaTypes = [
-  "Student F-1", "Tourist B-2", "Work H-1B", "Study Permit", "Visitor Visa",
-  "Business B-1", "Transit C-1", "Family Reunification", "Investment E-2",
-  "Artist O-1", "Researcher J-1", "Spouse/Partner", "Working Holiday",
-  "Permanent Residence", "Refugee/Asylum", "Other"
-];
 
 const itemCategories = [
   { value: "application", label: "Application Forms" },
@@ -88,6 +41,17 @@ export function AdvancedChecklistForm({
   initialData, 
   mode = "create" 
 }: AdvancedChecklistFormProps) {
+  // Load dropdown options from database
+  const { data: dropdownOptions, isLoading: isLoadingOptions } = useQuery({
+    queryKey: ['/api/dropdown-options'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Provide fallback data while loading or when dropdown options are not available
+  const countries = (dropdownOptions as any)?.countries || ["Other", "USA", "UK", "Canada", "Australia", "Germany", "France", "Netherlands"];
+  const visaTypes = (dropdownOptions as any)?.visaTypes || ["Student F-1", "Tourist B-2", "Work H-1B", "Study Permit", "Visitor Visa", "Business B-1", "Other"];
+  const userTypeOptions = (dropdownOptions as any)?.userTypes || ["Student", "Tourist", "Work", "Family", "Business", "Other"];
+
   const form = useForm<InsertDocumentChecklist>({
     resolver: zodResolver(insertDocumentChecklistSchema),
     mode: "onBlur", // Validate on blur for immediate feedback
@@ -366,7 +330,7 @@ export function AdvancedChecklistForm({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {countries.map((country) => (
+                              {countries.map((country: string) => (
                                 <SelectItem key={country} value={country}>
                                   {country}
                                 </SelectItem>
