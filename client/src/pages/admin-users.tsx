@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AdminLayout } from "@/components/AdminLayout";
+import { Pagination } from "@/components/Pagination";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -105,6 +106,8 @@ export default function AdminUsers() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -364,6 +367,17 @@ export default function AdminUsers() {
 
     return matchesSearch && matchesRole && matchesStatus && matchesDate;
   });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  const handleFiltersChange = () => {
+    setCurrentPage(1);
+  };
 
   // CSV export functionality
   const exportUsersCSV = () => {
@@ -650,7 +664,7 @@ export default function AdminUsers() {
             {/* Mobile Layout */}
             <div className="sm:hidden">
               <div className="space-y-3 p-4">
-                {filteredUsers.map((user) => (
+                {paginatedUsers.map((user) => (
                   <Card key={user.id} className="p-4">
                     <div className="space-y-3">
                       <div className="flex items-start justify-between">

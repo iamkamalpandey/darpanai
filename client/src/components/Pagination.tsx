@@ -77,6 +77,17 @@ export function Pagination({
 
       {/* Pagination Controls */}
       <div className="flex items-center gap-2">
+        {/* First Page Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(1)}
+          disabled={currentPage === 1}
+          className="flex items-center gap-1 text-slate-600 border-slate-300 hover:bg-slate-50 disabled:opacity-50 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700"
+        >
+          First
+        </Button>
+
         {/* Previous Button */}
         <Button
           variant="outline"
@@ -125,6 +136,17 @@ export function Pagination({
         >
           Next
           <ChevronRight className="h-4 w-4" />
+        </Button>
+
+        {/* Last Page Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(totalPages)}
+          disabled={currentPage === totalPages}
+          className="flex items-center gap-1 text-slate-600 border-slate-300 hover:bg-slate-50 disabled:opacity-50 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700"
+        >
+          Last
         </Button>
       </div>
     </div>
