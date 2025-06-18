@@ -127,9 +127,19 @@ export default function AnalysisHub() {
     return filtered;
   }, [allAnalyses, filters]);
 
+  // Pagination calculations for all analyses
+  const totalPages = Math.ceil(filteredAnalyses.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedAnalyses = filteredAnalyses.slice(startIndex, endIndex);
+
   // Separate filtered analyses by type for tabs
   const filteredVisaAnalyses = filteredAnalyses.filter(a => a.type === 'visa_rejection');
   const filteredEnrollmentAnalyses = filteredAnalyses.filter(a => a.type === 'enrollment');
+
+  // Pagination for individual tabs
+  const paginatedVisaAnalyses = filteredVisaAnalyses.slice(startIndex, endIndex);
+  const paginatedEnrollmentAnalyses = filteredEnrollmentAnalyses.slice(startIndex, endIndex);
 
   const getAnalysisIcon = (type: string) => {
     return type === 'visa_rejection' ? (
@@ -185,9 +195,9 @@ export default function AnalysisHub() {
           </TabsList>
 
           <TabsContent value="all-analyses" className="space-y-4">
-            {filteredAnalyses.length > 0 ? (
+            {paginatedAnalyses.length > 0 ? (
               <div className="grid gap-4">
-                {filteredAnalyses.map((analysis) => (
+                {paginatedAnalyses.map((analysis) => (
                   <Card key={`${analysis.type}-${analysis.id}`} className="hover:shadow-md transition-shadow cursor-pointer">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
@@ -272,12 +282,24 @@ export default function AnalysisHub() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Pagination for All Analyses */}
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                totalItems={filteredAnalyses.length}
+                itemsPerPage={itemsPerPage}
+                showPageInfo={true}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="visa-rejection" className="space-y-4">
-            {filteredVisaAnalyses.length > 0 ? (
+            {paginatedVisaAnalyses.length > 0 ? (
               <div className="grid gap-4">
-                {filteredVisaAnalyses.map((analysis) => (
+                {paginatedVisaAnalyses.map((analysis) => (
                   <Card key={analysis.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
@@ -332,12 +354,24 @@ export default function AnalysisHub() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Pagination for Visa Rejection */}
+            {filteredVisaAnalyses.length > itemsPerPage && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(filteredVisaAnalyses.length / itemsPerPage)}
+                onPageChange={setCurrentPage}
+                totalItems={filteredVisaAnalyses.length}
+                itemsPerPage={itemsPerPage}
+                showPageInfo={true}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="enrollment" className="space-y-4">
-            {filteredEnrollmentAnalyses.length > 0 ? (
+            {paginatedEnrollmentAnalyses.length > 0 ? (
               <div className="grid gap-4">
-                {filteredEnrollmentAnalyses.map((analysis) => (
+                {paginatedEnrollmentAnalyses.map((analysis) => (
                   <Card key={analysis.id} className="hover:shadow-md transition-shadow cursor-pointer">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
@@ -400,6 +434,18 @@ export default function AnalysisHub() {
                   </Link>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Pagination for Enrollment */}
+            {filteredEnrollmentAnalyses.length > itemsPerPage && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(filteredEnrollmentAnalyses.length / itemsPerPage)}
+                onPageChange={setCurrentPage}
+                totalItems={filteredEnrollmentAnalyses.length}
+                itemsPerPage={itemsPerPage}
+                showPageInfo={true}
+              />
             )}
           </TabsContent>
         </Tabs>
