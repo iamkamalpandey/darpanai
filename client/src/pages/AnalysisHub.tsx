@@ -150,12 +150,12 @@ export default function AnalysisHub() {
   };
 
   const getAnalysisTypeLabel = (type: string) => {
-    return type === 'visa_rejection' ? 'Visa Rejection Analysis' : 'Enrollment Analysis';
+    return type === 'visa_rejection' ? 'Visa Analysis' : 'Enrollment Analysis';
   };
 
   const getAnalysisTypeBadge = (type: string) => {
     return type === 'visa_rejection' ? (
-      <Badge className="bg-red-100 text-red-800 border-red-200">Rejection Analysis</Badge>
+      <Badge className="bg-blue-100 text-blue-800 border-blue-200">Visa Analysis</Badge>
     ) : (
       <Badge className="bg-blue-100 text-blue-800 border-blue-200">Enrollment Analysis</Badge>
     );
@@ -190,7 +190,7 @@ export default function AnalysisHub() {
         <Tabs defaultValue="all-analyses" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="all-analyses">All Analyses ({filteredAnalyses.length})</TabsTrigger>
-            <TabsTrigger value="visa-rejection">Visa Rejection ({filteredVisaAnalyses.length})</TabsTrigger>
+            <TabsTrigger value="visa-rejection">Visa Analysis ({filteredVisaAnalyses.length})</TabsTrigger>
             <TabsTrigger value="enrollment">Enrollment ({filteredEnrollmentAnalyses.length})</TabsTrigger>
           </TabsList>
 
@@ -304,12 +304,12 @@ export default function AnalysisHub() {
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-4 flex-1 min-w-0">
-                          <div className="bg-red-100 p-2 rounded-lg flex-shrink-0">
-                            <AlertTriangle className="h-5 w-5 text-red-600" />
+                          <div className="bg-blue-100 p-2 rounded-lg flex-shrink-0">
+                            <AlertTriangle className="h-5 w-5 text-blue-600" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <h3 className="font-medium text-gray-900 mb-2 truncate">{analysis.filename}</h3>
-                            <p className="text-sm text-gray-600 mb-3">Visa rejection letter analysis with detailed insights</p>
+                            <p className="text-sm text-gray-600 mb-3">Visa document analysis with detailed insights and key information</p>
                             <div className="flex items-center gap-4 text-sm text-gray-500">
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
@@ -337,18 +337,18 @@ export default function AnalysisHub() {
               <Card>
                 <CardContent className="p-12 text-center">
                   <div className="flex justify-center mb-4">
-                    <div className="bg-red-100 p-4 rounded-full">
-                      <AlertTriangle className="h-8 w-8 text-red-600" />
+                    <div className="bg-blue-100 p-4 rounded-full">
+                      <AlertTriangle className="h-8 w-8 text-blue-600" />
                     </div>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Visa Rejection Analyses</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Visa Analyses</h3>
                   <p className="text-gray-600 mb-6">
-                    Upload a visa rejection letter to get detailed analysis and recommendations for improvement.
+                    Upload a visa document (approval or rejection) to get detailed analysis, key information, and recommendations.
                   </p>
                   <Link href="/visa-analysis">
                     <Button>
                       <AlertTriangle className="h-4 w-4 mr-2" />
-                      Analyze Visa Rejection
+                      Analyze Visa Document
                     </Button>
                   </Link>
                 </CardContent>

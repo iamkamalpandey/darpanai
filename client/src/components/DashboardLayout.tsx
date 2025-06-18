@@ -70,7 +70,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const sidebarItems = [
     { icon: <Home size={20} />, label: 'Dashboard', href: '/' },
     { icon: <FileText size={20} />, label: 'My Analysis', href: '/my-analysis' },
-    { icon: <Shield size={20} />, label: 'Visa Rejection Analysis', href: '/visa-analysis' },
+    { icon: <Shield size={20} />, label: 'Visa Analysis', href: '/visa-analysis' },
     { icon: <User size={20} />, label: 'Enrollment Analysis', href: '/enrollment-analysis' },
     { icon: <Calendar size={20} />, label: 'Appointments', href: '/consultations' },
     { 
