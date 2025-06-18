@@ -24,6 +24,9 @@ interface EnrollmentAnalysis {
   programLevel?: string;
   startDate?: string;
   endDate?: string;
+  institutionCountry?: string;
+  studentCountry?: string;
+  visaType?: string;
   tuitionAmount?: string;
   currency?: string;
   scholarshipAmount?: string;
@@ -422,6 +425,9 @@ export default function EnrollmentAnalysis() {
                       <div>
                         <p className="text-sm text-gray-600">Institution</p>
                         <p className="font-medium text-sm">{selectedAnalysis.institutionName}</p>
+                        {selectedAnalysis.institutionCountry && (
+                          <p className="text-xs text-gray-500">{selectedAnalysis.institutionCountry}</p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -496,6 +502,18 @@ export default function EnrollmentAnalysis() {
                         <div>
                           <label className="text-sm text-gray-600">Level</label>
                           <p className="font-medium capitalize">{selectedAnalysis.programLevel}</p>
+                        </div>
+                      )}
+                      {selectedAnalysis.visaType && (
+                        <div>
+                          <label className="text-sm text-gray-600">Visa Type</label>
+                          <p className="font-medium">{selectedAnalysis.visaType}</p>
+                        </div>
+                      )}
+                      {selectedAnalysis.studentCountry && (
+                        <div>
+                          <label className="text-sm text-gray-600">Student Country</label>
+                          <p className="font-medium">{selectedAnalysis.studentCountry}</p>
                         </div>
                       )}
                       <div className="grid grid-cols-2 gap-4">

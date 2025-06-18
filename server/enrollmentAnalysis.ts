@@ -15,9 +15,9 @@ const analysisCache = new Map<string, { result: EnrollmentAnalysisResponse; time
 /**
  * Generate cache key based on document type and key content fingerprint
  */
-function generateCacheKey(documentType: string, text: string): string {
+function generateCacheKey(documentType: string, text: string | undefined): string {
   // Create a fingerprint of the document for caching similar analyses
-  const fingerprint = text
+  const fingerprint = (text || '')
     .replace(/\d{4}[-\/]\d{2}[-\/]\d{2}/g, 'DATE') // Replace dates
     .replace(/\$[\d,]+\.?\d*/g, 'AMOUNT') // Replace amounts
     .replace(/[A-Z]{2,}\d+/g, 'ID') // Replace IDs
@@ -83,7 +83,7 @@ export async function analyzeEnrollmentDocument(
   
   try {
     // Check cache first
-    const cacheKey = generateCacheKey(documentType, documentText);
+    const cacheKey = generateCacheKey(documentType, documentText || '');
     const cachedResult = getCachedAnalysis(cacheKey);
     
     if (cachedResult) {
@@ -237,7 +237,7 @@ Guidelines:
     
     // Return a fallback analysis to maintain user experience
     const fallbackAnalysis: EnrollmentAnalysisResponse = {
-      summary: `Unable to fully analyze this ${documentType} document due to processing limitations. Please verify all information manually.`,
+      summary: `Unable to fully analyze this ${documentType || 'enrollment'} document due to processing limitations. Please verify all information manually.`,
       keyFindings: [
         {
           title: "Manual Review Required",
