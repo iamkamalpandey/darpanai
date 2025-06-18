@@ -414,7 +414,7 @@ export default function AdminAnalyses() {
 
               {/* Enrollment Analysis Template */}
               {selectedAnalysis.analysisType === 'enrollment_analysis' && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-6">
                   {/* Academic Information */}
                   <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                     <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
@@ -424,100 +424,194 @@ export default function AdminAnalyses() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-6 space-y-4">
-                      {(() => {
-                        const summary = selectedAnalysis.analysisResults?.summary || '';
-                        
-                        // Extract information directly from document analysis
-                        const institutionMatch = summary.match(/(?:University|Institute|College|School)\s+[A-Za-z\s]+/i) || 
-                                               summary.match(/at\s+([A-Z][A-Za-z\s&]+(?:University|Institute|College|School))/i);
-                        const studentNameMatch = summary.match(/(?:student|name|applicant)[:\s]+([A-Z][a-z]+\s+[A-Z][a-z]+)/i) ||
-                                               summary.match(/\b([A-Z][a-z]+\s+[A-Z][a-z]+)\b(?=\s+(?:has|is|will|was|received|enrolled))/);
-                        const programMatch = summary.match(/(?:Bachelor|Master|PhD|Diploma)\s+[A-Za-z\s]+/i) ||
-                                           summary.match(/program[:\s]+([A-Za-z\s]+)/i);
-                        const levelMatch = summary.match(/\b(?:undergraduate|graduate|bachelor|master|phd|doctoral)\b/i);
-                        const dateMatch = summary.match(/\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}|\d{1,2}\/\d{1,2}\/\d{4}|\d{4}-\d{2}-\d{2}/);
+                      <div>
+                        <span className="font-medium text-gray-600">Institution:</span>
+                        <p className="text-gray-800">{selectedAnalysis.institution || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Program:</span>
+                        <p className="text-gray-800">{selectedAnalysis.program || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Student Name:</span>
+                        <p className="text-gray-800">{selectedAnalysis.studentName || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Program Level:</span>
+                        <p className="text-gray-800">{selectedAnalysis.programLevel || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Start Date:</span>
+                        <p className="text-gray-800">{selectedAnalysis.startDate || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">End Date:</span>
+                        <p className="text-gray-800">{selectedAnalysis.endDate || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Institution Country:</span>
+                        <p className="text-gray-800">{selectedAnalysis.institutionCountry || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Visa Type:</span>
+                        <p className="text-gray-800">{selectedAnalysis.visaType || "Not specified in document"}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                        return (
-                          <>
-                            {institutionMatch ? (
-                              <div>
-                                <span className="font-medium text-gray-600">Institution:</span>
-                                <p className="text-gray-800 break-words">
-                                  {institutionMatch[1] || institutionMatch[0]}
-                                </p>
-                              </div>
-                            ) : (
-                              <div>
-                                <span className="font-medium text-gray-600">Institution:</span>
-                                <p className="text-gray-500">Not detected in document</p>
-                              </div>
-                            )}
+                  {/* Additional Document Details Card */}
+                  <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                    <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-t-lg">
+                      <CardTitle className="flex items-center gap-2 text-purple-800">
+                        <FileText className="h-5 w-5" />
+                        Document Details & Support
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-4">
+                      <div>
+                        <span className="font-medium text-gray-600">Health Cover Details:</span>
+                        <p className="text-gray-800">{selectedAnalysis.healthCover || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">English Test Score:</span>
+                        <p className="text-gray-800">{selectedAnalysis.englishTestScore || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Institution Contact:</span>
+                        <p className="text-gray-800">{selectedAnalysis.institutionContact || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Visa Obligations:</span>
+                        <p className="text-gray-800">{selectedAnalysis.visaObligations || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Orientation Date:</span>
+                        <p className="text-gray-800">{selectedAnalysis.orientationDate || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Passport Details:</span>
+                        <p className="text-gray-800">{selectedAnalysis.passportDetails || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Support Services:</span>
+                        <p className="text-gray-800">{selectedAnalysis.supportServices || "Not specified in document"}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                            {studentNameMatch ? (
-                              <div>
-                                <span className="font-medium text-gray-600">Student (from document):</span>
-                                <p className="text-gray-800 break-words">
-                                  {studentNameMatch[1] || studentNameMatch[0]}
-                                </p>
-                              </div>
-                            ) : selectedAnalysis.analysisResults?.studentName ? (
-                              <div>
-                                <span className="font-medium text-gray-600">Student (from document):</span>
-                                <p className="text-gray-800 break-words">
-                                  {selectedAnalysis.analysisResults.studentName}
-                                </p>
-                              </div>
-                            ) : (
-                              <div>
-                                <span className="font-medium text-gray-600">Student:</span>
-                                <p className="text-gray-500">Not detected in document</p>
-                              </div>
-                            )}
-                            
-                            {programMatch ? (
-                              <div>
-                                <span className="font-medium text-gray-600">Program:</span>
-                                <p className="text-gray-800 break-words">
-                                  {programMatch[1] || programMatch[0]}
-                                </p>
-                              </div>
-                            ) : (
-                              <div>
-                                <span className="font-medium text-gray-600">Program:</span>
-                                <p className="text-gray-500">Not detected in document</p>
-                              </div>
-                            )}
-                            
-                            {levelMatch ? (
-                              <div>
-                                <span className="font-medium text-gray-600">Level:</span>
-                                <p className="text-gray-800 capitalize">
-                                  {levelMatch[0].toLowerCase()}
-                                </p>
-                              </div>
-                            ) : (
-                              <div>
-                                <span className="font-medium text-gray-600">Level:</span>
-                                <p className="text-gray-500">Not detected in document</p>
-                              </div>
-                            )}
-                            
-                            {dateMatch ? (
-                              <div>
-                                <span className="font-medium text-gray-600">Start Date:</span>
-                                <p className="text-gray-800">
-                                  {dateMatch[0]}
-                                </p>
-                              </div>
-                            ) : (
-                              <div>
-                                <span className="font-medium text-gray-600">Start Date:</span>
-                                <p className="text-gray-500">Not detected in document</p>
-                              </div>
-                            )}
-                          </>
-                        );
-                      })()}
+                  {/* Payment & Banking Information Card */}
+                  <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                    <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+                      <CardTitle className="flex items-center gap-2 text-green-800">
+                        <DollarSign className="h-5 w-5" />
+                        Payment & Banking Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-4">
+                      <div>
+                        <span className="font-medium text-gray-600">Payment Schedule:</span>
+                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.paymentSchedule || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Bank Details:</span>
+                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.bankDetails || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Conditions of Offer:</span>
+                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.conditionsOfOffer || "Not specified in document"}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Scholarship & Financial Aid Information Card */}
+                  <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                    <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-t-lg">
+                      <CardTitle className="flex items-center gap-2 text-amber-800">
+                        <Target className="h-5 w-5" />
+                        Scholarship & Financial Aid Details
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-4">
+                      <div>
+                        <span className="font-medium text-gray-600">Scholarship Details:</span>
+                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.scholarshipDetails || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Scholarship Percentage:</span>
+                        <p className="text-gray-800">{selectedAnalysis.scholarshipPercentage || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Scholarship Duration:</span>
+                        <p className="text-gray-800">{selectedAnalysis.scholarshipDuration || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Scholarship Conditions:</span>
+                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.scholarshipConditions || "Not specified in document"}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Internship & Work Authorization Card */}
+                  <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                    <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-t-lg">
+                      <CardTitle className="flex items-center gap-2 text-indigo-800">
+                        <Building2 className="h-5 w-5" />
+                        Internship & Work Authorization
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-4">
+                      <div>
+                        <span className="font-medium text-gray-600">Internship Required:</span>
+                        <p className="text-gray-800">{selectedAnalysis.internshipRequired || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Internship Duration:</span>
+                        <p className="text-gray-800">{selectedAnalysis.internshipDuration || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Work Authorization:</span>
+                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.workAuthorization || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Work Hours Limit:</span>
+                        <p className="text-gray-800">{selectedAnalysis.workHoursLimit || "Not specified in document"}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Academic Requirements & Terms Card */}
+                  <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                    <CardHeader className="bg-gradient-to-r from-red-50 to-rose-50 rounded-t-lg">
+                      <CardTitle className="flex items-center gap-2 text-red-800">
+                        <GraduationCap className="h-5 w-5" />
+                        Academic Requirements & Terms to Fulfil
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-4">
+                      <div>
+                        <span className="font-medium text-gray-600">Academic Requirements:</span>
+                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.academicRequirements || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">GPA Requirement:</span>
+                        <p className="text-gray-800">{selectedAnalysis.gpaRequirement || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Attendance Requirement:</span>
+                        <p className="text-gray-800">{selectedAnalysis.attendanceRequirement || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Terms to Fulfil:</span>
+                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.termsToFulfil || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Language Requirements:</span>
+                        <p className="text-gray-800">{selectedAnalysis.languageRequirements || "Not specified in document"}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Graduation Requirements:</span>
+                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.graduationRequirements || "Not specified in document"}</p>
+                      </div>
                     </CardContent>
                   </Card>
 
