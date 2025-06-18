@@ -48,7 +48,12 @@ interface EnrollmentAnalysis {
     priority: 'urgent' | 'important' | 'suggested';
     category: 'documentation' | 'financial' | 'academic' | 'visa' | 'preparation';
   }>;
-  nextSteps: string[];
+  nextSteps: Array<{
+    step: string;
+    description: string;
+    deadline?: string;
+    category: 'immediate' | 'short_term' | 'long_term';
+  }> | string[];
   createdAt: string;
 }
 
@@ -430,14 +435,50 @@ export default function EnrollmentAnalysis() {
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="space-y-4">
-                    {selectedAnalysis.nextSteps.map((step, index) => (
-                      <div key={index} className="flex items-start gap-4 p-4 bg-white/60 rounded-lg">
-                        <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-semibold text-sm">
-                          {index + 1}
+                    {selectedAnalysis.nextSteps && Array.isArray(selectedAnalysis.nextSteps) ? 
+                      selectedAnalysis.nextSteps.map((step, index) => {
+                        // Handle both object and string formats for backward compatibility
+                        const stepData = typeof step === 'string' ? {
+                          step: `Step ${index + 1}`,
+                          description: step,
+                          category: 'short_term' as const
+                        } : step;
+
+                        return (
+                          <div key={index} className="flex items-start gap-4 p-4 bg-white/60 rounded-lg">
+                            <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-semibold text-sm">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-medium text-gray-800 mb-2">{stepData.step}</h4>
+                              <p className="text-gray-700 leading-relaxed mb-2">{stepData.description}</p>
+                              <div className="flex items-center gap-3 text-sm">
+                                <Badge 
+                                  className={`${
+                                    stepData.category === 'immediate' ? 'bg-red-100 text-red-800 border-red-200' :
+                                    stepData.category === 'short_term' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                                    'bg-green-100 text-green-800 border-green-200'
+                                  } border`}
+                                >
+                                  {stepData.category.replace('_', ' ')}
+                                </Badge>
+                                {stepData.deadline && (
+                                  <span className="text-gray-600 flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />
+                                    {stepData.deadline}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                      : (
+                        <div className="text-center py-8 text-gray-500">
+                          No next steps available for this analysis.
                         </div>
-                        <p className="text-gray-700 leading-relaxed">{step}</p>
-                      </div>
-                    ))}
+                      )
+                    }
                   </div>
                 </CardContent>
               </Card>
