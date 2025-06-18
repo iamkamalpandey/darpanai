@@ -44,11 +44,49 @@ interface EnrollmentAnalysis {
   orientationDate?: string;
   passportDetails?: string;
   supportServices?: string;
+  
+  // Enhanced enrollment fields
+  scholarshipDetails?: string;
+  scholarshipPercentage?: string;
+  scholarshipDuration?: string;
+  scholarshipConditions?: string;
+  internshipRequired?: string;
+  internshipDuration?: string;
+  workAuthorization?: string;
+  workHoursLimit?: string;
+  academicRequirements?: string;
+  gpaRequirement?: string;
+  attendanceRequirement?: string;
+  languageRequirements?: string;
+  insuranceRequirements?: string;
+  accommodationInfo?: string;
+  transportationInfo?: string;
+  libraryAccess?: string;
+  technologyRequirements?: string;
+  courseMaterials?: string;
+  examRequirements?: string;
+  graduationRequirements?: string;
+  transferCredits?: string;
+  additionalFees?: string;
+  refundPolicy?: string;
+  withdrawalPolicy?: string;
+  disciplinaryPolicies?: string;
+  codeOfConduct?: string;
+  emergencyContacts?: string;
+  campusServices?: string;
+  studentRights?: string;
+  termsToFulfil?: string;
+  
   summary: string;
   keyFindings: Array<{
     title: string;
     description: string;
     importance: 'high' | 'medium' | 'low';
+    category?: 'financial' | 'academic' | 'visa' | 'health' | 'accommodation' | 'scholarship' | 'compliance' | 'deadline' | 'requirement' | 'internship' | 'work_authorization' | 'academic_obligations' | 'terms_conditions' | 'other';
+    actionRequired?: string;
+    deadline?: string;
+    amount?: string;
+    consequence?: string;
   }>;
   missingInformation: Array<{
     field: string;
@@ -440,6 +478,98 @@ export default function EnrollmentAnalysis() {
                   </CardContent>
                 </Card>
 
+                {/* Scholarship & Financial Aid Information Card */}
+                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                  <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2 text-amber-800">
+                      <Target className="h-5 w-5" />
+                      Scholarship & Financial Aid Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-4">
+                    <div>
+                      <span className="font-medium text-gray-600">Scholarship Details:</span>
+                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.scholarshipDetails || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Scholarship Percentage:</span>
+                      <p className="text-gray-800">{selectedAnalysis.scholarshipPercentage || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Scholarship Duration:</span>
+                      <p className="text-gray-800">{selectedAnalysis.scholarshipDuration || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Scholarship Conditions:</span>
+                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.scholarshipConditions || "Not specified in document"}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Internship & Work Authorization Card */}
+                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                  <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2 text-indigo-800">
+                      <Building2 className="h-5 w-5" />
+                      Internship & Work Authorization
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-4">
+                    <div>
+                      <span className="font-medium text-gray-600">Internship Required:</span>
+                      <p className="text-gray-800">{selectedAnalysis.internshipRequired || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Internship Duration:</span>
+                      <p className="text-gray-800">{selectedAnalysis.internshipDuration || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Work Authorization:</span>
+                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.workAuthorization || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Work Hours Limit:</span>
+                      <p className="text-gray-800">{selectedAnalysis.workHoursLimit || "Not specified in document"}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Academic Requirements & Terms Card */}
+                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                  <CardHeader className="bg-gradient-to-r from-red-50 to-rose-50 rounded-t-lg">
+                    <CardTitle className="flex items-center gap-2 text-red-800">
+                      <BookOpen className="h-5 w-5" />
+                      Academic Requirements & Terms to Fulfil
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-4">
+                    <div>
+                      <span className="font-medium text-gray-600">Academic Requirements:</span>
+                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.academicRequirements || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">GPA Requirement:</span>
+                      <p className="text-gray-800">{selectedAnalysis.gpaRequirement || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Attendance Requirement:</span>
+                      <p className="text-gray-800">{selectedAnalysis.attendanceRequirement || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Terms to Fulfil:</span>
+                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.termsToFulfil || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Language Requirements:</span>
+                      <p className="text-gray-800">{selectedAnalysis.languageRequirements || "Not specified in document"}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Graduation Requirements:</span>
+                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.graduationRequirements || "Not specified in document"}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                   <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-t-lg">
                     <CardTitle className="flex items-center gap-2 text-blue-800">
@@ -670,11 +800,49 @@ export default function EnrollmentAnalysis() {
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-3">
                         <h3 className="font-semibold text-lg text-gray-800">{finding.title}</h3>
-                        <Badge className={`${getImportanceBadgeColor(finding.importance)} border`}>
-                          {finding.importance}
-                        </Badge>
+                        <div className="flex gap-2">
+                          {finding.category && (
+                            <Badge variant="outline" className="text-xs">
+                              {finding.category.replace('_', ' ')}
+                            </Badge>
+                          )}
+                          <Badge className={`${getImportanceBadgeColor(finding.importance)} border`}>
+                            {finding.importance}
+                          </Badge>
+                        </div>
                       </div>
-                      <p className="text-gray-700 leading-relaxed">{finding.description}</p>
+                      <p className="text-gray-700 leading-relaxed mb-4">{finding.description}</p>
+                      
+                      {/* Enhanced finding details */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        {finding.actionRequired && (
+                          <div className="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-400">
+                            <span className="font-medium text-blue-800">Action Required:</span>
+                            <p className="text-blue-700 text-sm mt-1">{finding.actionRequired}</p>
+                          </div>
+                        )}
+                        
+                        {finding.deadline && (
+                          <div className="bg-red-50 p-3 rounded-lg border-l-4 border-red-400">
+                            <span className="font-medium text-red-800">Deadline:</span>
+                            <p className="text-red-700 text-sm mt-1">{finding.deadline}</p>
+                          </div>
+                        )}
+                        
+                        {finding.amount && (
+                          <div className="bg-green-50 p-3 rounded-lg border-l-4 border-green-400">
+                            <span className="font-medium text-green-800">Amount:</span>
+                            <p className="text-green-700 text-sm mt-1 font-semibold">{finding.amount}</p>
+                          </div>
+                        )}
+                        
+                        {finding.consequence && (
+                          <div className="bg-amber-50 p-3 rounded-lg border-l-4 border-amber-400">
+                            <span className="font-medium text-amber-800">Consequence:</span>
+                            <p className="text-amber-700 text-sm mt-1">{finding.consequence}</p>
+                          </div>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
