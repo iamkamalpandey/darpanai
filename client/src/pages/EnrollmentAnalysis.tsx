@@ -254,12 +254,11 @@ export default function EnrollmentAnalysis() {
             <Button 
               variant="outline" 
               onClick={() => {
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('id')) {
-                  // If we came from My Analysis with an ID, go back there
-                  window.location.href = '/my-analysis';
+                // Instant back navigation using browser history
+                if (window.history.length > 1) {
+                  window.history.back();
                 } else {
-                  // Otherwise just clear the analysis to show upload form
+                  // Fallback: clear analysis to show upload form
                   setSelectedAnalysis(null);
                 }
               }}
