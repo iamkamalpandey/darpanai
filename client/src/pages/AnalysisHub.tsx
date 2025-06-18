@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { FileText, GraduationCap, Calendar, User, Building2, Globe, AlertTriangle } from 'lucide-react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 
 interface Analysis {
   id: number;
@@ -32,6 +32,7 @@ interface Analysis {
 export default function AnalysisHub() {
   const [filters, setFilters] = useState<FilterOptions>({});
   const [currentPage, setCurrentPage] = useState(1);
+  const [, setLocation] = useLocation();
   const itemsPerPage = 9;
 
   // Reset pagination when filters change
@@ -54,9 +55,9 @@ export default function AnalysisHub() {
   // Navigate to existing analysis pages that work properly
   const viewAnalysis = (id: number, type: 'visa_rejection' | 'enrollment') => {
     if (type === 'enrollment') {
-      window.location.href = `/enrollment-analysis-results/${id}`;
+      setLocation(`/enrollment-analysis-results/${id}`);
     } else {
-      window.location.href = `/visa-analysis-results/${id}`;
+      setLocation(`/visa-analysis-results/${id}`);
     }
   };
 

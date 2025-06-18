@@ -206,7 +206,7 @@ export default function EnrollmentAnalysisResults() {
             </Card>
 
             {/* Recommendations */}
-            {analysis.recommendations.length > 0 && (
+            {analysis.recommendations && analysis.recommendations.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -231,7 +231,7 @@ export default function EnrollmentAnalysisResults() {
             )}
 
             {/* Next Steps */}
-            {analysis.nextSteps.length > 0 && (
+            {analysis.nextSteps && analysis.nextSteps.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -351,7 +351,7 @@ export default function EnrollmentAnalysisResults() {
 
           <TabsContent value="findings" className="space-y-6">
             <div className="grid gap-6">
-              {analysis.keyFindings.map((finding, index) => (
+              {analysis.keyFindings && analysis.keyFindings.map((finding, index) => (
                 <Card key={index} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-3">
@@ -366,7 +366,7 @@ export default function EnrollmentAnalysisResults() {
               ))}
             </div>
 
-            {analysis.missingInformation.length > 0 && (
+            {analysis.missingInformation && analysis.missingInformation.length > 0 && (
               <Card className="shadow-lg border-0 bg-yellow-50/80 backdrop-blur-sm border-yellow-200">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-yellow-800">
