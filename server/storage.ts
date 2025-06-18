@@ -105,6 +105,14 @@ export interface IStorage {
   getDocumentChecklist(id: number): Promise<DocumentChecklist | undefined>;
   updateDocumentChecklist(id: number, updates: Partial<DocumentChecklist>): Promise<DocumentChecklist | undefined>;
   deleteDocumentChecklist(id: number): Promise<boolean>;
+  
+  // Enrollment Analysis methods
+  saveEnrollmentAnalysis(analysis: Partial<EnrollmentAnalysis>, userId?: number): Promise<EnrollmentAnalysis>;
+  getEnrollmentAnalysis(id: number): Promise<EnrollmentAnalysis | undefined>;
+  getUserEnrollmentAnalyses(userId: number): Promise<EnrollmentAnalysis[]>;
+  getAllEnrollmentAnalyses(): Promise<EnrollmentAnalysis[]>;
+  getAllEnrollmentAnalysesWithUsers(): Promise<any[]>;
+  getPublicEnrollmentAnalyses(): Promise<EnrollmentAnalysis[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -802,6 +810,109 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error deleting document checklist:", error);
       return false;
+    }
+  }
+
+  // Enrollment Analysis methods
+  async saveEnrollmentAnalysis(analysisData: Partial<EnrollmentAnalysis>, userId?: number): Promise<EnrollmentAnalysis> {
+    try {
+      const [analysis] = await db
+        .insert(enrollmentAnalyses)
+        .values({
+          ...analysisData,
+          userId: userId || null,
+        } as any)
+        .returning();
+      return analysis;
+    } catch (error) {
+      console.error("Error saving enrollment analysis:", error);
+      throw error;
+    }
+  }
+
+  async getEnrollmentAnalysis(id: number): Promise<EnrollmentAnalysis | undefined> {
+    try {
+      const [analysis] = await db
+        .select()
+        .from(enrollmentAnalyses)
+        .where(eq(enrollmentAnalyses.id, id));
+      return analysis;
+    } catch (error) {
+      console.error("Error fetching enrollment analysis:", error);
+      return undefined;
+    }
+  }
+
+  async getUserEnrollmentAnalyses(userId: number): Promise<EnrollmentAnalysis[]> {
+    try {
+      const analyses = await db
+        .select()
+        .from(enrollmentAnalyses)
+        .where(eq(enrollmentAnalyses.userId, userId))
+        .orderBy(desc(enrollmentAnalyses.createdAt));
+      return analyses;
+    } catch (error) {
+      console.error("Error fetching user enrollment analyses:", error);
+      return [];
+    }
+  }
+
+  async getAllEnrollmentAnalyses(): Promise<EnrollmentAnalysis[]> {
+    try {
+      const analyses = await db
+        .select()
+        .from(enrollmentAnalyses)
+        .orderBy(desc(enrollmentAnalyses.createdAt));
+      return analyses;
+    } catch (error) {
+      console.error("Error fetching all enrollment analyses:", error);
+      return [];
+    }
+  }
+
+  async getAllEnrollmentAnalysesWithUsers(): Promise<any[]> {
+    try {
+      const analyses = await db
+        .select({
+          id: enrollmentAnalyses.id,
+          filename: enrollmentAnalyses.filename,
+          documentType: enrollmentAnalyses.documentType,
+          institutionName: enrollmentAnalyses.institutionName,
+          studentName: enrollmentAnalyses.studentName,
+          programName: enrollmentAnalyses.programName,
+          analysisScore: enrollmentAnalyses.analysisScore,
+          confidence: enrollmentAnalyses.confidence,
+          tokensUsed: enrollmentAnalyses.tokensUsed,
+          processingTime: enrollmentAnalyses.processingTime,
+          createdAt: enrollmentAnalyses.createdAt,
+          isPublic: enrollmentAnalyses.isPublic,
+          userId: enrollmentAnalyses.userId,
+          username: users.username,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+        })
+        .from(enrollmentAnalyses)
+        .leftJoin(users, eq(enrollmentAnalyses.userId, users.id))
+        .orderBy(desc(enrollmentAnalyses.createdAt));
+      return analyses;
+    } catch (error) {
+      console.error("Error fetching all enrollment analyses with users:", error);
+      return [];
+    }
+  }
+
+  async getPublicEnrollmentAnalyses(): Promise<EnrollmentAnalysis[]> {
+    try {
+      const analyses = await db
+        .select()
+        .from(enrollmentAnalyses)
+        .where(eq(enrollmentAnalyses.isPublic, true))
+        .orderBy(desc(enrollmentAnalyses.createdAt));
+      return analyses;
+    } catch (error) {
+      console.error("Error fetching public enrollment analyses:", error);
+      return [];
     }
   }
 }

@@ -5,7 +5,8 @@ import path from "path";
 import { storage } from "./storage";
 import { extractTextFromDocument } from "./fileProcessing";
 import { analyzeRejectionLetter } from "./openai";
-import { analysisResponseSchema, professionalApplicationSchema, insertDocumentTemplateSchema } from "@shared/schema";
+import { analyzeEnrollmentDocument } from "./enrollmentAnalysis";
+import { analysisResponseSchema, professionalApplicationSchema, insertDocumentTemplateSchema, insertEnrollmentAnalysisSchema } from "@shared/schema";
 import { z } from 'zod';
 import { setupAuth } from "./auth";
 
@@ -311,6 +312,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ 
         error: 'Failed to submit application. Please try again.'
       });
+    }
+  });
+
+  // ENROLLMENT ANALYSIS APIS
+  // Analyze enrollment document (I-20, CAS, admission letter, etc.)
+  app.post('/api/enrollment-analysis', requireAuth, upload.single('document'), async (req: FileRequest, res: Response) => {
+    try {
+      const user = req.user!;
+      
+      // Check if user has remaining analyses
+      if (user.analysisCount >= user.maxAnalyses) {
+        return res.status(403).json({ 
+          error: 'Analysis limit reached',
+          message: `You've used all ${user.maxAnalyses} analyses. Please upgrade your plan or contact support.`
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: 'No document file provided' });
+      }
+
+      const { documentType } = req.body;
+      if (!documentType || !['i20', 'cas', 'admission_letter', 'offer_letter', 'confirmation_enrollment', 'other'].includes(documentType)) {
+        return res.status(400).json({ 
+          error: 'Invalid document type',
+          validTypes: ['i20', 'cas', 'admission_letter', 'offer_letter', 'confirmation_enrollment', 'other']
+        });
+      }
+
+      // Validate request against schema
+      const validationResult = insertEnrollmentAnalysisSchema.safeParse({
+        filename: req.file.originalname,
+        documentType,
+        originalText: 'placeholder' // Will be replaced with extracted text
+      });
+
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: 'Validation failed',
+          details: validationResult.error.errors
+        });
+      }
+
+      console.log(`Starting enrollment analysis for user ${user.id}: ${req.file.originalname} (${documentType})`);
+
+      // Extract text from document
+      const documentText = await extractTextFromDocument(req.file);
+      if (!documentText || documentText.trim().length === 0) {
+        return res.status(400).json({ 
+          error: 'Could not extract text from document',
+          message: 'Please ensure the document is readable and contains text.'
+        });
+      }
+
+      // Analyze document with OpenAI
+      const { analysis, tokensUsed, processingTime } = await analyzeEnrollmentDocument(
+        documentText,
+        documentType,
+        req.file.originalname
+      );
+
+      // Save analysis to database
+      const savedAnalysis = await storage.saveEnrollmentAnalysis({
+        filename: req.file.originalname,
+        documentType,
+        originalText: documentText,
+        ...analysis,
+        tokensUsed,
+        processingTime
+      }, user.id);
+
+      // Increment user's analysis count only after successful completion
+      await storage.incrementUserAnalysisCount(user.id);
+
+      console.log(`Enrollment analysis completed for user ${user.id}: ID ${savedAnalysis.id}`);
+
+      // Return analysis without the full original text to reduce response size
+      const { originalText, ...responseData } = savedAnalysis;
+      
+      return res.status(201).json({
+        ...responseData,
+        message: 'Document analysis completed successfully'
+      });
+      
+    } catch (error) {
+      console.error('Error in enrollment analysis:', error);
+      return res.status(500).json({ 
+        error: 'Analysis failed',
+        message: 'An error occurred while analyzing your document. Please try again.'
+      });
+    }
+  });
+
+  // Get user's enrollment analyses
+  app.get('/api/enrollment-analyses', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+      const analyses = await storage.getUserEnrollmentAnalyses(user.id);
+      
+      // Remove original text from response to reduce size
+      const safeAnalyses = analyses.map(analysis => {
+        const { originalText, ...safeAnalysis } = analysis;
+        return safeAnalysis;
+      });
+      
+      return res.status(200).json(safeAnalyses);
+    } catch (error) {
+      console.error('Error fetching enrollment analyses:', error);
+      return res.status(500).json({ error: 'Failed to fetch analyses' });
+    }
+  });
+
+  // Get specific enrollment analysis
+  app.get('/api/enrollment-analyses/:id', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const analysisId = parseInt(req.params.id);
+      const user = req.user!;
+      
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+      
+      const analysis = await storage.getEnrollmentAnalysis(analysisId);
+      if (!analysis) {
+        return res.status(404).json({ error: 'Analysis not found' });
+      }
+      
+      // Check ownership (users can only see their own analyses, admins can see all)
+      if (user.role !== 'admin' && analysis.userId !== user.id) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      return res.status(200).json(analysis);
+    } catch (error) {
+      console.error('Error fetching enrollment analysis:', error);
+      return res.status(500).json({ error: 'Failed to fetch analysis' });
+    }
+  });
+
+  // Get public enrollment analyses (for sharing/examples)
+  app.get('/api/public-enrollment-analyses', async (req: Request, res: Response) => {
+    try {
+      const cacheKey = 'public-enrollment-analyses';
+      const cached = getCachedData(cacheKey);
+      
+      if (cached) {
+        return res.status(200).json(cached);
+      }
+      
+      const analyses = await storage.getPublicEnrollmentAnalyses();
+      
+      // Remove original text and sensitive data
+      const safeAnalyses = analyses.map(analysis => {
+        const { originalText, userId, ...safeAnalysis } = analysis;
+        return safeAnalysis;
+      });
+      
+      setCacheData(cacheKey, safeAnalyses, 10); // Cache for 10 minutes
+      return res.status(200).json(safeAnalyses);
+    } catch (error) {
+      console.error('Error fetching public enrollment analyses:', error);
+      return res.status(500).json({ error: 'Failed to fetch public analyses' });
     }
   });
 
