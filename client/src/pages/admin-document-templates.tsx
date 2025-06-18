@@ -13,19 +13,7 @@ import { type DocumentTemplate } from "@shared/schema";
 import { AdminLayout } from "@/components/AdminLayout";
 import { AdvancedTemplateForm } from "@/components/AdvancedTemplateForm";
 
-const categories = [
-  { value: "financial", label: "Financial" },
-  { value: "academic", label: "Academic" },
-  { value: "personal", label: "Personal" },
-  { value: "employment", label: "Employment" },
-  { value: "travel", label: "Travel" },
-  { value: "legal", label: "Legal" },
-  { value: "medical", label: "Medical" },
-  { value: "insurance", label: "Insurance" },
-  { value: "accommodation", label: "Accommodation" },
-  { value: "language", label: "Language" },
-  { value: "others", label: "Others" }
-];
+
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
@@ -45,16 +33,19 @@ export default function AdminDocumentTemplates() {
   const [editingTemplate, setEditingTemplate] = useState<DocumentTemplate | null>(null);
   const { toast } = useToast();
 
-  const { data: templates = [], isLoading } = useQuery<DocumentTemplate[]>({
-    queryKey: ['/api/admin/document-templates'],
+  // Load dropdown options from database
+  const { data: dropdownOptions } = useQuery({
+    queryKey: ['/api/dropdown-options'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const { data: dropdownOptions = { countries: [], visaTypes: [], userTypes: [] } } = useQuery<{
-    countries: string[];
-    visaTypes: string[];
-    userTypes: string[];
-  }>({
-    queryKey: ['/api/dropdown-options'],
+  // Use dynamic dropdown options with fallback
+  const categoryOptions = (dropdownOptions as any)?.categories || ["Financial", "Academic", "Personal", "Employment", "Travel", "Legal", "Medical", "Insurance", "Accommodation", "Language", "Others"];
+  const visaTypeOptions = (dropdownOptions as any)?.visaTypes || ["Student F-1", "Tourist B-2", "Work H-1B", "Study Permit", "Other"];
+  const countryOptions = (dropdownOptions as any)?.countries || ["USA", "UK", "Canada", "Australia", "Germany", "Other"];
+
+  const { data: templates = [], isLoading } = useQuery<DocumentTemplate[]>({
+    queryKey: ['/api/admin/document-templates'],
   });
 
   const createMutation = useMutation({
@@ -224,9 +215,9 @@ export default function AdminDocumentTemplates() {
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
               <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category.value} value={category.value}>
-                  {category.label}
+              {categoryOptions.map((category: string) => (
+                <option key={category} value={category.toLowerCase()}>
+                  {category}
                 </option>
               ))}
             </select>
@@ -237,7 +228,7 @@ export default function AdminDocumentTemplates() {
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
               <option value="">All Countries</option>
-              {dropdownOptions.countries.map((country: string) => (
+              {countryOptions.map((country: string) => (
                 <option key={country} value={country}>{country}</option>
               ))}
             </select>
@@ -248,7 +239,7 @@ export default function AdminDocumentTemplates() {
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
               <option value="">All Visa Types</option>
-              {dropdownOptions.visaTypes.map((visaType: string) => (
+              {visaTypeOptions.map((visaType: string) => (
                 <option key={visaType} value={visaType}>{visaType}</option>
               ))}
             </select>
