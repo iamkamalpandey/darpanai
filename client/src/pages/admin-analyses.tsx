@@ -350,7 +350,7 @@ export default function AdminAnalyses() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredAnalyses.map((analysis) => (
+                  {paginatedAnalyses.map((analysis) => (
                     <TableRow key={analysis.id}>
                       <TableCell>
                         <div className="flex items-center">
@@ -429,6 +429,20 @@ export default function AdminAnalyses() {
                 </TableBody>
               </Table>
             </div>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  totalItems={filteredAnalyses.length}
+                  itemsPerPage={itemsPerPage}
+                  showPageInfo={true}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
 
