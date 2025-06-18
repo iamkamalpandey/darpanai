@@ -81,7 +81,7 @@ export default function VisaRejectionAnalysis() {
     onSuccess: (data) => {
       toast({
         title: "Analysis Complete",
-        description: "Your visa rejection letter has been analyzed successfully."
+        description: "Your visa document has been analyzed successfully."
       });
       setSelectedFile(null);
       setUploadProgress(0);
@@ -191,7 +191,7 @@ export default function VisaRejectionAnalysis() {
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold">Visa Rejection Analysis Results</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold">Visa Analysis Results</h1>
               <p className="text-muted-foreground mt-1 text-sm sm:text-base">{selectedAnalysis.filename}</p>
             </div>
             <Button 
@@ -206,7 +206,7 @@ export default function VisaRejectionAnalysis() {
           <Tabs defaultValue="overview" className="space-y-6">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="reasons">Rejection Reasons</TabsTrigger>
+              <TabsTrigger value="reasons">Key Findings</TabsTrigger>
               <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
             </TabsList>
 
@@ -272,9 +272,9 @@ export default function VisaRejectionAnalysis() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div className="text-center sm:text-left">
-            <h1 className="text-2xl sm:text-3xl font-bold">Visa Rejection Analysis</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">Visa Analysis</h1>
             <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-              Upload your visa rejection letter to get detailed analysis and recommendations for improvement.
+              Upload your visa document (approval or rejection) to get detailed analysis, key information, and recommendations.
             </p>
           </div>
         </div>
@@ -283,8 +283,8 @@ export default function VisaRejectionAnalysis() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-red-600" />
-              Upload Your Rejection Letter
+              <Sparkles className="h-5 w-5 text-blue-600" />
+              Upload Your Visa Document
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
@@ -294,10 +294,10 @@ export default function VisaRejectionAnalysis() {
                 {...getRootProps()}
                 className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-200 ${
                   isDragActive
-                    ? 'border-red-400 bg-red-50'
+                    ? 'border-blue-400 bg-blue-50'
                     : selectedFile
                     ? 'border-green-400 bg-green-50'
-                    : 'border-gray-300 hover:border-red-400 hover:bg-red-50'
+                    : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'
                 }`}
               >
                 <input {...getInputProps()} />
@@ -331,7 +331,7 @@ export default function VisaRejectionAnalysis() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Analyzing document...</span>
-                    <span className="text-red-600 font-medium">{Math.round(uploadProgress)}%</span>
+                    <span className="text-blue-600 font-medium">{Math.round(uploadProgress)}%</span>
                   </div>
                   <Progress value={uploadProgress} className="h-2" />
                 </div>
@@ -349,7 +349,7 @@ export default function VisaRejectionAnalysis() {
                 <Button
                   onClick={handleAnalyze}
                   disabled={!selectedFile || analyzeMutation.isPending}
-                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-8 py-3 text-base font-medium"
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 text-base font-medium"
                 >
                   {analyzeMutation.isPending ? (
                     <div className="flex items-center gap-2">
@@ -359,7 +359,7 @@ export default function VisaRejectionAnalysis() {
                   ) : (
                     <div className="flex items-center gap-2">
                       <Sparkles className="h-4 w-4" />
-                      Analyze Rejection
+                      Analyze Visa
                     </div>
                   )}
                 </Button>
@@ -392,7 +392,7 @@ export default function VisaRejectionAnalysis() {
                       <div>
                         <h3 className="font-medium text-gray-800">{analysis.filename}</h3>
                         <div className="flex items-center gap-4 text-sm text-gray-600">
-                          <span>Visa Rejection Analysis</span>
+                          <span>Visa Document Analysis</span>
                           <span>{new Date(analysis.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
