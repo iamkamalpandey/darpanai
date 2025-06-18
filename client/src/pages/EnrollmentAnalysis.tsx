@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Upload, FileText, CheckCircle, AlertCircle, Clock, DollarSign, GraduationCap, Building2, User, Calendar, TrendingUp, Globe, FileCheck, Sparkles, Target } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { DashboardLayout } from '@/components/DashboardLayout';
 
 interface EnrollmentAnalysis {
   id: number;
@@ -225,58 +226,56 @@ export default function EnrollmentAnalysis() {
 
   if (selectedAnalysis) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-          <div className="mb-8">
+      <DashboardLayout>
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold">Enrollment Analysis Results</h1>
+              <p className="text-muted-foreground mt-1 text-sm sm:text-base">{selectedAnalysis.filename}</p>
+            </div>
             <Button 
               variant="outline" 
               onClick={() => setSelectedAnalysis(null)}
-              className="mb-4 hover:bg-blue-50"
+              className="w-full sm:w-auto"
             >
               ← Back to Upload
             </Button>
-            
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl p-8 mb-8">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="bg-white/10 p-3 rounded-xl backdrop-blur-sm">
-                  <FileCheck className="h-8 w-8" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold mb-2">Analysis Complete</h1>
-                  <p className="text-blue-100 text-lg">{selectedAnalysis.filename}</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                {selectedAnalysis.institutionCountry && (
-                  <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Building2 className="h-5 w-5" />
-                      <span className="font-medium">Institution</span>
-                    </div>
-                    <p className="text-sm text-blue-100">{selectedAnalysis.institutionCountry}</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {selectedAnalysis.institutionCountry && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Building2 className="h-5 w-5 text-blue-600" />
+                    <span className="font-medium">Institution</span>
                   </div>
-                )}
-                {selectedAnalysis.studentCountry && (
-                  <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
-                    <div className="flex items-center gap-2 mb-2">
-                      <User className="h-5 w-5" />
-                      <span className="font-medium">Student Origin</span>
-                    </div>
-                    <p className="text-sm text-blue-100">{selectedAnalysis.studentCountry}</p>
+                  <p className="text-sm text-gray-600">{selectedAnalysis.institutionCountry}</p>
+                </CardContent>
+              </Card>
+            )}
+            {selectedAnalysis.studentCountry && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <User className="h-5 w-5 text-green-600" />
+                    <span className="font-medium">Student Origin</span>
                   </div>
-                )}
-                {selectedAnalysis.visaType && (
-                  <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Globe className="h-5 w-5" />
-                      <span className="font-medium">Visa Type</span>
-                    </div>
-                    <p className="text-sm text-blue-100">{selectedAnalysis.visaType}</p>
+                  <p className="text-sm text-gray-600">{selectedAnalysis.studentCountry}</p>
+                </CardContent>
+              </Card>
+            )}
+            {selectedAnalysis.visaType && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Globe className="h-5 w-5 text-purple-600" />
+                    <span className="font-medium">Visa Type</span>
                   </div>
-                )}
-              </div>
-            </div>
+                  <p className="text-sm text-gray-600">{selectedAnalysis.visaType}</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
@@ -485,55 +484,26 @@ export default function EnrollmentAnalysis() {
             </TabsContent>
           </Tabs>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-        <div className="container mx-auto px-4 py-16 max-w-6xl">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="flex justify-center mb-6">
-              <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
-                <GraduationCap className="h-12 w-12 text-white" />
-              </div>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-              Enrollment Document Analysis
-            </h1>
-            <p className="text-xl text-blue-100 mb-8 leading-relaxed max-w-3xl mx-auto">
-              Get comprehensive AI-powered insights on your enrollment documents including country requirements, visa information, financial analysis, and personalized next steps for your study abroad journey.
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="text-center sm:text-left">
+            <h1 className="text-2xl sm:text-3xl font-bold">Enrollment Document Analysis</h1>
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+              Get comprehensive AI-powered insights on your enrollment documents including country requirements, visa information, and next steps.
             </p>
-            <div className="flex flex-wrap justify-center gap-4 text-sm">
-              <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
-                <CheckCircle className="h-4 w-4" />
-                <span>I-20, CAS, COE Support</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
-                <Building2 className="h-4 w-4" />
-                <span>Country Detection</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
-                <DollarSign className="h-4 w-4" />
-                <span>Financial Analysis</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
-                <TrendingUp className="h-4 w-4" />
-                <span>Next Steps Guidance</span>
-              </div>
-            </div>
           </div>
         </div>
-      </div>
-
-      <div className="container mx-auto px-4 py-8 max-w-6xl -mt-8 relative z-10">
         {/* Upload Section */}
-        <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-sm mb-8">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
-            <CardTitle className="flex items-center gap-2 text-2xl text-gray-800">
-              <Sparkles className="h-6 w-6 text-blue-600" />
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-blue-600" />
               Upload Your Document
             </CardTitle>
           </CardHeader>
@@ -687,6 +657,6 @@ export default function EnrollmentAnalysis() {
           </Card>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
