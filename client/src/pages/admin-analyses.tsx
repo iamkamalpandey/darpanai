@@ -47,7 +47,7 @@ interface AnalysisData {
 export default function AdminAnalyses() {
   const { toast } = useToast();
   const [filters, setFilters] = useState<FilterOptions>({});
-  const { currentPage, setCurrentPage } = usePagination();
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisData | null>(null);
   const [analysisDetailsOpen, setAnalysisDetailsOpen] = useState(false);
 
@@ -258,8 +258,11 @@ export default function AdminAnalyses() {
         <EnhancedFilters
           filters={filters}
           onFiltersChange={setFilters}
-          showPublicFilter={true}
-          showDateRange={true}
+          config={{
+            showSearch: true,
+            showPublicFilter: true,
+            showDateRange: true
+          }}
           placeholder="Search by filename, user, or analysis content..."
         />
 

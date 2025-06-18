@@ -43,7 +43,7 @@ interface FilterConfig {
 interface EnhancedFiltersProps {
   filters: FilterOptions;
   onFiltersChange: (filters: FilterOptions) => void;
-  config: FilterConfig;
+  config?: FilterConfig;
   dropdownOptions?: {
     countries?: string[];
     visaTypes?: string[];
@@ -52,6 +52,7 @@ interface EnhancedFiltersProps {
   };
   resultCount?: number;
   className?: string;
+  placeholder?: string;
 }
 
 const dateRangeOptions = [
@@ -108,10 +109,11 @@ const defaultCategories = [
 export function EnhancedFilters({
   filters,
   onFiltersChange,
-  config,
+  config = {},
   dropdownOptions = {},
   resultCount,
   className,
+  placeholder = "Search..."
 }: EnhancedFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchDebounce, setSearchDebounce] = useState(filters.searchTerm || "");
@@ -231,7 +233,7 @@ export function EnhancedFilters({
 
       <CardContent className="space-y-4">
         {/* Search Bar - Always Visible */}
-        {config.showSearch !== false && (
+        {config?.showSearch !== false && (
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
