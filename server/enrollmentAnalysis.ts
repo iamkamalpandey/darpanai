@@ -49,8 +49,10 @@ function getCachedAnalysis(cacheKey: string): EnrollmentAnalysisResponse | null 
 function cacheAnalysis(cacheKey: string, result: EnrollmentAnalysisResponse): void {
   // Keep cache size manageable
   if (analysisCache.size > 100) {
-    const oldestKey = analysisCache.keys().next().value;
-    analysisCache.delete(oldestKey);
+    const oldestKey = analysisCache.keys().next().value as string | undefined;
+    if (oldestKey) {
+      analysisCache.delete(oldestKey);
+    }
   }
   
   analysisCache.set(cacheKey, { result, timestamp: Date.now() });
