@@ -169,11 +169,10 @@ export default function AdminAnalyses() {
       );
     }
 
-    // Country filter
+    // Country filter (search in institution name)
     if (filters.country && filters.country !== 'all') {
       filtered = filtered.filter((analysis: AnalysisData) => 
-        analysis.analysisResults?.institutionName?.toLowerCase().includes(filters.country!.toLowerCase()) ||
-        analysis.user?.country?.toLowerCase().includes(filters.country!.toLowerCase())
+        analysis.analysisResults?.institutionName?.toLowerCase().includes(filters.country!.toLowerCase())
       );
     }
 
@@ -415,71 +414,64 @@ export default function AdminAnalyses() {
                 </CardContent>
               </Card>
 
-              {/* Academic and Financial Information Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Academic Information */}
-                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
-                    <CardTitle className="flex items-center gap-2 text-green-800">
-                      <GraduationCap className="h-5 w-5" />
-                      Academic Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6 space-y-4">
+              {/* Full-Width Analysis Details Card */}
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+                  <CardTitle className="flex items-center gap-2 text-green-800">
+                    <GraduationCap className="h-5 w-5" />
+                    Analysis Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-8 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {selectedAnalysis.analysisResults?.institutionName && (
-                      <div>
-                        <span className="font-medium text-gray-600">Institution:</span>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <span className="font-medium text-gray-600 block mb-2">Institution:</span>
                         <p className="text-gray-800 break-words">
                           {selectedAnalysis.analysisResults.institutionName}
                         </p>
                       </div>
                     )}
                     {selectedAnalysis.analysisResults?.programName && (
-                      <div>
-                        <span className="font-medium text-gray-600">Program:</span>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <span className="font-medium text-gray-600 block mb-2">Program:</span>
                         <p className="text-gray-800 break-words">
                           {selectedAnalysis.analysisResults.programName}
                         </p>
                       </div>
                     )}
                     {selectedAnalysis.analysisResults?.documentType && (
-                      <div>
-                        <span className="font-medium text-gray-600">Document Type:</span>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <span className="font-medium text-gray-600 block mb-2">Document Type:</span>
                         <p className="text-gray-800">{selectedAnalysis.analysisResults.documentType}</p>
                       </div>
                     )}
                     {selectedAnalysis.analysisResults?.studentName && (
-                      <div>
-                        <span className="font-medium text-gray-600">Student Name:</span>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <span className="font-medium text-gray-600 block mb-2">Student Name:</span>
                         <p className="text-gray-800">{selectedAnalysis.analysisResults.studentName}</p>
                       </div>
                     )}
-                    {!selectedAnalysis.analysisResults?.institutionName && 
-                     !selectedAnalysis.analysisResults?.programName && 
-                     !selectedAnalysis.analysisResults?.documentType && (
-                      <div className="text-gray-500 text-center py-4">
-                        No academic information available for this analysis.
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Financial Information */}
-                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-t-lg">
-                    <CardTitle className="flex items-center gap-2 text-blue-800">
-                      <DollarSign className="h-5 w-5" />
-                      Financial Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="text-gray-500 text-center py-8">
-                      <DollarSign className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                      <p>Financial information is integrated within the analysis summary and recommendations.</p>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <span className="font-medium text-gray-600 block mb-2">Analysis Date:</span>
+                      <p className="text-gray-800">{new Date(selectedAnalysis.createdAt).toLocaleDateString()}</p>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <span className="font-medium text-gray-600 block mb-2">File Name:</span>
+                      <p className="text-gray-800 break-words">{selectedAnalysis.fileName}</p>
+                    </div>
+                  </div>
+                  
+                  {!selectedAnalysis.analysisResults?.institutionName && 
+                   !selectedAnalysis.analysisResults?.programName && 
+                   !selectedAnalysis.analysisResults?.documentType && (
+                    <div className="text-gray-500 text-center py-8">
+                      <GraduationCap className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p>No detailed analysis information available for this document.</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* Key Findings Tab */}

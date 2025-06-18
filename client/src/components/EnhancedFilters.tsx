@@ -21,7 +21,7 @@ export interface FilterOptions {
   analysisType?: 'visa_analysis' | 'enrollment_analysis' | 'all';
   severity?: string;
   isPublic?: boolean | null;
-  sortBy?: 'date' | 'name' | 'type' | 'user';
+  sortBy?: 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'type-asc' | 'type-desc' | 'user-asc' | 'user-desc';
   sortOrder?: 'asc' | 'desc';
 }
 
@@ -185,7 +185,7 @@ export function EnhancedFilters({
   // Active filters count for UI feedback
   const activeFiltersCount = useMemo(() => {
     let count = 0;
-    if (filters.searchTerm) count++;
+    if (filters.search) count++;
     if (filters.category && filters.category !== "all") count++;
     if (filters.country && filters.country !== "all") count++;
     if (filters.visaType && filters.visaType !== "all") count++;
@@ -212,7 +212,7 @@ export function EnhancedFilters({
   const clearSpecificFilter = (key: keyof FilterOptions) => {
     const newFilters = { ...filters };
     delete newFilters[key];
-    if (key === 'searchTerm') setSearchDebounce("");
+    if (key === 'search') setSearchDebounce("");
     onFiltersChange(newFilters);
   };
 
