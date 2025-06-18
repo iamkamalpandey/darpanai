@@ -10,17 +10,12 @@ import {
   FileText, 
   AlertTriangle, 
   CheckCircle, 
-  XCircle, 
   Calendar, 
-  User, 
   Globe, 
   GraduationCap,
   Building2,
-  MapPin,
   Clock,
-  BookOpen,
   TrendingUp,
-  Download,
   X
 } from 'lucide-react';
 
@@ -31,25 +26,34 @@ interface AnalysisModalProps {
   onClose: () => void;
 }
 
-interface VisaRejectionAnalysis {
+interface VisaAnalysis {
   id: number;
   filename: string;
   createdAt: string;
-  rejectionReasons: Array<{
+  country?: string;
+  visaType?: string;
+  isPublic: boolean;
+  summary: string;
+  rejectionReasons?: Array<{
     title: string;
     description: string;
     category: string;
-    severity: string;
+    severity?: string;
+  }>;
+  keyTerms?: Array<{
+    title: string;
+    description: string;
+    category: string;
+  }>;
+  recommendations: Array<{
+    title: string;
+    description: string;
+    priority?: string;
   }>;
   nextSteps: Array<{
     title: string;
     description: string;
-    priority: string;
   }>;
-  tips: string[];
-  country?: string;
-  visaType?: string;
-  isPublic: boolean;
 }
 
 interface EnrollmentAnalysis {
@@ -60,38 +64,35 @@ interface EnrollmentAnalysis {
   studentCountry: string;
   visaType: string;
   summary: string;
-  analysisResults: {
-    eligibilityAssessment?: Array<{
-      title: string;
-      description: string;
-      status: string;
-    }>;
-    documentVerification?: Array<{
-      title: string;
-      description: string;
-      status: string;
-    }>;
-    recommendations?: Array<{
-      title: string;
-      description: string;
-      priority: string;
-    }>;
-    nextSteps?: Array<{
-      title: string;
-      description: string;
-    }>;
-  };
+  eligibilityAssessment: Array<{
+    title: string;
+    description: string;
+    status: string;
+  }>;
+  documentVerification: Array<{
+    title: string;
+    description: string;
+    status: string;
+  }>;
+  recommendations: Array<{
+    title: string;
+    description: string;
+    priority: string;
+  }>;
+  nextSteps: Array<{
+    title: string;
+    description: string;
+  }>;
 }
 
 export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: AnalysisModalProps) {
-  const [analysis, setAnalysis] = useState<VisaRejectionAnalysis | EnrollmentAnalysis | null>(null);
+  const [analysis, setAnalysis] = useState<VisaAnalysis | EnrollmentAnalysis | null>(null);
 
-  // Fetch visa rejection analysis with detailed data
+  // Fetch visa analysis with detailed data
   const { data: visaAnalysis, isLoading: visaLoading } = useQuery<any>({
     queryKey: ['/api/analyses', analysisId],
     enabled: isOpen && analysisType === 'visa_rejection' && !!analysisId,
     select: (data) => {
-      // Transform the data to match our interface expectations
       const analysis = Array.isArray(data) ? data[0] : data;
       if (!analysis) return null;
       
@@ -102,11 +103,11 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
         country: analysis.country,
         visaType: analysis.visaType,
         isPublic: analysis.isPublic,
-        rejectionReasons: analysis.analysisResults?.rejectionReasons || analysis.rejectionReasons || [],
-        nextSteps: analysis.analysisResults?.nextSteps || analysis.nextSteps || [],
-        tips: analysis.analysisResults?.tips || analysis.tips || [],
         summary: analysis.analysisResults?.summary || analysis.summary || '',
-        recommendations: analysis.analysisResults?.recommendations || analysis.recommendations || []
+        rejectionReasons: analysis.analysisResults?.rejectionReasons || analysis.rejectionReasons || [],
+        keyTerms: analysis.analysisResults?.keyTerms || analysis.keyTerms || [],
+        recommendations: analysis.analysisResults?.recommendations || analysis.recommendations || [],
+        nextSteps: analysis.analysisResults?.nextSteps || analysis.nextSteps || []
       };
     }
   });
@@ -116,7 +117,6 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
     queryKey: ['/api/enrollment-analyses', analysisId],
     enabled: isOpen && analysisType === 'enrollment' && !!analysisId,
     select: (data) => {
-      // Transform the data to match our interface expectations
       const analysis = Array.isArray(data) ? data[0] : data;
       if (!analysis) return null;
       
@@ -128,12 +128,10 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
         studentCountry: analysis.studentCountry,
         visaType: analysis.visaType,
         summary: analysis.analysisResults?.summary || analysis.summary || '',
-        analysisResults: {
-          eligibilityAssessment: analysis.analysisResults?.eligibilityAssessment || analysis.eligibilityAssessment || [],
-          documentVerification: analysis.analysisResults?.documentVerification || analysis.documentVerification || [],
-          recommendations: analysis.analysisResults?.recommendations || analysis.recommendations || [],
-          nextSteps: analysis.analysisResults?.nextSteps || analysis.nextSteps || []
-        }
+        eligibilityAssessment: analysis.analysisResults?.eligibilityAssessment || analysis.eligibilityAssessment || [],
+        documentVerification: analysis.analysisResults?.documentVerification || analysis.documentVerification || [],
+        recommendations: analysis.analysisResults?.recommendations || analysis.recommendations || [],
+        nextSteps: analysis.analysisResults?.nextSteps || analysis.nextSteps || []
       };
     }
   });
@@ -159,15 +157,23 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
 
   const getPriorityColor = (priority: string) => {
     switch (priority?.toLowerCase()) {
-      case 'urgent': return 'bg-red-100 text-red-800 border-red-200';
-      case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'medium': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'low': return 'bg-green-100 text-green-800 border-green-200';
+      case 'high': return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'low': return 'bg-blue-100 text-blue-800 border-blue-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const renderVisaRejectionAnalysis = (data: any) => (
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case 'verified': return 'bg-green-100 text-green-800 border-green-200';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'missing': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const renderVisaAnalysis = (data: VisaAnalysis) => (
     <div className="space-y-6">
       {/* Header Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -202,12 +208,12 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
 
       <Separator />
 
-      {/* Analysis Summary */}
+      {/* Summary */}
       {data.summary && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-blue-600" />
+              <FileText className="h-5 w-5 text-gray-600" />
               Analysis Summary
             </CardTitle>
           </CardHeader>
@@ -218,74 +224,72 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
       )}
 
       {/* Rejection Reasons */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <XCircle className="h-5 w-5 text-red-600" />
-            Rejection Reasons ({Array.isArray(data.rejectionReasons) ? data.rejectionReasons.length : 0})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {Array.isArray(data.rejectionReasons) && data.rejectionReasons.length > 0 ? (
-            data.rejectionReasons.map((reason: any, index: number) => (
-              <div key={index} className="border rounded-lg p-4 space-y-3 bg-red-50/30">
-                <div className="flex items-start justify-between gap-3">
-                  <h4 className="font-semibold text-gray-900 text-base">{reason.title || `Reason ${index + 1}`}</h4>
-                  <div className="flex gap-2 flex-shrink-0">
-                    {reason.severity && (
-                      <Badge className={getSeverityColor(reason.severity)}>
-                        {reason.severity}
-                      </Badge>
-                    )}
-                    {reason.category && (
-                      <Badge variant="outline">{reason.category}</Badge>
-                    )}
-                  </div>
-                </div>
-                <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
-                  {reason.description || 'No detailed description available.'}
-                </p>
-                {reason.impact && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
-                    <p className="text-yellow-800 text-sm font-medium">Impact:</p>
-                    <p className="text-yellow-700 text-sm">{reason.impact}</p>
-                  </div>
-                )}
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-8">
-              <XCircle className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">No detailed rejection reasons available in this analysis</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Next Steps */}
-      {data.nextSteps && Array.isArray(data.nextSteps) && data.nextSteps.length > 0 && (
+      {data.rejectionReasons && data.rejectionReasons.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
-              Recommended Next Steps
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              Rejection Reasons
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {data.nextSteps.map((step: any, index: number) => (
-              <div key={index} className="border rounded-lg p-4 space-y-2">
-                <div className="flex items-start justify-between gap-3">
-                  <h4 className="font-medium text-gray-900">
-                    {typeof step === 'string' ? step : (step.title || `Step ${index + 1}`)}
-                  </h4>
-                  {typeof step === 'object' && step.priority && (
-                    <Badge className={getPriorityColor(step.priority)}>
-                      {step.priority}
+          <CardContent className="space-y-4">
+            {data.rejectionReasons.map((reason, index) => (
+              <div key={index} className="border-l-4 border-red-500 pl-4">
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="font-medium text-gray-900">{reason.title}</h4>
+                  {reason.severity && (
+                    <Badge className={getSeverityColor(reason.severity)}>
+                      {reason.severity}
                     </Badge>
                   )}
                 </div>
-                {typeof step === 'object' && step.description && (
-                  <p className="text-gray-700 text-sm leading-relaxed">{step.description}</p>
+                <p className="text-sm text-gray-600 mb-1">{reason.description}</p>
+                <Badge variant="outline">{reason.category}</Badge>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Key Terms (for approved visas) */}
+      {data.keyTerms && data.keyTerms.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Key Visa Terms & Conditions
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {data.keyTerms.map((term, index) => (
+              <div key={index} className="border-l-4 border-green-500 pl-4">
+                <h4 className="font-medium text-gray-900">{term.title}</h4>
+                <p className="text-sm text-gray-600 mb-1">{term.description}</p>
+                <Badge variant="outline">{term.category}</Badge>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recommendations */}
+      {data.recommendations && data.recommendations.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-purple-600" />
+              Recommendations
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {data.recommendations.map((rec, index) => (
+              <div key={index} className="border-l-4 border-purple-500 pl-4">
+                <h4 className="font-medium text-gray-900">{rec.title}</h4>
+                <p className="text-sm text-gray-600 mt-1">{rec.description}</p>
+                {rec.priority && (
+                  <Badge className={getPriorityColor(rec.priority)}>
+                    {rec.priority}
+                  </Badge>
                 )}
               </div>
             ))}
@@ -293,26 +297,26 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
         </Card>
       )}
 
-      {/* Tips */}
-      {data.tips && data.tips.length > 0 && (
+      {/* Next Steps */}
+      {data.nextSteps && data.nextSteps.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-green-600" />
-              Expert Tips
+              <Clock className="h-5 w-5 text-orange-600" />
+              Next Steps
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2">
-              {data.tips.map((tip: any, index: number) => (
-                <li key={index} className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 text-sm">
-                    {typeof tip === 'string' ? tip : (tip.description || 'No description available')}
+            <ol className="space-y-2">
+              {data.nextSteps.map((step, index) => (
+                <li key={index} className="flex gap-3 text-sm">
+                  <span className="bg-orange-100 text-orange-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                    {index + 1}
                   </span>
+                  <span className="text-gray-700">{step.title}: {step.description}</span>
                 </li>
               ))}
-            </ul>
+            </ol>
           </CardContent>
         </Card>
       )}
@@ -324,11 +328,11 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
       {/* Header Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex items-center gap-3">
-          <div className="bg-blue-100 p-2 rounded-lg">
-            <GraduationCap className="h-5 w-5 text-blue-600" />
+          <div className="bg-green-100 p-2 rounded-lg">
+            <GraduationCap className="h-5 w-5 text-green-600" />
           </div>
           <div>
-            <p className="font-medium text-gray-900">Enrollment Document Analysis</p>
+            <p className="font-medium text-gray-900">Enrollment Analysis</p>
             <p className="text-sm text-gray-600">{data.filename}</p>
           </div>
         </div>
@@ -338,7 +342,7 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
             {new Date(data.createdAt).toLocaleDateString()}
           </span>
           <span className="flex items-center gap-1">
-            <MapPin className="h-4 w-4" />
+            <Globe className="h-4 w-4" />
             {data.studentCountry} → {data.institutionCountry}
           </span>
           <Badge variant="outline">{data.visaType}</Badge>
@@ -357,13 +361,13 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-700 leading-relaxed">{data.summary}</p>
+            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{data.summary}</p>
           </CardContent>
         </Card>
       )}
 
       {/* Eligibility Assessment */}
-      {data.analysisResults?.eligibilityAssessment && data.analysisResults.eligibilityAssessment.length > 0 && (
+      {data.eligibilityAssessment && data.eligibilityAssessment.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -372,11 +376,11 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {data.analysisResults.eligibilityAssessment.map((item, index) => (
+            {data.eligibilityAssessment.map((item, index) => (
               <div key={index} className="border-l-4 border-green-500 pl-4">
                 <div className="flex items-center justify-between mb-1">
                   <h4 className="font-medium text-gray-900">{item.title}</h4>
-                  <Badge className={item.status === 'verified' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                  <Badge className={getStatusColor(item.status)}>
                     {item.status}
                   </Badge>
                 </div>
@@ -388,7 +392,7 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
       )}
 
       {/* Document Verification */}
-      {data.analysisResults?.documentVerification && data.analysisResults.documentVerification.length > 0 && (
+      {data.documentVerification && data.documentVerification.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -397,11 +401,11 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {data.analysisResults.documentVerification.map((item, index) => (
+            {data.documentVerification.map((item, index) => (
               <div key={index} className="border-l-4 border-blue-500 pl-4">
                 <div className="flex items-center justify-between mb-1">
                   <h4 className="font-medium text-gray-900">{item.title}</h4>
-                  <Badge className={item.status === 'verified' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                  <Badge className={getStatusColor(item.status)}>
                     {item.status}
                   </Badge>
                 </div>
@@ -417,44 +421,20 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
+              <TrendingUp className="h-5 w-5 text-purple-600" />
               Recommendations
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {data.recommendations.map((rec, index) => (
-              <div key={index} className="border rounded-lg p-4 space-y-2">
-                <div className="flex items-start justify-between gap-3">
-                  <h4 className="font-medium text-gray-900">{rec.title}</h4>
-                  <Badge className={getPriorityColor(rec.priority)}>
-                    {rec.priority}
-                  </Badge>
-                </div>
-                <p className="text-gray-700 text-sm leading-relaxed">{rec.description}</p>
+              <div key={index} className="border-l-4 border-purple-500 pl-4">
+                <h4 className="font-medium text-gray-900">{rec.title}</h4>
+                <p className="text-sm text-gray-600 mt-1">{rec.description}</p>
+                <Badge className={getPriorityColor(rec.priority)}>
+                  {rec.priority}
+                </Badge>
               </div>
             ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Required Documents */}
-      {data.requiredDocuments && data.requiredDocuments.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-purple-600" />
-              Required Documents
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {data.requiredDocuments.map((doc, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <Building2 className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700 text-sm">{doc}</span>
-                </li>
-              ))}
-            </ul>
           </CardContent>
         </Card>
       )}
@@ -470,14 +450,12 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
           </CardHeader>
           <CardContent>
             <ol className="space-y-2">
-              {data.nextSteps.map((step: any, index: number) => (
-                <li key={index} className="flex items-start gap-3">
-                  <span className="bg-orange-100 text-orange-800 text-xs font-medium px-2 py-1 rounded-full min-w-[1.5rem] text-center">
+              {data.nextSteps.map((step, index) => (
+                <li key={index} className="flex gap-3 text-sm">
+                  <span className="bg-orange-100 text-orange-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                     {index + 1}
                   </span>
-                  <span className="text-gray-700 text-sm">
-                    {typeof step === 'string' ? step : (step.description || step.step || 'No description available')}
-                  </span>
+                  <span className="text-gray-700">{step.title}: {step.description}</span>
                 </li>
               ))}
             </ol>
@@ -487,36 +465,51 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
     </div>
   );
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-        <DialogHeader className="p-6 pb-0">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-semibold">
-              Analysis Details
-            </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+    <Dialog open={isOpen} onOpenChange={() => onClose()}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">
+            {analysisType === 'visa_rejection' ? 'Visa Analysis Details' : 'Enrollment Analysis Details'}
+          </DialogTitle>
+          <DialogDescription>
+            {analysisType === 'visa_rejection' 
+              ? 'Detailed analysis of your visa document with key findings and recommendations'
+              : 'Comprehensive analysis of your enrollment document with verification results'
+            }
+          </DialogDescription>
         </DialogHeader>
-        
-        <ScrollArea className="px-6 pb-6 max-h-[calc(90vh-80px)]">
+
+        <ScrollArea className="flex-1 px-1">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <div className="text-center">
+                <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-gray-600">Loading analysis...</p>
+              </div>
             </div>
           ) : analysis ? (
-            <>
-              {analysisType === 'visa_rejection' && renderVisaRejectionAnalysis(analysis as VisaRejectionAnalysis)}
-              {analysisType === 'enrollment' && renderEnrollmentAnalysis(analysis as EnrollmentAnalysis)}
-            </>
+            analysisType === 'visa_rejection' 
+              ? renderVisaAnalysis(analysis as VisaAnalysis)
+              : renderEnrollmentAnalysis(analysis as EnrollmentAnalysis)
           ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500">Analysis not found</p>
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <AlertTriangle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">Analysis not found</p>
+              </div>
             </div>
           )}
         </ScrollArea>
+
+        <div className="flex justify-end pt-4 border-t">
+          <Button variant="outline" onClick={onClose}>
+            <X className="h-4 w-4 mr-2" />
+            Close
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
