@@ -374,13 +374,32 @@ export default function AdminAnalyses() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <div className="max-w-xs">
+                        <div className="max-w-md space-y-2">
                           {analysis.analysisResults?.summary ? (
-                            <p className="text-sm text-gray-600 truncate">
-                              {analysis.analysisResults.summary}
-                            </p>
+                            <div className="bg-gray-50 p-3 rounded-lg border">
+                              <p className="text-sm text-gray-800 font-medium mb-2">Analysis Summary:</p>
+                              <p className="text-sm text-gray-600 leading-relaxed">
+                                {analysis.analysisResults.summary}
+                              </p>
+                            </div>
                           ) : (
-                            <p className="text-sm text-gray-400">No summary available</p>
+                            <p className="text-sm text-gray-400 italic">No summary available</p>
+                          )}
+                          
+                          {/* Show recommendations count */}
+                          {analysis.analysisResults?.recommendations && (
+                            <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                              {analysis.analysisResults.recommendations.length} recommendation(s) provided
+                            </div>
+                          )}
+                          
+                          {/* Show next steps count */}
+                          {analysis.analysisResults?.nextSteps && (
+                            <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                              {Array.isArray(analysis.analysisResults.nextSteps) 
+                                ? analysis.analysisResults.nextSteps.length 
+                                : 'Multiple'} next step(s) outlined
+                            </div>
                           )}
                         </div>
                       </TableCell>
@@ -446,23 +465,163 @@ export default function AdminAnalyses() {
           </CardContent>
         </Card>
 
-        {/* Analysis Details Dialog */}
+        {/* Complete Analysis Details Dialog */}
         <Dialog open={analysisDetailsOpen} onOpenChange={setAnalysisDetailsOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+          <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden">
             <DialogHeader>
-              <DialogTitle>Analysis Report Details</DialogTitle>
+              <DialogTitle className="text-xl font-bold">Complete Analysis Report</DialogTitle>
               <DialogDescription>
-                Complete analysis report for {selectedAnalysis?.fileName}
+                Full original analysis data for {selectedAnalysis?.fileName} by {selectedAnalysis?.user?.firstName} {selectedAnalysis?.user?.lastName}
               </DialogDescription>
             </DialogHeader>
             
             {selectedAnalysis && (
-              <Tabs defaultValue="overview" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="issues">Issues</TabsTrigger>
-                  <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
-                  <TabsTrigger value="next-steps">Next Steps</TabsTrigger>
+              <ScrollArea className="h-[80vh] w-full">
+                <div className="space-y-6 pr-4">
+                  {/* Original Analysis Summary */}
+                  {selectedAnalysis.analysisResults?.summary && (
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <h3 className="font-semibold text-blue-900 mb-3 flex items-center">
+                        <FileText className="h-5 w-5 mr-2" />
+                        Original AI Analysis Summary
+                      </h3>
+                      <div className="bg-white p-4 rounded border border-blue-100">
+                        <p className="text-gray-800 leading-relaxed whitespace-pre-wrap font-mono text-sm">
+                          {selectedAnalysis.analysisResults.summary}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Complete Rejection Reasons */}
+                  {selectedAnalysis.analysisResults?.rejectionReasons && selectedAnalysis.analysisResults.rejectionReasons.length > 0 && (
+                    <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                      <h3 className="font-semibold text-red-900 mb-3 flex items-center">
+                        <AlertTriangle className="h-5 w-5 mr-2" />
+                        Identified Rejection Reasons ({selectedAnalysis.analysisResults.rejectionReasons.length})
+                      </h3>
+                      <div className="space-y-3">
+                        {selectedAnalysis.analysisResults.rejectionReasons.map((reason, idx) => (
+                          <div key={idx} className="bg-white p-4 rounded border border-red-100">
+                            <div className="flex items-start justify-between mb-2">
+                              <h4 className="font-medium text-red-800">{reason.title}</h4>
+                              {(reason as any).category && (
+                                <Badge variant="outline" className="text-xs">
+                                  {formatCategoryName((reason as any).category)}
+                                </Badge>
+                              )}
+                              {(reason as any).severity && (
+                                <Badge variant={getCategoryBadgeVariant((reason as any).severity)} className="text-xs">
+                                  {(reason as any).severity}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono">
+                              {reason.description}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Complete Recommendations */}
+                  {selectedAnalysis.analysisResults?.recommendations && selectedAnalysis.analysisResults.recommendations.length > 0 && (
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                      <h3 className="font-semibold text-green-900 mb-3 flex items-center">
+                        <CheckCircle className="h-5 w-5 mr-2" />
+                        AI-Generated Recommendations ({selectedAnalysis.analysisResults.recommendations.length})
+                      </h3>
+                      <div className="space-y-3">
+                        {selectedAnalysis.analysisResults.recommendations.map((rec, idx) => (
+                          <div key={idx} className="bg-white p-4 rounded border border-green-100">
+                            <h4 className="font-medium text-green-800 mb-2">{rec.title}</h4>
+                            <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono">
+                              {rec.description}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Complete Next Steps */}
+                  {selectedAnalysis.analysisResults?.nextSteps && (
+                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                      <h3 className="font-semibold text-purple-900 mb-3 flex items-center">
+                        <TrendingUp className="h-5 w-5 mr-2" />
+                        Suggested Next Steps
+                      </h3>
+                      <div className="bg-white p-4 rounded border border-purple-100">
+                        {Array.isArray(selectedAnalysis.analysisResults.nextSteps) ? (
+                          <div className="space-y-3">
+                            {selectedAnalysis.analysisResults.nextSteps.map((step, idx) => (
+                              <div key={idx} className="flex items-start space-x-3">
+                                <span className="bg-purple-100 text-purple-800 text-xs font-semibold px-2 py-1 rounded-full flex-shrink-0">
+                                  {idx + 1}
+                                </span>
+                                <div className="flex-1">
+                                  {typeof step === 'string' ? (
+                                    <p className="text-gray-700 text-sm leading-relaxed font-mono">{step}</p>
+                                  ) : (
+                                    <div>
+                                      <h4 className="font-medium text-purple-800 text-sm">{(step as any).title || (step as any).step}</h4>
+                                      <p className="text-gray-700 text-sm leading-relaxed mt-1 font-mono">
+                                        {(step as any).description}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono">
+                            {selectedAnalysis.analysisResults.nextSteps}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Analysis Metadata */}
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+                      <Info className="h-5 w-5 mr-2" />
+                      Analysis Metadata
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-700">Document:</span>
+                        <p className="text-gray-600">{selectedAnalysis.fileName}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Analysis Date:</span>
+                        <p className="text-gray-600">{format(new Date(selectedAnalysis.createdAt), "MMM dd, yyyy 'at' h:mm a")}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">User:</span>
+                        <p className="text-gray-600">
+                          {selectedAnalysis.user?.firstName} {selectedAnalysis.user?.lastName} (@{selectedAnalysis.user?.username})
+                        </p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Privacy Setting:</span>
+                        <Badge variant={selectedAnalysis.isPublic ? "default" : "secondary"}>
+                          {selectedAnalysis.isPublic ? 'Public' : 'Private'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ScrollArea>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
+    </AdminLayout>
+  );
+}
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">

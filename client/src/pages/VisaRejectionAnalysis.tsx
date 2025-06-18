@@ -214,18 +214,12 @@ export default function VisaRejectionAnalysis() {
             <Button 
               variant="outline" 
               onClick={() => {
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('id')) {
-                  // If we came from My Analysis with an ID, go back there
-                  window.location.href = '/my-analysis';
-                } else {
-                  // Otherwise just clear the analysis to show upload form
-                  setSelectedAnalysis(null);
-                }
+                // Instant navigation using browser history for zero delay
+                window.history.back();
               }}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto hover:bg-gray-50 transition-colors duration-75"
             >
-              ← Back to My Analysis
+              ← Back to Analysis
             </Button>
           </div>
 
