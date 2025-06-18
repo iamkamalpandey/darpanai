@@ -109,7 +109,9 @@ Filename: ${filename}
 Document Content:
 ${truncatedText}
 
-Extract every detail present in this document. For CoE documents, pay special attention to:
+Extract every detail present in this document. Pay special attention to:
+
+For CoE documents:
 - All financial amounts (tuition fees, pre-paid amounts, total costs, scholarships)
 - Student health cover (OSHC) details including provider, dates, and coverage type
 - Scholarship terms, conditions, and percentage discounts
@@ -117,6 +119,16 @@ Extract every detail present in this document. For CoE documents, pay special at
 - Visa-related information and obligations
 - Institution contact details and course codes
 - English language test requirements and scores
+
+For Offer Letters:
+- Complete payment schedule with all study periods and due dates
+- Enrolment fees, material fees, and total fees due
+- Payment methods and bank details
+- Conditions of offer including academic requirements
+- Course duration, start/end dates, and orientation details
+- Student personal details and passport information
+- Special needs support options available
+- Student declaration requirements and visa obligations
 
 Please analyze this document thoroughly and provide a JSON response with the following structure:
 
@@ -139,6 +151,12 @@ Please analyze this document thoroughly and provide a JSON response with the fol
   "englishTestScore": "string (English test type, score, and date if mentioned)",
   "institutionContact": "string (phone, email, and other contact details)",
   "visaObligations": "string (important visa-related requirements and obligations)",
+  "paymentSchedule": "string (complete payment schedule with study periods, amounts, and due dates)",
+  "bankDetails": "string (payment methods including BSB, account numbers, and reference codes)",
+  "conditionsOfOffer": "string (academic prerequisites and specific requirements)",
+  "orientationDate": "string (orientation date and time)",
+  "passportDetails": "string (passport number and expiry date)",
+  "supportServices": "string (available student support services)",
   "summary": "string (comprehensive summary including all financial details, scholarship terms, health cover arrangements, compliance requirements, deadlines, and key obligations from the document)",
   "keyFindings": [
     {
@@ -207,7 +225,18 @@ For CoE documents specifically, extract and highlight:
 - Student details including Provider Student ID, nationality, and country of birth
 - Key dates including course start/end dates and OSHC coverage periods
 
-Extract ALL available information from the document to provide complete analysis for international students. Include all numerical amounts, percentages, dates, contact information, and specific requirements found in the document.`;
+For Offer Letters specifically, extract and highlight:
+- Complete payment schedule with study periods, amounts, and due dates
+- Total tuition fees, enrolment fees, material fees, and upfront payments
+- Payment methods including bank details, BSB, account numbers, and reference codes
+- Conditions of offer including academic prerequisites and requirements
+- Course details including CRICOS codes, specializations, and credit points
+- Student personal information including passport details, contact information, and address
+- Important dates including orientation, course start/end, and payment deadlines
+- Institution contact details including phone, email, and physical address
+- Special support services and student declaration requirements
+
+Extract ALL available information from the document to provide complete analysis for international students. Include all numerical amounts, percentages, dates, contact information, payment details, and specific requirements found in the document.`;
 
     console.log(`Starting OpenAI analysis for ${documentType}: ${filename}`);
     

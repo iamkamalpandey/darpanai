@@ -90,6 +90,14 @@ export const enrollmentAnalyses = pgTable("enrollment_analyses", {
   institutionContact: text("institution_contact"), // Phone, email, and other contact details
   visaObligations: text("visa_obligations"), // Important visa-related requirements and obligations
   
+  // Offer letter specific fields
+  paymentSchedule: text("payment_schedule"), // Complete payment schedule with study periods and due dates
+  bankDetails: text("bank_details"), // Payment methods including BSB, account numbers, and reference codes
+  conditionsOfOffer: text("conditions_of_offer"), // Academic prerequisites and specific requirements
+  orientationDate: text("orientation_date"), // Orientation date and time
+  passportDetails: text("passport_details"), // Passport number and expiry date
+  supportServices: text("support_services"), // Available student support services
+  
   // Key findings and analysis
   summary: text("summary").notNull(),
   keyFindings: jsonb("key_findings").notNull().default([]),
@@ -469,6 +477,20 @@ export const enrollmentAnalysisResponseSchema = z.object({
   currency: z.string().optional(),
   scholarshipAmount: z.string().optional(),
   totalCost: z.string().optional(),
+  
+  // Additional comprehensive document details
+  healthCover: z.string().optional(),
+  englishTestScore: z.string().optional(),
+  institutionContact: z.string().optional(),
+  visaObligations: z.string().optional(),
+  
+  // Offer letter specific fields
+  paymentSchedule: z.string().optional(),
+  bankDetails: z.string().optional(),
+  conditionsOfOffer: z.string().optional(),
+  orientationDate: z.string().optional(),
+  passportDetails: z.string().optional(),
+  supportServices: z.string().optional(),
   
   // Analysis results
   summary: z.string(),

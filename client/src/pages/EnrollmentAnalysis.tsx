@@ -34,6 +34,16 @@ interface EnrollmentAnalysis {
   currency?: string;
   scholarshipAmount?: string;
   totalCost?: string;
+  healthCover?: string;
+  englishTestScore?: string;
+  institutionContact?: string;
+  visaObligations?: string;
+  paymentSchedule?: string;
+  bankDetails?: string;
+  conditionsOfOffer?: string;
+  orientationDate?: string;
+  passportDetails?: string;
+  supportServices?: string;
   summary: string;
   keyFindings: Array<{
     title: string;
