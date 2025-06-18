@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AdminLayout } from "@/components/AdminLayout";
+import { AnalysisModal } from "@/components/AnalysisModal";
 import { EnhancedFilters, FilterOptions, searchInText, filterByDateRange } from "@/components/EnhancedFilters";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,8 +53,24 @@ export default function AdminAnalyses() {
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisData | null>(null);
   const [analysisDetailsOpen, setAnalysisDetailsOpen] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({});
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalAnalysisId, setModalAnalysisId] = useState<number | null>(null);
+  const [modalAnalysisType, setModalAnalysisType] = useState<'visa_rejection' | 'enrollment' | null>(null);
   
   const { toast } = useToast();
+
+  // Handle opening analysis modal
+  const openAnalysisModal = (analysisId: number, analysisType: 'visa_rejection' | 'enrollment') => {
+    setModalAnalysisId(analysisId);
+    setModalAnalysisType(analysisType);
+    setModalOpen(true);
+  };
+
+  const closeAnalysisModal = () => {
+    setModalOpen(false);
+    setModalAnalysisId(null);
+    setModalAnalysisType(null);
+  };
 
   // Fetch all analyses with user data
   const { data: analyses = [], isLoading } = useQuery<AnalysisData[]>({
@@ -145,8 +162,8 @@ export default function AdminAnalyses() {
   };
 
   const openAnalysisDetails = (analysis: AnalysisData) => {
-    setSelectedAnalysis(analysis);
-    setAnalysisDetailsOpen(true);
+    // Use the modal popup for standardized analysis presentation
+    openAnalysisModal(analysis.id, 'visa_rejection');
   };
 
   const getVisibilityBadgeVariant = (isPublic: boolean) => {
@@ -557,6 +574,14 @@ export default function AdminAnalyses() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Analysis Modal */}
+        <AnalysisModal
+          analysisId={modalAnalysisId}
+          analysisType={modalAnalysisType}
+          isOpen={modalOpen}
+          onClose={closeAnalysisModal}
+        />
       </div>
     </AdminLayout>
   );
