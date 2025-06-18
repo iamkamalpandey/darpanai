@@ -17,9 +17,11 @@ export interface FilterOptions {
   userType?: string;
   status?: string;
   dateRange?: string;
-  analysisType?: string;
+  analysisType?: 'all' | 'visa_analysis' | 'enrollment_analysis';
   severity?: string;
   isPublic?: boolean | null;
+  sortBy?: 'date' | 'name' | 'type' | 'user';
+  sortOrder?: 'asc' | 'desc';
 }
 
 interface FilterConfig {
@@ -33,6 +35,7 @@ interface FilterConfig {
   showAnalysisType?: boolean;
   showSeverity?: boolean;
   showPublicFilter?: boolean;
+  showSorting?: boolean;
   customFilters?: Array<{
     key: string;
     label: string;
@@ -74,8 +77,8 @@ const statusOptions = [
 
 const analysisTypeOptions = [
   { value: "all", label: "All Types" },
-  { value: "visa_rejection", label: "Visa Rejection" },
-  { value: "enrollment", label: "Enrollment" },
+  { value: "visa_analysis", label: "Visa Analysis" },
+  { value: "enrollment_analysis", label: "Enrollment Analysis" },
 ];
 
 const severityOptions = [
@@ -288,9 +291,9 @@ export function EnhancedFilters({
                 />
               </Badge>
             )}
-            {filters.analysisType && (
+            {filters.analysisType && filters.analysisType !== 'all' && (
               <Badge variant="secondary" className="gap-1">
-                Type: {filters.analysisType === 'visa_rejection' ? 'Visa Rejection' : 'Enrollment'}
+                Type: {filters.analysisType === 'visa_analysis' ? 'Visa Analysis' : 'Enrollment Analysis'}
                 <X 
                   className="h-3 w-3 cursor-pointer" 
                   onClick={() => clearSpecificFilter('analysisType')}
@@ -476,6 +479,44 @@ export function EnhancedFilters({
                           {option.label}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {config?.showSorting && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Sort By</label>
+                  <Select
+                    value={filters.sortBy || "date"}
+                    onValueChange={(value) => updateFilter('sortBy', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="date">Date Created</SelectItem>
+                      <SelectItem value="name">File Name</SelectItem>
+                      <SelectItem value="type">Analysis Type</SelectItem>
+                      <SelectItem value="user">User</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {config?.showSorting && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Sort Order</label>
+                  <Select
+                    value={filters.sortOrder || "desc"}
+                    onValueChange={(value) => updateFilter('sortOrder', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sort order" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="desc">Newest First</SelectItem>
+                      <SelectItem value="asc">Oldest First</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
