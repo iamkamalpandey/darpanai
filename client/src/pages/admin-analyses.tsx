@@ -232,17 +232,18 @@ export default function AdminAnalyses() {
       .join(' ') || 'General';
   };
 
-  // Enhanced number formatting for proper display of numerical figures
+  // Enhanced number formatting for comprehensive display of numerical figures
   const formatNumericalInfo = (text: string) => {
-    // Enhanced regex to capture various numerical patterns including:
-    // - Years (2023, 2024-2025)
-    // - Duration (2 years, 3-4 years)
-    // - Amounts ($50,000, USD 25,000)
-    // - Percentages (85%, 3.5 GPA)
-    // - Dates (January 2024, 15th March)
+    // Comprehensive regex to capture all numerical patterns including:
+    // - Currency amounts ($50,000, USD 25,000, CAD 15,000, €20,000, £18,000)
+    // - Duration and time periods (2 years, 3-4 semesters, 18 months)
+    // - Academic years and dates (2023-2024, Fall 2024, January 15, 2025)
+    // - Percentages and scores (85%, 3.5 GPA, 90% scholarship coverage)
+    // - Quantities and measurements (40 hours, 120 credits, 3.8 CGPA)
+    // - Tuition and fee amounts (tuition fees, application fee, living costs)
     return text.replace(
-      /(\$[\d,]+(?:\.\d{2})?|USD\s*[\d,]+|€[\d,]+|£[\d,]+|\d+(?:\.\d+)?\s*(?:years?|months?|weeks?|days?)|(?:19|20)\d{2}(?:-(?:19|20)?\d{2})?|\d+(?:\.\d+)?%|\d+(?:\.\d+)?\s*GPA|(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+(?:19|20)?\d{2}|\d{1,2}(?:st|nd|rd|th)\s+(?:January|February|March|April|May|June|July|August|September|October|November|December))/gi,
-      '<span class="font-semibold text-blue-700 bg-blue-50 px-1 rounded">$1</span>'
+      /(\$[\d,]+(?:\.\d{2})?(?:\s*(?:CAD|USD|AUD|per\s+(?:year|semester|month|week)?))?|(?:CAD|USD|AUD|EUR|GBP|₹|¥)\s*[\d,]+(?:\.\d{2})?|€[\d,]+(?:\.\d{2})?|£[\d,]+(?:\.\d{2})?|₹[\d,]+(?:\.\d{2})?|\d+(?:\.\d+)?\s*(?:years?|semesters?|months?|weeks?|days?|hours?|credits?|units?)|(?:19|20)\d{2}(?:-(?:19|20)?\d{2})?|\d+(?:\.\d+)?%(?:\s*(?:scholarship|coverage|reduction|discount|off))?|\d+(?:\.\d+)?\s*(?:GPA|CGPA|IELTS|TOEFL|SAT|ACT|score)|(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s*(?:19|20)?\d{2}|\d{1,2}(?:st|nd|rd|th)\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)(?:\s+(?:19|20)?\d{2})?|(?:Fall|Spring|Summer|Winter)\s+(?:19|20)?\d{2}|\d+(?:\.\d+)?\s*(?:per\s+(?:year|semester|month|week|credit|hour))|tuition\s+(?:fees?|costs?)\s*(?:of\s+)?\$?[\d,]+(?:\.\d{2})?|application\s+fee\s*(?:of\s+)?\$?[\d,]+(?:\.\d{2})?|scholarship\s+(?:of\s+|worth\s+)?\$?[\d,]+(?:\.\d{2})?)/gi,
+      '<span class="font-bold text-blue-800 bg-blue-100 px-2 py-0.5 rounded-md border border-blue-200">$1</span>'
     );
   };
 
@@ -540,76 +541,85 @@ export default function AdminAnalyses() {
             {selectedAnalysis && (
               <ScrollArea className="h-[80vh] w-full">
                 <div className="space-y-6 pr-4">
-                  {/* Analysis Summary */}
+                  {/* Complete Original Analysis Report - Summary */}
                   {selectedAnalysis.analysisResults?.summary && (
                     <Card className="border-l-4 border-l-blue-500">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                           <FileText className="h-5 w-5 text-blue-600" />
-                          Analysis Summary
+                          Complete Analysis Summary
                         </CardTitle>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Original AI-generated analysis report showing all identified information, dates, amounts, and key details exactly as analyzed
+                        </p>
                       </CardHeader>
                       <CardContent>
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <div 
-                            className="text-gray-800 leading-relaxed whitespace-pre-wrap"
-                            dangerouslySetInnerHTML={{ 
-                              __html: formatNumericalInfo(selectedAnalysis.analysisResults.summary) 
-                            }}
-                          />
+                        <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                          <div className="font-mono text-sm bg-white p-4 rounded border shadow-inner">
+                            <div 
+                              className="text-gray-800 leading-relaxed whitespace-pre-wrap"
+                              dangerouslySetInnerHTML={{ 
+                                __html: formatNumericalInfo(selectedAnalysis.analysisResults.summary) 
+                              }}
+                            />
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
                   )}
 
-                  {/* Rejection Reasons with Enhanced User-Friendly Display */}
+                  {/* Complete Original Rejection Reasons Analysis */}
                   {selectedAnalysis.analysisResults?.rejectionReasons && selectedAnalysis.analysisResults.rejectionReasons.length > 0 && (
                     <Card className="border-l-4 border-l-red-500">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                           <AlertTriangle className="h-5 w-5 text-red-600" />
-                          Why Your Application Was Rejected ({selectedAnalysis.analysisResults.rejectionReasons.length} Issues Found)
+                          Complete Rejection Analysis Report ({selectedAnalysis.analysisResults.rejectionReasons.length} Issues Identified)
                         </CardTitle>
                         <p className="text-sm text-gray-600 mt-1">
-                          These are the specific reasons mentioned in your rejection letter. Understanding these helps you prepare a stronger reapplication.
+                          Original AI analysis showing all rejection reasons with complete details, amounts, dates, and specific criteria as identified in the document
                         </p>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-4">
-                          {selectedAnalysis.analysisResults.rejectionReasons.map((reason, idx) => (
-                            <div key={idx} className="bg-red-50 p-4 rounded-lg border border-red-200">
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="flex items-start gap-3">
-                                  <div className="bg-red-100 p-2 rounded-full flex-shrink-0 mt-0.5">
-                                    {getCategoryIcon((reason as any).category || 'general')}
-                                  </div>
-                                  <div>
-                                    <h4 className="font-medium text-red-900 mb-1">{reason.title}</h4>
-                                    <div className="flex gap-2 mb-2">
-                                      {(reason as any).category && (
-                                        <Badge variant="outline" className="text-xs bg-white">
-                                          {formatCategoryName((reason as any).category)} Issue
-                                        </Badge>
-                                      )}
-                                      {(reason as any).severity && (
-                                        <Badge variant={getCategoryBadgeVariant((reason as any).severity)} className="text-xs">
-                                          {(reason as any).severity === 'high' ? 'Critical' : (reason as any).severity === 'medium' ? 'Important' : 'Minor'} Impact
-                                        </Badge>
-                                      )}
+                        <div className="bg-red-50 p-6 rounded-lg border border-red-200">
+                          <div className="space-y-6">
+                            {selectedAnalysis.analysisResults.rejectionReasons.map((reason, idx) => (
+                              <div key={idx} className="bg-white p-6 rounded-lg border border-red-100 shadow-sm">
+                                <div className="mb-4">
+                                  <div className="flex items-center gap-3 mb-3">
+                                    <div className="bg-red-100 p-2 rounded-full">
+                                      {getCategoryIcon((reason as any).category || 'general')}
                                     </div>
+                                    <h4 className="font-semibold text-red-900 text-lg">{reason.title}</h4>
+                                  </div>
+                                  <div className="flex gap-2 mb-4">
+                                    {(reason as any).category && (
+                                      <Badge variant="outline" className="text-xs bg-red-50 border-red-200">
+                                        Category: {formatCategoryName((reason as any).category)}
+                                      </Badge>
+                                    )}
+                                    {(reason as any).severity && (
+                                      <Badge variant={getCategoryBadgeVariant((reason as any).severity)} className="text-xs">
+                                        Severity: {(reason as any).severity?.toUpperCase()}
+                                      </Badge>
+                                    )}
+                                    <Badge variant="outline" className="text-xs bg-gray-50">
+                                      Issue #{idx + 1}
+                                    </Badge>
                                   </div>
                                 </div>
+                                <div className="font-mono text-sm bg-gray-50 p-4 rounded border">
+                                  <div className="text-xs text-gray-500 mb-2">ORIGINAL ANALYSIS CONTENT:</div>
+                                  <div 
+                                    className="text-gray-800 leading-relaxed whitespace-pre-wrap"
+                                    dangerouslySetInnerHTML={{ 
+                                      __html: formatNumericalInfo(reason.description) 
+                                    }}
+                                  />
+                                </div>
                               </div>
-                              <div className="ml-11">
-                                <div 
-                                  className="text-gray-700 leading-relaxed whitespace-pre-wrap"
-                                  dangerouslySetInnerHTML={{ 
-                                    __html: formatNumericalInfo(reason.description) 
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -675,123 +685,129 @@ export default function AdminAnalyses() {
                     </Card>
                   )}
 
-                  {/* Recommendations with Enhanced User-Friendly Display */}
+                  {/* Complete Original Recommendations Analysis */}
                   {selectedAnalysis.analysisResults?.recommendations && selectedAnalysis.analysisResults.recommendations.length > 0 && (
                     <Card className="border-l-4 border-l-green-500">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                           <CheckCircle className="h-5 w-5 text-green-600" />
-                          Expert Recommendations ({selectedAnalysis.analysisResults.recommendations.length} Action Items)
+                          Complete Recommendations Report ({selectedAnalysis.analysisResults.recommendations.length} Recommendations)
                         </CardTitle>
                         <p className="text-sm text-gray-600 mt-1">
-                          These are actionable steps you can take to improve your chances for future applications. Each recommendation is based on the specific issues found in your document.
+                          Original AI analysis showing all recommendations with complete details, specific amounts, timeframes, and actionable steps as generated
                         </p>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-4">
-                          {selectedAnalysis.analysisResults.recommendations.map((rec: any, idx: number) => (
-                            <div key={idx} className="bg-green-50 p-4 rounded-lg border border-green-200">
-                              <div className="flex items-start gap-3">
-                                <div className="bg-green-100 p-2 rounded-full flex-shrink-0 mt-0.5">
-                                  <CheckCircle className="h-4 w-4 text-green-600" />
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-start justify-between mb-2">
-                                    <h4 className="font-medium text-green-900">{rec.title}</h4>
-                                    <div className="flex gap-2">
-                                      {rec.priority && (
-                                        <Badge 
-                                          variant={rec.priority === 'urgent' ? 'destructive' : rec.priority === 'important' ? 'secondary' : 'outline'} 
-                                          className="text-xs"
-                                        >
-                                          {rec.priority === 'urgent' ? 'Do First' : rec.priority === 'important' ? 'High Priority' : 'When Possible'}
-                                        </Badge>
-                                      )}
-                                      {rec.category && (
-                                        <Badge variant="outline" className="text-xs bg-white">
-                                          {formatCategoryName(rec.category)}
-                                        </Badge>
-                                      )}
+                        <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+                          <div className="space-y-6">
+                            {selectedAnalysis.analysisResults.recommendations.map((rec: any, idx: number) => (
+                              <div key={idx} className="bg-white p-6 rounded-lg border border-green-100 shadow-sm">
+                                <div className="mb-4">
+                                  <div className="flex items-center gap-3 mb-3">
+                                    <div className="bg-green-100 p-2 rounded-full">
+                                      <CheckCircle className="h-4 w-4 text-green-600" />
                                     </div>
+                                    <h4 className="font-semibold text-green-900 text-lg">{rec.title}</h4>
                                   </div>
+                                  <div className="flex gap-2 mb-4">
+                                    {rec.priority && (
+                                      <Badge 
+                                        variant={rec.priority === 'urgent' ? 'destructive' : rec.priority === 'important' ? 'secondary' : 'outline'} 
+                                        className="text-xs"
+                                      >
+                                        Priority: {rec.priority?.toUpperCase()}
+                                      </Badge>
+                                    )}
+                                    {rec.category && (
+                                      <Badge variant="outline" className="text-xs bg-green-50 border-green-200">
+                                        Category: {formatCategoryName(rec.category)}
+                                      </Badge>
+                                    )}
+                                    <Badge variant="outline" className="text-xs bg-gray-50">
+                                      Recommendation #{idx + 1}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <div className="font-mono text-sm bg-gray-50 p-4 rounded border">
+                                  <div className="text-xs text-gray-500 mb-2">ORIGINAL ANALYSIS CONTENT:</div>
                                   <div 
-                                    className="text-gray-700 leading-relaxed whitespace-pre-wrap"
+                                    className="text-gray-800 leading-relaxed whitespace-pre-wrap"
                                     dangerouslySetInnerHTML={{ 
                                       __html: formatNumericalInfo(rec.description) 
                                     }}
                                   />
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
                   )}
 
-                  {/* Next Steps with Enhanced User-Friendly Display */}
+                  {/* Complete Original Next Steps Analysis */}
                   {selectedAnalysis.analysisResults?.nextSteps && (
                     <Card className="border-l-4 border-l-purple-500">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                           <TrendingUp className="h-5 w-5 text-purple-600" />
-                          Your Action Plan - What To Do Next
+                          Complete Next Steps Action Plan
                         </CardTitle>
                         <p className="text-sm text-gray-600 mt-1">
-                          Follow these steps in order to prepare for your next application. Each step is designed to address the specific issues found in your analysis.
+                          Original AI analysis showing complete action plan with specific amounts, timelines, and detailed steps as generated
                         </p>
                       </CardHeader>
                       <CardContent>
-                        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                        <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
                           {Array.isArray(selectedAnalysis.analysisResults.nextSteps) ? (
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                               {selectedAnalysis.analysisResults.nextSteps.map((step, idx) => (
-                                <div key={idx} className="flex items-start gap-4">
-                                  <div className="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
-                                    {idx + 1}
-                                  </div>
-                                  <div className="flex-1 bg-white p-3 rounded-lg border border-purple-100">
-                                    {typeof step === 'string' ? (
-                                      <div className="flex items-start gap-3">
-                                        <CheckCircle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                                        <div 
-                                          className="text-gray-700 leading-relaxed"
-                                          dangerouslySetInnerHTML={{ 
-                                            __html: formatNumericalInfo(step) 
-                                          }}
-                                        />
+                                <div key={idx} className="bg-white p-6 rounded-lg border border-purple-100 shadow-sm">
+                                  <div className="mb-4">
+                                    <div className="flex items-center gap-3 mb-3">
+                                      <div className="bg-purple-600 text-white rounded-full w-10 h-10 flex items-center justify-center text-lg font-bold">
+                                        {idx + 1}
                                       </div>
-                                    ) : (
-                                      <div>
-                                        <h4 className="font-medium text-purple-900 mb-2 flex items-center gap-2">
-                                          <CheckCircle className="h-4 w-4 text-purple-600" />
-                                          {(step as any).title || (step as any).step}
-                                        </h4>
-                                        <div 
-                                          className="text-gray-700 leading-relaxed"
-                                          dangerouslySetInnerHTML={{ 
-                                            __html: formatNumericalInfo((step as any).description) 
-                                          }}
-                                        />
-                                      </div>
-                                    )}
-                                    <div className="mt-2 text-xs text-purple-600 font-medium">
-                                      Step {idx + 1} of {selectedAnalysis.analysisResults.nextSteps?.length || 0}
+                                      <h4 className="font-semibold text-purple-900 text-lg">
+                                        {typeof step === 'string' ? `Action Step ${idx + 1}` : ((step as any).title || (step as any).step)}
+                                      </h4>
                                     </div>
+                                    <Badge variant="outline" className="text-xs bg-purple-50 border-purple-200">
+                                      Step {idx + 1} of {selectedAnalysis.analysisResults.nextSteps?.length || 0}
+                                    </Badge>
+                                  </div>
+                                  <div className="font-mono text-sm bg-gray-50 p-4 rounded border">
+                                    <div className="text-xs text-gray-500 mb-2">ORIGINAL ANALYSIS CONTENT:</div>
+                                    <div 
+                                      className="text-gray-800 leading-relaxed whitespace-pre-wrap"
+                                      dangerouslySetInnerHTML={{ 
+                                        __html: formatNumericalInfo(
+                                          typeof step === 'string' ? step : (step as any).description
+                                        )
+                                      }}
+                                    />
                                   </div>
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <div className="bg-white p-4 rounded-lg border border-purple-100">
-                              <div className="flex items-start gap-3">
-                                <TrendingUp className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
-                                <div>
-                                  <h4 className="font-medium text-purple-900 mb-2">Action Required</h4>
-                                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                                    {selectedAnalysis.analysisResults.nextSteps}
-                                  </p>
+                            <div className="bg-white p-6 rounded-lg border border-purple-100 shadow-sm">
+                              <div className="mb-4">
+                                <div className="flex items-center gap-3 mb-3">
+                                  <div className="bg-purple-100 p-2 rounded-full">
+                                    <TrendingUp className="h-5 w-5 text-purple-600" />
+                                  </div>
+                                  <h4 className="font-semibold text-purple-900 text-lg">Complete Action Plan</h4>
                                 </div>
+                              </div>
+                              <div className="font-mono text-sm bg-gray-50 p-4 rounded border">
+                                <div className="text-xs text-gray-500 mb-2">ORIGINAL ANALYSIS CONTENT:</div>
+                                <div 
+                                  className="text-gray-800 leading-relaxed whitespace-pre-wrap"
+                                  dangerouslySetInnerHTML={{ 
+                                    __html: formatNumericalInfo(selectedAnalysis.analysisResults.nextSteps)
+                                  }}
+                                />
                               </div>
                             </div>
                           )}

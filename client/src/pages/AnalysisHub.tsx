@@ -35,17 +35,18 @@ export default function AnalysisHub() {
   const [, setLocation] = useLocation();
   const itemsPerPage = 9;
 
-  // Enhanced number formatting for proper display of numerical figures
+  // Enhanced number formatting for comprehensive display of numerical figures
   const formatNumericalInfo = (text: string) => {
-    // Enhanced regex to capture various numerical patterns including:
-    // - Years (2023, 2024-2025)
-    // - Duration (2 years, 3-4 years)
-    // - Amounts ($50,000, USD 25,000)
-    // - Percentages (85%, 3.5 GPA)
-    // - Dates (January 2024, 15th March)
+    // Comprehensive regex to capture all numerical patterns including:
+    // - Currency amounts ($50,000, USD 25,000, CAD 15,000, €20,000, £18,000)
+    // - Duration and time periods (2 years, 3-4 semesters, 18 months)
+    // - Academic years and dates (2023-2024, Fall 2024, January 15, 2025)
+    // - Percentages and scores (85%, 3.5 GPA, 90% scholarship coverage)
+    // - Quantities and measurements (40 hours, 120 credits, 3.8 CGPA)
+    // - Tuition and fee amounts (tuition fees, application fee, living costs)
     return text.replace(
-      /(\$[\d,]+(?:\.\d{2})?|USD\s*[\d,]+|€[\d,]+|£[\d,]+|\d+(?:\.\d+)?\s*(?:years?|months?|weeks?|days?)|(?:19|20)\d{2}(?:-(?:19|20)?\d{2})?|\d+(?:\.\d+)?%|\d+(?:\.\d+)?\s*GPA|(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+(?:19|20)?\d{2}|\d{1,2}(?:st|nd|rd|th)\s+(?:January|February|March|April|May|June|July|August|September|October|November|December))/gi,
-      '<span class="font-semibold text-blue-700 bg-blue-50 px-1 rounded">$1</span>'
+      /(\$[\d,]+(?:\.\d{2})?(?:\s*(?:CAD|USD|AUD|per\s+(?:year|semester|month|week)?))?|(?:CAD|USD|AUD|EUR|GBP|₹|¥)\s*[\d,]+(?:\.\d{2})?|€[\d,]+(?:\.\d{2})?|£[\d,]+(?:\.\d{2})?|₹[\d,]+(?:\.\d{2})?|\d+(?:\.\d+)?\s*(?:years?|semesters?|months?|weeks?|days?|hours?|credits?|units?)|(?:19|20)\d{2}(?:-(?:19|20)?\d{2})?|\d+(?:\.\d+)?%(?:\s*(?:scholarship|coverage|reduction|discount|off))?|\d+(?:\.\d+)?\s*(?:GPA|CGPA|IELTS|TOEFL|SAT|ACT|score)|(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s*(?:19|20)?\d{2}|\d{1,2}(?:st|nd|rd|th)\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)(?:\s+(?:19|20)?\d{2})?|(?:Fall|Spring|Summer|Winter)\s+(?:19|20)?\d{2}|\d+(?:\.\d+)?\s*(?:per\s+(?:year|semester|month|week|credit|hour))|tuition\s+(?:fees?|costs?)\s*(?:of\s+)?\$?[\d,]+(?:\.\d{2})?|application\s+fee\s*(?:of\s+)?\$?[\d,]+(?:\.\d{2})?|scholarship\s+(?:of\s+|worth\s+)?\$?[\d,]+(?:\.\d{2})?)/gi,
+      '<span class="font-bold text-blue-800 bg-blue-100 px-2 py-0.5 rounded-md border border-blue-200">$1</span>'
     );
   };
 
