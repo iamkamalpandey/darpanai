@@ -642,42 +642,10 @@ export default function AdminAnalyses() {
                           </div>
                         );
                       }) : (
-                        // Default next steps if none exist
-                        <>
-                          <div className="flex items-start gap-4 p-4 bg-white/60 rounded-lg">
-                            <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-semibold text-sm">
-                              1
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-medium text-gray-800 mb-2">Apply for Student Visa</h4>
-                              <p className="text-gray-700 leading-relaxed mb-2">Visit the Australian Government Department of Home Affairs website to lodge the visa application online, ensuring all required documents are attached.</p>
-                              <div className="flex items-center gap-3 text-sm">
-                                <Badge className="bg-red-100 text-red-800 border-red-200 border">immediate</Badge>
-                                <span className="text-gray-600 flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" />
-                                  As soon as possible, ideally within the next month.
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-start gap-4 p-4 bg-white/60 rounded-lg">
-                            <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-semibold text-sm">
-                              2
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-medium text-gray-800 mb-2">Arrange Accommodation</h4>
-                              <p className="text-gray-700 leading-relaxed mb-2">Start looking for accommodation options in Australia, as securing a place to stay is essential before arrival.</p>
-                              <div className="flex items-center gap-3 text-sm">
-                                <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200 border">short term</Badge>
-                                <span className="text-gray-600 flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" />
-                                  By June 2025
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </>
+                        <div className="text-center py-8 text-gray-500">
+                          <Target className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                          <p>No specific next steps provided in this analysis.</p>
+                        </div>
                       )}
                   </div>
                 </CardContent>
