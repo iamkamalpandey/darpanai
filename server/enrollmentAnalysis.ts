@@ -99,7 +99,7 @@ export async function analyzeEnrollmentDocument(
     const truncatedText = truncateText(documentText);
     
     // Create comprehensive prompt for enrollment document analysis
-    const prompt = `You are an expert education counselor and document analyst. Analyze this ${documentType} enrollment document and provide comprehensive insights.
+    const prompt = `You are an expert international education counselor and visa specialist. Analyze this ${documentType} enrollment document and provide comprehensive insights including country-specific visa requirements and institutional details.
 
 Document Type: ${documentType.toUpperCase().replace('_', ' ')}
 Filename: ${filename}
@@ -110,17 +110,20 @@ ${truncatedText}
 Please analyze this document thoroughly and provide a JSON response with the following structure:
 
 {
-  "institutionName": "string (institution name)",
-  "studentName": "string (student name)",
-  "studentId": "string (student ID)",
-  "programName": "string (program/course name)",
-  "programLevel": "string (undergraduate/graduate/certificate/etc)",
-  "startDate": "string (program start date)",
-  "endDate": "string (program end date)",
-  "tuitionAmount": "string (tuition amount)",
-  "currency": "string (currency code)",
-  "scholarshipAmount": "string (scholarship if any)",
-  "totalCost": "string (total program cost)",
+  "institutionName": "string (full institution name)",
+  "studentName": "string (student full name)",
+  "studentId": "string (student ID/number)",
+  "programName": "string (complete program/course name)",
+  "programLevel": "string (undergraduate/graduate/masters/phd/certificate/diploma)",
+  "startDate": "string (program start date - format as readable date)",
+  "endDate": "string (program end date - format as readable date)",
+  "institutionCountry": "string (country where institution is located)",
+  "studentCountry": "string (student's country of origin if mentioned)",
+  "visaType": "string (relevant visa type/category for this program)",
+  "tuitionAmount": "string (tuition fees amount)",
+  "currency": "string (currency code - USD, GBP, AUD, CAD, etc)",
+  "scholarshipAmount": "string (scholarship amount if any)",
+  "totalCost": "string (total program cost including all fees)",
   "summary": "string (clear, non-technical summary of the document)",
   "keyFindings": [
     {
@@ -168,12 +171,16 @@ Please analyze this document thoroughly and provide a JSON response with the fol
 Guidelines:
 - Use simple, clear language that students and parents can understand
 - Focus on actionable insights and practical advice
-- Highlight any red flags or compliance issues
+- Analyze country-specific visa requirements and regulations
+- Identify the institution's country and relevant visa categories
+- Highlight any red flags or compliance issues specific to the destination country
 - Provide specific next steps with realistic timelines
 - Rate document completeness and your confidence in the analysis
-- If information is missing, explain why it's important
-- Consider visa requirements and academic regulations
-- Provide financial planning advice when relevant`;
+- If information is missing, explain why it's important for visa/enrollment processes
+- Consider country-specific academic and immigration regulations
+- Provide financial planning advice relevant to the destination country
+- Include insights about study permit requirements, work authorization, and post-graduation options
+- Analyze if the document meets visa application requirements for the identified countries`;
 
     console.log(`Starting OpenAI analysis for ${documentType}: ${filename}`);
     
@@ -194,7 +201,7 @@ Guidelines:
       max_tokens: 2000, // Limit output tokens for cost control
     });
 
-    const analysisText = response.choices[0].message.content;
+    const analysisText = response.choices[0].message.content || "";
     if (!analysisText) {
       throw new Error("No analysis content received from OpenAI");
     }
