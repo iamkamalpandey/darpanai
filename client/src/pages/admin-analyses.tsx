@@ -838,57 +838,43 @@ export default function AdminAnalyses() {
           </div>
         </div>
 
-        {/* Analyses Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Analyses Grid - Bigger Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {paginatedAnalyses.map((analysis: AnalysisData) => (
-            <Card key={analysis.id} className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
+            <Card key={analysis.id} className="hover:shadow-lg transition-shadow cursor-pointer bg-white/90 backdrop-blur-sm">
+              <CardHeader className="pb-4 p-8">
+                <div className="flex items-start justify-between mb-4">
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-lg font-semibold text-gray-900 truncate">
+                    <CardTitle className="text-xl font-bold text-gray-900 mb-2 break-words">
                       {analysis.fileName}
                     </CardTitle>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-base text-gray-600 font-medium">
                       {analysis.user ? `${analysis.user.firstName} ${analysis.user.lastName}` : 'Unknown User'}
                     </p>
                   </div>
                   <Badge 
                     variant={analysis.analysisType === 'enrollment_analysis' ? 'default' : 'secondary'}
-                    className="ml-2 flex-shrink-0"
+                    className="ml-4 flex-shrink-0 text-sm px-3 py-1"
                   >
                     {analysis.analysisType === 'enrollment_analysis' ? 'Enrollment' : 'Visa'}
                   </Badge>
                 </div>
 
                 {/* Date */}
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <Calendar className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-base text-gray-600 mb-4">
+                  <Calendar className="h-5 w-5" />
                   <span>{format(new Date(analysis.createdAt), "MMM dd, yyyy")}</span>
                 </div>
 
-                {/* Quick Stats */}
-                <div className="flex justify-between items-center pt-2 border-t">
-                  <div className="flex items-center gap-4 text-sm">
-                    {analysis.analysisResults?.analysisScore && (
-                      <div className="flex items-center gap-1">
-                        <TrendingUp className="h-4 w-4 text-blue-500" />
-                        <span className="text-gray-600">Score: {analysis.analysisResults.analysisScore}</span>
-                      </div>
-                    )}
-                    {analysis.analysisResults?.confidence && (
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-gray-600">{Math.round(analysis.analysisResults.confidence * 100)}%</span>
-                      </div>
-                    )}
-                  </div>
+                {/* Action Button Only */}
+                <div className="flex justify-end items-center pt-4 border-t">
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="default"
                     onClick={() => openAnalysisDetails(analysis)}
-                    className="hover:bg-blue-50"
+                    className="hover:bg-blue-50 px-6 py-2"
                   >
-                    <Eye className="h-4 w-4 mr-1" />
+                    <Eye className="h-4 w-4 mr-2" />
                     View
                   </Button>
                 </div>
