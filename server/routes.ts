@@ -334,10 +334,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { documentType } = req.body;
-      if (!documentType || !['i20', 'cas', 'admission_letter', 'offer_letter', 'confirmation_enrollment', 'other'].includes(documentType)) {
+      const validTypes = ['i20', 'cas', 'admission_letter', 'offer_letter', 'confirmation_enrollment', 'enrollment_letter', 'coe', 'visa_letter', 'sponsor_letter', 'financial_guarantee', 'other'];
+      if (!documentType || !validTypes.includes(documentType)) {
         return res.status(400).json({ 
           error: 'Invalid document type',
-          validTypes: ['i20', 'cas', 'admission_letter', 'offer_letter', 'confirmation_enrollment', 'other']
+          validTypes
         });
       }
 
@@ -358,7 +359,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Starting enrollment analysis for user ${user.id}: ${req.file.originalname} (${documentType})`);
 
       // Extract text from document
-      const documentText = await extractTextFromDocument(req.file);
+      const fileExtension = path.extname(req.file.originalname).toLowerCase();
+      const documentText = await extractTextFromDocument(req.file.buffer, fileExtension);
       if (!documentText || documentText.trim().length === 0) {
         return res.status(400).json({ 
           error: 'Could not extract text from document',

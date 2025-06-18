@@ -68,9 +68,14 @@ interface EnrollmentAnalysis {
 const documentTypes = [
   { value: 'i20', label: 'I-20 Form (USA)' },
   { value: 'cas', label: 'CAS Letter (UK)' },
+  { value: 'coe', label: 'COE - Confirmation of Enrollment (Australia)' },
   { value: 'admission_letter', label: 'Admission Letter' },
   { value: 'offer_letter', label: 'Offer Letter' },
   { value: 'confirmation_enrollment', label: 'Enrollment Confirmation' },
+  { value: 'enrollment_letter', label: 'Enrollment Letter' },
+  { value: 'visa_letter', label: 'Visa Support Letter' },
+  { value: 'sponsor_letter', label: 'Sponsorship Letter' },
+  { value: 'financial_guarantee', label: 'Financial Guarantee Letter' },
   { value: 'other', label: 'Other Document' }
 ];
 

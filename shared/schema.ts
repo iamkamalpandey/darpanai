@@ -61,7 +61,7 @@ export const enrollmentAnalyses = pgTable("enrollment_analyses", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
   filename: text("filename").notNull(),
-  documentType: text("document_type").notNull(), // "i20", "cas", "admission_letter", "offer_letter", "confirmation_enrollment", "other"
+  documentType: text("document_type").notNull(), // "i20", "cas", "admission_letter", "offer_letter", "confirmation_enrollment", "enrollment_letter", "coe", "visa_letter", "sponsor_letter", "financial_guarantee", "other"
   originalText: text("original_text").notNull(),
   
   // Core document details
@@ -72,6 +72,11 @@ export const enrollmentAnalyses = pgTable("enrollment_analyses", {
   programLevel: text("program_level"), // undergraduate, graduate, certificate, etc.
   startDate: text("start_date"),
   endDate: text("end_date"),
+  
+  // Geographic information
+  institutionCountry: text("institution_country"),
+  studentCountry: text("student_country"),
+  visaType: text("visa_type"),
   
   // Financial information
   tuitionAmount: text("tuition_amount"),
@@ -434,7 +439,7 @@ export type DocumentChecklistFormData = InsertDocumentChecklist;
 // Enrollment Analysis schemas
 export const insertEnrollmentAnalysisSchema = z.object({
   filename: z.string().min(1, "Filename is required"),
-  documentType: z.enum(["i20", "cas", "admission_letter", "offer_letter", "confirmation_enrollment", "other"]),
+  documentType: z.enum(["i20", "cas", "admission_letter", "offer_letter", "confirmation_enrollment", "enrollment_letter", "coe", "visa_letter", "sponsor_letter", "financial_guarantee", "other"]),
   originalText: z.string().min(1, "Document text is required"),
 });
 
@@ -447,6 +452,11 @@ export const enrollmentAnalysisResponseSchema = z.object({
   programLevel: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
+  
+  // Geographic information
+  institutionCountry: z.string().optional(),
+  studentCountry: z.string().optional(),
+  visaType: z.string().optional(),
   
   // Financial information
   tuitionAmount: z.string().optional(),
