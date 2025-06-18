@@ -35,6 +35,20 @@ export default function AnalysisHub() {
   const [, setLocation] = useLocation();
   const itemsPerPage = 9;
 
+  // Enhanced number formatting for proper display of numerical figures
+  const formatNumericalInfo = (text: string) => {
+    // Enhanced regex to capture various numerical patterns including:
+    // - Years (2023, 2024-2025)
+    // - Duration (2 years, 3-4 years)
+    // - Amounts ($50,000, USD 25,000)
+    // - Percentages (85%, 3.5 GPA)
+    // - Dates (January 2024, 15th March)
+    return text.replace(
+      /(\$[\d,]+(?:\.\d{2})?|USD\s*[\d,]+|€[\d,]+|£[\d,]+|\d+(?:\.\d+)?\s*(?:years?|months?|weeks?|days?)|(?:19|20)\d{2}(?:-(?:19|20)?\d{2})?|\d+(?:\.\d+)?%|\d+(?:\.\d+)?\s*GPA|(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+(?:19|20)?\d{2}|\d{1,2}(?:st|nd|rd|th)\s+(?:January|February|March|April|May|June|July|August|September|October|November|December))/gi,
+      '<span class="font-semibold text-blue-700 bg-blue-50 px-1 rounded">$1</span>'
+    );
+  };
+
   // Reset pagination when filters change
   useEffect(() => {
     setCurrentPage(1);
