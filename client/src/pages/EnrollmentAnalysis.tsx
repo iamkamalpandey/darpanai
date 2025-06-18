@@ -333,6 +333,12 @@ export default function EnrollmentAnalysis() {
                         <p className="text-gray-800">{selectedAnalysis.institutionName}</p>
                       </div>
                     )}
+                    {selectedAnalysis.studentName && (
+                      <div>
+                        <span className="font-medium text-gray-600">Student (from document):</span>
+                        <p className="text-gray-800">{selectedAnalysis.studentName}</p>
+                      </div>
+                    )}
                     {selectedAnalysis.programName && (
                       <div>
                         <span className="font-medium text-gray-600">Program:</span>

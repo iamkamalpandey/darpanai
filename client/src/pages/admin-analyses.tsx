@@ -430,6 +430,8 @@ export default function AdminAnalyses() {
                         // Extract information directly from document analysis
                         const institutionMatch = summary.match(/(?:University|Institute|College|School)\s+[A-Za-z\s]+/i) || 
                                                summary.match(/at\s+([A-Z][A-Za-z\s&]+(?:University|Institute|College|School))/i);
+                        const studentNameMatch = summary.match(/(?:student|name|applicant)[:\s]+([A-Z][a-z]+\s+[A-Z][a-z]+)/i) ||
+                                               summary.match(/\b([A-Z][a-z]+\s+[A-Z][a-z]+)\b(?=\s+(?:has|is|will|was|received|enrolled))/);
                         const programMatch = summary.match(/(?:Bachelor|Master|PhD|Diploma)\s+[A-Za-z\s]+/i) ||
                                            summary.match(/program[:\s]+([A-Za-z\s]+)/i);
                         const levelMatch = summary.match(/\b(?:undergraduate|graduate|bachelor|master|phd|doctoral)\b/i);
@@ -447,6 +449,27 @@ export default function AdminAnalyses() {
                             ) : (
                               <div>
                                 <span className="font-medium text-gray-600">Institution:</span>
+                                <p className="text-gray-500">Not detected in document</p>
+                              </div>
+                            )}
+
+                            {studentNameMatch ? (
+                              <div>
+                                <span className="font-medium text-gray-600">Student (from document):</span>
+                                <p className="text-gray-800 break-words">
+                                  {studentNameMatch[1] || studentNameMatch[0]}
+                                </p>
+                              </div>
+                            ) : selectedAnalysis.analysisResults?.studentName ? (
+                              <div>
+                                <span className="font-medium text-gray-600">Student (from document):</span>
+                                <p className="text-gray-800 break-words">
+                                  {selectedAnalysis.analysisResults.studentName}
+                                </p>
+                              </div>
+                            ) : (
+                              <div>
+                                <span className="font-medium text-gray-600">Student:</span>
                                 <p className="text-gray-500">Not detected in document</p>
                               </div>
                             )}
