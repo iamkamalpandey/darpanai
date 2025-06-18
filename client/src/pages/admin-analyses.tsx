@@ -380,7 +380,7 @@ export default function AdminAnalyses() {
                           className="hover:bg-blue-50"
                         >
                           <Eye className="h-4 w-4 mr-1" />
-                          View Complete Analysis
+                          View Report
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -405,154 +405,179 @@ export default function AdminAnalyses() {
           </CardContent>
         </Card>
 
-        {/* Complete Analysis Details Dialog */}
+        {/* Analysis Reports Dialog */}
         <Dialog open={analysisDetailsOpen} onOpenChange={setAnalysisDetailsOpen}>
           <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden">
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold">Complete Original Analysis Report</DialogTitle>
-              <DialogDescription>
-                Full unmodified AI-generated analysis data for {selectedAnalysis?.fileName} by {selectedAnalysis?.user?.firstName} {selectedAnalysis?.user?.lastName}
+              <DialogTitle className="text-2xl font-semibold text-gray-900">Reports</DialogTitle>
+              <DialogDescription className="text-gray-600">
+                Analysis report for {selectedAnalysis?.fileName} by {selectedAnalysis?.user?.firstName} {selectedAnalysis?.user?.lastName}
               </DialogDescription>
             </DialogHeader>
             
             {selectedAnalysis && (
               <ScrollArea className="h-[80vh] w-full">
                 <div className="space-y-6 pr-4">
-                  {/* Original Analysis Summary */}
+                  {/* Analysis Summary */}
                   {selectedAnalysis.analysisResults?.summary && (
-                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                      <h3 className="font-semibold text-blue-900 mb-3 flex items-center">
-                        <FileText className="h-5 w-5 mr-2" />
-                        Original AI Analysis Summary
-                      </h3>
-                      <div className="bg-white p-4 rounded border border-blue-100">
-                        <p className="text-gray-800 leading-relaxed whitespace-pre-wrap font-mono text-sm">
-                          {selectedAnalysis.analysisResults.summary}
-                        </p>
-                      </div>
-                    </div>
+                    <Card className="border-l-4 border-l-blue-500">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                          Analysis Summary
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                            {selectedAnalysis.analysisResults.summary}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
                   )}
 
-                  {/* Complete Rejection Reasons */}
+                  {/* Rejection Reasons */}
                   {selectedAnalysis.analysisResults?.rejectionReasons && selectedAnalysis.analysisResults.rejectionReasons.length > 0 && (
-                    <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                      <h3 className="font-semibold text-red-900 mb-3 flex items-center">
-                        <AlertTriangle className="h-5 w-5 mr-2" />
-                        Identified Rejection Reasons ({selectedAnalysis.analysisResults.rejectionReasons.length})
-                      </h3>
-                      <div className="space-y-3">
-                        {selectedAnalysis.analysisResults.rejectionReasons.map((reason, idx) => (
-                          <div key={idx} className="bg-white p-4 rounded border border-red-100">
-                            <div className="flex items-start justify-between mb-2">
-                              <h4 className="font-medium text-red-800">{reason.title}</h4>
-                              {(reason as any).category && (
-                                <Badge variant="outline" className="text-xs">
-                                  {formatCategoryName((reason as any).category)}
-                                </Badge>
-                              )}
-                              {(reason as any).severity && (
-                                <Badge variant={getCategoryBadgeVariant((reason as any).severity)} className="text-xs">
-                                  {(reason as any).severity}
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono">
-                              {reason.description}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Complete Recommendations */}
-                  {selectedAnalysis.analysisResults?.recommendations && selectedAnalysis.analysisResults.recommendations.length > 0 && (
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                      <h3 className="font-semibold text-green-900 mb-3 flex items-center">
-                        <CheckCircle className="h-5 w-5 mr-2" />
-                        AI-Generated Recommendations ({selectedAnalysis.analysisResults.recommendations.length})
-                      </h3>
-                      <div className="space-y-3">
-                        {selectedAnalysis.analysisResults.recommendations.map((rec, idx) => (
-                          <div key={idx} className="bg-white p-4 rounded border border-green-100">
-                            <h4 className="font-medium text-green-800 mb-2">{rec.title}</h4>
-                            <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono">
-                              {rec.description}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Complete Next Steps */}
-                  {selectedAnalysis.analysisResults?.nextSteps && (
-                    <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                      <h3 className="font-semibold text-purple-900 mb-3 flex items-center">
-                        <TrendingUp className="h-5 w-5 mr-2" />
-                        Suggested Next Steps
-                      </h3>
-                      <div className="bg-white p-4 rounded border border-purple-100">
-                        {Array.isArray(selectedAnalysis.analysisResults.nextSteps) ? (
-                          <div className="space-y-3">
-                            {selectedAnalysis.analysisResults.nextSteps.map((step, idx) => (
-                              <div key={idx} className="flex items-start space-x-3">
-                                <span className="bg-purple-100 text-purple-800 text-xs font-semibold px-2 py-1 rounded-full flex-shrink-0">
-                                  {idx + 1}
-                                </span>
-                                <div className="flex-1">
-                                  {typeof step === 'string' ? (
-                                    <p className="text-gray-700 text-sm leading-relaxed font-mono">{step}</p>
-                                  ) : (
-                                    <div>
-                                      <h4 className="font-medium text-purple-800 text-sm">{(step as any).title || (step as any).step}</h4>
-                                      <p className="text-gray-700 text-sm leading-relaxed mt-1 font-mono">
-                                        {(step as any).description}
-                                      </p>
-                                    </div>
+                    <Card className="border-l-4 border-l-red-500">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                          <AlertTriangle className="h-5 w-5 text-red-600" />
+                          Rejection Reasons ({selectedAnalysis.analysisResults.rejectionReasons.length})
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {selectedAnalysis.analysisResults.rejectionReasons.map((reason, idx) => (
+                            <div key={idx} className="bg-gray-50 p-4 rounded-lg border">
+                              <div className="flex items-start justify-between mb-3">
+                                <h4 className="font-medium text-gray-900">{reason.title}</h4>
+                                <div className="flex gap-2">
+                                  {(reason as any).category && (
+                                    <Badge variant="outline" className="text-xs">
+                                      {formatCategoryName((reason as any).category)}
+                                    </Badge>
+                                  )}
+                                  {(reason as any).severity && (
+                                    <Badge variant={getCategoryBadgeVariant((reason as any).severity)} className="text-xs">
+                                      {(reason as any).severity}
+                                    </Badge>
                                   )}
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono">
-                            {selectedAnalysis.analysisResults.nextSteps}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                {reason.description}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Recommendations */}
+                  {selectedAnalysis.analysisResults?.recommendations && selectedAnalysis.analysisResults.recommendations.length > 0 && (
+                    <Card className="border-l-4 border-l-green-500">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                          <CheckCircle className="h-5 w-5 text-green-600" />
+                          Recommendations ({selectedAnalysis.analysisResults.recommendations.length})
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {selectedAnalysis.analysisResults.recommendations.map((rec, idx) => (
+                            <div key={idx} className="bg-gray-50 p-4 rounded-lg border">
+                              <h4 className="font-medium text-gray-900 mb-2">{rec.title}</h4>
+                              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                {rec.description}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Next Steps */}
+                  {selectedAnalysis.analysisResults?.nextSteps && (
+                    <Card className="border-l-4 border-l-purple-500">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                          <TrendingUp className="h-5 w-5 text-purple-600" />
+                          Next Steps
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          {Array.isArray(selectedAnalysis.analysisResults.nextSteps) ? (
+                            <div className="space-y-4">
+                              {selectedAnalysis.analysisResults.nextSteps.map((step, idx) => (
+                                <div key={idx} className="flex items-start gap-3">
+                                  <span className="bg-purple-100 text-purple-700 text-sm font-medium px-2.5 py-1 rounded-full flex-shrink-0 mt-0.5">
+                                    {idx + 1}
+                                  </span>
+                                  <div className="flex-1">
+                                    {typeof step === 'string' ? (
+                                      <p className="text-gray-700 leading-relaxed">{step}</p>
+                                    ) : (
+                                      <div>
+                                        <h4 className="font-medium text-gray-900 mb-1">{(step as any).title || (step as any).step}</h4>
+                                        <p className="text-gray-700 leading-relaxed">
+                                          {(step as any).description}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                              {selectedAnalysis.analysisResults.nextSteps}
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
                   )}
 
                   {/* Analysis Metadata */}
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
-                      <Info className="h-5 w-5 mr-2" />
-                      Analysis Metadata
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="font-medium text-gray-700">Document:</span>
-                        <p className="text-gray-600">{selectedAnalysis.fileName}</p>
+                  <Card className="border-l-4 border-l-gray-500">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <Info className="h-5 w-5 text-gray-600" />
+                        Document Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <span className="text-sm font-medium text-gray-500">Document Name</span>
+                          <p className="text-gray-900 font-medium">{selectedAnalysis.fileName}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-sm font-medium text-gray-500">Analysis Date</span>
+                          <p className="text-gray-900">{format(new Date(selectedAnalysis.createdAt), "MMM dd, yyyy 'at' h:mm a")}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-sm font-medium text-gray-500">User</span>
+                          <p className="text-gray-900">
+                            {selectedAnalysis.user?.firstName} {selectedAnalysis.user?.lastName}
+                            <span className="text-gray-500 ml-1">(@{selectedAnalysis.user?.username})</span>
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-sm font-medium text-gray-500">Privacy Setting</span>
+                          <div>
+                            <Badge variant={selectedAnalysis.isPublic ? "default" : "secondary"}>
+                              {selectedAnalysis.isPublic ? 'Public' : 'Private'}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-medium text-gray-700">Analysis Date:</span>
-                        <p className="text-gray-600">{format(new Date(selectedAnalysis.createdAt), "MMM dd, yyyy 'at' h:mm a")}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-700">User:</span>
-                        <p className="text-gray-600">
-                          {selectedAnalysis.user?.firstName} {selectedAnalysis.user?.lastName} (@{selectedAnalysis.user?.username})
-                        </p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-700">Privacy Setting:</span>
-                        <Badge variant={selectedAnalysis.isPublic ? "default" : "secondary"}>
-                          {selectedAnalysis.isPublic ? 'Public' : 'Private'}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </ScrollArea>
             )}
