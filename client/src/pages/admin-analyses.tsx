@@ -533,53 +533,89 @@ export default function AdminAnalyses() {
                       {(() => {
                         const summary = selectedAnalysis.analysisResults?.summary || '';
                         
-                        // Extract financial information from the analysis summary
-                        const tuitionMatch = summary.match(/tuition[^$]*\$[A-Z]{0,3}\s*[\d,]+(?:\.\d{2})?[^$]*(?:AUD|USD|CAD|GBP|EUR)?/i);
-                        const scholarshipMatch = summary.match(/scholarship[^$%]*(?:\d+%|%\d+|\$[A-Z]{0,3}\s*[\d,]+(?:\.\d{2})?)[^.!?]*/i);
-                        const totalMatch = summary.match(/total[^$]*\$[A-Z]{0,3}\s*[\d,]+(?:\.\d{2})?[^$]*(?:AUD|USD|CAD|GBP|EUR)?/i);
-                        
+                        // Extract financial information from document analysis
+                        const tuitionMatch = summary.match(/tuition\s+fees?[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+(?:per\s+(?:year|semester|term)|annually|yearly)?)/gi) ||
+                                            summary.match(/fees?[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+(?:per\s+(?:year|semester|term)|annually|yearly)?)/gi);
+                        const healthCoverMatch = summary.match(/health\s+cover[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+)/gi);
+                        const totalCostMatch = summary.match(/total\s+cost[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+)/gi);
+                        const scholarshipMatch = summary.match(/scholarship[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+)/gi);
+                        const financialAmounts = summary.match(/[A-Z$€£¥₹₽]+\s*[\d,]+(?:\.\d{2})?\s*(?:per\s+(?:year|semester|term)|annually|yearly)?/gi);
+
+                        const hasFinancialInfo = tuitionMatch || healthCoverMatch || totalCostMatch || scholarshipMatch || financialAmounts;
+
+                        if (!hasFinancialInfo) {
+                          return (
+                            <div className="text-center py-8">
+                              <DollarSign className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                              <p className="text-gray-500">No specific financial information detected in this analysis.</p>
+                            </div>
+                          );
+                        }
+
                         return (
                           <>
-                            {tuitionMatch ? (
+                            {tuitionMatch && (
                               <div>
-                                <span className="font-medium text-gray-600">Tuition:</span>
-                                <div 
-                                  className="text-gray-800 break-words"
-                                  dangerouslySetInnerHTML={{ 
-                                    __html: formatNumericalInfo(tuitionMatch[0]) 
-                                  }}
-                                />
+                                <span className="font-medium text-gray-600">Tuition Fees:</span>
+                                <div className="text-gray-800 mt-1">
+                                  {tuitionMatch.map((match, index) => (
+                                    <div key={index} className="inline-block bg-blue-50 text-blue-700 px-2 py-1 rounded mr-2 mb-1">
+                                      {match.replace(/tuition\s+fees?[:\s]*/gi, '').trim()}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
-                            ) : null}
+                            )}
                             
-                            {scholarshipMatch ? (
+                            {healthCoverMatch && (
+                              <div>
+                                <span className="font-medium text-gray-600">Health Cover:</span>
+                                <div className="text-gray-800 mt-1">
+                                  {healthCoverMatch.map((match, index) => (
+                                    <div key={index} className="inline-block bg-blue-50 text-blue-700 px-2 py-1 rounded mr-2 mb-1">
+                                      {match.replace(/health\s+cover[:\s]*/gi, '').trim()}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {scholarshipMatch && (
                               <div>
                                 <span className="font-medium text-gray-600">Scholarship:</span>
-                                <div 
-                                  className="text-gray-800 break-words"
-                                  dangerouslySetInnerHTML={{ 
-                                    __html: formatNumericalInfo(scholarshipMatch[0]) 
-                                  }}
-                                />
+                                <div className="text-gray-800 mt-1">
+                                  {scholarshipMatch.map((match, index) => (
+                                    <div key={index} className="inline-block bg-blue-50 text-blue-700 px-2 py-1 rounded mr-2 mb-1">
+                                      {match.replace(/scholarship[:\s]*/gi, '').trim()}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
-                            ) : null}
-                            
-                            {totalMatch ? (
+                            )}
+
+                            {totalCostMatch && (
                               <div>
                                 <span className="font-medium text-gray-600">Total Cost:</span>
-                                <div 
-                                  className="text-gray-800 break-words"
-                                  dangerouslySetInnerHTML={{ 
-                                    __html: formatNumericalInfo(totalMatch[0]) 
-                                  }}
-                                />
+                                <div className="text-gray-800 mt-1">
+                                  {totalCostMatch.map((match, index) => (
+                                    <div key={index} className="inline-block bg-blue-50 text-blue-700 px-2 py-1 rounded mr-2 mb-1 font-semibold">
+                                      {match.replace(/total\s+cost[:\s]*/gi, '').trim()}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
-                            ) : null}
-                            
-                            {!tuitionMatch && !scholarshipMatch && !totalMatch && (
-                              <div className="text-gray-500 text-center py-4">
-                                <DollarSign className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                                <p>No specific financial information detected in this analysis.</p>
+                            )}
+
+                            {financialAmounts && !tuitionMatch && !healthCoverMatch && !totalCostMatch && (
+                              <div>
+                                <span className="font-medium text-gray-600">Financial Information:</span>
+                                <div className="text-gray-800 mt-1">
+                                  {financialAmounts.slice(0, 5).map((amount, index) => (
+                                    <div key={index} className="inline-block bg-blue-50 text-blue-700 px-2 py-1 rounded mr-2 mb-1">
+                                      {amount.trim()}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             )}
                           </>
