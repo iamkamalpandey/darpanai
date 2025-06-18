@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Pagination } from '@/components/Pagination';
-import { EnhancedFilters, FilterOptions, searchInText, filterByDateRange } from '@/components/EnhancedFilters';
+import { EnhancedFilters, FilterOptions, filterByDateRange } from '@/components/EnhancedFilters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -71,13 +71,14 @@ export default function AnalysisHub() {
     let filtered = allAnalyses;
 
     // Text search across multiple fields
-    if (filters.searchTerm) {
+    if (filters.searchTerm && filters.searchTerm.trim()) {
+      const searchTerm = filters.searchTerm.trim().toLowerCase();
       filtered = filtered.filter(analysis => 
-        searchInText(analysis.filename, filters.searchTerm, false) ||
-        searchInText(analysis.summary, filters.searchTerm, false) ||
-        searchInText(analysis.institutionCountry, filters.searchTerm, false) ||
-        searchInText(analysis.studentCountry, filters.searchTerm, false) ||
-        searchInText(analysis.visaType, filters.searchTerm, false)
+        analysis.filename.toLowerCase().includes(searchTerm) ||
+        (analysis.summary && analysis.summary.toLowerCase().includes(searchTerm)) ||
+        (analysis.institutionCountry && analysis.institutionCountry.toLowerCase().includes(searchTerm)) ||
+        (analysis.studentCountry && analysis.studentCountry.toLowerCase().includes(searchTerm)) ||
+        (analysis.visaType && analysis.visaType.toLowerCase().includes(searchTerm))
       );
     }
 
