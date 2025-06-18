@@ -367,10 +367,10 @@ export default function AdminAnalyses() {
                           )}
                           
                           {/* Show key findings for enrollment analysis */}
-                          {analysis.analysisType === 'enrollment_analysis' && analysis.analysisResults?.keyFindings && (
+                          {analysis.analysisType === 'enrollment_analysis' && (analysis.analysisResults as any)?.keyFindings && (
                             <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                              {Array.isArray(analysis.analysisResults.keyFindings) 
-                                ? analysis.analysisResults.keyFindings.length 
+                              {Array.isArray((analysis.analysisResults as any).keyFindings) 
+                                ? (analysis.analysisResults as any).keyFindings.length 
                                 : 0} key finding(s) identified
                             </div>
                           )}
@@ -528,17 +528,17 @@ export default function AdminAnalyses() {
                   )}
 
                   {/* Key Findings (Enrollment Analysis) */}
-                  {selectedAnalysis.analysisType === 'enrollment_analysis' && selectedAnalysis.analysisResults?.keyFindings && Array.isArray(selectedAnalysis.analysisResults.keyFindings) && selectedAnalysis.analysisResults.keyFindings.length > 0 && (
+                  {selectedAnalysis.analysisType === 'enrollment_analysis' && (selectedAnalysis.analysisResults as any)?.keyFindings && Array.isArray((selectedAnalysis.analysisResults as any).keyFindings) && (selectedAnalysis.analysisResults as any).keyFindings.length > 0 && (
                     <Card className="border-l-4 border-l-blue-500">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                           <FileText className="h-5 w-5 text-blue-600" />
-                          Key Findings ({selectedAnalysis.analysisResults.keyFindings.length})
+                          Key Findings ({(selectedAnalysis.analysisResults as any).keyFindings.length})
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
-                          {selectedAnalysis.analysisResults.keyFindings.map((finding: any, idx: number) => (
+                          {(selectedAnalysis.analysisResults as any).keyFindings.map((finding: any, idx: number) => (
                             <div key={idx} className="bg-gray-50 p-4 rounded-lg border">
                               <div className="flex items-start justify-between mb-2">
                                 <h4 className="font-medium text-gray-900">{finding.title}</h4>
@@ -557,17 +557,17 @@ export default function AdminAnalyses() {
                   )}
 
                   {/* Missing Information (Enrollment Analysis) */}
-                  {selectedAnalysis.analysisType === 'enrollment_analysis' && selectedAnalysis.analysisResults?.missingInformation && Array.isArray(selectedAnalysis.analysisResults.missingInformation) && selectedAnalysis.analysisResults.missingInformation.length > 0 && (
+                  {selectedAnalysis.analysisType === 'enrollment_analysis' && (selectedAnalysis.analysisResults as any)?.missingInformation && Array.isArray((selectedAnalysis.analysisResults as any).missingInformation) && (selectedAnalysis.analysisResults as any).missingInformation.length > 0 && (
                     <Card className="border-l-4 border-l-orange-500">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                           <AlertTriangle className="h-5 w-5 text-orange-600" />
-                          Missing Information ({selectedAnalysis.analysisResults.missingInformation.length})
+                          Missing Information ({(selectedAnalysis.analysisResults as any).missingInformation.length})
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
-                          {selectedAnalysis.analysisResults.missingInformation.map((missing: any, idx: number) => (
+                          {(selectedAnalysis.analysisResults as any).missingInformation.map((missing: any, idx: number) => (
                             <div key={idx} className="bg-gray-50 p-4 rounded-lg border">
                               <h4 className="font-medium text-gray-900 mb-2">{missing.field}</h4>
                               <p className="text-gray-700 leading-relaxed mb-2">
