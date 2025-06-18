@@ -235,7 +235,7 @@ export default function AdminDocumentChecklists() {
       csv += `${item.order || ''},"${item.name}","${item.description}","${item.category}","${item.required ? 'Yes' : 'No'}","${tips}"\n`;
     });
     
-    if (checklist.importantNotes && checklist.importantNotes.length > 0) {
+    if (checklist.importantNotes && Array.isArray(checklist.importantNotes) && checklist.importantNotes.length > 0) {
       csv += '\nImportant Notes:\n';
       checklist.importantNotes.forEach((note: string, index: number) => {
         csv += `${index + 1},"${note}"\n`;
@@ -474,7 +474,7 @@ export default function AdminDocumentChecklists() {
                           <Clock className="h-4 w-4 text-yellow-600 flex-shrink-0" />
                           <div className="min-w-0 overflow-hidden">
                             <div className="text-xs text-yellow-600 font-medium">Processing</div>
-                            <div className="text-sm font-bold text-yellow-800 truncate">{checklist.estimatedProcessingTime}</div>
+                            <div className="text-sm font-bold text-yellow-800 truncate">{String(checklist.estimatedProcessingTime)}</div>
                           </div>
                         </div>
                       </div>
@@ -486,7 +486,7 @@ export default function AdminDocumentChecklists() {
                           <DollarSign className="h-4 w-4 text-green-600 flex-shrink-0" />
                           <div className="min-w-0 overflow-hidden">
                             <div className="text-xs text-green-600 font-medium">Total Fees</div>
-                            <div className="text-sm font-bold text-green-800 truncate">{checklist.totalFees}</div>
+                            <div className="text-sm font-bold text-green-800 truncate">{String(checklist.totalFees)}</div>
                           </div>
                         </div>
                       </div>
@@ -507,7 +507,7 @@ export default function AdminDocumentChecklists() {
                   </div>
 
                   {/* Important Notes Preview */}
-                  {checklist.importantNotes && checklist.importantNotes.length > 0 && (
+                  {checklist.importantNotes && Array.isArray(checklist.importantNotes) && checklist.importantNotes.length > 0 && (
                     <div className="bg-orange-50 p-3 rounded-lg border border-orange-200 min-w-0 overflow-hidden">
                       <div className="text-xs text-orange-600 font-medium mb-1 truncate">Important Notes</div>
                       <div className="text-sm text-orange-800 line-clamp-2 break-words">
