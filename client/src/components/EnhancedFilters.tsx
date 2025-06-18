@@ -119,13 +119,13 @@ export function EnhancedFilters({
   placeholder = "Search..."
 }: EnhancedFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [searchDebounce, setSearchDebounce] = useState(filters.searchTerm || "");
+  const [searchDebounce, setSearchDebounce] = useState(filters.search || "");
 
   // Debounced search to reduce API calls
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (searchDebounce !== filters.searchTerm) {
-        onFiltersChange({ ...filters, searchTerm: searchDebounce });
+      if (searchDebounce !== filters.search) {
+        onFiltersChange({ ...filters, search: searchDebounce });
       }
     }, 300);
 
