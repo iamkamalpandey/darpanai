@@ -237,7 +237,7 @@ export function EnhancedFilters({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by title, description, filename..."
+              placeholder={placeholder}
               value={searchDebounce}
               onChange={(e) => setSearchDebounce(e.target.value)}
               className="pl-10 pr-10"
@@ -313,7 +313,7 @@ export function EnhancedFilters({
           <CollapsibleContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               
-              {config.showCategory && (
+              {config?.showCategory && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Category</label>
                   <Select
@@ -334,7 +334,7 @@ export function EnhancedFilters({
                 </div>
               )}
 
-              {config.showCountry && (
+              {config?.showCountry && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Country</label>
                   <Select
@@ -355,7 +355,7 @@ export function EnhancedFilters({
                 </div>
               )}
 
-              {config.showVisaType && (
+              {config?.showVisaType && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Visa Type</label>
                   <Select
@@ -376,7 +376,7 @@ export function EnhancedFilters({
                 </div>
               )}
 
-              {config.showUserType && (
+              {config?.showUserType && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">User Type</label>
                   <Select
@@ -397,7 +397,7 @@ export function EnhancedFilters({
                 </div>
               )}
 
-              {config.showStatus && (
+              {config?.showStatus && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Status</label>
                   <Select
@@ -418,7 +418,7 @@ export function EnhancedFilters({
                 </div>
               )}
 
-              {config.showDateRange && (
+              {config?.showDateRange && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Date Range</label>
                   <Select
@@ -439,7 +439,7 @@ export function EnhancedFilters({
                 </div>
               )}
 
-              {config.showAnalysisType && (
+              {config?.showAnalysisType && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Analysis Type</label>
                   <Select
@@ -460,7 +460,7 @@ export function EnhancedFilters({
                 </div>
               )}
 
-              {config.showSeverity && (
+              {config?.showSeverity && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Severity</label>
                   <Select
@@ -481,7 +481,7 @@ export function EnhancedFilters({
                 </div>
               )}
 
-              {config.showPublicFilter && (
+              {config?.showPublicFilter && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Visibility</label>
                   <Select
@@ -509,7 +509,7 @@ export function EnhancedFilters({
               )}
 
               {/* Custom Filters */}
-              {config.customFilters?.map((customFilter) => (
+              {config?.customFilters?.map((customFilter) => (
                 <div key={customFilter.key} className="space-y-2">
                   <label className="text-sm font-medium">{customFilter.label}</label>
                   <Select
