@@ -52,6 +52,8 @@ interface FileRequest extends Request {
   file?: Express.Multer.File;
 }
 
+
+
 // Set up multer for file upload
 const upload = multer({
   storage: multer.memoryStorage(),
