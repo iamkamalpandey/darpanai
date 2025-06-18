@@ -65,6 +65,7 @@ interface ConsultationFormProps {
   buttonVariant?: "default" | "secondary" | "outline" | "link";
   buttonSize?: "default" | "sm" | "lg";
   subject?: string;
+  source?: string;
   onSuccess?: () => void;
 }
 
@@ -74,6 +75,7 @@ export function ConsultationForm({
   buttonVariant = "default",
   buttonSize = "default",
   subject = "",
+  source = "unknown",
   onSuccess
 }: ConsultationFormProps) {
   const { toast } = useToast();
@@ -98,10 +100,11 @@ export function ConsultationForm({
 
   const mutation = useMutation({
     mutationFn: async (data: FormValues) => {
-      // Convert Date to ISO string for the API
+      // Convert Date to ISO string for the API and add source tracking
       const apiData = {
         ...data,
-        requestedDate: data.requestedDate.toISOString()
+        requestedDate: data.requestedDate.toISOString(),
+        source: source // Track where the consultation was booked from
       };
       const res = await apiRequest("POST", "/api/appointments", apiData);
       return res.json();

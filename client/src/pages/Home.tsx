@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useEffect } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { ConsultationForm } from "@/components/ConsultationForm";
+import { CustomCTA } from "@/components/CustomCTA";
 import { SystemAnnouncement } from "@/components/SystemAnnouncement";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,7 +54,7 @@ export default function Home() {
         {/* System Announcement */}
         <SystemAnnouncement />
         
-        {/* Hero Section - Lead Generation Focused */}
+        {/* Hero Section - Personalized Welcome */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl p-4 sm:p-6 lg:p-8 border border-blue-100">
           <div className="max-w-4xl mx-auto">
             <div className="text-center">
@@ -71,6 +72,7 @@ export default function Home() {
                   buttonSize="lg"
                   buttonText="Book Expert Consultation"
                   className="text-base sm:text-lg px-8 sm:px-12 py-4 shadow-lg hover:shadow-xl transition-all duration-300"
+                  source="dashboard-hero"
                 />
               </div>
 
@@ -261,7 +263,11 @@ export default function Home() {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-1">Recent Analysis</h3>
                 <div className="text-lg font-semibold text-green-600 mb-2">
-                  {recentAnalyses.length > 0 ? recentAnalyses[0]?.fileName.substring(0, 20) + '...' : 'No analyses yet'}
+                  {recentAnalyses.length > 0 && recentAnalyses[0]?.fileName 
+                    ? recentAnalyses[0].fileName.length > 20 
+                      ? recentAnalyses[0].fileName.substring(0, 20) + '...'
+                      : recentAnalyses[0].fileName
+                    : 'No analyses yet'}
                 </div>
                 <Link href="/my-analysis">
                   <Button variant="outline" size="sm" className="text-xs">
@@ -284,6 +290,7 @@ export default function Home() {
                   buttonSize="sm"
                   buttonText="Book Now"
                   className="text-xs px-4 py-2"
+                  source="dashboard-overview"
                 />
               </div>
             </div>
@@ -374,6 +381,32 @@ export default function Home() {
           </Card>
         )}
 
+        {/* Customized CTA Section for Dashboard */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-white text-center">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-4">
+              Ready to Take the Next Step?
+            </h2>
+            <p className="text-blue-100 mb-6 text-sm sm:text-base">
+              Join thousands of successful students who used our expert guidance to achieve their study abroad dreams. Get personalized consultation tailored to your specific situation.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <ConsultationForm 
+                buttonVariant="default" 
+                buttonSize="lg"
+                buttonText="Schedule Expert Consultation"
+                className="bg-white text-blue-600 hover:bg-gray-50 text-base px-8 py-3 shadow-lg"
+                source="dashboard-cta"
+              />
+              <div className="flex items-center gap-2 text-sm text-blue-100">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Free 15-minute consultation available</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Support Section */}
         <div className="text-center space-y-4 max-w-2xl mx-auto">
           <div className="space-y-2">
@@ -392,81 +425,6 @@ export default function Home() {
               <span>Email support included</span>
             </div>
           </div>
-        </div>
-      </div>
-    </DashboardLayout>
-  );
-}
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 w-full min-w-0">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Upload className="h-8 w-8 text-blue-600" />
-                </div>
-                <h3 className="font-semibold mb-2">1. Upload Document</h3>
-                <p className="text-sm text-gray-600">
-                  Upload your visa rejection letter in PDF, JPG, or PNG format
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FileText className="h-8 w-8 text-green-600" />
-                </div>
-                <h3 className="font-semibold mb-2">2. AI Analysis</h3>
-                <p className="text-sm text-gray-600">
-                  Our advanced AI identifies specific rejection reasons and patterns
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Award className="h-8 w-8 text-purple-600" />
-                </div>
-                <h3 className="font-semibold mb-2">3. Expert Guidance</h3>
-                <p className="text-sm text-gray-600">
-                  Get personalized recommendations and optional expert consultation
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Final CTA Section */}
-        <div className="bg-gray-50 rounded-xl p-8 text-center border">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Ready to Improve Your Visa Application?
-          </h2>
-          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Join thousands of successful applicants who used our AI-powered analysis and expert guidance to strengthen their visa applications.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {remainingAnalyses > 0 ? (
-              <Link href="/analyzer">
-                <Button size="lg" className="px-8">
-                  <Upload className="h-5 w-5 mr-2" />
-                  Start Free Analysis
-                </Button>
-              </Link>
-            ) : (
-              <ConsultationForm 
-                buttonSize="lg"
-                buttonText="Book Expert Consultation"
-                className="px-8"
-              />
-            )}
-            <ConsultationForm 
-              buttonVariant="outline" 
-              buttonSize="lg"
-              buttonText="Schedule Consultation"
-              className="px-8"
-            />
-          </div>
-          
-          <p className="text-sm text-gray-500 mt-4">
-            No credit card required • Secure & confidential • Expert support available
-          </p>
         </div>
       </div>
     </DashboardLayout>
