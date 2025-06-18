@@ -101,7 +101,7 @@ export async function analyzeEnrollmentDocument(
     const truncatedText = truncateText(documentText);
     
     // Create comprehensive prompt for enrollment document analysis
-    const prompt = `You are an expert international education counselor and visa specialist. Analyze this ${documentType} enrollment document and provide comprehensive insights including country-specific visa requirements and institutional details.
+    const prompt = `You are an expert international education counselor and visa specialist. Analyze this ${documentType} enrollment document and extract ALL available information including financial details, scholarship terms, health cover arrangements, visa requirements, and compliance obligations.
 
 Document Type: ${documentType.toUpperCase().replace('_', ' ')}
 Filename: ${filename}
@@ -109,28 +109,41 @@ Filename: ${filename}
 Document Content:
 ${truncatedText}
 
+Extract every detail present in this document. For CoE documents, pay special attention to:
+- All financial amounts (tuition fees, pre-paid amounts, total costs, scholarships)
+- Student health cover (OSHC) details including provider, dates, and coverage type
+- Scholarship terms, conditions, and percentage discounts
+- Important deadlines and compliance requirements
+- Visa-related information and obligations
+- Institution contact details and course codes
+- English language test requirements and scores
+
 Please analyze this document thoroughly and provide a JSON response with the following structure:
 
 {
-  "institutionName": "string (full institution name)",
-  "studentName": "string (student full name)",
-  "studentId": "string (student ID/number)",
-  "programName": "string (complete program/course name)",
-  "programLevel": "string (undergraduate/graduate/masters/phd/certificate/diploma)",
-  "startDate": "string (program start date - format as readable date)",
+  "institutionName": "string (full institution name with trading name if different)",
+  "studentName": "string (student full name from given names and family name)",
+  "studentId": "string (provider student ID/number)",
+  "programName": "string (complete program/course name with course code)",
+  "programLevel": "string (bachelor degree/masters/phd/certificate/diploma)",
+  "startDate": "string (course start date - format as readable date)",
   "endDate": "string (program end date - format as readable date)",
   "institutionCountry": "string (country where institution is located)",
   "studentCountry": "string (student's country of origin if mentioned)",
   "visaType": "string (relevant visa type/category for this program)",
-  "tuitionAmount": "string (tuition fees amount)",
+  "tuitionAmount": "string (tuition fees amount with currency)",
   "currency": "string (currency code - USD, GBP, AUD, CAD, etc)",
-  "scholarshipAmount": "string (scholarship amount if any)",
+  "scholarshipAmount": "string (scholarship amount and percentage if any)",
   "totalCost": "string (total program cost including all fees)",
-  "summary": "string (clear, non-technical summary of the document)",
+  "healthCover": "string (OSHC details including provider, dates, and coverage type)",
+  "englishTestScore": "string (English test type, score, and date if mentioned)",
+  "institutionContact": "string (phone, email, and other contact details)",
+  "visaObligations": "string (important visa-related requirements and obligations)",
+  "summary": "string (comprehensive summary including all financial details, scholarship terms, health cover arrangements, compliance requirements, deadlines, and key obligations from the document)",
   "keyFindings": [
     {
-      "title": "string",
-      "description": "string",
+      "title": "string (e.g., 'VU Block Model International Scholarship Awarded', 'OSHC Coverage Arranged', 'English Requirements Met')",
+      "description": "string (detailed explanation of the finding including specific amounts, dates, and conditions)",
       "importance": "high|medium|low"
     }
   ],
@@ -143,17 +156,17 @@ Please analyze this document thoroughly and provide a JSON response with the fol
   ],
   "recommendations": [
     {
-      "title": "string",
-      "description": "string (actionable advice)",
+      "title": "string (specific actionable recommendations)",
+      "description": "string (detailed advice including deadlines, requirements, and compliance obligations)",
       "priority": "urgent|important|suggested",
       "category": "documentation|financial|academic|visa|preparation"
     }
   ],
   "nextSteps": [
     {
-      "step": "string",
-      "description": "string (detailed explanation)",
-      "deadline": "string (if applicable)",
+      "step": "string (specific action required)",
+      "description": "string (detailed explanation including how to comply with ESOS Act, maintain enrollment, and meet visa obligations)",
+      "deadline": "string (specific dates like course start date, OSHC coverage dates)",
       "category": "immediate|short_term|long_term"
     }
   ],
@@ -182,7 +195,19 @@ Guidelines:
 - Consider country-specific academic and immigration regulations
 - Provide financial planning advice relevant to the destination country
 - Include insights about study permit requirements, work authorization, and post-graduation options
-- Analyze if the document meets visa application requirements for the identified countries`;
+- Analyze if the document meets visa application requirements for the identified countries
+
+For CoE documents specifically, extract and highlight:
+- All financial amounts (Initial Pre-Paid Tuition Fee, Other Pre-Paid Non-Tuition Fee, Total Tuition Fee)
+- Scholarship details including percentage discount, terms, and conditions (e.g., "20% off first two semesters")
+- OSHC coverage details including provider name, coverage type, start and end dates
+- English test requirements including type, score, and test date
+- Course codes, CRICOS registration, and provider details
+- Important compliance requirements under ESOS Act 2000 and National Code 2018
+- Student details including Provider Student ID, nationality, and country of birth
+- Key dates including course start/end dates and OSHC coverage periods
+
+Extract ALL available information from the document to provide complete analysis for international students. Include all numerical amounts, percentages, dates, contact information, and specific requirements found in the document.`;
 
     console.log(`Starting OpenAI analysis for ${documentType}: ${filename}`);
     

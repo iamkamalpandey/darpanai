@@ -84,6 +84,12 @@ export const enrollmentAnalyses = pgTable("enrollment_analyses", {
   scholarshipAmount: text("scholarship_amount"),
   totalCost: text("total_cost"),
   
+  // Additional comprehensive document details
+  healthCover: text("health_cover"), // OSHC details including provider, dates, coverage type
+  englishTestScore: text("english_test_score"), // English test type, score, and date
+  institutionContact: text("institution_contact"), // Phone, email, and other contact details
+  visaObligations: text("visa_obligations"), // Important visa-related requirements and obligations
+  
   // Key findings and analysis
   summary: text("summary").notNull(),
   keyFindings: jsonb("key_findings").notNull().default([]),
