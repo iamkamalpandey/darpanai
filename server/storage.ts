@@ -1,13 +1,15 @@
 import { 
   users, analyses, appointments, professionalApplications, updates, userUpdateViews,
-  documentTemplates, documentChecklists, enrollmentAnalyses,
+  documentTemplates, documentChecklists, enrollmentAnalyses, documentCategories, documentTypes,
   type User, type InsertUser, type Analysis, type InsertAnalysis, 
   type Appointment, type InsertAppointment, type LoginUser,
   type ProfessionalApplication, type InsertProfessionalApplication,
   type Update, type InsertUpdate, type UserUpdateView,
   type DocumentTemplate, type InsertDocumentTemplate,
   type DocumentChecklist, type InsertDocumentChecklist,
-  type EnrollmentAnalysis, type InsertEnrollmentAnalysis
+  type EnrollmentAnalysis, type InsertEnrollmentAnalysis,
+  type DocumentCategory, type InsertDocumentCategory,
+  type DocumentType, type InsertDocumentType
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, isNotNull, sql, or, gt } from "drizzle-orm";
@@ -113,6 +115,22 @@ export interface IStorage {
   getAllEnrollmentAnalyses(): Promise<EnrollmentAnalysis[]>;
   getAllEnrollmentAnalysesWithUsers(): Promise<any[]>;
   getPublicEnrollmentAnalyses(): Promise<EnrollmentAnalysis[]>;
+  
+  // Document Categories methods
+  createDocumentCategory(category: InsertDocumentCategory): Promise<DocumentCategory>;
+  getAllDocumentCategories(): Promise<DocumentCategory[]>;
+  getActiveDocumentCategories(): Promise<DocumentCategory[]>;
+  getDocumentCategory(id: number): Promise<DocumentCategory | undefined>;
+  updateDocumentCategory(id: number, updates: Partial<DocumentCategory>): Promise<DocumentCategory | undefined>;
+  deleteDocumentCategory(id: number): Promise<boolean>;
+  
+  // Document Types methods
+  createDocumentType(type: InsertDocumentType): Promise<DocumentType>;
+  getAllDocumentTypes(): Promise<DocumentType[]>;
+  getActiveDocumentTypes(): Promise<DocumentType[]>;
+  getDocumentType(id: number): Promise<DocumentType | undefined>;
+  updateDocumentType(id: number, updates: Partial<DocumentType>): Promise<DocumentType | undefined>;
+  deleteDocumentType(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -913,6 +931,120 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error fetching public enrollment analyses:", error);
       return [];
+    }
+  }
+
+  // Document Categories methods
+  async createDocumentCategory(category: InsertDocumentCategory): Promise<DocumentCategory> {
+    try {
+      const [newCategory] = await db
+        .insert(documentCategories)
+        .values({
+          ...category,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
+      return newCategory;
+    } catch (error) {
+      console.error("Error creating document category:", error);
+      throw error;
+    }
+  }
+
+  async getAllDocumentCategories(): Promise<DocumentCategory[]> {
+    return await db.select().from(documentCategories).orderBy(documentCategories.name);
+  }
+
+  async getActiveDocumentCategories(): Promise<DocumentCategory[]> {
+    return await db.select().from(documentCategories)
+      .where(eq(documentCategories.isActive, true))
+      .orderBy(documentCategories.name);
+  }
+
+  async getDocumentCategory(id: number): Promise<DocumentCategory | undefined> {
+    const [category] = await db.select().from(documentCategories).where(eq(documentCategories.id, id));
+    return category || undefined;
+  }
+
+  async updateDocumentCategory(id: number, updates: Partial<DocumentCategory>): Promise<DocumentCategory | undefined> {
+    try {
+      const [category] = await db
+        .update(documentCategories)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(documentCategories.id, id))
+        .returning();
+      return category;
+    } catch (error) {
+      console.error("Error updating document category:", error);
+      throw error;
+    }
+  }
+
+  async deleteDocumentCategory(id: number): Promise<boolean> {
+    try {
+      await db.delete(documentCategories).where(eq(documentCategories.id, id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting document category:", error);
+      return false;
+    }
+  }
+
+  // Document Types methods
+  async createDocumentType(type: InsertDocumentType): Promise<DocumentType> {
+    try {
+      const [newType] = await db
+        .insert(documentTypes)
+        .values({
+          ...type,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
+      return newType;
+    } catch (error) {
+      console.error("Error creating document type:", error);
+      throw error;
+    }
+  }
+
+  async getAllDocumentTypes(): Promise<DocumentType[]> {
+    return await db.select().from(documentTypes).orderBy(documentTypes.name);
+  }
+
+  async getActiveDocumentTypes(): Promise<DocumentType[]> {
+    return await db.select().from(documentTypes)
+      .where(eq(documentTypes.isActive, true))
+      .orderBy(documentTypes.name);
+  }
+
+  async getDocumentType(id: number): Promise<DocumentType | undefined> {
+    const [type] = await db.select().from(documentTypes).where(eq(documentTypes.id, id));
+    return type || undefined;
+  }
+
+  async updateDocumentType(id: number, updates: Partial<DocumentType>): Promise<DocumentType | undefined> {
+    try {
+      const [type] = await db
+        .update(documentTypes)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(documentTypes.id, id))
+        .returning();
+      return type;
+    } catch (error) {
+      console.error("Error updating document type:", error);
+      throw error;
+    }
+  }
+
+  async deleteDocumentType(id: number): Promise<boolean> {
+    try {
+      await db.delete(documentTypes).where(eq(documentTypes.id, id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting document type:", error);
+      return false;
     }
   }
 }

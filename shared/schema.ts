@@ -507,3 +507,42 @@ export const enrollmentAnalysisResponseSchema = z.object({
 export type EnrollmentAnalysis = typeof enrollmentAnalyses.$inferSelect;
 export type InsertEnrollmentAnalysis = z.infer<typeof insertEnrollmentAnalysisSchema>;
 export type EnrollmentAnalysisResponse = z.infer<typeof enrollmentAnalysisResponseSchema>;
+
+// Document Categories - Admin managed categories
+export const documentCategories = pgTable("document_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Document Types - Admin managed document types
+export const documentTypes = pgTable("document_types", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Schemas for categories and document types
+export const insertDocumentCategorySchema = z.object({
+  name: z.string().min(1, "Category name is required").max(100),
+  description: z.string().optional(),
+  isActive: z.boolean().default(true),
+});
+
+export const insertDocumentTypeSchema = z.object({
+  name: z.string().min(1, "Document type name is required").max(100),
+  description: z.string().optional(),
+  isActive: z.boolean().default(true),
+});
+
+export type DocumentCategory = typeof documentCategories.$inferSelect;
+export type InsertDocumentCategory = z.infer<typeof insertDocumentCategorySchema>;
+
+export type DocumentType = typeof documentTypes.$inferSelect;
+export type InsertDocumentType = z.infer<typeof insertDocumentTypeSchema>;
