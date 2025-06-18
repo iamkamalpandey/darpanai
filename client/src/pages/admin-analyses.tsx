@@ -413,53 +413,7 @@ export default function AdminAnalyses() {
                 </CardContent>
               </Card>
 
-              {/* Enrollment Analysis Template */}
-              {selectedAnalysis.analysisType === 'enrollment_analysis' && (
-                <EnrollmentAnalysisDisplay 
-                  analysis={{
-                    id: selectedAnalysis.id,
-                    fileName: selectedAnalysis.filename,
-                    createdAt: selectedAnalysis.createdAt,
-                    institution: selectedAnalysis.analysisResults?.institution,
-                    program: selectedAnalysis.analysisResults?.program,
-                    studentName: selectedAnalysis.analysisResults?.studentName,
-                    programLevel: selectedAnalysis.analysisResults?.programLevel,
-                    startDate: selectedAnalysis.analysisResults?.startDate,
-                    endDate: selectedAnalysis.analysisResults?.endDate,
-                    institutionCountry: selectedAnalysis.analysisResults?.institutionCountry,
-                    visaType: selectedAnalysis.analysisResults?.visaType,
-                    healthCover: selectedAnalysis.analysisResults?.healthCover,
-                    englishTestScore: selectedAnalysis.analysisResults?.englishTestScore,
-                    institutionContact: selectedAnalysis.analysisResults?.institutionContact,
-                    visaObligations: selectedAnalysis.analysisResults?.visaObligations,
-                    orientationDate: selectedAnalysis.analysisResults?.orientationDate,
-                    passportDetails: selectedAnalysis.analysisResults?.passportDetails,
-                    supportServices: selectedAnalysis.analysisResults?.supportServices,
-                    paymentSchedule: selectedAnalysis.analysisResults?.paymentSchedule,
-                    bankDetails: selectedAnalysis.analysisResults?.bankDetails,
-                    conditionsOfOffer: selectedAnalysis.analysisResults?.conditionsOfOffer,
-                    scholarshipDetails: selectedAnalysis.analysisResults?.scholarshipDetails,
-                    scholarshipPercentage: selectedAnalysis.analysisResults?.scholarshipPercentage,
-                    scholarshipDuration: selectedAnalysis.analysisResults?.scholarshipDuration,
-                    scholarshipConditions: selectedAnalysis.analysisResults?.scholarshipConditions,
-                    internshipRequired: selectedAnalysis.analysisResults?.internshipRequired,
-                    internshipDuration: selectedAnalysis.analysisResults?.internshipDuration,
-                    workAuthorization: selectedAnalysis.analysisResults?.workAuthorization,
-                    workHoursLimit: selectedAnalysis.analysisResults?.workHoursLimit,
-                    academicRequirements: selectedAnalysis.analysisResults?.academicRequirements,
-                    gpaRequirement: selectedAnalysis.analysisResults?.gpaRequirement,
-                    attendanceRequirement: selectedAnalysis.analysisResults?.attendanceRequirement,
-                    languageRequirements: selectedAnalysis.analysisResults?.languageRequirements,
-                    graduationRequirements: selectedAnalysis.analysisResults?.graduationRequirements,
-                    termsToFulfil: selectedAnalysis.analysisResults?.termsToFulfil,
-                    summary: selectedAnalysis.analysisResults?.summary,
-                    keyFindings: selectedAnalysis.analysisResults?.keyFindings,
-                    recommendations: selectedAnalysis.analysisResults?.recommendations,
-                    missingInformation: selectedAnalysis.analysisResults?.missingInformation
-                  }}
-                  isAdmin={true}
-                />
-              )}
+
 
               {/* Visa Analysis Template */}
               {selectedAnalysis.analysisType === 'visa_analysis' && (
@@ -583,7 +537,7 @@ export default function AdminAnalyses() {
             </TabsContent>
           </Tabs>
         </div>
-      )}
+      </div>
 
       {/* Back Button */}
       <div className="flex justify-end mt-6">
@@ -593,6 +547,173 @@ export default function AdminAnalyses() {
         >
           Back to Analysis List
         </Button>
+      </div>
+    </AdminLayout>
+  );
+}
+
+function AnalysisDetailView({ analysis, onBack }: { analysis: AnalysisData; onBack: () => void }) {
+  return (
+    <AdminLayout>
+      <div className="container mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
+              <p className="text-gray-600 mt-2">{analysis.fileName}</p>
+            </div>
+            <Button variant="outline" onClick={onBack}>
+              Back to List
+            </Button>
+          </div>
+        </div>
+
+        {/* Metadata Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-blue-800">
+                <FileText className="h-5 w-5" />
+                Analysis Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <div>
+                <span className="font-medium text-gray-600">File Name:</span>
+                <p className="text-gray-800">{analysis.fileName}</p>
+              </div>
+              <div>
+                <span className="font-medium text-gray-600">Analysis Type:</span>
+                <p className="text-gray-800">{analysis.analysisType === 'enrollment_analysis' ? 'Enrollment Analysis' : 'Visa Analysis'}</p>
+              </div>
+              <div>
+                <span className="font-medium text-gray-600">Created:</span>
+                <p className="text-gray-800">{format(new Date(analysis.createdAt), 'PPp')}</p>
+              </div>
+              <div>
+                <span className="font-medium text-gray-600">User:</span>
+                <p className="text-gray-800">{analysis.user ? `${analysis.user.firstName} ${analysis.user.lastName}` : 'Unknown User'}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+              <CardTitle className="flex items-center gap-2 text-green-800">
+                <BarChart className="h-5 w-5" />
+                Analysis Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              <div>
+                <span className="font-medium text-gray-600">Public:</span>
+                <p className="text-gray-800">{analysis.isPublic ? 'Yes' : 'No'}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Analysis Content */}
+        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-t-lg">
+            <CardTitle className="flex items-center gap-2 text-gray-800">
+              <FileText className="h-5 w-5" />
+              Analysis Results
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            {/* Summary */}
+            {analysis.analysisResults?.summary && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-800 border-l-4 border-blue-400 pl-4">Summary</h3>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{analysis.analysisResults.summary}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Key Findings */}
+            {analysis.analysisResults?.keyFindings && analysis.analysisResults.keyFindings.length > 0 && (
+              <div className="space-y-4 mt-6">
+                <h3 className="text-lg font-semibold text-gray-800 border-l-4 border-red-400 pl-4">Key Findings</h3>
+                <div className="space-y-3">
+                  {analysis.analysisResults.keyFindings.map((finding, index) => (
+                    <div key={index} className="bg-gray-50 p-4 rounded-lg border-l-4 border-red-200">
+                      <h4 className="font-medium text-gray-800 mb-2">{finding.title}</h4>
+                      <p className="text-gray-700 leading-relaxed">{finding.description}</p>
+                      {finding.importance && (
+                        <Badge className={`mt-2 ${
+                          finding.importance === 'high' ? 'bg-red-100 text-red-800 border-red-200' :
+                          finding.importance === 'medium' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                          'bg-blue-100 text-blue-800 border-blue-200'
+                        } border`}>
+                          {finding.importance}
+                        </Badge>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Recommendations */}
+            {analysis.analysisResults?.recommendations && analysis.analysisResults.recommendations.length > 0 && (
+              <div className="space-y-4 mt-6">
+                <h3 className="text-lg font-semibold text-gray-800 border-l-4 border-green-400 pl-4">Recommendations</h3>
+                <div className="space-y-3">
+                  {analysis.analysisResults.recommendations.map((rec, index) => (
+                    <div key={index} className="bg-gray-50 p-4 rounded-lg border-l-4 border-green-200">
+                      <h4 className="font-medium text-gray-800 mb-2">{rec.title}</h4>
+                      <p className="text-gray-700 leading-relaxed">{rec.description}</p>
+                      {rec.priority && (
+                        <Badge className={`mt-2 ${
+                          rec.priority === 'urgent' ? 'bg-red-100 text-red-800 border-red-200' :
+                          rec.priority === 'important' ? 'bg-orange-100 text-orange-800 border-orange-200' :
+                          'bg-blue-100 text-blue-800 border-blue-200'
+                        } border`}>
+                          {rec.priority}
+                        </Badge>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Next Steps */}
+            {analysis.analysisResults?.nextSteps && (
+              <div className="space-y-4 mt-6">
+                <h3 className="text-lg font-semibold text-gray-800 border-l-4 border-purple-400 pl-4">Next Steps</h3>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  {Array.isArray(analysis.analysisResults.nextSteps) ? (
+                    <div className="space-y-3">
+                      {analysis.analysisResults.nextSteps.map((step, index) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-6 h-6 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center text-sm font-medium">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1">
+                            {typeof step === 'string' ? (
+                              <p className="text-gray-700 leading-relaxed">{step}</p>
+                            ) : (
+                              <>
+                                <h4 className="font-medium text-gray-800 mb-1">{step.step || step.title}</h4>
+                                <p className="text-gray-700 leading-relaxed">{step.description}</p>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{analysis.analysisResults.nextSteps}</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );
