@@ -33,11 +33,11 @@ const AdminSidebarItem = ({ icon, label, href, active }: AdminSidebarItemProps) 
       <div 
         className={`group flex gap-x-3 rounded-lg p-3 text-sm font-medium leading-6 transition-all duration-200 cursor-pointer ${
           active
-            ? 'bg-blue-50 text-blue-700 shadow-sm border-l-4 border-blue-600'
-            : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg border-l-4 border-blue-300'
+            : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
         }`}
       >
-        <span className={`h-5 w-5 shrink-0 ${active ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600'}`}>
+        <span className={`h-5 w-5 shrink-0 ${active ? 'text-white' : 'text-slate-400 group-hover:text-blue-400'}`}>
           {icon}
         </span>
         <span className="truncate">{label}</span>
@@ -141,31 +141,31 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         />
 
         {/* Mobile Sidebar */}
-        <div className={`fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
+        <div className={`fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-gradient-to-b from-slate-900 to-slate-800 shadow-2xl transform transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}>
           <div className="flex flex-col h-full">
-            <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-gray-50 flex-shrink-0">
-              <Shield className="h-6 w-6 text-blue-600 mr-3" />
-              <span className="text-lg font-semibold text-gray-900">Study Abroad Admin</span>
+            <div className="flex items-center h-16 px-6 border-b border-slate-700 bg-slate-800/50 flex-shrink-0">
+              <Shield className="h-6 w-6 text-blue-400 mr-3" />
+              <span className="text-lg font-semibold text-white">Study Abroad Admin</span>
             </div>
-            <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto min-h-0">
+            <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto min-h-0 pb-32">
               {adminSidebarItems.map((item, index) => (
                 <div key={item.href || `submenu-${index}`}>
                   {item.isSubmenu ? (
                     <div>
                       <button
                         onClick={() => setResourcesOpen(!resourcesOpen)}
-                        className="w-full group flex gap-x-3 rounded-lg p-3 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                        className="w-full group flex gap-x-3 rounded-lg p-3 text-sm font-medium leading-6 transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-700/50"
                       >
-                        <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-600">
+                        <span className="h-5 w-5 shrink-0 text-slate-400 group-hover:text-blue-400">
                           {item.icon}
                         </span>
                         <span className="truncate flex-1 text-left">{item.label}</span>
                         {resourcesOpen ? (
-                          <ChevronDown className="h-4 w-4 text-gray-400" />
+                          <ChevronDown className="h-4 w-4 text-slate-400" />
                         ) : (
-                          <ChevronRight className="h-4 w-4 text-gray-400" />
+                          <ChevronRight className="h-4 w-4 text-slate-400" />
                         )}
                       </button>
                       {resourcesOpen && item.submenuItems && (
@@ -196,27 +196,37 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 </div>
               ))}
             </nav>
-            <div className="mt-auto p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
-              <div className="flex items-center p-3 bg-white rounded-lg mb-3 shadow-sm">
-                <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-semibold text-white">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
-                  </span>
+            
+            {/* Fixed Bottom Mobile User Profile & Logout */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-900 via-slate-800 to-transparent">
+              <div className="bg-slate-700/50 backdrop-blur-sm rounded-xl p-4 border border-slate-600/50 shadow-xl">
+                {/* User Profile */}
+                <div className="flex items-center mb-4">
+                  <div className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 ring-2 ring-blue-400/30">
+                    <span className="text-sm font-bold text-white">
+                      {user?.firstName?.[0]}{user?.lastName?.[0]}
+                    </span>
+                  </div>
+                  <div className="ml-3 min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-white truncate">
+                      {user?.firstName} {user?.lastName}
+                    </p>
+                    <p className="text-xs text-blue-300 truncate flex items-center">
+                      <Shield className="h-3 w-3 mr-1" />
+                      Administrator
+                    </p>
+                  </div>
                 </div>
-                <div className="ml-3 min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {user?.firstName} {user?.lastName}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">Administrator</p>
-                </div>
+                
+                {/* Logout Button */}
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <LogOut className="mr-2 h-4 w-4 flex-shrink-0" />
+                  <span>Sign Out</span>
+                </button>
               </div>
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors min-h-[40px] shadow-sm"
-              >
-                <LogOut className="mr-2 h-4 w-4 flex-shrink-0" />
-                <span className="truncate">Log out</span>
-              </button>
             </div>
           </div>
         </div>
@@ -234,12 +244,15 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       {/* Desktop Layout (hidden below md) */}
       <div className="hidden md:flex min-h-screen bg-gray-50">
         {/* Desktop Sidebar */}
-        <div className="w-64 lg:w-72 xl:w-80 bg-white border-r border-gray-200 flex-shrink-0">
+        <div className="w-64 lg:w-72 xl:w-80 bg-gradient-to-b from-slate-900 to-slate-800 flex-shrink-0 relative">
           <div className="flex flex-col h-screen">
-            <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-gray-50 flex-shrink-0">
-              <Shield className="h-6 w-6 text-blue-600 mr-3" />
-              <span className="text-lg font-semibold text-gray-900">Study Abroad Admin</span>
+            {/* Header */}
+            <div className="flex items-center h-16 px-6 border-b border-slate-700 bg-slate-800/50 flex-shrink-0">
+              <Shield className="h-6 w-6 text-blue-400 mr-3" />
+              <span className="text-lg font-semibold text-white">Study Abroad Admin</span>
             </div>
+            
+            {/* Navigation */}
             <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
               {adminSidebarItems.map((item, index) => (
                 <div key={item.href || `submenu-${index}`}>
@@ -247,16 +260,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     <div>
                       <button
                         onClick={() => setResourcesOpen(!resourcesOpen)}
-                        className="w-full group flex gap-x-3 rounded-lg p-3 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                        className="w-full group flex gap-x-3 rounded-lg p-3 text-sm font-medium leading-6 transition-all duration-200 text-slate-300 hover:text-white hover:bg-slate-700/50"
                       >
-                        <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-blue-600">
+                        <span className="h-5 w-5 shrink-0 text-slate-400 group-hover:text-blue-400">
                           {item.icon}
                         </span>
                         <span className="truncate flex-1 text-left">{item.label}</span>
                         {resourcesOpen ? (
-                          <ChevronDown className="h-4 w-4 text-gray-400" />
+                          <ChevronDown className="h-4 w-4 text-slate-400" />
                         ) : (
-                          <ChevronRight className="h-4 w-4 text-gray-400" />
+                          <ChevronRight className="h-4 w-4 text-slate-400" />
                         )}
                       </button>
                       {resourcesOpen && item.submenuItems && (
@@ -284,27 +297,37 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 </div>
               ))}
             </nav>
-            <div className="mt-auto p-3 lg:p-4 border-t border-gray-200 bg-gray-50 flex-shrink-0">
-              <div className="flex items-center p-2 lg:p-3 bg-white rounded-lg mb-3 shadow-sm">
-                <div className="h-8 w-8 lg:h-10 lg:w-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                  <span className="text-xs lg:text-sm font-semibold text-white">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
-                  </span>
+            
+            {/* Fixed Bottom User Profile & Logout */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-900 via-slate-800 to-transparent">
+              <div className="bg-slate-700/50 backdrop-blur-sm rounded-xl p-4 border border-slate-600/50 shadow-xl">
+                {/* User Profile */}
+                <div className="flex items-center mb-4">
+                  <div className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 ring-2 ring-blue-400/30">
+                    <span className="text-sm font-bold text-white">
+                      {user?.firstName?.[0]}{user?.lastName?.[0]}
+                    </span>
+                  </div>
+                  <div className="ml-3 min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-white truncate">
+                      {user?.firstName} {user?.lastName}
+                    </p>
+                    <p className="text-xs text-blue-300 truncate flex items-center">
+                      <Shield className="h-3 w-3 mr-1" />
+                      Administrator
+                    </p>
+                  </div>
                 </div>
-                <div className="ml-2 lg:ml-3 min-w-0 flex-1">
-                  <p className="text-xs lg:text-sm font-medium text-gray-900 truncate">
-                    {user?.firstName} {user?.lastName}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">Administrator</p>
-                </div>
+                
+                {/* Logout Button */}
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <LogOut className="mr-2 h-4 w-4 flex-shrink-0" />
+                  <span>Sign Out</span>
+                </button>
               </div>
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center px-2 lg:px-4 py-2 text-xs lg:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors min-h-[36px] lg:min-h-[40px] shadow-sm"
-              >
-                <LogOut className="mr-1 lg:mr-2 h-3 w-3 lg:h-4 lg:w-4 flex-shrink-0" />
-                <span className="truncate">Log out</span>
-              </button>
             </div>
           </div>
         </div>
