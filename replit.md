@@ -130,6 +130,19 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 18, 2025 - Complete Redundancy Removal & Dynamic Document Management Enhancement:**
+- Fixed duplicate document type fields in document template forms by removing redundant text input field
+- Added comprehensive document types to database: Bank Statement, SOP, Recommendation Letter, Passport, Visa Application, I-20 Form, DS-160, Affidavit of Support, Sponsorship Letter, Employment Letter, Medical Certificate, Police Clearance
+- Implemented dynamic dropdown system across all forms replacing hardcoded arrays with database-managed options
+- Enhanced AdvancedTemplateForm and AdvancedChecklistForm with dynamic category, document type, visa type, country, and user type dropdowns
+- Updated admin document checklists page to use dynamic dropdown options with proper fallback support
+- Removed all hardcoded arrays from forms and admin pages, replacing with API-driven dropdown data
+- Applied "Other" as contingency option across all dynamic dropdowns for flexibility when preloaded data exists
+- Fixed TypeScript errors and ensured proper type safety across all dynamic dropdown implementations
+- Enhanced database tables (document_categories, document_types) with comprehensive sample data for immediate use
+- Eliminated redundant field structures and streamlined form interfaces for better user experience
+- Implemented consistent fallback patterns ensuring forms work even when API data is temporarily unavailable
+
 **June 18, 2025 - Comprehensive Pagination System Implementation:**
 - Enhanced Pagination component with First/Previous/Next/Last navigation buttons for efficient large dataset management
 - Implemented 9-item pagination across all table views with comprehensive page controls and information display

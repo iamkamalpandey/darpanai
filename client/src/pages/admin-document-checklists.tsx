@@ -27,19 +27,7 @@ import { AdminLayout } from "@/components/AdminLayout";
 
 
 
-const countries = [
-  "Nepal", "India", "Pakistan", "Bangladesh", "Sri Lanka", "Vietnam", "China",
-  "Philippines", "Indonesia", "Thailand", "Nigeria", "Ghana", "Kenya",
-  "USA", "Canada", "UK", "Australia", "Germany", "France", "Netherlands",
-  "Other"
-];
 
-const visaTypes = [
-  "Student F-1", "Tourist B-2", "Work H-1B", "Study Permit", "Visitor Visa",
-  "Business B-1", "Transit C-1", "Family Reunification", "Investment E-2",
-  "Artist O-1", "Researcher J-1", "Spouse/Partner", "Working Holiday",
-  "Permanent Residence", "Refugee/Asylum", "Other"
-];
 
 export default function AdminDocumentChecklists() {
   const { toast } = useToast();
@@ -325,7 +313,7 @@ export default function AdminDocumentChecklists() {
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All Countries</option>
-            {countries.map((country) => (
+            {countryOptions.map((country: string) => (
               <option key={country} value={country}>
                 {country}
               </option>
@@ -338,7 +326,7 @@ export default function AdminDocumentChecklists() {
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All Visa Types</option>
-            {visaTypes.map((visaType) => (
+            {visaTypeOptions.map((visaType: string) => (
               <option key={visaType} value={visaType}>
                 {visaType}
               </option>
