@@ -207,7 +207,11 @@ export default function DocumentTemplates() {
                     <Button 
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(template.externalUrl, '_blank')}
+                      onClick={() => {
+                        if (template.externalUrl) {
+                          window.open(template.externalUrl, '_blank');
+                        }
+                      }}
                     >
                       <ExternalLink className="h-4 w-4" />
                     </Button>
