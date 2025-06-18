@@ -33,6 +33,7 @@ interface VisaAnalysis {
   country?: string;
   visaType?: string;
   isPublic: boolean;
+  analysisResults?: any;
   summary: string;
   rejectionReasons?: Array<{
     title: string;
@@ -63,6 +64,7 @@ interface EnrollmentAnalysis {
   institutionCountry: string;
   studentCountry: string;
   visaType: string;
+  analysisResults?: any;
   summary: string;
   eligibilityAssessment: Array<{
     title: string;
@@ -96,6 +98,7 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
       const analysis = Array.isArray(data) ? data[0] : data;
       if (!analysis) return null;
       
+      // Return the complete original analysis data
       return {
         id: analysis.id,
         filename: analysis.filename,
@@ -103,6 +106,8 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
         country: analysis.country,
         visaType: analysis.visaType,
         isPublic: analysis.isPublic,
+        analysisResults: analysis.analysisResults || {},
+        // Fallback to direct properties for backward compatibility
         summary: analysis.analysisResults?.summary || analysis.summary || '',
         rejectionReasons: analysis.analysisResults?.rejectionReasons || analysis.rejectionReasons || [],
         keyTerms: analysis.analysisResults?.keyTerms || analysis.keyTerms || [],
@@ -120,6 +125,7 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
       const analysis = Array.isArray(data) ? data[0] : data;
       if (!analysis) return null;
       
+      // Return the complete original analysis data
       return {
         id: analysis.id,
         filename: analysis.filename,
@@ -127,6 +133,8 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
         institutionCountry: analysis.institutionCountry,
         studentCountry: analysis.studentCountry,
         visaType: analysis.visaType,
+        analysisResults: analysis.analysisResults || {},
+        // Fallback to direct properties for backward compatibility
         summary: analysis.analysisResults?.summary || analysis.summary || '',
         eligibilityAssessment: analysis.analysisResults?.eligibilityAssessment || analysis.eligibilityAssessment || [],
         documentVerification: analysis.analysisResults?.documentVerification || analysis.documentVerification || [],
@@ -175,14 +183,32 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
 
   const renderVisaAnalysis = (data: VisaAnalysis) => (
     <div className="space-y-6">
+      {/* Important Disclaimer */}
+      <Card className="border-amber-200 bg-amber-50">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm">
+              <p className="font-medium text-amber-800 mb-2">Important Legal Disclaimer</p>
+              <p className="text-amber-700 leading-relaxed">
+                This analysis is for informational purposes only and should not be considered as professional immigration advice. 
+                Always consult with qualified immigration experts or lawyers before making any visa-related decisions. 
+                This tool and company will not be liable for any financial or other losses caused by decisions made based on this analysis.
+                Make your decisions based on professional expert guidance and your own thorough research.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Header Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex items-center gap-3">
           <div className="bg-blue-100 p-2 rounded-lg">
-            <AlertTriangle className="h-5 w-5 text-blue-600" />
+            <FileText className="h-5 w-5 text-blue-600" />
           </div>
           <div>
-            <p className="font-medium text-gray-900">Visa Analysis</p>
+            <p className="font-medium text-gray-900">Visa Document Analysis</p>
             <p className="text-sm text-gray-600">{data.filename}</p>
           </div>
         </div>
@@ -208,123 +234,84 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
 
       <Separator />
 
-      {/* Summary */}
-      {data.summary && (
+      {/* Complete Original Analysis */}
+      {data.analysisResults && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-gray-600" />
-              Analysis Summary
+              <FileText className="h-5 w-5 text-blue-600" />
+              Complete Visa Analysis Report
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{data.summary}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Rejection Reasons */}
-      {data.rejectionReasons && data.rejectionReasons.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
-              Rejection Reasons
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {data.rejectionReasons.map((reason, index) => (
-              <div key={index} className="border-l-4 border-red-500 pl-4">
-                <div className="flex items-center justify-between mb-1">
-                  <h4 className="font-medium text-gray-900">{reason.title}</h4>
-                  {reason.severity && (
-                    <Badge className={getSeverityColor(reason.severity)}>
-                      {reason.severity}
-                    </Badge>
-                  )}
-                </div>
-                <p className="text-sm text-gray-600 mb-1">{reason.description}</p>
-                <Badge variant="outline">{reason.category}</Badge>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="whitespace-pre-wrap text-gray-800 leading-relaxed text-sm break-words font-mono">
+                {typeof data.analysisResults === 'string' 
+                  ? data.analysisResults 
+                  : JSON.stringify(data.analysisResults, null, 2).replace(/[{}"]/g, '').replace(/,\s*$/gm, '')
+                }
               </div>
-            ))}
+            </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Key Terms (for approved visas) */}
-      {data.keyTerms && data.keyTerms.length > 0 && (
+      {/* Summary - Fallback */}
+      {!data.analysisResults && data.summary && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              Key Visa Terms & Conditions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {data.keyTerms.map((term, index) => (
-              <div key={index} className="border-l-4 border-green-500 pl-4">
-                <h4 className="font-medium text-gray-900">{term.title}</h4>
-                <p className="text-sm text-gray-600 mb-1">{term.description}</p>
-                <Badge variant="outline">{term.category}</Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Recommendations */}
-      {data.recommendations && data.recommendations.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-purple-600" />
-              Recommendations
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {data.recommendations.map((rec, index) => (
-              <div key={index} className="border-l-4 border-purple-500 pl-4">
-                <h4 className="font-medium text-gray-900">{rec.title}</h4>
-                <p className="text-sm text-gray-600 mt-1">{rec.description}</p>
-                {rec.priority && (
-                  <Badge className={getPriorityColor(rec.priority)}>
-                    {rec.priority}
-                  </Badge>
-                )}
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Next Steps */}
-      {data.nextSteps && data.nextSteps.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-orange-600" />
-              Next Steps
+              <FileText className="h-5 w-5 text-blue-600" />
+              Visa Analysis Summary
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ol className="space-y-2">
-              {data.nextSteps.map((step, index) => (
-                <li key={index} className="flex gap-3 text-sm">
-                  <span className="bg-orange-100 text-orange-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
-                    {index + 1}
-                  </span>
-                  <span className="text-gray-700">{step.title}: {step.description}</span>
-                </li>
-              ))}
-            </ol>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="whitespace-pre-wrap text-gray-800 leading-relaxed break-words">{data.summary}</div>
+            </div>
           </CardContent>
         </Card>
       )}
+
+      {/* Expert Consultation Recommendation */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm">
+              <p className="font-medium text-blue-800 mb-2">Next Steps Recommendation</p>
+              <p className="text-blue-700 leading-relaxed">
+                Based on this analysis, we strongly recommend consulting with qualified immigration experts who can provide 
+                personalized guidance for your specific situation. Consider booking a consultation with our certified immigration advisors 
+                who can help you understand these findings and create an actionable plan for your visa application process.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 
   const renderEnrollmentAnalysis = (data: EnrollmentAnalysis) => (
     <div className="space-y-6">
+      {/* Important Disclaimer */}
+      <Card className="border-amber-200 bg-amber-50">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm">
+              <p className="font-medium text-amber-800 mb-2">Important Educational Disclaimer</p>
+              <p className="text-amber-700 leading-relaxed">
+                This enrollment document analysis is for informational purposes only and should not replace professional guidance from qualified education consultants or immigration experts. 
+                Always verify information with the issuing institution and consult with certified professionals before making any study abroad or visa decisions. 
+                This tool and company will not be liable for any financial or other losses caused by decisions made based on this analysis.
+                Use this information as a starting point for your research and professional consultation.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Header Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex items-center gap-3">
@@ -332,7 +319,7 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
             <GraduationCap className="h-5 w-5 text-green-600" />
           </div>
           <div>
-            <p className="font-medium text-gray-900">Enrollment Analysis</p>
+            <p className="font-medium text-gray-900">Enrollment Document Analysis</p>
             <p className="text-sm text-gray-600">{data.filename}</p>
           </div>
         </div>
