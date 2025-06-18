@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Pagination } from "@/components/Pagination";
 import { EnhancedFilters, FilterOptions } from "@/components/EnhancedFilters";
+import { EnrollmentAnalysisDisplay } from "@/components/EnrollmentAnalysisDisplay";
 import { 
   FileText, 
   User, 
@@ -458,205 +459,643 @@ export default function AdminAnalyses() {
                   }}
                   isAdmin={true}
                 />
-                      <div>
-                        <span className="font-medium text-gray-600">Institution Country:</span>
-                        <p className="text-gray-800">{selectedAnalysis.institutionCountry || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Visa Type:</span>
-                        <p className="text-gray-800">{selectedAnalysis.visaType || "Not specified in document"}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
+              )}
 
-                  {/* Additional Document Details Card */}
+              {/* Visa Analysis Template */}
+              {selectedAnalysis.analysisType === 'visa_analysis' && (
+                <div className="space-y-6">
+                  {/* Key Findings */}
                   <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                    <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-t-lg">
-                      <CardTitle className="flex items-center gap-2 text-purple-800">
-                        <FileText className="h-5 w-5" />
-                        Document Details & Support
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-4">
-                      <div>
-                        <span className="font-medium text-gray-600">Health Cover Details:</span>
-                        <p className="text-gray-800">{selectedAnalysis.healthCover || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">English Test Score:</span>
-                        <p className="text-gray-800">{selectedAnalysis.englishTestScore || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Institution Contact:</span>
-                        <p className="text-gray-800">{selectedAnalysis.institutionContact || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Visa Obligations:</span>
-                        <p className="text-gray-800">{selectedAnalysis.visaObligations || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Orientation Date:</span>
-                        <p className="text-gray-800">{selectedAnalysis.orientationDate || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Passport Details:</span>
-                        <p className="text-gray-800">{selectedAnalysis.passportDetails || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Support Services:</span>
-                        <p className="text-gray-800">{selectedAnalysis.supportServices || "Not specified in document"}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Payment & Banking Information Card */}
-                  <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                    <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
-                      <CardTitle className="flex items-center gap-2 text-green-800">
-                        <DollarSign className="h-5 w-5" />
-                        Payment & Banking Information
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-4">
-                      <div>
-                        <span className="font-medium text-gray-600">Payment Schedule:</span>
-                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.paymentSchedule || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Bank Details:</span>
-                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.bankDetails || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Conditions of Offer:</span>
-                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.conditionsOfOffer || "Not specified in document"}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Scholarship & Financial Aid Information Card */}
-                  <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                    <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-t-lg">
-                      <CardTitle className="flex items-center gap-2 text-amber-800">
-                        <Target className="h-5 w-5" />
-                        Scholarship & Financial Aid Details
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-4">
-                      <div>
-                        <span className="font-medium text-gray-600">Scholarship Details:</span>
-                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.scholarshipDetails || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Scholarship Percentage:</span>
-                        <p className="text-gray-800">{selectedAnalysis.scholarshipPercentage || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Scholarship Duration:</span>
-                        <p className="text-gray-800">{selectedAnalysis.scholarshipDuration || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Scholarship Conditions:</span>
-                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.scholarshipConditions || "Not specified in document"}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Internship & Work Authorization Card */}
-                  <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                    <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-t-lg">
-                      <CardTitle className="flex items-center gap-2 text-indigo-800">
-                        <Building2 className="h-5 w-5" />
-                        Internship & Work Authorization
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-4">
-                      <div>
-                        <span className="font-medium text-gray-600">Internship Required:</span>
-                        <p className="text-gray-800">{selectedAnalysis.internshipRequired || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Internship Duration:</span>
-                        <p className="text-gray-800">{selectedAnalysis.internshipDuration || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Work Authorization:</span>
-                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.workAuthorization || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Work Hours Limit:</span>
-                        <p className="text-gray-800">{selectedAnalysis.workHoursLimit || "Not specified in document"}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Academic Requirements & Terms Card */}
-                  <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                    <CardHeader className="bg-gradient-to-r from-red-50 to-rose-50 rounded-t-lg">
+                    <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50 rounded-t-lg">
                       <CardTitle className="flex items-center gap-2 text-red-800">
-                        <GraduationCap className="h-5 w-5" />
-                        Academic Requirements & Terms to Fulfil
+                        <AlertTriangle className="h-5 w-5" />
+                        Analysis Results
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6 space-y-4">
-                      <div>
-                        <span className="font-medium text-gray-600">Academic Requirements:</span>
-                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.academicRequirements || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">GPA Requirement:</span>
-                        <p className="text-gray-800">{selectedAnalysis.gpaRequirement || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Attendance Requirement:</span>
-                        <p className="text-gray-800">{selectedAnalysis.attendanceRequirement || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Terms to Fulfil:</span>
-                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.termsToFulfil || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Language Requirements:</span>
-                        <p className="text-gray-800">{selectedAnalysis.languageRequirements || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Graduation Requirements:</span>
-                        <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.graduationRequirements || "Not specified in document"}</p>
-                      </div>
+                    <CardContent className="p-6">
+                      {selectedAnalysis.analysisResults?.rejectionReasons?.length > 0 ? (
+                        <div className="space-y-4">
+                          {selectedAnalysis.analysisResults.rejectionReasons.map((reason: any, index: number) => (
+                            <div key={index} className="border-l-4 border-red-400 pl-4 py-2">
+                              <h4 className="font-medium text-red-800">{reason.title}</h4>
+                              <p className="text-gray-700 mt-1">{reason.description}</p>
+                              {reason.category && (
+                                <Badge variant="outline" className="mt-2 text-xs">
+                                  {reason.category}
+                                </Badge>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-600">No specific issues identified in this analysis.</p>
+                      )}
                     </CardContent>
                   </Card>
 
-                  {/* Financial Information */}
-                  <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                    <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-t-lg">
-                      <CardTitle className="flex items-center gap-2 text-blue-800">
-                        <DollarSign className="h-5 w-5" />
-                        Financial Information
+                  {/* Missing Information */}
+                  {selectedAnalysis.analysisResults?.missingInformation && selectedAnalysis.analysisResults.missingInformation.length > 0 && (
+                    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                      <CardHeader className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-t-lg">
+                        <CardTitle className="flex items-center gap-2 text-yellow-800">
+                          <AlertCircle className="h-5 w-5" />
+                          Missing Information
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <div className="space-y-3">
+                          {selectedAnalysis.analysisResults.missingInformation.map((missing: any, index: number) => (
+                            <div key={index} className="border-l-4 border-yellow-400 pl-4 py-2">
+                              <h4 className="font-medium text-yellow-800">{missing.field}</h4>
+                              <p className="text-gray-700 mt-1">{missing.description}</p>
+                              <p className="text-sm text-gray-600 mt-1">Impact: {missing.impact}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Recommendations */}
+                  {selectedAnalysis.analysisResults?.recommendations && selectedAnalysis.analysisResults.recommendations.length > 0 && (
+                    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                      <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+                        <CardTitle className="flex items-center gap-2 text-green-800">
+                          <CheckCircle className="h-5 w-5" />
+                          Recommendations
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        <div className="space-y-4">
+                          {selectedAnalysis.analysisResults.recommendations.map((rec: any, index: number) => (
+                            <div key={index} className="border-l-4 border-green-400 pl-4 py-2">
+                              <h4 className="font-medium text-green-800">{rec.title}</h4>
+                              <p className="text-gray-700 mt-1">{rec.description}</p>
+                              {rec.priority && (
+                                <Badge variant="outline" className="mt-2 text-xs">
+                                  {rec.priority}
+                                </Badge>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Next Steps */}
+                  {selectedAnalysis.analysisResults?.nextSteps && (
+                    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                      <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-t-lg">
+                        <CardTitle className="flex items-center gap-2 text-purple-800">
+                          <TrendingUp className="h-5 w-5" />
+                          Next Steps
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-6">
+                        {Array.isArray(selectedAnalysis.analysisResults.nextSteps) ? (
+                          <div className="space-y-3">
+                            {selectedAnalysis.analysisResults.nextSteps.map((step: any, index: number) => (
+                              <div key={index} className="flex items-start gap-3">
+                                <div className="bg-purple-100 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">
+                                  {index + 1}
+                                </div>
+                                <div>
+                                  <h4 className="font-medium text-purple-800">{step.title || step.step}</h4>
+                                  <p className="text-gray-700">{step.description}</p>
+                                  {step.category && (
+                                    <Badge variant="outline" className="mt-1 text-xs">
+                                      {step.category}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-gray-700">{selectedAnalysis.analysisResults.nextSteps}</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
+      )}
+
+      {/* Back Button */}
+      <div className="flex justify-end mt-6">
+        <Button
+          variant="outline"
+          onClick={() => setSelectedAnalysis(null)}
+        >
+          Back to Analysis List
+        </Button>
+      </div>
+    </AdminLayout>
+  );
+}
+
+export default function AdminAnalyses() {
+  const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisData | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
+  const [filters, setFilters] = useState<FilterOptions>({
+    search: '',
+    analysisType: undefined,
+    severity: undefined,
+    country: undefined,
+    dateRange: undefined,
+    isPublic: undefined,
+    sortBy: 'date-desc'
+  });
+
+  const { data: analyses, isLoading, error } = useQuery({
+    queryKey: ['/api/admin/analyses'],
+    staleTime: 10 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const handleFiltersChange = (newFilters: FilterOptions) => {
+    setFilters(newFilters);
+    setCurrentPage(1);
+  };
+
+  const openAnalysisDetails = (analysis: AnalysisData) => {
+    setSelectedAnalysis(analysis);
+  };
+
+  if (selectedAnalysis) {
+    return <AnalysisDetailView analysis={selectedAnalysis} onBack={() => setSelectedAnalysis(null)} />;
+  }
+
+  // Filter and sort analyses
+  let filtered = analyses || [];
+  
+  if (filters.search) {
+    const searchLower = filters.search.toLowerCase();
+    filtered = filtered.filter((analysis: AnalysisData) => 
+      analysis.fileName?.toLowerCase().includes(searchLower) ||
+      analysis.analysisResults?.summary?.toLowerCase().includes(searchLower) ||
+      analysis.user?.username?.toLowerCase().includes(searchLower) ||
+      analysis.user?.email?.toLowerCase().includes(searchLower)
+    );
+  }
+
+  if (filters.analysisType) {
+    filtered = filtered.filter((analysis: AnalysisData) => analysis.analysisType === filters.analysisType);
+  }
+
+  if (filters.severity) {
+    filtered = filtered.filter((analysis: AnalysisData) => 
+      analysis.analysisResults?.rejectionReasons?.some((reason: any) => reason.severity === filters.severity)
+    );
+  }
+
+  if (filters.isPublic !== undefined) {
+    filtered = filtered.filter((analysis: AnalysisData) => analysis.isPublic === filters.isPublic);
+  }
+
+  if (filters.country) {
+    filtered = filtered.filter((analysis: AnalysisData) => 
+      analysis.analysisResults?.summary?.toLowerCase().includes(filters.country.toLowerCase())
+    );
+  }
+
+  // Sort analyses
+  if (filters.sortBy) {
+    filtered.sort((a: AnalysisData, b: AnalysisData) => {
+      switch (filters.sortBy) {
+        case 'date-desc':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'date-asc':
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case 'name-asc':
+          return (a.fileName || '').localeCompare(b.fileName || '');
+        case 'name-desc':
+          return (b.fileName || '').localeCompare(a.fileName || '');
+        case 'type-asc':
+          return (a.analysisType || '').localeCompare(b.analysisType || '');
+        case 'type-desc':
+          return (b.analysisType || '').localeCompare(a.analysisType || '');
+        case 'user-asc':
+          return (a.user?.username || '').localeCompare(b.user?.username || '');
+        case 'user-desc':
+          return (b.user?.username || '').localeCompare(a.user?.username || '');
+        default:
+          return 0;
+      }
+    });
+  }
+
+  const totalItems = filtered.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedAnalyses = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="text-center sm:text-left">
+            <h1 className="text-2xl sm:text-3xl font-bold">Analysis Reports</h1>
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+              Monitor and review all user analysis reports with detailed insights.
+            </p>
+          </div>
+        </div>
+
+        {/* Enhanced Filters */}
+        <EnhancedFilters
+          onFiltersChange={handleFiltersChange}
+          analyses={analyses || []}
+          showAnalysisTypeFilter={true}
+          showSeverityFilter={true}
+          showPublicFilter={true}
+          initialFilters={filters}
+        />
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Total Analyses</p>
+                  <p className="text-xl font-bold">{totalItems}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5 text-green-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Unique Users</p>
+                  <p className="text-xl font-bold">
+                    {new Set(filtered.map((a: AnalysisData) => a.userId)).size}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Visa Analysis</p>
+                  <p className="text-xl font-bold">
+                    {filtered.filter((a: AnalysisData) => a.analysisType === 'visa_analysis').length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-purple-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Enrollment Analysis</p>
+                  <p className="text-xl font-bold">
+                    {filtered.filter((a: AnalysisData) => a.analysisType === 'enrollment_analysis').length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Analysis Cards */}
+        {isLoading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="text-gray-600 mt-2">Loading analyses...</p>
+          </div>
+        ) : error ? (
+          <div className="text-center py-8">
+            <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+            <p className="text-gray-600">Failed to load analyses. Please try again.</p>
+          </div>
+        ) : paginatedAnalyses.length === 0 ? (
+          <div className="text-center py-8">
+            <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-600">No analyses found matching your criteria.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {paginatedAnalyses.map((analysis: AnalysisData) => (
+              <Card
+                key={analysis.id}
+                className="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+                onClick={() => openAnalysisDetails(analysis)}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base font-semibold truncate">
+                        {analysis.fileName}
                       </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-4">
-                      {(() => {
-                        const summary = selectedAnalysis.analysisResults?.summary || '';
-                        
-                        // Extract comprehensive financial and terms information from document analysis
-                        const tuitionMatch = summary.match(/tuition\s+fees?[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+(?:per\s+(?:year|semester|term)|annually|yearly)?)/gi) ||
-                                            summary.match(/fees?[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+(?:per\s+(?:year|semester|term)|annually|yearly)?)/gi);
-                        const healthCoverMatch = summary.match(/health\s+cover[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+)/gi);
-                        const totalCostMatch = summary.match(/total\s+cost[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+)/gi);
-                        
-                        // Enhanced scholarship extraction with terms and conditions
-                        const scholarshipMatch = summary.match(/scholarship[^.!?]*(?:[A-Z$€£¥₹₽]+[\d,.\s]+|[\d]+%)[^.!?]*/gi);
-                        const scholarshipTerms = summary.match(/scholarship[^.!?]*(?:terms|conditions|requirements|criteria|eligibility)[^.!?]*[.!?]/gi);
-                        
-                        // Extract terms and conditions
-                        const termsMatch = summary.match(/(?:terms|conditions|requirements|obligations|stipulations)[^.!?]*[.!?]/gi);
-                        const deadlineMatch = summary.match(/(?:deadline|due date|must be|required by)[^.!?]*[.!?]/gi);
-                        const complianceMatch = summary.match(/(?:compliance|must comply|adhere to|follow)[^.!?]*[.!?]/gi);
-                        
-                        const financialAmounts = summary.match(/[A-Z$€£¥₹₽]+\s*[\d,]+(?:\.\d{2})?\s*(?:per\s+(?:year|semester|term)|annually|yearly)?/gi);
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant={analysis.analysisType === 'visa_analysis' ? 'destructive' : 'default'}>
+                          {analysis.analysisType === 'visa_analysis' ? 'Visa' : 'Enrollment'}
+                        </Badge>
+                        <Badge variant={analysis.isPublic ? 'outline' : 'secondary'}>
+                          {analysis.isPublic ? 'Public' : 'Private'}
+                        </Badge>
+                      </div>
+                    </div>
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="pt-0">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <User className="h-3 w-3" />
+                      <span className="truncate">
+                        {analysis.user ? `${analysis.user.username} (${analysis.user.email})` : 'Unknown User'}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <Calendar className="h-3 w-3" />
+                      <span>{format(new Date(analysis.createdAt), 'MMM dd, yyyy HH:mm')}</span>
+                    </div>
+                    
+                    {analysis.analysisResults?.summary && (
+                      <p className="text-gray-600 text-xs line-clamp-2 mt-2">
+                        {analysis.analysisResults.summary.substring(0, 100)}...
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
-                        const hasFinancialInfo = tuitionMatch || healthCoverMatch || totalCostMatch || scholarshipMatch || financialAmounts;
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
+        )}
+      </div>
+    </AdminLayout>
+  );
+}
 
-                        if (!hasFinancialInfo) {
+// Analysis Detail View Component
+function AnalysisDetailView({ analysis, onBack }: { analysis: AnalysisData; onBack: () => void }) {
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="text-center sm:text-left">
+            <h1 className="text-2xl sm:text-3xl font-bold">Analysis Report</h1>
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+              Comprehensive analysis details and insights.
+            </p>
+          </div>
+          <Button variant="outline" onClick={onBack}>
+            Back to Analysis List
+          </Button>
+        </div>
+
+        {/* Analysis Overview */}
+        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+            <CardTitle className="text-xl text-gray-800">Analysis Overview</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <span className="font-medium text-gray-600">File Name:</span>
+                <p className="text-gray-800">{analysis.fileName}</p>
+              </div>
+              <div>
+                <span className="font-medium text-gray-600">Analysis Type:</span>
+                <p className="text-gray-800 capitalize">{analysis.analysisType?.replace('_', ' ')}</p>
+              </div>
+              <div>
+                <span className="font-medium text-gray-600">User:</span>
+                <p className="text-gray-800">
+                  {analysis.user ? `${analysis.user.username} (${analysis.user.email})` : 'Unknown User'}
+                </p>
+              </div>
+              <div>
+                <span className="font-medium text-gray-600">Created:</span>
+                <p className="text-gray-800">{format(new Date(analysis.createdAt), 'MMMM dd, yyyy HH:mm')}</p>
+              </div>
+              <div>
+                <span className="font-medium text-gray-600">Visibility:</span>
+                <Badge variant={analysis.isPublic ? 'outline' : 'secondary'}>
+                  {analysis.isPublic ? 'Public' : 'Private'}
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Document Summary */}
+        <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+            <CardTitle className="text-xl text-gray-800">Document Summary</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div 
+              className="whitespace-pre-wrap text-gray-700 leading-relaxed break-words"
+              dangerouslySetInnerHTML={{ 
+                __html: formatNumericalInfo(analysis.analysisResults?.summary || 'No summary available for this analysis.') 
+              }}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Enrollment Analysis Template */}
+        {analysis.analysisType === 'enrollment_analysis' && (
+          <EnrollmentAnalysisDisplay 
+            analysis={{
+              id: analysis.id,
+              fileName: analysis.fileName,
+              createdAt: analysis.createdAt,
+              institution: analysis.analysisResults?.institutionName,
+              program: analysis.analysisResults?.programName,
+              studentName: analysis.analysisResults?.studentName,
+              programLevel: analysis.analysisResults?.programLevel,
+              startDate: analysis.analysisResults?.startDate,
+              endDate: analysis.analysisResults?.endDate,
+              institutionCountry: analysis.analysisResults?.institutionCountry,
+              visaType: analysis.analysisResults?.visaType,
+              healthCover: analysis.analysisResults?.healthCover,
+              englishTestScore: analysis.analysisResults?.englishTestScore,
+              institutionContact: analysis.analysisResults?.institutionContact,
+              visaObligations: analysis.analysisResults?.visaObligations,
+              orientationDate: analysis.analysisResults?.orientationDate,
+              passportDetails: analysis.analysisResults?.passportDetails,
+              supportServices: analysis.analysisResults?.supportServices,
+              paymentSchedule: analysis.analysisResults?.paymentSchedule,
+              bankDetails: analysis.analysisResults?.bankDetails,
+              conditionsOfOffer: analysis.analysisResults?.conditionsOfOffer,
+              scholarshipDetails: analysis.analysisResults?.scholarshipDetails,
+              scholarshipPercentage: analysis.analysisResults?.scholarshipPercentage,
+              scholarshipDuration: analysis.analysisResults?.scholarshipDuration,
+              scholarshipConditions: analysis.analysisResults?.scholarshipConditions,
+              internshipRequired: analysis.analysisResults?.internshipRequired,
+              internshipDuration: analysis.analysisResults?.internshipDuration,
+              workAuthorization: analysis.analysisResults?.workAuthorization,
+              workHoursLimit: analysis.analysisResults?.workHoursLimit,
+              academicRequirements: analysis.analysisResults?.academicRequirements,
+              gpaRequirement: analysis.analysisResults?.gpaRequirement,
+              attendanceRequirement: analysis.analysisResults?.attendanceRequirement,
+              languageRequirements: analysis.analysisResults?.languageRequirements,
+              graduationRequirements: analysis.analysisResults?.graduationRequirements,
+              termsToFulfil: analysis.analysisResults?.termsToFulfil,
+              summary: analysis.analysisResults?.summary,
+              keyFindings: analysis.analysisResults?.keyFindings,
+              recommendations: analysis.analysisResults?.recommendations,
+              missingInformation: analysis.analysisResults?.missingInformation
+            }}
+            isAdmin={true}
+          />
+        )}
+
+        {/* Visa Analysis Template */}
+        {analysis.analysisType === 'visa_analysis' && (
+          <div className="space-y-6">
+            {/* Key Findings */}
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50 rounded-t-lg">
+                <CardTitle className="flex items-center gap-2 text-red-800">
+                  <AlertTriangle className="h-5 w-5" />
+                  Analysis Results
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                {analysis.analysisResults?.rejectionReasons?.length > 0 ? (
+                  <div className="space-y-4">
+                    {analysis.analysisResults.rejectionReasons.map((reason: any, index: number) => (
+                      <div key={index} className="border-l-4 border-red-400 pl-4 py-2">
+                        <h4 className="font-medium text-red-800">{reason.title}</h4>
+                        <p className="text-gray-700 mt-1">{reason.description}</p>
+                        {reason.category && (
+                          <Badge variant="outline" className="mt-2 text-xs">
+                            {reason.category}
+                          </Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600">No specific issues identified in this analysis.</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Missing Information */}
+            {analysis.analysisResults?.missingInformation && analysis.analysisResults.missingInformation.length > 0 && (
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardHeader className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-t-lg">
+                  <CardTitle className="flex items-center gap-2 text-yellow-800">
+                    <AlertCircle className="h-5 w-5" />
+                    Missing Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-3">
+                    {analysis.analysisResults.missingInformation.map((missing: any, index: number) => (
+                      <div key={index} className="border-l-4 border-yellow-400 pl-4 py-2">
+                        <h4 className="font-medium text-yellow-800">{missing.field}</h4>
+                        <p className="text-gray-700 mt-1">{missing.description}</p>
+                        <p className="text-sm text-gray-600 mt-1">Impact: {missing.impact}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Recommendations */}
+            {analysis.analysisResults?.recommendations && analysis.analysisResults.recommendations.length > 0 && (
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+                  <CardTitle className="flex items-center gap-2 text-green-800">
+                    <CheckCircle className="h-5 w-5" />
+                    Recommendations
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {analysis.analysisResults.recommendations.map((rec: any, index: number) => (
+                      <div key={index} className="border-l-4 border-green-400 pl-4 py-2">
+                        <h4 className="font-medium text-green-800">{rec.title}</h4>
+                        <p className="text-gray-700 mt-1">{rec.description}</p>
+                        {rec.priority && (
+                          <Badge variant="outline" className="mt-2 text-xs">
+                            {rec.priority}
+                          </Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Next Steps */}
+            {analysis.analysisResults?.nextSteps && (
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-t-lg">
+                  <CardTitle className="flex items-center gap-2 text-purple-800">
+                    <TrendingUp className="h-5 w-5" />
+                    Next Steps
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {Array.isArray(analysis.analysisResults.nextSteps) ? (
+                    <div className="space-y-3">
+                      {analysis.analysisResults.nextSteps.map((step: any, index: number) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <div className="bg-purple-100 text-purple-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-purple-800">{step.title || step.step}</h4>
+                            <p className="text-gray-700">{step.description}</p>
+                            {step.category && (
+                              <Badge variant="outline" className="mt-1 text-xs">
+                                {step.category}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-700">{analysis.analysisResults.nextSteps}</p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+      </div>
+    </AdminLayout>
+  );
                           return (
                             <div className="text-center py-8">
                               <DollarSign className="h-12 w-12 text-gray-300 mx-auto mb-4" />
