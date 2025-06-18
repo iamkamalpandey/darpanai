@@ -31,6 +31,19 @@ interface Analysis {
   summary?: string;
 }
 
+interface AnalysisDetail {
+  id: number;
+  filename: string;
+  createdAt: string;
+  analysisResults?: any;
+  summary?: string;
+  country?: string;
+  visaType?: string;
+  isPublic?: boolean;
+  institutionCountry?: string;
+  studentCountry?: string;
+}
+
 export default function AnalysisHub() {
   const [selectedAnalysis, setSelectedAnalysis] = useState<{id: number, type: 'visa_rejection' | 'enrollment'} | null>(null);
   const [filters, setFilters] = useState<FilterOptions>({});
@@ -54,10 +67,18 @@ export default function AnalysisHub() {
     select: (data) => data.map(item => ({ ...item, type: 'enrollment' as const }))
   });
 
-  // Combine and sort all analyses
-  const allAnalyses = [...visaAnalyses, ...enrollmentAnalyses].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  // Fetch detailed analysis when selected
+  const { data: analysisDetail, isLoading: detailLoading } = useQuery<AnalysisDetail>({
+    queryKey: [
+      selectedAnalysis?.type === 'visa_rejection' ? '/api/analyses' : '/api/enrollment-analyses',
+      selectedAnalysis?.id
+    ],
+    enabled: !!selectedAnalysis,
+    select: (data) => {
+      const analysis = Array.isArray(data) ? data[0] : data;
+      return analysis;
+    }
+  });
 
   // Handle viewing analysis inline
   const viewAnalysis = (id: number, type: 'visa_rejection' | 'enrollment') => {
@@ -68,6 +89,11 @@ export default function AnalysisHub() {
     setSelectedAnalysis(null);
   };
 
+  // Combine all analyses
+  const allAnalyses = [...visaAnalyses, ...enrollmentAnalyses].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
   // Memoized filtered analyses for performance
   const filteredAnalyses = useMemo(() => {
     let filtered = allAnalyses;
@@ -75,14 +101,11 @@ export default function AnalysisHub() {
     // Text search across multiple fields
     if (filters.searchTerm) {
       filtered = filtered.filter(analysis => 
-        searchInText(analysis, filters.searchTerm!, [
-          'filename',
-          'rejectionReasons.title',
-          'rejectionReasons.description',
-          'institutionName',
-          'documentType',
-          'summary'
-        ])
+        searchInText(analysis.filename, filters.searchTerm) ||
+        searchInText(analysis.summary, filters.searchTerm) ||
+        searchInText(analysis.institutionCountry, filters.searchTerm) ||
+        searchInText(analysis.studentCountry, filters.searchTerm) ||
+        searchInText(analysis.visaType, filters.searchTerm)
       );
     }
 
@@ -91,38 +114,23 @@ export default function AnalysisHub() {
       filtered = filtered.filter(analysis => analysis.type === filters.analysisType);
     }
 
-    // Filter by severity (for visa rejection analyses)
-    if (filters.severity) {
-      filtered = filtered.filter(analysis => {
-        if (analysis.type === 'visa_rejection' && analysis.rejectionReasons) {
-          return analysis.rejectionReasons.some(reason => reason.severity === filters.severity);
-        }
-        return true;
-      });
+    // Filter by country (for enrollment analyses)
+    if (filters.country) {
+      filtered = filtered.filter(analysis => 
+        analysis.institutionCountry === filters.country ||
+        analysis.studentCountry === filters.country
+      );
     }
 
     // Filter by date range
     if (filters.dateRange) {
-      filtered = filterByDateRange(filtered, 'createdAt', filters.dateRange);
-    }
-
-    // Filter by country (searches in filename and other available fields)
-    if (filters.country) {
-      filtered = filtered.filter(analysis => {
-        const searchText = [
-          analysis.filename,
-          analysis.institutionCountry,
-          analysis.visaType
-        ].filter(Boolean).join(' ').toLowerCase();
-        return searchText.includes(filters.country!.toLowerCase());
-      });
+      filtered = filterByDateRange(filtered, filters.dateRange, 'createdAt');
     }
 
     return filtered;
   }, [allAnalyses, filters]);
 
-  // Pagination calculations for all analyses
-  const totalPages = Math.ceil(filteredAnalyses.length / itemsPerPage);
+  // Pagination
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedAnalyses = filteredAnalyses.slice(startIndex, endIndex);
@@ -154,6 +162,177 @@ export default function AnalysisHub() {
       <Badge className="bg-blue-100 text-blue-800 border-blue-200">Enrollment Analysis</Badge>
     );
   };
+
+  // Render detailed analysis view
+  const renderAnalysisDetail = () => {
+    if (!selectedAnalysis || !analysisDetail) return null;
+
+    return (
+      <div className="space-y-6">
+        {/* Back button and header */}
+        <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={backToList} className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Analysis List
+          </Button>
+        </div>
+
+        {/* Important Disclaimer */}
+        <Card className="border-amber-200 bg-amber-50">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div className="text-sm">
+                <p className="font-medium text-amber-800 mb-2">Important Legal Disclaimer</p>
+                <p className="text-amber-700 leading-relaxed">
+                  This analysis is for informational purposes only and should not be considered as professional {selectedAnalysis.type === 'visa_rejection' ? 'immigration' : 'education'} advice. 
+                  Always consult with qualified {selectedAnalysis.type === 'visa_rejection' ? 'immigration experts or lawyers' : 'education consultants and immigration advisors'} before making any decisions. 
+                  This tool and company will not be liable for any financial or other losses caused by decisions made based on this analysis.
+                  Make your decisions based on professional expert guidance and your own thorough research.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Analysis Header */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${selectedAnalysis.type === 'visa_rejection' ? 'bg-blue-100' : 'bg-green-100'}`}>
+              {selectedAnalysis.type === 'visa_rejection' ? (
+                <FileText className="h-5 w-5 text-blue-600" />
+              ) : (
+                <GraduationCap className="h-5 w-5 text-green-600" />
+              )}
+            </div>
+            <div>
+              <p className="font-medium text-gray-900">
+                {selectedAnalysis.type === 'visa_rejection' ? 'Visa Document Analysis' : 'Enrollment Document Analysis'}
+              </p>
+              <p className="text-sm text-gray-600">{analysisDetail.filename}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-gray-600">
+            <span className="flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              {new Date(analysisDetail.createdAt).toLocaleDateString()}
+            </span>
+            {analysisDetail.country && (
+              <span className="flex items-center gap-1">
+                <Globe className="h-4 w-4" />
+                {analysisDetail.country}
+              </span>
+            )}
+            {analysisDetail.institutionCountry && (
+              <span className="flex items-center gap-1">
+                <Globe className="h-4 w-4" />
+                {analysisDetail.studentCountry} → {analysisDetail.institutionCountry}
+              </span>
+            )}
+            {analysisDetail.visaType && (
+              <Badge variant="outline">{analysisDetail.visaType}</Badge>
+            )}
+            {selectedAnalysis.type === 'visa_rejection' && analysisDetail.isPublic !== undefined && (
+              <Badge variant={analysisDetail.isPublic ? "default" : "secondary"}>
+                {analysisDetail.isPublic ? "Public" : "Private"}
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Complete Original Analysis */}
+        {analysisDetail.analysisResults && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className={`h-5 w-5 ${selectedAnalysis.type === 'visa_rejection' ? 'text-blue-600' : 'text-green-600'}`} />
+                Complete {selectedAnalysis.type === 'visa_rejection' ? 'Visa' : 'Enrollment'} Analysis Report
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="whitespace-pre-wrap text-gray-800 leading-relaxed text-sm break-words font-mono">
+                  {typeof analysisDetail.analysisResults === 'string' 
+                    ? analysisDetail.analysisResults 
+                    : JSON.stringify(analysisDetail.analysisResults, null, 2).replace(/[{}"]/g, '').replace(/,\s*$/gm, '')
+                  }
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Summary - Fallback */}
+        {!analysisDetail.analysisResults && analysisDetail.summary && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className={`h-5 w-5 ${selectedAnalysis.type === 'visa_rejection' ? 'text-blue-600' : 'text-green-600'}`} />
+                {selectedAnalysis.type === 'visa_rejection' ? 'Visa' : 'Enrollment'} Analysis Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="whitespace-pre-wrap text-gray-800 leading-relaxed break-words">{analysisDetail.summary}</div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Professional Guidance Recommendation */}
+        <Card className={`border-${selectedAnalysis.type === 'visa_rejection' ? 'blue' : 'green'}-200 bg-${selectedAnalysis.type === 'visa_rejection' ? 'blue' : 'green'}-50`}>
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <CheckCircle className={`h-5 w-5 text-${selectedAnalysis.type === 'visa_rejection' ? 'blue' : 'green'}-600 mt-0.5 flex-shrink-0`} />
+              <div className="text-sm">
+                <p className={`font-medium text-${selectedAnalysis.type === 'visa_rejection' ? 'blue' : 'green'}-800 mb-2`}>
+                  {selectedAnalysis.type === 'visa_rejection' ? 'Next Steps Recommendation' : 'Professional Guidance Recommended'}
+                </p>
+                <p className={`text-${selectedAnalysis.type === 'visa_rejection' ? 'blue' : 'green'}-700 leading-relaxed`}>
+                  {selectedAnalysis.type === 'visa_rejection' ? (
+                    <>
+                      Based on this analysis, we strongly recommend consulting with qualified immigration experts who can provide 
+                      personalized guidance for your specific situation. Consider booking a consultation with our certified immigration advisors 
+                      who can help you understand these findings and create an actionable plan for your visa application process.
+                    </>
+                  ) : (
+                    <>
+                      Based on this enrollment document analysis, we recommend consulting with qualified education consultants and immigration advisors 
+                      who can verify this information with the issuing institution and provide personalized guidance for your study abroad journey. 
+                      Consider booking a consultation with our certified education advisors who can help you understand these findings and create 
+                      a comprehensive plan for your academic and visa application process.
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
+  // Show detailed view if analysis is selected
+  if (selectedAnalysis) {
+    return (
+      <DashboardLayout>
+        <ScrollArea className="h-[calc(100vh-8rem)]">
+          {detailLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-gray-600">Loading analysis...</p>
+              </div>
+            </div>
+          ) : (
+            renderAnalysisDetail()
+          )}
+        </ScrollArea>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -261,31 +440,22 @@ export default function AnalysisHub() {
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Link href="/visa-analysis">
-                      <Button className="w-full sm:w-auto">
-                        <AlertTriangle className="h-4 w-4 mr-2" />
-                        Analyze Visa Rejection
-                      </Button>
+                      <Button>Analyze Visa Document</Button>
                     </Link>
                     <Link href="/enrollment-analysis">
-                      <Button variant="outline" className="w-full sm:w-auto">
-                        <GraduationCap className="h-4 w-4 mr-2" />
-                        Analyze Enrollment Document
-                      </Button>
+                      <Button variant="outline">Analyze Enrollment Document</Button>
                     </Link>
                   </div>
                 </CardContent>
               </Card>
             )}
-
-            {/* Pagination for All Analyses */}
-            {totalPages > 1 && (
+            
+            {paginatedAnalyses.length > 0 && (
               <Pagination
                 currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
                 totalItems={filteredAnalyses.length}
                 itemsPerPage={itemsPerPage}
-                showPageInfo={true}
+                onPageChange={setCurrentPage}
               />
             )}
           </TabsContent>
@@ -294,34 +464,38 @@ export default function AnalysisHub() {
             {paginatedVisaAnalyses.length > 0 ? (
               <div className="grid gap-4">
                 {paginatedVisaAnalyses.map((analysis) => (
-                  <Card key={analysis.id} className="hover:shadow-md transition-shadow">
+                  <Card key={`visa-${analysis.id}`} className="hover:shadow-md transition-shadow cursor-pointer">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-4 flex-1 min-w-0">
-                          <div className="bg-blue-100 p-2 rounded-lg flex-shrink-0">
-                            <AlertTriangle className="h-5 w-5 text-blue-600" />
+                          <div className="bg-red-100 p-2 rounded-lg flex-shrink-0">
+                            <AlertTriangle className="h-5 w-5 text-red-600" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-gray-900 mb-2 truncate">{analysis.filename}</h3>
-                            <p className="text-sm text-gray-600 mb-3">Visa document analysis with detailed insights and key information</p>
-                            <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="font-medium text-gray-900 truncate">{analysis.filename}</h3>
+                              <Badge className="bg-red-100 text-red-800 border-red-200">Visa Analysis</Badge>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-3">Visa document analysis with detailed insights</p>
+                            
+                            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
                                 {new Date(analysis.createdAt).toLocaleDateString()}
                               </span>
-                              {analysis.rejectionReasons && (
-                                <span>{analysis.rejectionReasons.length} reasons identified</span>
-                              )}
                             </div>
                           </div>
                         </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => openAnalysisModal(analysis.id, 'visa_rejection')}
-                        >
-                          View Analysis
-                        </Button>
+                        <div className="flex flex-col gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => viewAnalysis(analysis.id, analysis.type)}
+                          >
+                            View Analysis
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -331,33 +505,27 @@ export default function AnalysisHub() {
               <Card>
                 <CardContent className="p-12 text-center">
                   <div className="flex justify-center mb-4">
-                    <div className="bg-blue-100 p-4 rounded-full">
-                      <AlertTriangle className="h-8 w-8 text-blue-600" />
+                    <div className="bg-red-100 p-4 rounded-full">
+                      <AlertTriangle className="h-8 w-8 text-red-400" />
                     </div>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Visa Analyses</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Visa Analyses Yet</h3>
                   <p className="text-gray-600 mb-6">
-                    Upload a visa document (approval or rejection) to get detailed analysis, key information, and recommendations.
+                    Upload a visa document to get comprehensive analysis and recommendations.
                   </p>
                   <Link href="/visa-analysis">
-                    <Button>
-                      <AlertTriangle className="h-4 w-4 mr-2" />
-                      Analyze Visa Document
-                    </Button>
+                    <Button>Analyze Visa Document</Button>
                   </Link>
                 </CardContent>
               </Card>
             )}
-
-            {/* Pagination for Visa Rejection */}
-            {filteredVisaAnalyses.length > itemsPerPage && (
+            
+            {paginatedVisaAnalyses.length > 0 && (
               <Pagination
                 currentPage={currentPage}
-                totalPages={Math.ceil(filteredVisaAnalyses.length / itemsPerPage)}
-                onPageChange={setCurrentPage}
                 totalItems={filteredVisaAnalyses.length}
                 itemsPerPage={itemsPerPage}
-                showPageInfo={true}
+                onPageChange={setCurrentPage}
               />
             )}
           </TabsContent>
@@ -366,7 +534,7 @@ export default function AnalysisHub() {
             {paginatedEnrollmentAnalyses.length > 0 ? (
               <div className="grid gap-4">
                 {paginatedEnrollmentAnalyses.map((analysis) => (
-                  <Card key={analysis.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                  <Card key={`enrollment-${analysis.id}`} className="hover:shadow-md transition-shadow cursor-pointer">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-4 flex-1 min-w-0">
@@ -374,8 +542,12 @@ export default function AnalysisHub() {
                             <GraduationCap className="h-5 w-5 text-blue-600" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-gray-900 mb-2 truncate">{analysis.filename}</h3>
-                            <p className="text-sm text-gray-600 mb-3">Enrollment document analysis with country and visa insights</p>
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="font-medium text-gray-900 truncate">{analysis.filename}</h3>
+                              <Badge className="bg-blue-100 text-blue-800 border-blue-200">Enrollment Analysis</Badge>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-3">Enrollment document verification and analysis</p>
+                            
                             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
@@ -387,6 +559,12 @@ export default function AnalysisHub() {
                                   {analysis.institutionCountry}
                                 </span>
                               )}
+                              {analysis.studentCountry && (
+                                <span className="flex items-center gap-1">
+                                  <User className="h-3 w-3" />
+                                  {analysis.studentCountry}
+                                </span>
+                              )}
                               {analysis.visaType && (
                                 <span className="flex items-center gap-1">
                                   <Globe className="h-3 w-3" />
@@ -396,13 +574,16 @@ export default function AnalysisHub() {
                             </div>
                           </div>
                         </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => openAnalysisModal(analysis.id, 'enrollment')}
-                        >
-                          View Analysis
-                        </Button>
+                        <div className="flex flex-col gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => viewAnalysis(analysis.id, analysis.type)}
+                          >
+                            View Analysis
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -413,45 +594,31 @@ export default function AnalysisHub() {
                 <CardContent className="p-12 text-center">
                   <div className="flex justify-center mb-4">
                     <div className="bg-blue-100 p-4 rounded-full">
-                      <GraduationCap className="h-8 w-8 text-blue-600" />
+                      <GraduationCap className="h-8 w-8 text-blue-400" />
                     </div>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Enrollment Analyses</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Enrollment Analyses Yet</h3>
                   <p className="text-gray-600 mb-6">
-                    Upload enrollment documents like I-20, CAS letters, or admission letters for comprehensive analysis.
+                    Upload an enrollment document to verify and analyze it for accuracy.
                   </p>
                   <Link href="/enrollment-analysis">
-                    <Button>
-                      <GraduationCap className="h-4 w-4 mr-2" />
-                      Analyze Enrollment Document
-                    </Button>
+                    <Button>Analyze Enrollment Document</Button>
                   </Link>
                 </CardContent>
               </Card>
             )}
-
-            {/* Pagination for Enrollment */}
-            {filteredEnrollmentAnalyses.length > itemsPerPage && (
+            
+            {paginatedEnrollmentAnalyses.length > 0 && (
               <Pagination
                 currentPage={currentPage}
-                totalPages={Math.ceil(filteredEnrollmentAnalyses.length / itemsPerPage)}
-                onPageChange={setCurrentPage}
                 totalItems={filteredEnrollmentAnalyses.length}
                 itemsPerPage={itemsPerPage}
-                showPageInfo={true}
+                onPageChange={setCurrentPage}
               />
             )}
           </TabsContent>
         </Tabs>
       </div>
-
-      {/* Analysis Modal */}
-      <AnalysisModal
-        analysisId={modalAnalysisId}
-        analysisType={modalAnalysisType}
-        isOpen={modalOpen}
-        onClose={closeAnalysisModal}
-      />
     </DashboardLayout>
   );
 }
