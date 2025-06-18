@@ -130,6 +130,20 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 18, 2025 - Comprehensive Enrollment Analysis System & Maximum Detail Extraction Implementation:**
+- Enhanced enrollment analysis to extract maximum possible detail from both CoE certificates and offer letters with comprehensive data capture
+- Implemented critical extraction requirements ensuring every piece of information is analyzed and documented from source documents
+- Added comprehensive fallback handling using "Not specified in document" for missing fields instead of leaving empty spaces
+- Enhanced database schema with extensive new fields: health cover details, English test scores, institution contact, visa obligations, payment schedules, bank details, orientation dates, passport details, support services, and conditions of offer
+- Updated AI prompt with 10 critical extraction requirements ensuring thorough analysis of all numerical values, dates, contact information, payment details, and specific requirements
+- Implemented enhanced keyFindings structure with category classification (financial, academic, visa, health, accommodation, scholarship, compliance, deadline, requirement, other)
+- Created comprehensive client interface displaying all document fields across multiple organized card sections with proper whitespace handling and fallback messaging
+- Added Document Details & Support card displaying health cover, English scores, institution contact, visa obligations, orientation dates, passport details, and support services
+- Implemented Payment & Banking Information card with dedicated sections for payment schedules, bank details (including BSB numbers), and conditions of offer
+- Enhanced visual presentation with color-coded card headers (purple for document details, green for payment information) and proper text wrapping for complex data
+- Applied systematic approach to accommodate changing requirements by ensuring comprehensive data extraction and display flexibility
+- Enhanced analysis accuracy for critical decision-making with detailed extraction instructions and complete information preservation
+
 **June 18, 2025 - Document-Only Analysis Display & Enhanced Card Layout Implementation:**
 - Removed all account information correlations and user data references from analysis reports display
 - Implemented document-only data extraction using regex patterns to detect institution, program, level, and dates directly from analysis summaries

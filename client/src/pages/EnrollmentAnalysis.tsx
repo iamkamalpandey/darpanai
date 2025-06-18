@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { Upload, FileText, CheckCircle, AlertCircle, Clock, DollarSign, GraduationCap, Building2, User, Calendar, TrendingUp, Globe, FileCheck, Sparkles, Target } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, Clock, DollarSign, GraduationCap, Building2, User, Calendar, TrendingUp, Globe, FileCheck, Sparkles, Target, CreditCard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { DashboardLayout } from '@/components/DashboardLayout';
@@ -420,7 +420,7 @@ export default function EnrollmentAnalysis() {
                 <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                   <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
                     <CardTitle className="flex items-center gap-2 text-green-800">
-                      <CreditCard className="h-5 w-5" />
+                      <DollarSign className="h-5 w-5" />
                       Payment & Banking Information
                     </CardTitle>
                   </CardHeader>
