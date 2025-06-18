@@ -18,7 +18,7 @@ export interface FilterOptions {
   userType?: string;
   status?: string;
   dateRange?: string;
-  analysisType?: 'all' | 'visa_analysis' | 'enrollment_analysis';
+  analysisType?: 'visa_analysis' | 'enrollment_analysis' | 'all';
   severity?: string;
   isPublic?: boolean | null;
   sortBy?: 'date' | 'name' | 'type' | 'user';

@@ -58,12 +58,12 @@ const formatNumericalInfo = (text: string): string => {
 
 interface FilterOptions {
   search?: string;
-  analysisType?: string;
+  analysisType?: 'visa_analysis' | 'enrollment_analysis' | 'all';
   severity?: string;
   country?: string;
   visaType?: string;
   dateRange?: string;
-  isPublic?: string;
+  isPublic?: boolean | null;
 }
 
 interface AnalysisData {
@@ -215,10 +215,10 @@ export default function AdminAnalyses() {
         <EnhancedFilters
           filters={filters}
           onFiltersChange={handleFiltersChange}
-          showAnalysisType={true}
-          showSeverity={true}
-          showPublicFilter={true}
-          showDateRange={true}
+          showAnalysisType
+          showSeverity
+          showPublicFilter
+          showDateRange
         />
 
         {/* Results Summary */}
@@ -481,66 +481,231 @@ export default function AdminAnalyses() {
                             </Card>
                           )}
 
-                          {/* Information Grid for Enrollment Analysis */}
+                          {/* Complete Analysis Content Display */}
+                          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                            <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50">
+                              <CardTitle className="flex items-center gap-2 text-gray-800">
+                                <FileText className="h-5 w-5" />
+                                Complete Analysis Results
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-6">
+                              <div className="bg-gray-50 p-6 rounded-lg border">
+                                <div className="text-xs text-gray-500 mb-3 font-medium">ORIGINAL AI-GENERATED ANALYSIS CONTENT:</div>
+                                <div 
+                                  className="text-gray-800 leading-relaxed whitespace-pre-wrap"
+                                  dangerouslySetInnerHTML={{ 
+                                    __html: formatNumericalInfo(JSON.stringify(selectedAnalysis.analysisResults, null, 2)) 
+                                  }}
+                                />
+                              </div>
+                            </CardContent>
+                          </Card>
+
+                          {/* Structured Information Display for Enrollment Analysis */}
                           {selectedAnalysis.analysisType === 'enrollment_analysis' && (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                              {/* Academic Information */}
-                              <Card>
-                                <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
-                                  <CardTitle className="flex items-center gap-2 text-green-800">
-                                    <GraduationCap className="h-5 w-5" />
-                                    Academic Information
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-6 space-y-4">
-                                  {(selectedAnalysis.analysisResults as any)?.institutionName && (
-                                    <div>
-                                      <span className="font-medium text-gray-600">Institution:</span>
-                                      <p className="text-gray-800">{(selectedAnalysis.analysisResults as any).institutionName}</p>
-                                    </div>
-                                  )}
-                                  {(selectedAnalysis.analysisResults as any)?.programName && (
-                                    <div>
-                                      <span className="font-medium text-gray-600">Program:</span>
-                                      <p className="text-gray-800">{(selectedAnalysis.analysisResults as any).programName}</p>
-                                    </div>
-                                  )}
-                                </CardContent>
-                              </Card>
+                            <div className="space-y-6">
+                              {/* Institution & Program Details */}
+                              {((selectedAnalysis.analysisResults as any)?.institutionName || 
+                                (selectedAnalysis.analysisResults as any)?.programName || 
+                                (selectedAnalysis.analysisResults as any)?.studentName) && (
+                                <Card>
+                                  <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
+                                    <CardTitle className="flex items-center gap-2 text-green-800">
+                                      <GraduationCap className="h-5 w-5" />
+                                      Academic Information
+                                    </CardTitle>
+                                  </CardHeader>
+                                  <CardContent className="p-6 space-y-4">
+                                    {(selectedAnalysis.analysisResults as any)?.institutionName && (
+                                      <div>
+                                        <span className="font-medium text-gray-600">Institution:</span>
+                                        <div 
+                                          className="text-gray-800 mt-1"
+                                          dangerouslySetInnerHTML={{ 
+                                            __html: formatNumericalInfo((selectedAnalysis.analysisResults as any).institutionName) 
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                    {(selectedAnalysis.analysisResults as any)?.programName && (
+                                      <div>
+                                        <span className="font-medium text-gray-600">Program:</span>
+                                        <div 
+                                          className="text-gray-800 mt-1"
+                                          dangerouslySetInnerHTML={{ 
+                                            __html: formatNumericalInfo((selectedAnalysis.analysisResults as any).programName) 
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                    {(selectedAnalysis.analysisResults as any)?.studentName && (
+                                      <div>
+                                        <span className="font-medium text-gray-600">Student:</span>
+                                        <div 
+                                          className="text-gray-800 mt-1"
+                                          dangerouslySetInnerHTML={{ 
+                                            __html: formatNumericalInfo((selectedAnalysis.analysisResults as any).studentName) 
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                    {(selectedAnalysis.analysisResults as any)?.programLevel && (
+                                      <div>
+                                        <span className="font-medium text-gray-600">Level:</span>
+                                        <div 
+                                          className="text-gray-800 mt-1"
+                                          dangerouslySetInnerHTML={{ 
+                                            __html: formatNumericalInfo((selectedAnalysis.analysisResults as any).programLevel) 
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                    {(selectedAnalysis.analysisResults as any)?.startDate && (
+                                      <div>
+                                        <span className="font-medium text-gray-600">Start Date:</span>
+                                        <div 
+                                          className="text-gray-800 mt-1"
+                                          dangerouslySetInnerHTML={{ 
+                                            __html: formatNumericalInfo((selectedAnalysis.analysisResults as any).startDate) 
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                    {(selectedAnalysis.analysisResults as any)?.duration && (
+                                      <div>
+                                        <span className="font-medium text-gray-600">Duration:</span>
+                                        <div 
+                                          className="text-gray-800 mt-1"
+                                          dangerouslySetInnerHTML={{ 
+                                            __html: formatNumericalInfo((selectedAnalysis.analysisResults as any).duration) 
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              )}
 
                               {/* Financial Information */}
-                              <Card>
-                                <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50">
-                                  <CardTitle className="flex items-center gap-2 text-blue-800">
-                                    <DollarSign className="h-5 w-5" />
-                                    Financial Information
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-6 space-y-4">
-                                  {(selectedAnalysis.analysisResults as any)?.tuitionFee && (
-                                    <div>
-                                      <span className="font-medium text-gray-600">Tuition:</span>
-                                      <div 
-                                        className="text-gray-800"
-                                        dangerouslySetInnerHTML={{ 
-                                          __html: formatNumericalInfo((selectedAnalysis.analysisResults as any).tuitionFee) 
-                                        }}
-                                      />
-                                    </div>
-                                  )}
-                                  {(selectedAnalysis.analysisResults as any)?.scholarship && (
-                                    <div>
-                                      <span className="font-medium text-gray-600">Scholarship:</span>
-                                      <div 
-                                        className="text-gray-800"
-                                        dangerouslySetInnerHTML={{ 
-                                          __html: formatNumericalInfo((selectedAnalysis.analysisResults as any).scholarship) 
-                                        }}
-                                      />
-                                    </div>
-                                  )}
-                                </CardContent>
-                              </Card>
+                              {((selectedAnalysis.analysisResults as any)?.tuitionFee || 
+                                (selectedAnalysis.analysisResults as any)?.scholarship || 
+                                (selectedAnalysis.analysisResults as any)?.totalCost ||
+                                (selectedAnalysis.analysisResults as any)?.financialDetails) && (
+                                <Card>
+                                  <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50">
+                                    <CardTitle className="flex items-center gap-2 text-blue-800">
+                                      <DollarSign className="h-5 w-5" />
+                                      Financial Information
+                                    </CardTitle>
+                                  </CardHeader>
+                                  <CardContent className="p-6 space-y-4">
+                                    {(selectedAnalysis.analysisResults as any)?.tuitionFee && (
+                                      <div>
+                                        <span className="font-medium text-gray-600">Tuition Fee:</span>
+                                        <div 
+                                          className="text-gray-800 mt-1"
+                                          dangerouslySetInnerHTML={{ 
+                                            __html: formatNumericalInfo((selectedAnalysis.analysisResults as any).tuitionFee) 
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                    {(selectedAnalysis.analysisResults as any)?.scholarship && (
+                                      <div>
+                                        <span className="font-medium text-gray-600">Scholarship:</span>
+                                        <div 
+                                          className="text-gray-800 mt-1"
+                                          dangerouslySetInnerHTML={{ 
+                                            __html: formatNumericalInfo((selectedAnalysis.analysisResults as any).scholarship) 
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                    {(selectedAnalysis.analysisResults as any)?.totalCost && (
+                                      <div>
+                                        <span className="font-medium text-gray-600">Total Cost:</span>
+                                        <div 
+                                          className="text-gray-800 mt-1"
+                                          dangerouslySetInnerHTML={{ 
+                                            __html: formatNumericalInfo((selectedAnalysis.analysisResults as any).totalCost) 
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                    {(selectedAnalysis.analysisResults as any)?.financialAid && (
+                                      <div>
+                                        <span className="font-medium text-gray-600">Financial Aid:</span>
+                                        <div 
+                                          className="text-gray-800 mt-1"
+                                          dangerouslySetInnerHTML={{ 
+                                            __html: formatNumericalInfo((selectedAnalysis.analysisResults as any).financialAid) 
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                    {(selectedAnalysis.analysisResults as any)?.scholarshipPercentage && (
+                                      <div>
+                                        <span className="font-medium text-gray-600">Scholarship Coverage:</span>
+                                        <div 
+                                          className="text-gray-800 mt-1"
+                                          dangerouslySetInnerHTML={{ 
+                                            __html: formatNumericalInfo((selectedAnalysis.analysisResults as any).scholarshipPercentage) 
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                    {(selectedAnalysis.analysisResults as any)?.semesterFee && (
+                                      <div>
+                                        <span className="font-medium text-gray-600">Semester Fee:</span>
+                                        <div 
+                                          className="text-gray-800 mt-1"
+                                          dangerouslySetInnerHTML={{ 
+                                            __html: formatNumericalInfo((selectedAnalysis.analysisResults as any).semesterFee) 
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              )}
+
+                              {/* Analysis Scores & Confidence */}
+                              {((selectedAnalysis.analysisResults as any)?.analysisScore || 
+                                (selectedAnalysis.analysisResults as any)?.confidence) && (
+                                <Card>
+                                  <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
+                                    <CardTitle className="flex items-center gap-2 text-purple-800">
+                                      <Info className="h-5 w-5" />
+                                      Analysis Metrics
+                                    </CardTitle>
+                                  </CardHeader>
+                                  <CardContent className="p-6 space-y-4">
+                                    {(selectedAnalysis.analysisResults as any)?.analysisScore && (
+                                      <div>
+                                        <span className="font-medium text-gray-600">Analysis Score:</span>
+                                        <div 
+                                          className="text-gray-800 mt-1"
+                                          dangerouslySetInnerHTML={{ 
+                                            __html: formatNumericalInfo((selectedAnalysis.analysisResults as any).analysisScore.toString()) 
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                    {(selectedAnalysis.analysisResults as any)?.confidence && (
+                                      <div>
+                                        <span className="font-medium text-gray-600">Confidence Level:</span>
+                                        <div 
+                                          className="text-gray-800 mt-1"
+                                          dangerouslySetInnerHTML={{ 
+                                            __html: formatNumericalInfo((selectedAnalysis.analysisResults as any).confidence.toString()) 
+                                          }}
+                                        />
+                                      </div>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              )}
                             </div>
                           )}
                         </div>
