@@ -234,8 +234,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         {/* Mobile Content */}
-        <main className="p-4 pb-6 min-w-0">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 w-full min-w-0 max-w-full">
+        <main className="p-4 pb-6 min-w-0 bg-slate-100">
+          <div className="bg-white rounded-lg shadow-sm border border-slate-200 w-full min-w-0 max-w-full">
             <div className="p-4 sm:p-6 min-w-0">
               {children}
             </div>

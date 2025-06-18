@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AdminLayout } from "@/components/AdminLayout";
 import { AnalysisModal } from "@/components/AnalysisModal";
 import { EnhancedFilters, FilterOptions, searchInText, filterByDateRange } from "@/components/EnhancedFilters";
+import { Pagination, usePagination } from "@/components/Pagination";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,6 +57,8 @@ export default function AdminAnalyses() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalAnalysisId, setModalAnalysisId] = useState<number | null>(null);
   const [modalAnalysisType, setModalAnalysisType] = useState<'visa_rejection' | 'enrollment' | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   const { toast } = useToast();
 
@@ -119,6 +122,18 @@ export default function AdminAnalyses() {
 
     return filtered;
   }, [analyses, filters]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredAnalyses.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedAnalyses = filteredAnalyses.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  const handleFiltersChange = (newFilters: FilterOptions) => {
+    setFilters(newFilters);
+    setCurrentPage(1);
+  };
 
   // CSV export functionality
   const exportAnalysesCSV = () => {
@@ -248,7 +263,7 @@ export default function AdminAnalyses() {
         {/* Enhanced Filters */}
         <EnhancedFilters
           filters={filters}
-          onFiltersChange={setFilters}
+          onFiltersChange={handleFiltersChange}
           config={{
             showSearch: true,
             showAnalysisType: true,
