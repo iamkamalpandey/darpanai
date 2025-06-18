@@ -74,10 +74,6 @@ export default function AnalysisHub() {
       selectedAnalysis?.id
     ],
     enabled: !!selectedAnalysis,
-    select: (data) => {
-      const analysis = Array.isArray(data) ? data[0] : data;
-      return analysis;
-    }
   });
 
   // Handle viewing analysis inline
@@ -242,43 +238,206 @@ export default function AnalysisHub() {
 
         <Separator />
 
-        {/* Complete Original Analysis */}
-        {analysisDetail.analysisResults && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className={`h-5 w-5 ${selectedAnalysis.type === 'visa_rejection' ? 'text-blue-600' : 'text-green-600'}`} />
-                Complete {selectedAnalysis.type === 'visa_rejection' ? 'Visa' : 'Enrollment'} Analysis Report
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="whitespace-pre-wrap text-gray-800 leading-relaxed text-sm break-words font-mono">
-                  {typeof analysisDetail.analysisResults === 'string' 
-                    ? analysisDetail.analysisResults 
-                    : JSON.stringify(analysisDetail.analysisResults, null, 2).replace(/[{}"]/g, '').replace(/,\s*$/gm, '')
-                  }
+        {/* Structured Analysis Display */}
+        {selectedAnalysis.type === 'enrollment' ? (
+          <div className="space-y-6">
+            {/* Document Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-green-600" />
+                  Document Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-gray-800 leading-relaxed">{analysisDetail.summary}</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+              </CardContent>
+            </Card>
 
-        {/* Summary - Fallback */}
-        {!analysisDetail.analysisResults && analysisDetail.summary && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className={`h-5 w-5 ${selectedAnalysis.type === 'visa_rejection' ? 'text-blue-600' : 'text-green-600'}`} />
-                {selectedAnalysis.type === 'visa_rejection' ? 'Visa' : 'Enrollment'} Analysis Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="whitespace-pre-wrap text-gray-800 leading-relaxed break-words">{analysisDetail.summary}</div>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Academic Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5 text-green-600" />
+                  Academic Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {(analysisDetail as any).institutionName && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Institution:</p>
+                      <p className="text-gray-900">{(analysisDetail as any).institutionName}</p>
+                    </div>
+                  )}
+                  {(analysisDetail as any).programName && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Program:</p>
+                      <p className="text-gray-900">{(analysisDetail as any).programName}</p>
+                    </div>
+                  )}
+                  {(analysisDetail as any).programLevel && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Level:</p>
+                      <p className="text-gray-900">{(analysisDetail as any).programLevel}</p>
+                    </div>
+                  )}
+                  {(analysisDetail as any).startDate && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Start Date:</p>
+                      <p className="text-gray-900">{(analysisDetail as any).startDate}</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Financial Information */}
+            {((analysisDetail as any).tuitionAmount || (analysisDetail as any).totalCost || (analysisDetail as any).scholarshipAmount) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-blue-600" />
+                    Financial Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {(analysisDetail as any).tuitionAmount && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Tuition:</p>
+                        <p className="text-gray-900">{(analysisDetail as any).tuitionAmount} {(analysisDetail as any).currency || ''}</p>
+                      </div>
+                    )}
+                    {(analysisDetail as any).scholarshipAmount && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Scholarship:</p>
+                        <p className="text-gray-900">{(analysisDetail as any).scholarshipAmount}</p>
+                      </div>
+                    )}
+                    {(analysisDetail as any).totalCost && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Cost:</p>
+                        <p className="text-gray-900">{(analysisDetail as any).totalCost} {(analysisDetail as any).currency || ''}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Key Findings */}
+            {(analysisDetail as any).keyFindings && Array.isArray((analysisDetail as any).keyFindings) && (analysisDetail as any).keyFindings.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    Key Findings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {(analysisDetail as any).keyFindings.map((finding: any, index: number) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
+                        <span className="text-gray-800">{typeof finding === 'string' ? finding : finding.description || finding.text || JSON.stringify(finding)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Recommendations */}
+            {(analysisDetail as any).recommendations && Array.isArray((analysisDetail as any).recommendations) && (analysisDetail as any).recommendations.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                    Recommendations
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {(analysisDetail as any).recommendations.map((rec: any, index: number) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <div className="w-1.5 h-1.5 bg-amber-600 rounded-full mt-2 flex-shrink-0"></div>
+                        <span className="text-gray-800">{typeof rec === 'string' ? rec : rec.description || rec.text || JSON.stringify(rec)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Next Steps */}
+            {(analysisDetail as any).nextSteps && Array.isArray((analysisDetail as any).nextSteps) && (analysisDetail as any).nextSteps.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ArrowLeft className="h-5 w-5 text-blue-600" />
+                    Next Steps
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {(analysisDetail as any).nextSteps.map((step: any, index: number) => (
+                      <div key={index} className="flex items-start gap-3">
+                        <div className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium flex-shrink-0">
+                          {index + 1}
+                        </div>
+                        <span className="text-gray-800 flex-1 break-words">{typeof step === 'string' ? step : step.description || step.text || JSON.stringify(step)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        ) : (
+          // Visa analysis display
+          <div className="space-y-6">
+            {/* Complete Original Analysis */}
+            {analysisDetail.analysisResults && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    Complete Visa Analysis Report
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="whitespace-pre-wrap text-gray-800 leading-relaxed text-sm break-words font-mono">
+                      {typeof analysisDetail.analysisResults === 'string' 
+                        ? analysisDetail.analysisResults 
+                        : JSON.stringify(analysisDetail.analysisResults, null, 2).replace(/[{}"]/g, '').replace(/,\s*$/gm, '')
+                      }
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Summary - Fallback */}
+            {!analysisDetail.analysisResults && analysisDetail.summary && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    Visa Analysis Summary
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="whitespace-pre-wrap text-gray-800 leading-relaxed break-words">{analysisDetail.summary}</div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         )}
 
         {/* Professional Guidance Recommendation */}
