@@ -41,6 +41,12 @@ export function AdvancedTemplateForm({
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  // Provide fallback data while loading or when dropdown options are not available
+  const categories = (dropdownOptions as any)?.categories || ["Financial", "Academic", "Personal", "Employment", "Travel", "Legal", "Medical", "Insurance", "Accommodation", "Language", "Others"];
+  const visaTypes = (dropdownOptions as any)?.visaTypes || ["Student F-1", "Tourist B-2", "Work H-1B", "Study Permit", "Visitor Visa", "Business B-1", "Other"];
+  const countries = (dropdownOptions as any)?.countries || ["Nepal", "India", "Pakistan", "Bangladesh", "Sri Lanka", "Vietnam", "China", "USA", "Canada", "UK", "Australia", "Germany", "France", "Netherlands", "Other"];
+  const documentTypes = (dropdownOptions as any)?.documentTypes || ["Form", "Letter", "Certificate", "Statement", "Report", "Application", "Other"];
+
   const form = useForm<DocumentTemplateUpload>({
     resolver: zodResolver(documentTemplateUploadSchema),
     defaultValues: {
@@ -338,9 +344,34 @@ export function AdvancedTemplateForm({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {dropdownOptions?.categories?.map((category: string) => (
+                            {categories.map((category: string) => (
                               <SelectItem key={category} value={category.toLowerCase()}>
                                 {category}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="documentType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Document Type *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingOptions}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={isLoadingOptions ? "Loading document types..." : "Select document type"} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {documentTypes.map((type: string) => (
+                              <SelectItem key={type} value={type}>
+                                {type}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -428,7 +459,7 @@ export function AdvancedTemplateForm({
                     <div>
                       <Label className="text-base font-medium">Visa Types</Label>
                       <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border rounded-md p-3">
-                        {dropdownOptions?.visaTypes?.map((visaType: string) => (
+                        {visaTypes.map((visaType: string) => (
                           <label key={visaType} className="flex items-center space-x-2 cursor-pointer">
                             <input
                               type="checkbox"
@@ -452,7 +483,7 @@ export function AdvancedTemplateForm({
                     <div>
                       <Label className="text-base font-medium">Countries</Label>
                       <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border rounded-md p-3">
-                        {dropdownOptions?.countries?.map((country: string) => (
+                        {countries.map((country: string) => (
                           <label key={country} className="flex items-center space-x-2 cursor-pointer">
                             <input
                               type="checkbox"
