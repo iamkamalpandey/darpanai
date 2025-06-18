@@ -56,6 +56,51 @@ export const analyses = pgTable("analyses", {
   isPublic: boolean("is_public").default(false),
 });
 
+// Enrollment Confirmation Analysis
+export const enrollmentAnalyses = pgTable("enrollment_analyses", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  filename: text("filename").notNull(),
+  documentType: text("document_type").notNull(), // "i20", "cas", "admission_letter", "offer_letter", "confirmation_enrollment", "other"
+  originalText: text("original_text").notNull(),
+  
+  // Core document details
+  institutionName: text("institution_name"),
+  studentName: text("student_name"),
+  studentId: text("student_id"),
+  programName: text("program_name"),
+  programLevel: text("program_level"), // undergraduate, graduate, certificate, etc.
+  startDate: text("start_date"),
+  endDate: text("end_date"),
+  
+  // Financial information
+  tuitionAmount: text("tuition_amount"),
+  currency: text("currency"),
+  scholarshipAmount: text("scholarship_amount"),
+  totalCost: text("total_cost"),
+  
+  // Key findings and analysis
+  summary: text("summary").notNull(),
+  keyFindings: jsonb("key_findings").notNull().default([]),
+  missingInformation: jsonb("missing_information").notNull().default([]),
+  recommendations: jsonb("recommendations").notNull().default([]),
+  nextSteps: jsonb("next_steps").notNull().default([]),
+  
+  // Document validity and compliance
+  isValid: boolean("is_valid").default(true),
+  expiryDate: text("expiry_date"),
+  complianceIssues: jsonb("compliance_issues").notNull().default([]),
+  
+  // Metadata
+  analysisScore: integer("analysis_score"), // 1-100 score based on completeness
+  confidence: integer("confidence"), // 1-100 AI confidence level
+  processingTime: integer("processing_time"), // milliseconds
+  tokensUsed: integer("tokens_used"), // for cost tracking
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  isPublic: boolean("is_public").default(false),
+});
+
 // Professional Account Applications
 export const professionalApplications = pgTable("professional_applications", {
   id: serial("id").primaryKey(),
@@ -385,3 +430,70 @@ export type DocumentTemplateUpload = z.infer<typeof documentTemplateUploadSchema
 export type DocumentChecklist = typeof documentChecklists.$inferSelect;
 export type InsertDocumentChecklist = z.infer<typeof insertDocumentChecklistSchema>;
 export type DocumentChecklistFormData = InsertDocumentChecklist;
+
+// Enrollment Analysis schemas
+export const insertEnrollmentAnalysisSchema = z.object({
+  filename: z.string().min(1, "Filename is required"),
+  documentType: z.enum(["i20", "cas", "admission_letter", "offer_letter", "confirmation_enrollment", "other"]),
+  originalText: z.string().min(1, "Document text is required"),
+});
+
+export const enrollmentAnalysisResponseSchema = z.object({
+  // Core document details
+  institutionName: z.string().optional(),
+  studentName: z.string().optional(),
+  studentId: z.string().optional(),
+  programName: z.string().optional(),
+  programLevel: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  
+  // Financial information
+  tuitionAmount: z.string().optional(),
+  currency: z.string().optional(),
+  scholarshipAmount: z.string().optional(),
+  totalCost: z.string().optional(),
+  
+  // Analysis results
+  summary: z.string(),
+  keyFindings: z.array(z.object({
+    title: z.string(),
+    description: z.string(),
+    importance: z.enum(["high", "medium", "low"]),
+  })),
+  missingInformation: z.array(z.object({
+    field: z.string(),
+    description: z.string(),
+    impact: z.string(),
+  })),
+  recommendations: z.array(z.object({
+    title: z.string(),
+    description: z.string(),
+    priority: z.enum(["urgent", "important", "suggested"]),
+    category: z.enum(["documentation", "financial", "academic", "visa", "preparation"]),
+  })),
+  nextSteps: z.array(z.object({
+    step: z.string(),
+    description: z.string(),
+    deadline: z.string().optional(),
+    category: z.enum(["immediate", "short_term", "long_term"]),
+  })),
+  
+  // Document validity
+  isValid: z.boolean(),
+  expiryDate: z.string().optional(),
+  complianceIssues: z.array(z.object({
+    issue: z.string(),
+    severity: z.enum(["critical", "moderate", "minor"]),
+    resolution: z.string(),
+  })),
+  
+  // Metadata
+  analysisScore: z.number().min(0).max(100),
+  confidence: z.number().min(0).max(100),
+});
+
+// Type exports for enrollment analysis
+export type EnrollmentAnalysis = typeof enrollmentAnalyses.$inferSelect;
+export type InsertEnrollmentAnalysis = z.infer<typeof insertEnrollmentAnalysisSchema>;
+export type EnrollmentAnalysisResponse = z.infer<typeof enrollmentAnalysisResponseSchema>;

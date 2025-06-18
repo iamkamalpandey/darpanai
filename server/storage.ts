@@ -1,12 +1,13 @@
 import { 
   users, analyses, appointments, professionalApplications, updates, userUpdateViews,
-  documentTemplates, documentChecklists,
+  documentTemplates, documentChecklists, enrollmentAnalyses,
   type User, type InsertUser, type Analysis, type InsertAnalysis, 
   type Appointment, type InsertAppointment, type LoginUser,
   type ProfessionalApplication, type InsertProfessionalApplication,
   type Update, type InsertUpdate, type UserUpdateView,
   type DocumentTemplate, type InsertDocumentTemplate,
-  type DocumentChecklist, type InsertDocumentChecklist
+  type DocumentChecklist, type InsertDocumentChecklist,
+  type EnrollmentAnalysis, type InsertEnrollmentAnalysis
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, isNotNull, sql, or, gt } from "drizzle-orm";
