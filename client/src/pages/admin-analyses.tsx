@@ -198,7 +198,8 @@ export default function AdminAnalyses() {
     URL.revokeObjectURL(url);
   };
 
-  const getCategoryBadgeVariant = (category: string) => {
+  // Helper functions for analysis display
+  const getCategoryBadgeVariant = (category: string): "default" | "destructive" | "outline" | "secondary" => {
     switch (category.toLowerCase()) {
       case "high": return "destructive";
       case "medium": return "secondary";
@@ -211,22 +212,38 @@ export default function AdminAnalyses() {
   };
 
   const getCategoryIcon = (category: string) => {
-    switch (category.toLowerCase()) {
-      case "financial": return <AlertTriangle className="h-3 w-3" />;
-      case "documentation": return <FileText className="h-3 w-3" />;
-      case "eligibility": return <Info className="h-3 w-3" />;
-      case "academic": return <CheckCircle className="h-3 w-3" />;
-      case "immigration_history": return <AlertTriangle className="h-3 w-3" />;
-      case "ties_to_home": return <Info className="h-3 w-3" />;
-      case "credibility": return <AlertTriangle className="h-3 w-3" />;
-      default: return <Info className="h-3 w-3" />;
-    }
+    const iconMap: { [key: string]: JSX.Element } = {
+      financial: <DollarSign className="h-4 w-4 text-red-600" />,
+      documentation: <FileText className="h-4 w-4 text-red-600" />,
+      eligibility: <Shield className="h-4 w-4 text-red-600" />,
+      academic: <GraduationCap className="h-4 w-4 text-red-600" />,
+      immigration_history: <Calendar className="h-4 w-4 text-red-600" />,
+      ties_to_home: <Home className="h-4 w-4 text-red-600" />,
+      credibility: <User className="h-4 w-4 text-red-600" />,
+      general: <AlertTriangle className="h-4 w-4 text-red-600" />
+    };
+    return iconMap[category.toLowerCase()] || iconMap['general'];
   };
 
   const formatCategoryName = (category: string) => {
-    return category.split('_').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
+    return category?.replace(/_/g, ' ')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ') || 'General';
+  };
+
+  // Enhanced number formatting for proper display of numerical figures
+  const formatNumericalInfo = (text: string) => {
+    // Enhanced regex to capture various numerical patterns including:
+    // - Years (2023, 2024-2025)
+    // - Duration (2 years, 3-4 years)
+    // - Amounts ($50,000, USD 25,000)
+    // - Percentages (85%, 3.5 GPA)
+    // - Dates (January 2024, 15th March)
+    return text.replace(
+      /(\$[\d,]+(?:\.\d{2})?|USD\s*[\d,]+|€[\d,]+|£[\d,]+|\d+(?:\.\d+)?\s*(?:years?|months?|weeks?|days?)|(?:19|20)\d{2}(?:-(?:19|20)?\d{2})?|\d+(?:\.\d+)?%|\d+(?:\.\d+)?\s*GPA|(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+(?:19|20)?\d{2}|\d{1,2}(?:st|nd|rd|th)\s+(?:January|February|March|April|May|June|July|August|September|October|November|December))/gi,
+      '<span class="font-semibold text-blue-700 bg-blue-50 px-1 rounded">$1</span>'
+    );
   };
 
   if (isLoading) {
@@ -534,9 +551,12 @@ export default function AdminAnalyses() {
                       </CardHeader>
                       <CardContent>
                         <div className="bg-gray-50 p-4 rounded-lg">
-                          <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
-                            {selectedAnalysis.analysisResults.summary}
-                          </p>
+                          <div 
+                            className="text-gray-800 leading-relaxed whitespace-pre-wrap"
+                            dangerouslySetInnerHTML={{ 
+                              __html: formatNumericalInfo(selectedAnalysis.analysisResults.summary) 
+                            }}
+                          />
                         </div>
                       </CardContent>
                     </Card>
@@ -581,9 +601,12 @@ export default function AdminAnalyses() {
                                 </div>
                               </div>
                               <div className="ml-11">
-                                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                                  {reason.description}
-                                </p>
+                                <div 
+                                  className="text-gray-700 leading-relaxed whitespace-pre-wrap"
+                                  dangerouslySetInnerHTML={{ 
+                                    __html: formatNumericalInfo(reason.description) 
+                                  }}
+                                />
                               </div>
                             </div>
                           ))}
@@ -611,9 +634,12 @@ export default function AdminAnalyses() {
                                   {finding.importance}
                                 </Badge>
                               </div>
-                              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                                {finding.description}
-                              </p>
+                              <div 
+                                className="text-gray-700 leading-relaxed whitespace-pre-wrap"
+                                dangerouslySetInnerHTML={{ 
+                                  __html: formatNumericalInfo(finding.description) 
+                                }}
+                              />
                             </div>
                           ))}
                         </div>
@@ -688,9 +714,12 @@ export default function AdminAnalyses() {
                                       )}
                                     </div>
                                   </div>
-                                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                                    {rec.description}
-                                  </p>
+                                  <div 
+                                    className="text-gray-700 leading-relaxed whitespace-pre-wrap"
+                                    dangerouslySetInnerHTML={{ 
+                                      __html: formatNumericalInfo(rec.description) 
+                                    }}
+                                  />
                                 </div>
                               </div>
                             </div>
@@ -725,7 +754,12 @@ export default function AdminAnalyses() {
                                     {typeof step === 'string' ? (
                                       <div className="flex items-start gap-3">
                                         <CheckCircle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                                        <p className="text-gray-700 leading-relaxed">{step}</p>
+                                        <div 
+                                          className="text-gray-700 leading-relaxed"
+                                          dangerouslySetInnerHTML={{ 
+                                            __html: formatNumericalInfo(step) 
+                                          }}
+                                        />
                                       </div>
                                     ) : (
                                       <div>
@@ -733,9 +767,12 @@ export default function AdminAnalyses() {
                                           <CheckCircle className="h-4 w-4 text-purple-600" />
                                           {(step as any).title || (step as any).step}
                                         </h4>
-                                        <p className="text-gray-700 leading-relaxed">
-                                          {(step as any).description}
-                                        </p>
+                                        <div 
+                                          className="text-gray-700 leading-relaxed"
+                                          dangerouslySetInnerHTML={{ 
+                                            __html: formatNumericalInfo((step as any).description) 
+                                          }}
+                                        />
                                       </div>
                                     )}
                                     <div className="mt-2 text-xs text-purple-600 font-medium">
