@@ -130,17 +130,20 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
-**June 18, 2025 - Functional Admin Analysis System with Dynamic Templates & Real Data Display:**
-- Implemented fully functional filters and sorting across all analysis fields with comprehensive search capabilities
-- Created separate analysis templates for visa analysis and enrollment analysis showing relevant information for each type
-- Enhanced academic information display with real data extraction from analysis results including institution, program, level detection, and start date parsing
-- Implemented intelligent financial information extraction using regex patterns to detect tuition, scholarship, and total cost data from analysis summaries
-- Fixed all TypeScript sorting errors by updating FilterOptions interface to support detailed sort options (date-desc, date-asc, name-asc, etc.)
-- Enhanced search functionality to work across filenames, user data, summaries, institution names, program names, and analysis content
-- Removed placeholder data and implemented conditional display showing "Not specified" when actual data unavailable
-- Created bigger, full-width cards with structured grid layouts for better data presentation and readability
-- Applied blue highlighting to all detected numerical values including costs, percentages, and financial information
-- Implemented dynamic content extraction for dates, academic levels, and financial details from analysis text
+**June 18, 2025 - Document-Only Analysis Display & Enhanced Card Layout Implementation:**
+- Removed all account information correlations and user data references from analysis reports display
+- Implemented document-only data extraction using regex patterns to detect institution, program, level, and dates directly from analysis summaries
+- Enhanced academic information display to show only data detected within the analyzed documents with proper fallback messaging
+- Built intelligent financial information extraction from document analysis text including tuition, scholarship, and cost detection
+- Removed unnecessary score information (Score: 85, 9000%) from all analysis cards as requested
+- Created bigger analysis cards with 2-column layout instead of 3-column for better visibility and readability
+- Enhanced card typography with larger titles (text-xl font-bold), prominent badges, and improved spacing
+- Applied document-focused approach showing "Not detected in document" when information unavailable rather than using account data
+- Implemented separate templates for visa analysis and enrollment analysis with document-specific information extraction
+- Updated visa analysis to extract visa type, destination country, and application status directly from document content
+- Enhanced enrollment analysis to detect institution names, program details, and academic levels from document text only
+- Replaced user name display with generic "Document Analysis Report" to avoid account correlations
+- Applied blue highlighting to all numerical values and financial data detected in document analysis
 
 **June 18, 2025 - Complete Financial Information Display & Enhanced Analysis Presentation Implementation:**
 - Implemented comprehensive numerical figure highlighting across all analysis reports with enhanced regex patterns capturing scholarship amounts ($15,000), tuition fees ($45,000 per year), application costs, and detailed quantitative data

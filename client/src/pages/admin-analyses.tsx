@@ -426,35 +426,77 @@ export default function AdminAnalyses() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-6 space-y-4">
-                      <div>
-                        <span className="font-medium text-gray-600">Institution:</span>
-                        <p className="text-gray-800 break-words">
-                          {selectedAnalysis.analysisResults?.institutionName || 'Not specified'}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Program:</span>
-                        <p className="text-gray-800 break-words">
-                          {selectedAnalysis.analysisResults?.programName || 'Not specified'}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Level:</span>
-                        <p className="text-gray-800">
-                          {selectedAnalysis.analysisResults?.documentType?.toLowerCase().includes('bachelor') ? 'Undergraduate' :
-                           selectedAnalysis.analysisResults?.documentType?.toLowerCase().includes('master') ? 'Graduate' :
-                           selectedAnalysis.analysisResults?.programName?.toLowerCase().includes('bachelor') ? 'Undergraduate' :
-                           selectedAnalysis.analysisResults?.programName?.toLowerCase().includes('master') ? 'Graduate' :
-                           'Not specified'}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Start Date:</span>
-                        <p className="text-gray-800">
-                          {/* Extract date from summary if available */}
-                          {selectedAnalysis.analysisResults?.summary?.match(/\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}|\d{1,2}\/\d{1,2}\/\d{4}|\d{4}-\d{2}-\d{2}/)?.[0] || 'Not specified'}
-                        </p>
-                      </div>
+                      {(() => {
+                        const summary = selectedAnalysis.analysisResults?.summary || '';
+                        
+                        // Extract information directly from document analysis
+                        const institutionMatch = summary.match(/(?:University|Institute|College|School)\s+[A-Za-z\s]+/i) || 
+                                               summary.match(/at\s+([A-Z][A-Za-z\s&]+(?:University|Institute|College|School))/i);
+                        const programMatch = summary.match(/(?:Bachelor|Master|PhD|Diploma)\s+[A-Za-z\s]+/i) ||
+                                           summary.match(/program[:\s]+([A-Za-z\s]+)/i);
+                        const levelMatch = summary.match(/\b(?:undergraduate|graduate|bachelor|master|phd|doctoral)\b/i);
+                        const dateMatch = summary.match(/\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}|\d{1,2}\/\d{1,2}\/\d{4}|\d{4}-\d{2}-\d{2}/);
+
+                        return (
+                          <>
+                            {institutionMatch ? (
+                              <div>
+                                <span className="font-medium text-gray-600">Institution:</span>
+                                <p className="text-gray-800 break-words">
+                                  {institutionMatch[1] || institutionMatch[0]}
+                                </p>
+                              </div>
+                            ) : (
+                              <div>
+                                <span className="font-medium text-gray-600">Institution:</span>
+                                <p className="text-gray-500">Not detected in document</p>
+                              </div>
+                            )}
+                            
+                            {programMatch ? (
+                              <div>
+                                <span className="font-medium text-gray-600">Program:</span>
+                                <p className="text-gray-800 break-words">
+                                  {programMatch[1] || programMatch[0]}
+                                </p>
+                              </div>
+                            ) : (
+                              <div>
+                                <span className="font-medium text-gray-600">Program:</span>
+                                <p className="text-gray-500">Not detected in document</p>
+                              </div>
+                            )}
+                            
+                            {levelMatch ? (
+                              <div>
+                                <span className="font-medium text-gray-600">Level:</span>
+                                <p className="text-gray-800 capitalize">
+                                  {levelMatch[0].toLowerCase()}
+                                </p>
+                              </div>
+                            ) : (
+                              <div>
+                                <span className="font-medium text-gray-600">Level:</span>
+                                <p className="text-gray-500">Not detected in document</p>
+                              </div>
+                            )}
+                            
+                            {dateMatch ? (
+                              <div>
+                                <span className="font-medium text-gray-600">Start Date:</span>
+                                <p className="text-gray-800">
+                                  {dateMatch[0]}
+                                </p>
+                              </div>
+                            ) : (
+                              <div>
+                                <span className="font-medium text-gray-600">Start Date:</span>
+                                <p className="text-gray-500">Not detected in document</p>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </CardContent>
                   </Card>
 
@@ -541,24 +583,25 @@ export default function AdminAnalyses() {
                     <CardContent className="p-6 space-y-4">
                       <div>
                         <span className="font-medium text-gray-600">Document Type:</span>
-                        <p className="text-gray-800">
-                          {selectedAnalysis.analysisResults?.documentType || 'Visa Decision Letter'}
-                        </p>
+                        <p className="text-gray-800">Visa Document</p>
                       </div>
+                      
                       <div>
                         <span className="font-medium text-gray-600">Analysis Date:</span>
                         <p className="text-gray-800">{new Date(selectedAnalysis.createdAt).toLocaleDateString()}</p>
                       </div>
+                      
                       <div>
                         <span className="font-medium text-gray-600">File Name:</span>
                         <p className="text-gray-800 break-words">{selectedAnalysis.fileName}</p>
                       </div>
+                      
                       <div>
-                        <span className="font-medium text-gray-600">Applicant:</span>
-                        <p className="text-gray-800">
-                          {selectedAnalysis.user ? 
-                            `${selectedAnalysis.user.firstName} ${selectedAnalysis.user.lastName}` : 
-                            'Not specified'}
+                        <span className="font-medium text-gray-600">Analysis Summary:</span>
+                        <p className="text-gray-800 text-sm leading-relaxed">
+                          {selectedAnalysis.analysisResults?.summary ? 
+                            selectedAnalysis.analysisResults.summary.substring(0, 200) + '...' : 
+                            'No summary available'}
                         </p>
                       </div>
                     </CardContent>
@@ -573,22 +616,61 @@ export default function AdminAnalyses() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-6 space-y-4">
-                      <div>
-                        <span className="font-medium text-gray-600">Visa Type:</span>
-                        <p className="text-gray-800">Student Visa (subclass 500)</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Destination:</span>
-                        <p className="text-gray-800">Australia</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Application Status:</span>
-                        <p className="text-gray-800">Under Review</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Processing Time:</span>
-                        <p className="text-gray-800">4-6 weeks</p>
-                      </div>
+                      {(() => {
+                        const summary = selectedAnalysis.analysisResults?.summary || '';
+                        
+                        // Extract visa-specific information from document analysis
+                        const visaTypeMatch = summary.match(/(?:visa|subclass|category)[:\s]*([A-Za-z0-9\s\(\)-]+)/i);
+                        const countryMatch = summary.match(/(?:to|in|for)\s+(Australia|Canada|USA|United States|UK|United Kingdom|Germany|France|New Zealand)/i);
+                        const statusMatch = summary.match(/(?:status|decision|result)[:\s]*([A-Za-z\s]+)/i);
+                        
+                        return (
+                          <>
+                            {visaTypeMatch ? (
+                              <div>
+                                <span className="font-medium text-gray-600">Visa Type:</span>
+                                <p className="text-gray-800">{visaTypeMatch[1]}</p>
+                              </div>
+                            ) : (
+                              <div>
+                                <span className="font-medium text-gray-600">Visa Type:</span>
+                                <p className="text-gray-500">Not detected in document</p>
+                              </div>
+                            )}
+                            
+                            {countryMatch ? (
+                              <div>
+                                <span className="font-medium text-gray-600">Destination:</span>
+                                <p className="text-gray-800">{countryMatch[1]}</p>
+                              </div>
+                            ) : (
+                              <div>
+                                <span className="font-medium text-gray-600">Destination:</span>
+                                <p className="text-gray-500">Not detected in document</p>
+                              </div>
+                            )}
+                            
+                            {statusMatch ? (
+                              <div>
+                                <span className="font-medium text-gray-600">Application Status:</span>
+                                <p className="text-gray-800">{statusMatch[1]}</p>
+                              </div>
+                            ) : (
+                              <div>
+                                <span className="font-medium text-gray-600">Application Status:</span>
+                                <p className="text-gray-500">Not detected in document</p>
+                              </div>
+                            )}
+                            
+                            <div>
+                              <span className="font-medium text-gray-600">Document Content:</span>
+                              <p className="text-gray-800 text-sm leading-relaxed">
+                                {summary ? summary.substring(0, 150) + '...' : 'No analysis content available'}
+                              </p>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </CardContent>
                   </Card>
                 </div>
@@ -849,7 +931,7 @@ export default function AdminAnalyses() {
                       {analysis.fileName}
                     </CardTitle>
                     <p className="text-base text-gray-600 font-medium">
-                      {analysis.user ? `${analysis.user.firstName} ${analysis.user.lastName}` : 'Unknown User'}
+                      Document Analysis Report
                     </p>
                   </div>
                   <Badge 
