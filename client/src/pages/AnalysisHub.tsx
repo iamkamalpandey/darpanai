@@ -1,14 +1,15 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { AnalysisModal } from '@/components/AnalysisModal';
 import { Pagination } from '@/components/Pagination';
 import { EnhancedFilters, FilterOptions, searchInText, filterByDateRange } from '@/components/EnhancedFilters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, GraduationCap, Calendar, User, Building2, Globe, AlertTriangle, TrendingUp } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { FileText, GraduationCap, Calendar, User, Building2, Globe, AlertTriangle, TrendingUp, ArrowLeft, CheckCircle } from 'lucide-react';
 import { Link } from 'wouter';
 
 interface Analysis {
@@ -31,11 +32,8 @@ interface Analysis {
 }
 
 export default function AnalysisHub() {
-  const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis | null>(null);
+  const [selectedAnalysis, setSelectedAnalysis] = useState<{id: number, type: 'visa_rejection' | 'enrollment'} | null>(null);
   const [filters, setFilters] = useState<FilterOptions>({});
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalAnalysisId, setModalAnalysisId] = useState<number | null>(null);
-  const [modalAnalysisType, setModalAnalysisType] = useState<'visa_rejection' | 'enrollment' | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
@@ -61,17 +59,13 @@ export default function AnalysisHub() {
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
-  // Handle opening analysis modal
-  const openAnalysisModal = (analysisId: number, analysisType: 'visa_rejection' | 'enrollment') => {
-    setModalAnalysisId(analysisId);
-    setModalAnalysisType(analysisType);
-    setModalOpen(true);
+  // Handle viewing analysis inline
+  const viewAnalysis = (id: number, type: 'visa_rejection' | 'enrollment') => {
+    setSelectedAnalysis({ id, type });
   };
 
-  const closeAnalysisModal = () => {
-    setModalOpen(false);
-    setModalAnalysisId(null);
-    setModalAnalysisType(null);
+  const backToList = () => {
+    setSelectedAnalysis(null);
   };
 
   // Memoized filtered analyses for performance
@@ -243,7 +237,7 @@ export default function AnalysisHub() {
                             variant="outline" 
                             size="sm" 
                             className="w-full"
-                            onClick={() => openAnalysisModal(analysis.id, analysis.type)}
+                            onClick={() => viewAnalysis(analysis.id, analysis.type)}
                           >
                             View Analysis
                           </Button>
