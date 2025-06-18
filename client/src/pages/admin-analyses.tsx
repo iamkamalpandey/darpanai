@@ -414,40 +414,50 @@ export default function AdminAnalyses() {
 
               {/* Enrollment Analysis Template */}
               {selectedAnalysis.analysisType === 'enrollment_analysis' && (
-                <div className="space-y-6">
-                  {/* Academic Information */}
-                  <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                    <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
-                      <CardTitle className="flex items-center gap-2 text-green-800">
-                        <GraduationCap className="h-5 w-5" />
-                        Academic Information
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-4">
-                      <div>
-                        <span className="font-medium text-gray-600">Institution:</span>
-                        <p className="text-gray-800">{selectedAnalysis.institution || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Program:</span>
-                        <p className="text-gray-800">{selectedAnalysis.program || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Student Name:</span>
-                        <p className="text-gray-800">{selectedAnalysis.studentName || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Program Level:</span>
-                        <p className="text-gray-800">{selectedAnalysis.programLevel || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Start Date:</span>
-                        <p className="text-gray-800">{selectedAnalysis.startDate || "Not specified in document"}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">End Date:</span>
-                        <p className="text-gray-800">{selectedAnalysis.endDate || "Not specified in document"}</p>
-                      </div>
+                <EnrollmentAnalysisDisplay 
+                  analysis={{
+                    id: selectedAnalysis.id,
+                    fileName: selectedAnalysis.filename,
+                    createdAt: selectedAnalysis.createdAt,
+                    institution: selectedAnalysis.analysisResults?.institution,
+                    program: selectedAnalysis.analysisResults?.program,
+                    studentName: selectedAnalysis.analysisResults?.studentName,
+                    programLevel: selectedAnalysis.analysisResults?.programLevel,
+                    startDate: selectedAnalysis.analysisResults?.startDate,
+                    endDate: selectedAnalysis.analysisResults?.endDate,
+                    institutionCountry: selectedAnalysis.analysisResults?.institutionCountry,
+                    visaType: selectedAnalysis.analysisResults?.visaType,
+                    healthCover: selectedAnalysis.analysisResults?.healthCover,
+                    englishTestScore: selectedAnalysis.analysisResults?.englishTestScore,
+                    institutionContact: selectedAnalysis.analysisResults?.institutionContact,
+                    visaObligations: selectedAnalysis.analysisResults?.visaObligations,
+                    orientationDate: selectedAnalysis.analysisResults?.orientationDate,
+                    passportDetails: selectedAnalysis.analysisResults?.passportDetails,
+                    supportServices: selectedAnalysis.analysisResults?.supportServices,
+                    paymentSchedule: selectedAnalysis.analysisResults?.paymentSchedule,
+                    bankDetails: selectedAnalysis.analysisResults?.bankDetails,
+                    conditionsOfOffer: selectedAnalysis.analysisResults?.conditionsOfOffer,
+                    scholarshipDetails: selectedAnalysis.analysisResults?.scholarshipDetails,
+                    scholarshipPercentage: selectedAnalysis.analysisResults?.scholarshipPercentage,
+                    scholarshipDuration: selectedAnalysis.analysisResults?.scholarshipDuration,
+                    scholarshipConditions: selectedAnalysis.analysisResults?.scholarshipConditions,
+                    internshipRequired: selectedAnalysis.analysisResults?.internshipRequired,
+                    internshipDuration: selectedAnalysis.analysisResults?.internshipDuration,
+                    workAuthorization: selectedAnalysis.analysisResults?.workAuthorization,
+                    workHoursLimit: selectedAnalysis.analysisResults?.workHoursLimit,
+                    academicRequirements: selectedAnalysis.analysisResults?.academicRequirements,
+                    gpaRequirement: selectedAnalysis.analysisResults?.gpaRequirement,
+                    attendanceRequirement: selectedAnalysis.analysisResults?.attendanceRequirement,
+                    languageRequirements: selectedAnalysis.analysisResults?.languageRequirements,
+                    graduationRequirements: selectedAnalysis.analysisResults?.graduationRequirements,
+                    termsToFulfil: selectedAnalysis.analysisResults?.termsToFulfil,
+                    summary: selectedAnalysis.analysisResults?.summary,
+                    keyFindings: selectedAnalysis.analysisResults?.keyFindings,
+                    recommendations: selectedAnalysis.analysisResults?.recommendations,
+                    missingInformation: selectedAnalysis.analysisResults?.missingInformation
+                  }}
+                  isAdmin={true}
+                />
                       <div>
                         <span className="font-medium text-gray-600">Institution Country:</span>
                         <p className="text-gray-800">{selectedAnalysis.institutionCountry || "Not specified in document"}</p>

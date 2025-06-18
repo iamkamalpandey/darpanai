@@ -8,9 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { Upload, FileText, CheckCircle, AlertCircle, Clock, DollarSign, GraduationCap, Building2, User, Calendar, TrendingUp, Globe, FileCheck, Sparkles, Target, CreditCard, BookOpen, ArrowLeft } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, Clock, FileCheck, Sparkles, Calendar, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { DashboardLayout } from '@/components/DashboardLayout';
@@ -109,81 +107,41 @@ interface EnrollmentAnalysis {
   createdAt: string;
 }
 
+const documentTypes = [
+  { value: 'confirmation_of_enrollment', label: 'Confirmation of Enrollment (CoE)', icon: '📋' },
+  { value: 'offer_letter', label: 'Offer Letter', icon: '📄' },
+  { value: 'acceptance_letter', label: 'Acceptance Letter', icon: '✅' },
+  { value: 'enrollment_contract', label: 'Enrollment Contract', icon: '📝' },
+  { value: 'tuition_invoice', label: 'Tuition Invoice', icon: '💰' },
+  { value: 'scholarship_letter', label: 'Scholarship Letter', icon: '🎓' },
+  { value: 'housing_contract', label: 'Housing Contract', icon: '🏠' },
+  { value: 'other', label: 'Other Document', icon: '📎' },
+];
+
 export default function EnrollmentAnalysis() {
+  const [selectedAnalysis, setSelectedAnalysis] = useState<EnrollmentAnalysis | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [documentType, setDocumentType] = useState<string>('');
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [selectedAnalysis, setSelectedAnalysis] = useState<EnrollmentAnalysis | null>(null);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [location] = useLocation();
 
-  // Fetch user's enrollment analyses with optimized caching
-  const { data: analyses = [], isLoading } = useQuery<EnrollmentAnalysis[]>({
+  // Query for enrollment analyses
+  const { data: analyses } = useQuery({
     queryKey: ['/api/enrollment-analyses'],
-    staleTime: 20 * 60 * 1000, // 20 minutes
+    staleTime: 15 * 60 * 1000,
     refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
-  // Fetch current user for quota checking
+  // Query for user data to check credit limits
   const { data: user } = useQuery({
     queryKey: ['/api/user'],
-    enabled: true
-  }) as { data: any };
-
-  // Handle URL parameter to load specific analysis
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const analysisId = urlParams.get('id');
-    
-    if (analysisId && analyses.length > 0 && !selectedAnalysis) {
-      const targetAnalysis = analyses.find(analysis => analysis.id === parseInt(analysisId));
-      if (targetAnalysis) {
-        setSelectedAnalysis(targetAnalysis);
-      }
-    }
-  }, [analyses.length, selectedAnalysis]);
-
-  // Upload and analyze document mutation
-  const analyzeMutation = useMutation({
-    mutationFn: async ({ file, documentType }: { file: File; documentType: string }) => {
-      const formData = new FormData();
-      formData.append('document', file);
-      formData.append('documentType', documentType);
-
-      const response = await fetch('/api/enrollment-analysis', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Analysis failed');
-      }
-
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Analysis Complete",
-        description: "Your enrollment document has been analyzed successfully."
-      });
-      setSelectedFile(null);
-      setDocumentType('');
-      setUploadProgress(0);
-      queryClient.invalidateQueries({ queryKey: ['/api/enrollment-analyses'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
-      setSelectedAnalysis(data);
-    },
-    onError: (error: any) => {
-      const errorMessage = error.message || 'Failed to analyze document';
-      toast({
-        title: "Analysis Failed",
-        description: errorMessage,
-        variant: "destructive"
-      });
-      setUploadProgress(0);
-    }
+    staleTime: 15 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -203,117 +161,108 @@ export default function EnrollmentAnalysis() {
     multiple: false,
   });
 
-  const handleAnalyze = () => {
+  const mutation = useMutation({
+    mutationFn: async ({ file, documentType }: { file: File; documentType: string }) => {
+      const formData = new FormData();
+      formData.append('document', file);
+      formData.append('documentType', documentType);
+
+      return apiRequest('/api/enrollment-analysis', {
+        method: 'POST',
+        body: formData,
+      });
+    },
+    onSuccess: (data) => {
+      setSelectedAnalysis(data);
+      setSelectedFile(null);
+      setDocumentType('');
+      setUploadProgress(0);
+      setAnalysisProgress(0);
+      queryClient.invalidateQueries({ queryKey: ['/api/enrollment-analyses'] });
+      toast({
+        title: 'Analysis Complete',
+        description: 'Your enrollment document has been successfully analyzed.',
+      });
+    },
+    onError: (error: any) => {
+      setUploadProgress(0);
+      setAnalysisProgress(0);
+      toast({
+        title: 'Analysis Failed',
+        description: error.message || 'Failed to analyze document. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleAnalysis = () => {
     if (!selectedFile || !documentType) {
       toast({
-        title: "Missing Information",
-        description: "Please select both a file and document type.",
-        variant: "destructive"
+        title: 'Missing Information',
+        description: 'Please select both a file and document type.',
+        variant: 'destructive',
       });
       return;
     }
 
-    if (!user) {
+    if (user && user.analysisCount >= user.maxAnalyses) {
       toast({
-        title: "Authentication Required",
-        description: "Please log in to analyze documents.",
-        variant: "destructive"
+        title: 'Analysis Limit Reached',
+        description: 'You have reached your analysis limit. Please upgrade your plan to continue.',
+        variant: 'destructive',
       });
       return;
     }
 
-    // Check user's quota
-    if (user.analysisCount >= user.maxAnalyses) {
-      toast({
-        title: "Analysis Limit Reached",
-        description: "You have reached your analysis limit. Please contact support to increase your quota.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Start analysis with progress simulation
-    setUploadProgress(10);
-    const progressInterval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return 90;
+    // Simulate upload progress
+    setUploadProgress(0);
+    const uploadInterval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(uploadInterval);
+          setAnalysisProgress(0);
+          
+          // Simulate analysis progress
+          const analysisInterval = setInterval(() => {
+            setAnalysisProgress((prev) => {
+              if (prev >= 100) {
+                clearInterval(analysisInterval);
+                return 100;
+              }
+              return prev + 2;
+            });
+          }, 100);
+          
+          return 100;
         }
-        return prev + Math.random() * 15;
+        return prev + 5;
       });
-    }, 1000);
+    }, 50);
 
-    analyzeMutation.mutate({ file: selectedFile, documentType }, {
-      onSettled: () => {
-        clearInterval(progressInterval);
-        setUploadProgress(100);
-        setTimeout(() => setUploadProgress(0), 1000);
-      }
-    });
+    mutation.mutate({ file: selectedFile, documentType });
   };
 
-  const documentTypes = [
-    { value: 'i20', label: 'I-20 Form (USA)', icon: '🇺🇸' },
-    { value: 'cas', label: 'CAS Letter (UK)', icon: '🇬🇧' },
-    { value: 'coe', label: 'COE Document (Australia)', icon: '🇦🇺' },
-    { value: 'admission_letter', label: 'Admission Letter', icon: '📧' },
-    { value: 'visa_letter', label: 'Visa Support Letter', icon: '📋' },
-    { value: 'sponsor_letter', label: 'Sponsor Letter', icon: '💼' },
-    { value: 'financial_guarantee', label: 'Financial Guarantee', icon: '💰' },
-    { value: 'other', label: 'Other Document', icon: '📄' },
-  ];
-
-  const getImportanceBadgeColor = (importance: 'high' | 'medium' | 'low') => {
-    switch (importance) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low': return 'bg-green-100 text-green-800 border-green-200';
-    }
-  };
-
-  const getPriorityBadgeColor = (priority: 'urgent' | 'important' | 'suggested') => {
-    switch (priority) {
-      case 'urgent': return 'bg-red-100 text-red-800 border-red-200';
-      case 'important': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'suggested': return 'bg-blue-100 text-blue-800 border-blue-200';
-    }
-  };
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'documentation': return <FileText className="h-4 w-4" />;
-      case 'financial': return <DollarSign className="h-4 w-4" />;
-      case 'academic': return <GraduationCap className="h-4 w-4" />;
-      case 'visa': return <Globe className="h-4 w-4" />;
-      case 'preparation': return <Target className="h-4 w-4" />;
-      default: return <CheckCircle className="h-4 w-4" />;
-    }
-  };
-
+  // If an analysis is selected, show the detailed view
   if (selectedAnalysis) {
     return (
       <DashboardLayout>
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold">Enrollment Analysis Results</h1>
-              <p className="text-muted-foreground mt-1 text-sm sm:text-base">{selectedAnalysis.filename}</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold">Enrollment Analysis Report</h1>
+              <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+                Comprehensive analysis of your enrollment document with detailed insights and recommendations.
+              </p>
             </div>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
-                // Instant back navigation using browser history
-                if (window.history.length > 1) {
-                  window.history.back();
-                } else {
-                  // Fallback: clear analysis to show upload form
-                  setSelectedAnalysis(null);
-                }
+                setSelectedAnalysis(null);
               }}
               className="w-full sm:w-auto"
             >
-              ← Back to My Analysis
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to My Analysis
             </Button>
           </div>
           
@@ -361,602 +310,6 @@ export default function EnrollmentAnalysis() {
             }}
             isAdmin={false}
           />
-
-            <TabsContent value="overview" className="space-y-6">
-              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
-                  <CardTitle className="text-xl text-gray-800">Document Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-                    {selectedAnalysis.summary}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
-                    <CardTitle className="flex items-center gap-2 text-green-800">
-                      <GraduationCap className="h-5 w-5" />
-                      Academic Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6 space-y-4">
-                    <div>
-                      <span className="font-medium text-gray-600">Institution:</span>
-                      <p className="text-gray-800">{selectedAnalysis.institutionName || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Student (from document):</span>
-                      <p className="text-gray-800">{selectedAnalysis.studentName || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Student ID:</span>
-                      <p className="text-gray-800">{selectedAnalysis.studentId || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Program:</span>
-                      <p className="text-gray-800">{selectedAnalysis.programName || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Level:</span>
-                      <p className="text-gray-800">{selectedAnalysis.programLevel || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Start Date:</span>
-                      <p className="text-gray-800">{selectedAnalysis.startDate || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">End Date:</span>
-                      <p className="text-gray-800">{selectedAnalysis.endDate || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Institution Country:</span>
-                      <p className="text-gray-800">{selectedAnalysis.institutionCountry || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Visa Type:</span>
-                      <p className="text-gray-800">{selectedAnalysis.visaType || "Not specified in document"}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Additional Document Details Card */}
-                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-t-lg">
-                    <CardTitle className="flex items-center gap-2 text-purple-800">
-                      <FileText className="h-5 w-5" />
-                      Document Details & Support
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6 space-y-4">
-                    <div>
-                      <span className="font-medium text-gray-600">Health Cover Details:</span>
-                      <p className="text-gray-800">{selectedAnalysis.healthCover || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">English Test Score:</span>
-                      <p className="text-gray-800">{selectedAnalysis.englishTestScore || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Institution Contact:</span>
-                      <p className="text-gray-800">{selectedAnalysis.institutionContact || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Visa Obligations:</span>
-                      <p className="text-gray-800">{selectedAnalysis.visaObligations || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Orientation Date:</span>
-                      <p className="text-gray-800">{selectedAnalysis.orientationDate || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Passport Details:</span>
-                      <p className="text-gray-800">{selectedAnalysis.passportDetails || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Support Services:</span>
-                      <p className="text-gray-800">{selectedAnalysis.supportServices || "Not specified in document"}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Payment & Banking Information Card */}
-                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
-                    <CardTitle className="flex items-center gap-2 text-green-800">
-                      <DollarSign className="h-5 w-5" />
-                      Payment & Banking Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6 space-y-4">
-                    <div>
-                      <span className="font-medium text-gray-600">Payment Schedule:</span>
-                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.paymentSchedule || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Bank Details:</span>
-                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.bankDetails || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Conditions of Offer:</span>
-                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.conditionsOfOffer || "Not specified in document"}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Scholarship & Financial Aid Information Card */}
-                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-t-lg">
-                    <CardTitle className="flex items-center gap-2 text-amber-800">
-                      <Target className="h-5 w-5" />
-                      Scholarship & Financial Aid Details
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6 space-y-4">
-                    <div>
-                      <span className="font-medium text-gray-600">Scholarship Details:</span>
-                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.scholarshipDetails || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Scholarship Percentage:</span>
-                      <p className="text-gray-800">{selectedAnalysis.scholarshipPercentage || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Scholarship Duration:</span>
-                      <p className="text-gray-800">{selectedAnalysis.scholarshipDuration || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Scholarship Conditions:</span>
-                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.scholarshipConditions || "Not specified in document"}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Internship & Work Authorization Card */}
-                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-t-lg">
-                    <CardTitle className="flex items-center gap-2 text-indigo-800">
-                      <Building2 className="h-5 w-5" />
-                      Internship & Work Authorization
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6 space-y-4">
-                    <div>
-                      <span className="font-medium text-gray-600">Internship Required:</span>
-                      <p className="text-gray-800">{selectedAnalysis.internshipRequired || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Internship Duration:</span>
-                      <p className="text-gray-800">{selectedAnalysis.internshipDuration || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Work Authorization:</span>
-                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.workAuthorization || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Work Hours Limit:</span>
-                      <p className="text-gray-800">{selectedAnalysis.workHoursLimit || "Not specified in document"}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Academic Requirements & Terms Card */}
-                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="bg-gradient-to-r from-red-50 to-rose-50 rounded-t-lg">
-                    <CardTitle className="flex items-center gap-2 text-red-800">
-                      <BookOpen className="h-5 w-5" />
-                      Academic Requirements & Terms to Fulfil
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6 space-y-4">
-                    <div>
-                      <span className="font-medium text-gray-600">Academic Requirements:</span>
-                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.academicRequirements || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">GPA Requirement:</span>
-                      <p className="text-gray-800">{selectedAnalysis.gpaRequirement || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Attendance Requirement:</span>
-                      <p className="text-gray-800">{selectedAnalysis.attendanceRequirement || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Terms to Fulfil:</span>
-                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.termsToFulfil || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Language Requirements:</span>
-                      <p className="text-gray-800">{selectedAnalysis.languageRequirements || "Not specified in document"}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">Graduation Requirements:</span>
-                      <p className="text-gray-800 whitespace-pre-wrap">{selectedAnalysis.graduationRequirements || "Not specified in document"}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-t-lg">
-                    <CardTitle className="flex items-center gap-2 text-blue-800">
-                      <DollarSign className="h-5 w-5" />
-                      Financial Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6 space-y-4">
-                    {(() => {
-                      const summary = selectedAnalysis.summary || '';
-                      
-                      // Extract comprehensive financial and terms information from document analysis
-                      const tuitionMatch = summary.match(/tuition\s+fees?[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+(?:per\s+(?:year|semester|term)|annually|yearly)?)/gi) ||
-                                          summary.match(/fees?[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+(?:per\s+(?:year|semester|term)|annually|yearly)?)/gi);
-                      const healthCoverMatch = summary.match(/health\s+cover[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+)/gi);
-                      const totalCostMatch = summary.match(/total\s+cost[:\s]*([A-Z$€£¥₹₽]+[\d,.\s]+)/gi);
-                      
-                      // Enhanced scholarship extraction with terms and conditions
-                      const scholarshipMatch = summary.match(/scholarship[^.!?]*(?:[A-Z$€£¥₹₽]+[\d,.\s]+|[\d]+%)[^.!?]*/gi);
-                      const scholarshipTerms = summary.match(/scholarship[^.!?]*(?:terms|conditions|requirements|criteria|eligibility)[^.!?]*[.!?]/gi);
-                      
-                      // Extract terms and conditions
-                      const termsMatch = summary.match(/(?:terms|conditions|requirements|obligations|stipulations)[^.!?]*[.!?]/gi);
-                      const deadlineMatch = summary.match(/(?:deadline|due date|must be|required by)[^.!?]*[.!?]/gi);
-                      const complianceMatch = summary.match(/(?:compliance|must comply|adhere to|follow)[^.!?]*[.!?]/gi);
-                      
-                      // Offer letter specific information extraction
-                      const paymentScheduleMatch = summary.match(/(?:payment schedule|study period|instalment|payment due)[^.!?]*(?:\$|AUD|USD|CAD|GBP|€|£)[^.!?]*[.!?]/gi);
-                      const bankDetailsMatch = summary.match(/(?:BSB|account number|bank details|swift code|reference)[^.!?]*[.!?]/gi);
-                      const orientationMatch = summary.match(/(?:orientation|welcome|first day|course start)[^.!?]*[.!?]/gi);
-                      const conditionsMatch = summary.match(/(?:conditions of offer|prerequisites|requirements before)[^.!?]*[.!?]/gi);
-                      
-                      const financialAmounts = summary.match(/[A-Z$€£¥₹₽]+\s*[\d,]+(?:\.\d{2})?\s*(?:per\s+(?:year|semester|term)|annually|yearly)?/gi);
-
-                      const hasFinancialInfo = tuitionMatch || healthCoverMatch || totalCostMatch || scholarshipMatch || financialAmounts || paymentScheduleMatch;
-
-                      if (!hasFinancialInfo) {
-                        return (
-                          <div className="text-center py-8">
-                            <DollarSign className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                            <p className="text-gray-500">No specific financial information detected in this analysis.</p>
-                          </div>
-                        );
-                      }
-
-                      return (
-                        <>
-                          {tuitionMatch && (
-                            <div>
-                              <span className="font-medium text-gray-600">Tuition Fees:</span>
-                              <div className="text-gray-800 mt-1">
-                                {tuitionMatch.map((match, index) => (
-                                  <div key={index} className="inline-block bg-blue-50 text-blue-700 px-2 py-1 rounded mr-2 mb-1">
-                                    {match.replace(/tuition\s+fees?[:\s]*/gi, '').trim()}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          
-                          {healthCoverMatch && (
-                            <div>
-                              <span className="font-medium text-gray-600">Health Cover:</span>
-                              <div className="text-gray-800 mt-1">
-                                {healthCoverMatch.map((match, index) => (
-                                  <div key={index} className="inline-block bg-blue-50 text-blue-700 px-2 py-1 rounded mr-2 mb-1">
-                                    {match.replace(/health\s+cover[:\s]*/gi, '').trim()}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {scholarshipMatch && (
-                            <div>
-                              <span className="font-medium text-gray-600">Scholarship Details:</span>
-                              <div className="text-gray-800 mt-1">
-                                {scholarshipMatch.map((match, index) => (
-                                  <div key={index} className="bg-blue-50 text-blue-700 px-3 py-2 rounded mr-2 mb-2 block">
-                                    {match.trim()}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {scholarshipTerms && (
-                            <div>
-                              <span className="font-medium text-gray-600">Scholarship Terms & Conditions:</span>
-                              <div className="text-gray-800 mt-1">
-                                {scholarshipTerms.map((term, index) => (
-                                  <div key={index} className="bg-amber-50 text-amber-800 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-amber-300">
-                                    {term.trim()}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {termsMatch && (
-                            <div>
-                              <span className="font-medium text-gray-600">Terms & Conditions:</span>
-                              <div className="text-gray-800 mt-1">
-                                {termsMatch.map((term, index) => (
-                                  <div key={index} className="bg-gray-50 text-gray-700 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-gray-300">
-                                    {term.trim()}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {deadlineMatch && (
-                            <div>
-                              <span className="font-medium text-gray-600">Important Deadlines:</span>
-                              <div className="text-gray-800 mt-1">
-                                {deadlineMatch.map((deadline, index) => (
-                                  <div key={index} className="bg-red-50 text-red-800 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-red-300">
-                                    {deadline.trim()}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {complianceMatch && (
-                            <div>
-                              <span className="font-medium text-gray-600">Compliance Requirements:</span>
-                              <div className="text-gray-800 mt-1">
-                                {complianceMatch.map((compliance, index) => (
-                                  <div key={index} className="bg-purple-50 text-purple-800 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-purple-300">
-                                    {compliance.trim()}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {paymentScheduleMatch && (
-                            <div>
-                              <span className="font-medium text-gray-600">Payment Schedule:</span>
-                              <div className="text-gray-800 mt-1">
-                                {paymentScheduleMatch.map((payment, index) => (
-                                  <div key={index} className="bg-green-50 text-green-800 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-green-300">
-                                    {payment.trim()}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {bankDetailsMatch && (
-                            <div>
-                              <span className="font-medium text-gray-600">Bank Details & Payment Information:</span>
-                              <div className="text-gray-800 mt-1">
-                                {bankDetailsMatch.map((bank, index) => (
-                                  <div key={index} className="bg-indigo-50 text-indigo-800 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-indigo-300">
-                                    {bank.trim()}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {orientationMatch && (
-                            <div>
-                              <span className="font-medium text-gray-600">Orientation & Important Dates:</span>
-                              <div className="text-gray-800 mt-1">
-                                {orientationMatch.map((orientation, index) => (
-                                  <div key={index} className="bg-yellow-50 text-yellow-800 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-yellow-300">
-                                    {orientation.trim()}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {conditionsMatch && (
-                            <div>
-                              <span className="font-medium text-gray-600">Conditions of Offer:</span>
-                              <div className="text-gray-800 mt-1">
-                                {conditionsMatch.map((condition, index) => (
-                                  <div key={index} className="bg-orange-50 text-orange-800 px-3 py-2 rounded mr-2 mb-2 block border-l-4 border-orange-300">
-                                    {condition.trim()}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {totalCostMatch && (
-                            <div>
-                              <span className="font-medium text-gray-600">Total Cost:</span>
-                              <div className="text-gray-800 mt-1">
-                                {totalCostMatch.map((match, index) => (
-                                  <div key={index} className="inline-block bg-blue-50 text-blue-700 px-2 py-1 rounded mr-2 mb-1 font-semibold">
-                                    {match.replace(/total\s+cost[:\s]*/gi, '').trim()}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {financialAmounts && !tuitionMatch && !healthCoverMatch && !totalCostMatch && (
-                            <div>
-                              <span className="font-medium text-gray-600">Financial Information:</span>
-                              <div className="text-gray-800 mt-1">
-                                {financialAmounts.slice(0, 5).map((amount, index) => (
-                                  <div key={index} className="inline-block bg-blue-50 text-blue-700 px-2 py-1 rounded mr-2 mb-1">
-                                    {amount.trim()}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </>
-                      );
-                    })()}
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="findings" className="space-y-6">
-              <div className="grid gap-6">
-                {selectedAnalysis.keyFindings.map((finding, index) => (
-                  <Card key={index} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-3">
-                        <h3 className="font-semibold text-lg text-gray-800">{finding.title}</h3>
-                        <div className="flex gap-2">
-                          {finding.category && (
-                            <Badge variant="outline" className="text-xs">
-                              {finding.category.replace('_', ' ')}
-                            </Badge>
-                          )}
-                          <Badge className={`${getImportanceBadgeColor(finding.importance)} border`}>
-                            {finding.importance}
-                          </Badge>
-                        </div>
-                      </div>
-                      <p className="text-gray-700 leading-relaxed mb-4">{finding.description}</p>
-                      
-                      {/* Enhanced finding details */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                        {finding.actionRequired && (
-                          <div className="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-400">
-                            <span className="font-medium text-blue-800">Action Required:</span>
-                            <p className="text-blue-700 text-sm mt-1">{finding.actionRequired}</p>
-                          </div>
-                        )}
-                        
-                        {finding.deadline && (
-                          <div className="bg-red-50 p-3 rounded-lg border-l-4 border-red-400">
-                            <span className="font-medium text-red-800">Deadline:</span>
-                            <p className="text-red-700 text-sm mt-1">{finding.deadline}</p>
-                          </div>
-                        )}
-                        
-                        {finding.amount && (
-                          <div className="bg-green-50 p-3 rounded-lg border-l-4 border-green-400">
-                            <span className="font-medium text-green-800">Amount:</span>
-                            <p className="text-green-700 text-sm mt-1 font-semibold">{finding.amount}</p>
-                          </div>
-                        )}
-                        
-                        {finding.consequence && (
-                          <div className="bg-amber-50 p-3 rounded-lg border-l-4 border-amber-400">
-                            <span className="font-medium text-amber-800">Consequence:</span>
-                            <p className="text-amber-700 text-sm mt-1">{finding.consequence}</p>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              {selectedAnalysis.missingInformation.length > 0 && (
-                <Card className="shadow-lg border-0 bg-yellow-50/80 backdrop-blur-sm border-yellow-200">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-yellow-800">
-                      <AlertCircle className="h-5 w-5" />
-                      Missing Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {selectedAnalysis.missingInformation.map((missing, index) => (
-                      <div key={index} className="bg-white/60 p-4 rounded-lg">
-                        <div className="font-medium text-yellow-900 mb-1">{missing.field}</div>
-                        <div className="text-sm text-yellow-800 mb-2">{missing.description}</div>
-                        <div className="text-xs text-yellow-700 font-medium">Impact: {missing.impact}</div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="recommendations" className="space-y-6">
-              <div className="grid gap-6">
-                {selectedAnalysis.recommendations.map((rec, index) => (
-                  <Card key={index} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          {getCategoryIcon(rec.category)}
-                          <h3 className="font-semibold text-lg text-gray-800">{rec.title}</h3>
-                        </div>
-                        <Badge className={`${getPriorityBadgeColor(rec.priority)} border`}>
-                          {rec.priority}
-                        </Badge>
-                      </div>
-                      <p className="text-gray-700 leading-relaxed">{rec.description}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="next-steps" className="space-y-6">
-              <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-blue-800">
-                    <Target className="h-5 w-5" />
-                    Your Next Steps
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    {selectedAnalysis.nextSteps && Array.isArray(selectedAnalysis.nextSteps) ? 
-                      selectedAnalysis.nextSteps.map((step, index) => {
-                        // Handle both object and string formats for backward compatibility
-                        const stepData = typeof step === 'string' ? {
-                          step: `Step ${index + 1}`,
-                          description: step,
-                          category: 'short_term' as const
-                        } : step;
-
-                        return (
-                          <div key={index} className="flex items-start gap-4 p-4 bg-white/60 rounded-lg">
-                            <div className="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-semibold text-sm">
-                              {index + 1}
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-medium text-gray-800 mb-2">{stepData.step}</h4>
-                              <p className="text-gray-700 leading-relaxed mb-2">{stepData.description}</p>
-                              <div className="flex items-center gap-3 text-sm">
-                                <Badge 
-                                  className={`${
-                                    stepData.category === 'immediate' ? 'bg-red-100 text-red-800 border-red-200' :
-                                    stepData.category === 'short_term' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
-                                    'bg-green-100 text-green-800 border-green-200'
-                                  } border`}
-                                >
-                                  {stepData.category.replace('_', ' ')}
-                                </Badge>
-                                {stepData.deadline && (
-                                  <span className="text-gray-600 flex items-center gap-1">
-                                    <Calendar className="h-3 w-3" />
-                                    {stepData.deadline}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })
-                      : (
-                        <div className="text-center py-8 text-gray-500">
-                          No next steps available for this analysis.
-                        </div>
-                      )
-                    }
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
         </div>
       </DashboardLayout>
     );
@@ -973,6 +326,7 @@ export default function EnrollmentAnalysis() {
             </p>
           </div>
         </div>
+        
         {/* Upload Section */}
         <Card>
           <CardHeader>
@@ -1048,81 +402,84 @@ export default function EnrollmentAnalysis() {
             {uploadProgress > 0 && (
               <div className="mt-6 space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Analyzing document...</span>
-                  <span className="text-blue-600 font-medium">{Math.round(uploadProgress)}%</span>
+                  <span>Upload Progress</span>
+                  <span>{Math.round(uploadProgress)}%</span>
                 </div>
-                <Progress value={uploadProgress} className="h-2" />
+                <Progress value={uploadProgress} className="w-full" />
               </div>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
-              <div className="text-sm text-gray-600">
-                {user && (
-                  <span>
-                    Analysis quota: {user.analysisCount}/{user.maxAnalyses} used
-                  </span>
-                )}
+            {analysisProgress > 0 && (
+              <div className="mt-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Analysis Progress</span>
+                  <span>{Math.round(analysisProgress)}%</span>
+                </div>
+                <Progress value={analysisProgress} className="w-full" />
               </div>
+            )}
+
+            {/* Credit Status */}
+            {user && (
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <div className="flex items-center gap-2 text-blue-800">
+                  <CheckCircle className="h-5 w-5" />
+                  <span className="font-medium">
+                    Analysis Credits: {user.maxAnalyses - user.analysisCount} remaining
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <div className="mt-6 flex justify-center">
               <Button
-                onClick={handleAnalyze}
-                disabled={!selectedFile || !documentType || analyzeMutation.isPending}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 text-base font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                onClick={handleAnalysis}
+                disabled={!selectedFile || !documentType || mutation.isPending || analysisProgress > 0 || (user && user.analysisCount >= user.maxAnalyses)}
+                className="px-8 py-3 text-base font-medium bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
               >
-                {analyzeMutation.isPending ? (
+                {mutation.isPending ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Analyzing...
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Processing...
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
-                    Analyze Document
-                  </div>
+                  'Analyze Document'
                 )}
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Previous Analyses */}
-        {analyses.length > 0 && (
-          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
-            <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-t-lg">
-              <CardTitle className="flex items-center gap-2 text-xl text-gray-800">
-                <Clock className="h-5 w-5 text-gray-600" />
-                Previous Analyses
+        {/* Recent Analyses */}
+        {analyses && analyses.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-green-600" />
+                Recent Enrollment Analyses
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid gap-4">
-                {analyses.map((analysis) => (
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {analyses.slice(0, 6).map((analysis: EnrollmentAnalysis) => (
                   <div
                     key={analysis.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 hover:bg-blue-50 rounded-lg cursor-pointer transition-colors duration-200 border border-gray-200 hover:border-blue-300"
                     onClick={() => setSelectedAnalysis(analysis)}
+                    className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="bg-blue-100 p-2 rounded-lg">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-gray-800">{analysis.filename}</h3>
-                        <div className="flex items-center gap-4 text-sm text-gray-600">
-                          <span className="capitalize">{analysis.documentType.replace('_', ' ')}</span>
-                          {analysis.institutionCountry && (
-                            <span className="flex items-center gap-1">
-                              <Building2 className="h-3 w-3" />
-                              {analysis.institutionCountry}
-                            </span>
-                          )}
-                          <span>{new Date(analysis.createdAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileText className="h-4 w-4 text-blue-600" />
+                      <span className="font-medium text-sm truncate">{analysis.filename}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-blue-600">
-                      <span className="text-sm font-medium">View Analysis</span>
-                      <CheckCircle className="h-4 w-4" />
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(analysis.createdAt).toLocaleDateString()}
+                    </div>
+                    <div className="mt-2">
+                      <Badge variant="outline" className="text-xs">
+                        {analysis.documentType}
+                      </Badge>
                     </div>
                   </div>
                 ))}
@@ -1131,8 +488,8 @@ export default function EnrollmentAnalysis() {
           </Card>
         )}
 
-        {/* Customized CTA Section for Enrollment Analysis */}
-        <CustomCTA variant="enrollment-analysis" source="enrollment-analysis-page" className="mt-8" />
+        {/* CTA Section */}
+        <CustomCTA variant="enrollment-analysis" source="enrollment-analysis" />
       </div>
     </DashboardLayout>
   );
