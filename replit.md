@@ -130,6 +130,18 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 18, 2025 - Functional Admin Analysis System with Dynamic Templates & Real Data Display:**
+- Implemented fully functional filters and sorting across all analysis fields with comprehensive search capabilities
+- Created separate analysis templates for visa analysis and enrollment analysis showing relevant information for each type
+- Enhanced academic information display with real data extraction from analysis results including institution, program, level detection, and start date parsing
+- Implemented intelligent financial information extraction using regex patterns to detect tuition, scholarship, and total cost data from analysis summaries
+- Fixed all TypeScript sorting errors by updating FilterOptions interface to support detailed sort options (date-desc, date-asc, name-asc, etc.)
+- Enhanced search functionality to work across filenames, user data, summaries, institution names, program names, and analysis content
+- Removed placeholder data and implemented conditional display showing "Not specified" when actual data unavailable
+- Created bigger, full-width cards with structured grid layouts for better data presentation and readability
+- Applied blue highlighting to all detected numerical values including costs, percentages, and financial information
+- Implemented dynamic content extraction for dates, academic levels, and financial details from analysis text
+
 **June 18, 2025 - Complete Financial Information Display & Enhanced Analysis Presentation Implementation:**
 - Implemented comprehensive numerical figure highlighting across all analysis reports with enhanced regex patterns capturing scholarship amounts ($15,000), tuition fees ($45,000 per year), application costs, and detailed quantitative data
 - Created uniform report display system showing complete original AI-generated analysis content without shortening or summarizing across admin and user interfaces
