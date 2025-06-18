@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AdminLayout } from "@/components/AdminLayout";
+import { EnhancedFilters, FilterOptions, searchInText, filterByDateRange } from "@/components/EnhancedFilters";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,9 +51,7 @@ interface AnalysisData {
 export default function AdminAnalyses() {
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisData | null>(null);
   const [analysisDetailsOpen, setAnalysisDetailsOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [dateFilter, setDateFilter] = useState<string>("all");
+  const [filters, setFilters] = useState<FilterOptions>({});
   
   const { toast } = useToast();
 
@@ -61,43 +60,48 @@ export default function AdminAnalyses() {
     queryKey: ["/api/admin/analyses"],
   });
 
-  // Filter analyses based on all criteria
-  const filteredAnalyses = analyses.filter(analysis => {
-    const matchesStatus = statusFilter === "all" || 
-      (statusFilter === "public" && analysis.isPublic) ||
-      (statusFilter === "private" && !analysis.isPublic);
-    
-    const matchesSearch = searchTerm === "" ||
-      analysis.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      analysis.user?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      analysis.user?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      analysis.user?.username?.toLowerCase().includes(searchTerm.toLowerCase());
+  // Enhanced filtering with memoization for performance
+  const filteredAnalyses = useMemo(() => {
+    let filtered = analyses;
 
-    // Date filter
-    const analysisDate = parseISO(analysis.createdAt);
-    const now = new Date();
-    let matchesDate = true;
-
-    switch (dateFilter) {
-      case "today":
-        matchesDate = format(analysisDate, "yyyy-MM-dd") === format(now, "yyyy-MM-dd");
-        break;
-      case "week":
-        matchesDate = isAfter(analysisDate, subDays(now, 7));
-        break;
-      case "month":
-        matchesDate = isAfter(analysisDate, subMonths(now, 1));
-        break;
-      case "year":
-        matchesDate = isAfter(analysisDate, subYears(now, 1));
-        break;
-      case "all":
-      default:
-        matchesDate = true;
+    // Text search across multiple fields
+    if (filters.searchTerm) {
+      filtered = filtered.filter(analysis => 
+        searchInText(analysis, filters.searchTerm!, [
+          'fileName',
+          'user.firstName',
+          'user.lastName', 
+          'user.username',
+          'user.email',
+          'analysisResults.summary'
+        ])
+      );
     }
 
-    return matchesStatus && matchesSearch && matchesDate;
-  });
+    // Public/Private filter
+    if (filters.isPublic !== null && filters.isPublic !== undefined) {
+      filtered = filtered.filter(analysis => analysis.isPublic === filters.isPublic);
+    }
+
+    // Date range filter
+    if (filters.dateRange) {
+      filtered = filterByDateRange(filtered, 'createdAt', filters.dateRange);
+    }
+
+    // Severity filter for rejection analyses
+    if (filters.severity) {
+      filtered = filtered.filter(analysis => {
+        if (analysis.analysisResults?.rejectionReasons) {
+          return analysis.analysisResults.rejectionReasons.some(reason => 
+            reason.severity === filters.severity
+          );
+        }
+        return true;
+      });
+    }
+
+    return filtered;
+  }, [analyses, filters]);
 
   // CSV export functionality
   const exportAnalysesCSV = () => {

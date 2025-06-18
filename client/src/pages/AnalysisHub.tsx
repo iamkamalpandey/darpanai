@@ -87,13 +87,15 @@ export default function AnalysisHub() {
       filtered = filterByDateRange(filtered, 'createdAt', filters.dateRange);
     }
 
-    // Filter by country (for enrollment analyses)
+    // Filter by country (searches in filename and other available fields)
     if (filters.country) {
       filtered = filtered.filter(analysis => {
-        if (analysis.type === 'enrollment' && analysis.country) {
-          return analysis.country.toLowerCase().includes(filters.country!.toLowerCase());
-        }
-        return true;
+        const searchText = [
+          analysis.filename,
+          analysis.institutionCountry,
+          analysis.visaType
+        ].filter(Boolean).join(' ').toLowerCase();
+        return searchText.includes(filters.country!.toLowerCase());
       });
     }
 
@@ -158,9 +160,9 @@ export default function AnalysisHub() {
           </TabsList>
 
           <TabsContent value="all-analyses" className="space-y-4">
-            {allAnalyses.length > 0 ? (
+            {filteredAnalyses.length > 0 ? (
               <div className="grid gap-4">
-                {allAnalyses.map((analysis) => (
+                {filteredAnalyses.map((analysis) => (
                   <Card key={`${analysis.type}-${analysis.id}`} className="hover:shadow-md transition-shadow cursor-pointer">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
@@ -256,9 +258,9 @@ export default function AnalysisHub() {
           </TabsContent>
 
           <TabsContent value="visa-rejection" className="space-y-4">
-            {visaAnalyses.length > 0 ? (
+            {filteredVisaAnalyses.length > 0 ? (
               <div className="grid gap-4">
-                {visaAnalyses.map((analysis) => (
+                {filteredVisaAnalyses.map((analysis) => (
                   <Card key={analysis.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
@@ -314,9 +316,9 @@ export default function AnalysisHub() {
           </TabsContent>
 
           <TabsContent value="enrollment" className="space-y-4">
-            {enrollmentAnalyses.length > 0 ? (
+            {filteredEnrollmentAnalyses.length > 0 ? (
               <div className="grid gap-4">
-                {enrollmentAnalyses.map((analysis) => (
+                {filteredEnrollmentAnalyses.map((analysis) => (
                   <Card key={analysis.id} className="hover:shadow-md transition-shadow cursor-pointer">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
