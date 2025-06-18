@@ -130,6 +130,18 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 18, 2025 - Complete Visa Analysis Rebranding & Enhanced Document Support:**
+- Successfully rebranded "Visa Rejection Analysis" to "Visa Analysis" to support both successful and rejected visa document analysis
+- Updated OpenAI prompt to provide comprehensive analysis for visa approvals (key terms, conditions, compliance) and rejections (reasons, recommendations)
+- Enhanced visa analysis interface with broader scope messaging: "Upload your visa document (approval or rejection) to get detailed analysis, key information, and recommendations"
+- Updated navigation labels, page titles, and component branding across entire application to reflect "Visa Analysis" terminology
+- Changed color scheme from red (rejection-focused) to blue (neutral, professional) throughout visa analysis components
+- Modified AnalysisHub tabs to display "Visa Analysis" instead of "Visa Rejection" with updated empty state messaging
+- Updated Home page card descriptions to emphasize support for both visa outcomes with key information extraction
+- Enhanced AnalysisModal component branding and visual indicators to support broader visa document scope
+- Maintained all existing analysis functionality while expanding to serve students with any visa outcome
+- Preserved backward compatibility with existing rejection analysis data and user workflows
+
 **June 18, 2025 - Complete Application Error Resolution & Dynamic Document Management Enhancement:**
 - Fixed duplicate document type fields in document template forms by removing redundant text input field
 - Added comprehensive document types to database: Bank Statement, SOP, Recommendation Letter, Passport, Visa Application, I-20 Form, DS-160, Affidavit of Support, Sponsorship Letter, Employment Letter, Medical Certificate, Police Clearance

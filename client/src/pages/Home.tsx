@@ -120,17 +120,17 @@ export default function Home() {
                     <Shield className="h-8 w-8 text-white" />
                   </div>
                   <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                    Visa Rejection Analysis
+                    Visa Analysis
                   </CardTitle>
                   <CardDescription className="text-gray-600">
-                    Get detailed insights into your visa rejection and improve your next application
+                    Get detailed insights into your visa documents - both approvals and rejections with key information
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span>AI-powered rejection analysis</span>
+                      <span>AI-powered visa document analysis</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <CheckCircle2 className="h-4 w-4 text-green-500" />

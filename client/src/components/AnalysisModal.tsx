@@ -161,11 +161,11 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
       {/* Header Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex items-center gap-3">
-          <div className="bg-red-100 p-2 rounded-lg">
-            <AlertTriangle className="h-5 w-5 text-red-600" />
+          <div className="bg-blue-100 p-2 rounded-lg">
+            <AlertTriangle className="h-5 w-5 text-blue-600" />
           </div>
           <div>
-            <p className="font-medium text-gray-900">Visa Rejection Analysis</p>
+            <p className="font-medium text-gray-900">Visa Analysis</p>
             <p className="text-sm text-gray-600">{data.filename}</p>
           </div>
         </div>
