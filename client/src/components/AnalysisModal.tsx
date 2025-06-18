@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -60,18 +60,27 @@ interface EnrollmentAnalysis {
   studentCountry: string;
   visaType: string;
   summary: string;
-  compliance: {
-    status: string;
-    score: number;
-    details: string[];
+  analysisResults: {
+    eligibilityAssessment?: Array<{
+      title: string;
+      description: string;
+      status: string;
+    }>;
+    documentVerification?: Array<{
+      title: string;
+      description: string;
+      status: string;
+    }>;
+    recommendations?: Array<{
+      title: string;
+      description: string;
+      priority: string;
+    }>;
+    nextSteps?: Array<{
+      title: string;
+      description: string;
+    }>;
   };
-  recommendations: Array<{
-    title: string;
-    description: string;
-    priority: string;
-  }>;
-  requiredDocuments: string[];
-  nextSteps: string[];
 }
 
 export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: AnalysisModalProps) {
@@ -118,11 +127,13 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
         institutionCountry: analysis.institutionCountry,
         studentCountry: analysis.studentCountry,
         visaType: analysis.visaType,
-        summary: analysis.summary || '',
-        compliance: analysis.compliance || { status: 'unknown', score: 0, details: [] },
-        recommendations: analysis.recommendations || [],
-        requiredDocuments: analysis.requiredDocuments || [],
-        nextSteps: analysis.nextSteps || []
+        summary: analysis.analysisResults?.summary || analysis.summary || '',
+        analysisResults: {
+          eligibilityAssessment: analysis.analysisResults?.eligibilityAssessment || analysis.eligibilityAssessment || [],
+          documentVerification: analysis.analysisResults?.documentVerification || analysis.documentVerification || [],
+          recommendations: analysis.analysisResults?.recommendations || analysis.recommendations || [],
+          nextSteps: analysis.analysisResults?.nextSteps || analysis.nextSteps || []
+        }
       };
     }
   });
@@ -351,49 +362,52 @@ export function AnalysisModal({ analysisId, analysisType, isOpen, onClose }: Ana
         </Card>
       )}
 
-      {/* Compliance Status */}
-      {data.compliance && (
+      {/* Eligibility Assessment */}
+      {data.analysisResults?.eligibilityAssessment && data.analysisResults.eligibilityAssessment.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5 text-green-600" />
-              Compliance Status
+              Eligibility Assessment
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Overall Score:</span>
-              <div className="flex items-center gap-2">
-                <div className="w-32 bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${data.compliance.score}%` }}
-                  />
+          <CardContent className="space-y-3">
+            {data.analysisResults.eligibilityAssessment.map((item, index) => (
+              <div key={index} className="border-l-4 border-green-500 pl-4">
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="font-medium text-gray-900">{item.title}</h4>
+                  <Badge className={item.status === 'verified' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                    {item.status}
+                  </Badge>
                 </div>
-                <span className="font-medium">{data.compliance.score}%</span>
+                <p className="text-sm text-gray-600">{item.description}</p>
               </div>
-            </div>
-            <div>
-              <Badge 
-                className={
-                  data.compliance.status === 'compliant' 
-                    ? 'bg-green-100 text-green-800 border-green-200'
-                    : 'bg-yellow-100 text-yellow-800 border-yellow-200'
-                }
-              >
-                {data.compliance.status}
-              </Badge>
-            </div>
-            {data.compliance.details && data.compliance.details.length > 0 && (
-              <ul className="space-y-1">
-                {data.compliance.details.map((detail, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 text-sm">{detail}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Document Verification */}
+      {data.analysisResults?.documentVerification && data.analysisResults.documentVerification.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-blue-600" />
+              Document Verification
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {data.analysisResults.documentVerification.map((item, index) => (
+              <div key={index} className="border-l-4 border-blue-500 pl-4">
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="font-medium text-gray-900">{item.title}</h4>
+                  <Badge className={item.status === 'verified' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                    {item.status}
+                  </Badge>
+                </div>
+                <p className="text-sm text-gray-600">{item.description}</p>
+              </div>
+            ))}
           </CardContent>
         </Card>
       )}
