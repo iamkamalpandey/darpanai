@@ -25,7 +25,7 @@ function getCachedData(key: string) {
   return item.data;
 }
 
-function setCacheData(key: string, data: any, ttlMinutes = 2) {
+function setCacheData(key: string, data: any, ttlMinutes = 10) {
   cache.set(key, {
     data,
     timestamp: Date.now(),

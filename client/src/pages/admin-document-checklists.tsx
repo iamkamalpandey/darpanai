@@ -474,7 +474,7 @@ export default function AdminDocumentChecklists() {
                           <Clock className="h-4 w-4 text-yellow-600 flex-shrink-0" />
                           <div className="min-w-0 overflow-hidden">
                             <div className="text-xs text-yellow-600 font-medium">Processing</div>
-                            <div className="text-sm font-bold text-yellow-800 truncate">{String(checklist.estimatedProcessingTime)}</div>
+                            <div className="text-sm font-bold text-yellow-800 truncate">{checklist.estimatedProcessingTime}</div>
                           </div>
                         </div>
                       </div>
@@ -486,7 +486,7 @@ export default function AdminDocumentChecklists() {
                           <DollarSign className="h-4 w-4 text-green-600 flex-shrink-0" />
                           <div className="min-w-0 overflow-hidden">
                             <div className="text-xs text-green-600 font-medium">Total Fees</div>
-                            <div className="text-sm font-bold text-green-800 truncate">{String(checklist.totalFees)}</div>
+                            <div className="text-sm font-bold text-green-800 truncate">{checklist.totalFees}</div>
                           </div>
                         </div>
                       </div>

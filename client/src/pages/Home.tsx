@@ -41,9 +41,11 @@ export default function Home() {
     return null;
   }
   
-  // Fetch user's recent analyses
+  // Fetch user's recent analyses with optimized caching
   const { data: recentAnalyses = [] } = useQuery<RecentAnalysis[]>({
     queryKey: ["/api/analyses"],
+    staleTime: 15 * 60 * 1000, // 15 minutes
+    enabled: !!user && user.role !== 'admin',
   });
 
   const remainingAnalyses = user ? user.maxAnalyses - user.analysisCount : 0;
