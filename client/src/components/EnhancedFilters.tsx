@@ -399,8 +399,8 @@ export function EnhancedFilters({
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Status</label>
                   <Select
-                    value={filters.status || ""}
-                    onValueChange={(value) => updateFilter('status', value || undefined)}
+                    value={filters.status || "all"}
+                    onValueChange={(value) => updateFilter('status', value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
@@ -420,8 +420,8 @@ export function EnhancedFilters({
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Date Range</label>
                   <Select
-                    value={filters.dateRange || ""}
-                    onValueChange={(value) => updateFilter('dateRange', value || undefined)}
+                    value={filters.dateRange || "all"}
+                    onValueChange={(value) => updateFilter('dateRange', value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select date range" />
@@ -441,8 +441,8 @@ export function EnhancedFilters({
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Analysis Type</label>
                   <Select
-                    value={filters.analysisType || ""}
-                    onValueChange={(value) => updateFilter('analysisType', value || undefined)}
+                    value={filters.analysisType || "all"}
+                    onValueChange={(value) => updateFilter('analysisType', value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select analysis type" />
@@ -462,8 +462,8 @@ export function EnhancedFilters({
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Severity</label>
                   <Select
-                    value={filters.severity || ""}
-                    onValueChange={(value) => updateFilter('severity', value || undefined)}
+                    value={filters.severity || "all"}
+                    onValueChange={(value) => updateFilter('severity', value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select severity" />
