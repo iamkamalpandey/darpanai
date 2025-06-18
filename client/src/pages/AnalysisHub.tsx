@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { EnhancedFilters, FilterOptions, searchInText, filterByDateRange } from '@/components/EnhancedFilters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ interface Analysis {
 
 export default function AnalysisHub() {
   const [selectedAnalysis, setSelectedAnalysis] = useState<Analysis | null>(null);
+  const [filters, setFilters] = useState<FilterOptions>({});
 
   // Fetch visa rejection analyses
   const { data: visaAnalyses = [] } = useQuery<Analysis[]>({
@@ -46,6 +48,61 @@ export default function AnalysisHub() {
   const allAnalyses = [...visaAnalyses, ...enrollmentAnalyses].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
+
+  // Memoized filtered analyses for performance
+  const filteredAnalyses = useMemo(() => {
+    let filtered = allAnalyses;
+
+    // Text search across multiple fields
+    if (filters.searchTerm) {
+      filtered = filtered.filter(analysis => 
+        searchInText(analysis, filters.searchTerm!, [
+          'filename',
+          'rejectionReasons.title',
+          'rejectionReasons.description',
+          'institutionName',
+          'documentType',
+          'summary'
+        ])
+      );
+    }
+
+    // Filter by analysis type
+    if (filters.analysisType) {
+      filtered = filtered.filter(analysis => analysis.type === filters.analysisType);
+    }
+
+    // Filter by severity (for visa rejection analyses)
+    if (filters.severity) {
+      filtered = filtered.filter(analysis => {
+        if (analysis.type === 'visa_rejection' && analysis.rejectionReasons) {
+          return analysis.rejectionReasons.some(reason => reason.severity === filters.severity);
+        }
+        return true;
+      });
+    }
+
+    // Filter by date range
+    if (filters.dateRange) {
+      filtered = filterByDateRange(filtered, 'createdAt', filters.dateRange);
+    }
+
+    // Filter by country (for enrollment analyses)
+    if (filters.country) {
+      filtered = filtered.filter(analysis => {
+        if (analysis.type === 'enrollment' && analysis.country) {
+          return analysis.country.toLowerCase().includes(filters.country!.toLowerCase());
+        }
+        return true;
+      });
+    }
+
+    return filtered;
+  }, [allAnalyses, filters]);
+
+  // Separate filtered analyses by type for tabs
+  const filteredVisaAnalyses = filteredAnalyses.filter(a => a.type === 'visa_rejection');
+  const filteredEnrollmentAnalyses = filteredAnalyses.filter(a => a.type === 'enrollment');
 
   const getAnalysisIcon = (type: string) => {
     return type === 'visa_rejection' ? (
@@ -79,11 +136,25 @@ export default function AnalysisHub() {
           </div>
         </div>
 
+        {/* Enhanced Filters */}
+        <EnhancedFilters
+          filters={filters}
+          onFiltersChange={setFilters}
+          config={{
+            showSearch: true,
+            showAnalysisType: true,
+            showSeverity: true,
+            showCountry: true,
+            showDateRange: true,
+          }}
+          resultCount={filteredAnalyses.length}
+        />
+
         <Tabs defaultValue="all-analyses" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="all-analyses">All Analyses ({allAnalyses.length})</TabsTrigger>
-            <TabsTrigger value="visa-rejection">Visa Rejection ({visaAnalyses.length})</TabsTrigger>
-            <TabsTrigger value="enrollment">Enrollment ({enrollmentAnalyses.length})</TabsTrigger>
+            <TabsTrigger value="all-analyses">All Analyses ({filteredAnalyses.length})</TabsTrigger>
+            <TabsTrigger value="visa-rejection">Visa Rejection ({filteredVisaAnalyses.length})</TabsTrigger>
+            <TabsTrigger value="enrollment">Enrollment ({filteredEnrollmentAnalyses.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all-analyses" className="space-y-4">
