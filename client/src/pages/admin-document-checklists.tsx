@@ -455,7 +455,7 @@ export default function AdminDocumentChecklists() {
                   </div>
 
                   {/* Quick Stats */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0" key={`stats-${checklist.id}`}>
                     <div className="bg-blue-50 p-3 rounded-lg min-w-0 overflow-hidden">
                       <div className="flex items-center space-x-2 min-w-0">
                         <CheckSquare className="h-4 w-4 text-blue-600 flex-shrink-0" />
