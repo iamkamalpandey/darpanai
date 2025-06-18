@@ -158,9 +158,8 @@ export default function AdminAnalyses() {
       );
     }
 
-    if (filters.isPublic && filters.isPublic !== 'all') {
-      const isPublic = filters.isPublic === 'public';
-      filtered = filtered.filter(analysis => analysis.isPublic === isPublic);
+    if (filters.isPublic !== null && filters.isPublic !== undefined) {
+      filtered = filtered.filter(analysis => analysis.isPublic === filters.isPublic);
     }
 
     return filtered;

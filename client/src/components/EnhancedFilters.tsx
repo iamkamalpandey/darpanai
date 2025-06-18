@@ -57,6 +57,17 @@ interface EnhancedFiltersProps {
   resultCount?: number;
   className?: string;
   placeholder?: string;
+  showAnalysisType?: boolean;
+  showSeverity?: boolean;
+  showPublicFilter?: boolean;
+  showDateRange?: boolean;
+  showSearch?: boolean;
+  showCategory?: boolean;
+  showCountry?: boolean;
+  showVisaType?: boolean;
+  showUserType?: boolean;
+  showStatus?: boolean;
+  showSortBy?: boolean;
 }
 
 const dateRangeOptions = [
