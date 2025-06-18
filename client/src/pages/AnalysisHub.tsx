@@ -40,16 +40,18 @@ export default function AnalysisHub() {
     setCurrentPage(1);
   }, [filters]);
 
-  // Fetch visa rejection analyses
-  const { data: visaAnalyses = [] } = useQuery<Analysis[]>({
+  // Fetch visa rejection analyses with optimized caching
+  const { data: visaAnalyses = [], isLoading: visaLoading } = useQuery<Analysis[]>({
     queryKey: ['/api/analyses'],
-    select: (data) => data.map(item => ({ ...item, type: 'visa_rejection' as const }))
+    select: (data) => data.map(item => ({ ...item, type: 'visa_rejection' as const })),
+    staleTime: 20 * 60 * 1000, // 20 minutes
   });
 
-  // Fetch enrollment analyses
-  const { data: enrollmentAnalyses = [] } = useQuery<Analysis[]>({
+  // Fetch enrollment analyses with optimized caching
+  const { data: enrollmentAnalyses = [], isLoading: enrollmentLoading } = useQuery<Analysis[]>({
     queryKey: ['/api/enrollment-analyses'],
-    select: (data) => data.map(item => ({ ...item, type: 'enrollment' as const }))
+    select: (data) => data.map(item => ({ ...item, type: 'enrollment' as const })),
+    staleTime: 20 * 60 * 1000, // 20 minutes
   });
 
   // Navigate to existing analysis pages that work properly

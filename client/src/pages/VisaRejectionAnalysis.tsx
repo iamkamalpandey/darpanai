@@ -70,11 +70,10 @@ export default function VisaRejectionAnalysis() {
     if (analysisId && analyses.length > 0 && !selectedAnalysis) {
       const targetAnalysis = analyses.find(analysis => analysis.id === parseInt(analysisId));
       if (targetAnalysis) {
-        console.log('Loading visa analysis from URL:', targetAnalysis);
         setSelectedAnalysis(targetAnalysis);
       }
     }
-  }, [analyses, selectedAnalysis]);
+  }, [analyses.length, selectedAnalysis]);
 
   // Upload and analyze document mutation
   const analyzeMutation = useMutation({
