@@ -222,9 +222,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </div>
 
         {/* Mobile Content */}
-        <main className="p-4 pb-6 min-w-0 overflow-hidden">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 w-full min-w-0 max-w-full overflow-hidden">
-            <div className="p-4 sm:p-6 min-w-0 overflow-hidden">
+        <main className="p-4 pb-6 min-w-0">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 w-full min-w-0 max-w-full">
+            <div className="p-4 sm:p-6 min-w-0">
               {children}
             </div>
           </div>
@@ -310,11 +310,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </div>
 
         {/* Desktop Content */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <main className="flex-1 p-6 lg:p-8 overflow-auto min-w-0">
+        <div className="flex-1 flex flex-col min-w-0">
+          <main className="flex-1 p-6 lg:p-8 min-w-0">
             <div className="max-w-none min-w-0">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 w-full min-w-0 max-w-full overflow-hidden">
-                <div className="p-6 lg:p-8 min-w-0 overflow-hidden">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 w-full min-w-0 max-w-full">
+                <div className="p-6 lg:p-8 min-w-0">
                   {children}
                 </div>
               </div>

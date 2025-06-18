@@ -511,8 +511,8 @@ export function EnhancedFilters({
                 <div key={customFilter.key} className="space-y-2">
                   <label className="text-sm font-medium">{customFilter.label}</label>
                   <Select
-                    value={(filters as any)[customFilter.key] || ""}
-                    onValueChange={(value) => updateFilter(customFilter.key as keyof FilterOptions, value || undefined)}
+                    value={(filters as any)[customFilter.key] || "all"}
+                    onValueChange={(value) => updateFilter(customFilter.key as keyof FilterOptions, value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={`Select ${customFilter.label.toLowerCase()}`} />

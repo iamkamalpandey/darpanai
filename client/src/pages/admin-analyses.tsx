@@ -251,7 +251,7 @@ export default function AdminAnalyses() {
           onFiltersChange={setFilters}
           config={{
             showSearch: true,
-            showPublicFilter: true,
+            showAnalysisType: true,
             showDateRange: true,
             showSeverity: true,
           }}
