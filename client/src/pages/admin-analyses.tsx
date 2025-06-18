@@ -540,37 +540,49 @@ export default function AdminAnalyses() {
                     </Card>
                   )}
 
-                  {/* Rejection Reasons */}
+                  {/* Rejection Reasons with Enhanced User-Friendly Display */}
                   {selectedAnalysis.analysisResults?.rejectionReasons && selectedAnalysis.analysisResults.rejectionReasons.length > 0 && (
                     <Card className="border-l-4 border-l-red-500">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                           <AlertTriangle className="h-5 w-5 text-red-600" />
-                          Rejection Reasons ({selectedAnalysis.analysisResults.rejectionReasons.length})
+                          Why Your Application Was Rejected ({selectedAnalysis.analysisResults.rejectionReasons.length} Issues Found)
                         </CardTitle>
+                        <p className="text-sm text-gray-600 mt-1">
+                          These are the specific reasons mentioned in your rejection letter. Understanding these helps you prepare a stronger reapplication.
+                        </p>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
                           {selectedAnalysis.analysisResults.rejectionReasons.map((reason, idx) => (
-                            <div key={idx} className="bg-gray-50 p-4 rounded-lg border">
+                            <div key={idx} className="bg-red-50 p-4 rounded-lg border border-red-200">
                               <div className="flex items-start justify-between mb-3">
-                                <h4 className="font-medium text-gray-900">{reason.title}</h4>
-                                <div className="flex gap-2">
-                                  {(reason as any).category && (
-                                    <Badge variant="outline" className="text-xs">
-                                      {formatCategoryName((reason as any).category)}
-                                    </Badge>
-                                  )}
-                                  {(reason as any).severity && (
-                                    <Badge variant={getCategoryBadgeVariant((reason as any).severity)} className="text-xs">
-                                      {(reason as any).severity}
-                                    </Badge>
-                                  )}
+                                <div className="flex items-start gap-3">
+                                  <div className="bg-red-100 p-2 rounded-full flex-shrink-0 mt-0.5">
+                                    {getCategoryIcon((reason as any).category || 'general')}
+                                  </div>
+                                  <div>
+                                    <h4 className="font-medium text-red-900 mb-1">{reason.title}</h4>
+                                    <div className="flex gap-2 mb-2">
+                                      {(reason as any).category && (
+                                        <Badge variant="outline" className="text-xs bg-white">
+                                          {formatCategoryName((reason as any).category)} Issue
+                                        </Badge>
+                                      )}
+                                      {(reason as any).severity && (
+                                        <Badge variant={getCategoryBadgeVariant((reason as any).severity)} className="text-xs">
+                                          {(reason as any).severity === 'high' ? 'Critical' : (reason as any).severity === 'medium' ? 'Important' : 'Minor'} Impact
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
-                              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                                {reason.description}
-                              </p>
+                              <div className="ml-11">
+                                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                  {reason.description}
+                                </p>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -635,37 +647,50 @@ export default function AdminAnalyses() {
                     </Card>
                   )}
 
-                  {/* Recommendations */}
+                  {/* Recommendations with Enhanced User-Friendly Display */}
                   {selectedAnalysis.analysisResults?.recommendations && selectedAnalysis.analysisResults.recommendations.length > 0 && (
                     <Card className="border-l-4 border-l-green-500">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                           <CheckCircle className="h-5 w-5 text-green-600" />
-                          Recommendations ({selectedAnalysis.analysisResults.recommendations.length})
+                          Expert Recommendations ({selectedAnalysis.analysisResults.recommendations.length} Action Items)
                         </CardTitle>
+                        <p className="text-sm text-gray-600 mt-1">
+                          These are actionable steps you can take to improve your chances for future applications. Each recommendation is based on the specific issues found in your document.
+                        </p>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
                           {selectedAnalysis.analysisResults.recommendations.map((rec: any, idx: number) => (
-                            <div key={idx} className="bg-gray-50 p-4 rounded-lg border">
-                              <div className="flex items-start justify-between mb-2">
-                                <h4 className="font-medium text-gray-900">{rec.title}</h4>
-                                <div className="flex gap-2">
-                                  {rec.priority && (
-                                    <Badge variant={rec.priority === 'urgent' ? 'destructive' : rec.priority === 'important' ? 'secondary' : 'outline'} className="text-xs">
-                                      {rec.priority}
-                                    </Badge>
-                                  )}
-                                  {rec.category && (
-                                    <Badge variant="outline" className="text-xs">
-                                      {rec.category}
-                                    </Badge>
-                                  )}
+                            <div key={idx} className="bg-green-50 p-4 rounded-lg border border-green-200">
+                              <div className="flex items-start gap-3">
+                                <div className="bg-green-100 p-2 rounded-full flex-shrink-0 mt-0.5">
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <h4 className="font-medium text-green-900">{rec.title}</h4>
+                                    <div className="flex gap-2">
+                                      {rec.priority && (
+                                        <Badge 
+                                          variant={rec.priority === 'urgent' ? 'destructive' : rec.priority === 'important' ? 'secondary' : 'outline'} 
+                                          className="text-xs"
+                                        >
+                                          {rec.priority === 'urgent' ? 'Do First' : rec.priority === 'important' ? 'High Priority' : 'When Possible'}
+                                        </Badge>
+                                      )}
+                                      {rec.category && (
+                                        <Badge variant="outline" className="text-xs bg-white">
+                                          {formatCategoryName(rec.category)}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                    {rec.description}
+                                  </p>
                                 </div>
                               </div>
-                              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                                {rec.description}
-                              </p>
                             </div>
                           ))}
                         </div>
@@ -673,43 +698,63 @@ export default function AdminAnalyses() {
                     </Card>
                   )}
 
-                  {/* Next Steps */}
+                  {/* Next Steps with Enhanced User-Friendly Display */}
                   {selectedAnalysis.analysisResults?.nextSteps && (
                     <Card className="border-l-4 border-l-purple-500">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                           <TrendingUp className="h-5 w-5 text-purple-600" />
-                          Next Steps
+                          Your Action Plan - What To Do Next
                         </CardTitle>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Follow these steps in order to prepare for your next application. Each step is designed to address the specific issues found in your analysis.
+                        </p>
                       </CardHeader>
                       <CardContent>
-                        <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
                           {Array.isArray(selectedAnalysis.analysisResults.nextSteps) ? (
                             <div className="space-y-4">
                               {selectedAnalysis.analysisResults.nextSteps.map((step, idx) => (
-                                <div key={idx} className="flex items-start gap-3">
-                                  <span className="bg-purple-100 text-purple-700 text-sm font-medium px-2.5 py-1 rounded-full flex-shrink-0 mt-0.5">
+                                <div key={idx} className="flex items-start gap-4">
+                                  <div className="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold flex-shrink-0 mt-0.5">
                                     {idx + 1}
-                                  </span>
-                                  <div className="flex-1">
+                                  </div>
+                                  <div className="flex-1 bg-white p-3 rounded-lg border border-purple-100">
                                     {typeof step === 'string' ? (
-                                      <p className="text-gray-700 leading-relaxed">{step}</p>
+                                      <div className="flex items-start gap-3">
+                                        <CheckCircle className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                                        <p className="text-gray-700 leading-relaxed">{step}</p>
+                                      </div>
                                     ) : (
                                       <div>
-                                        <h4 className="font-medium text-gray-900 mb-1">{(step as any).title || (step as any).step}</h4>
+                                        <h4 className="font-medium text-purple-900 mb-2 flex items-center gap-2">
+                                          <CheckCircle className="h-4 w-4 text-purple-600" />
+                                          {(step as any).title || (step as any).step}
+                                        </h4>
                                         <p className="text-gray-700 leading-relaxed">
                                           {(step as any).description}
                                         </p>
                                       </div>
                                     )}
+                                    <div className="mt-2 text-xs text-purple-600 font-medium">
+                                      Step {idx + 1} of {selectedAnalysis.analysisResults.nextSteps.length}
+                                    </div>
                                   </div>
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                              {selectedAnalysis.analysisResults.nextSteps}
-                            </p>
+                            <div className="bg-white p-4 rounded-lg border border-purple-100">
+                              <div className="flex items-start gap-3">
+                                <TrendingUp className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <h4 className="font-medium text-purple-900 mb-2">Action Required</h4>
+                                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                    {selectedAnalysis.analysisResults.nextSteps}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
                           )}
                         </div>
                       </CardContent>

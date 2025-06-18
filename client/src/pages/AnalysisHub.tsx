@@ -202,7 +202,7 @@ export default function AnalysisHub() {
             showSorting: true,
           }}
           dropdownOptions={{
-            countries: dropdownOptions?.countries,
+            countries: [],
           }}
           resultCount={filteredAnalyses.length}
           placeholder="Search by filename, summary, or country..."
