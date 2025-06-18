@@ -1,4 +1,5 @@
 import { Link, useLocation } from "wouter";
+import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,7 @@ import {
   Bell,
   CheckSquare,
   FileCheck,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +25,7 @@ interface SidebarItemProps {
   label: string;
   href: string;
   active?: boolean;
+  compact?: boolean;
 }
 
 const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
@@ -103,15 +106,21 @@ export function DashboardSidebar() {
         />
         <SidebarItem
           icon={<FileText className="h-5 w-5" />}
-          label="Visa Analyzer"
-          href="/analyzer"
-          active={location === "/analyzer"}
+          label="My Analysis"
+          href="/my-analysis"
+          active={location === "/my-analysis"}
         />
         <SidebarItem
-          icon={<BarChart3 className="h-5 w-5" />}
-          label="Analysis History"
-          href="/history"
-          active={location === "/history"}
+          icon={<Shield className="h-5 w-5" />}
+          label="Visa Rejection Analysis"
+          href="/visa-analysis"
+          active={location === "/visa-analysis"}
+        />
+        <SidebarItem
+          icon={<FileCheck className="h-5 w-5" />}
+          label="Enrollment Analysis"
+          href="/enrollment-analysis"
+          active={location === "/enrollment-analysis"}
         />
         <SidebarItem
           icon={<Phone className="h-5 w-5" />}
@@ -119,6 +128,52 @@ export function DashboardSidebar() {
           href="/consultations"
           active={location === "/consultations"}
         />
+        {/* Resources Section with Collapsible Submenu */}
+        <div className="space-y-2">
+          <button
+            onClick={() => setResourcesOpen(!resourcesOpen)}
+            className={cn(
+              "w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors",
+              "hover:bg-accent hover:text-accent-foreground",
+              (location === "/document-templates" || location === "/document-checklist") 
+                ? "bg-accent text-accent-foreground" 
+                : "text-muted-foreground"
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <FileCheck className="h-5 w-5" />
+              <span>Resources</span>
+            </div>
+            <ChevronDown className={cn("h-4 w-4 transition-transform", resourcesOpen && "rotate-180")} />
+          </button>
+          
+          {resourcesOpen && (
+            <div className="ml-8 space-y-1">
+              <SidebarItem
+                icon={<FileCheck className="h-4 w-4" />}
+                label="Document Templates"
+                href="/document-templates"
+                active={location === "/document-templates"}
+                compact
+              />
+              <SidebarItem
+                icon={<CheckSquare className="h-4 w-4" />}
+                label="Document Checklists"
+                href="/document-checklist"
+                active={location === "/document-checklist"}
+                compact
+              />
+            </div>
+          )}
+        </div>
+
+        <SidebarItem
+          icon={<Phone className="h-5 w-5" />}
+          label="Appointments"
+          href="/consultations"
+          active={location === "/consultations"}
+        />
+        
         <div className="relative">
           <SidebarItem
             icon={<Bell className="h-5 w-5" />}
@@ -128,18 +183,6 @@ export function DashboardSidebar() {
           />
           <UpdatesNotificationBadge />
         </div>
-        <SidebarItem
-          icon={<FileCheck className="h-5 w-5" />}
-          label="Document Templates"
-          href="/document-templates"
-          active={location === "/document-templates"}
-        />
-        <SidebarItem
-          icon={<CheckSquare className="h-5 w-5" />}
-          label="Document Checklist"
-          href="/document-checklist"
-          active={location === "/document-checklist"}
-        />
       </nav>
 
       <div className="mt-auto border-t pt-4">
