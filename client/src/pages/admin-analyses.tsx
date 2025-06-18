@@ -95,6 +95,20 @@ export default function AdminAnalyses() {
       );
     }
 
+    // Analysis type filter
+    if (filters.analysisType && filters.analysisType !== 'all') {
+      filtered = filtered.filter(analysis => analysis.analysisType === filters.analysisType);
+    }
+
+    // Severity filter (for rejection analyses)
+    if (filters.severity && filters.severity !== 'all') {
+      filtered = filtered.filter(analysis => 
+        analysis.analysisResults?.rejectionReasons?.some((reason: any) => 
+          reason.severity === filters.severity || reason.category === filters.severity
+        )
+      );
+    }
+
     // Public/Private filter
     if (filters.isPublic !== null && filters.isPublic !== undefined) {
       filtered = filtered.filter(analysis => analysis.isPublic === filters.isPublic);
@@ -103,6 +117,39 @@ export default function AdminAnalyses() {
     // Date range filter
     if (filters.dateRange) {
       filtered = filterByDateRange(filtered, 'createdAt', filters.dateRange);
+    }
+
+    // Apply sorting
+    if (filters.sortBy) {
+      filtered.sort((a, b) => {
+        let valueA: any, valueB: any;
+        
+        switch (filters.sortBy) {
+          case 'name':
+            valueA = a.fileName.toLowerCase();
+            valueB = b.fileName.toLowerCase();
+            break;
+          case 'type':
+            valueA = a.analysisType || 'visa_analysis';
+            valueB = b.analysisType || 'visa_analysis';
+            break;
+          case 'user':
+            valueA = a.user ? `${a.user.firstName} ${a.user.lastName}`.toLowerCase() : '';
+            valueB = b.user ? `${b.user.firstName} ${b.user.lastName}`.toLowerCase() : '';
+            break;
+          case 'date':
+          default:
+            valueA = new Date(a.createdAt).getTime();
+            valueB = new Date(b.createdAt).getTime();
+            break;
+        }
+        
+        if (filters.sortOrder === 'asc') {
+          return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+        } else {
+          return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+        }
+      });
     }
 
     return filtered;
@@ -278,9 +325,13 @@ export default function AdminAnalyses() {
           onFiltersChange={setFilters}
           config={{
             showSearch: true,
+            showAnalysisType: true,
+            showSeverity: true,
             showPublicFilter: true,
-            showDateRange: true
+            showDateRange: true,
+            showSorting: true,
           }}
+          resultCount={filteredAnalyses.length}
           placeholder="Search by filename, user, or analysis content..."
         />
 

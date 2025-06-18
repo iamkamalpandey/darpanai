@@ -70,7 +70,7 @@ export default function AnalysisHub() {
     );
   }, [visaAnalyses, enrollmentAnalyses]);
 
-  // Memoized filtered analyses for performance
+  // Memoized filtered and sorted analyses for performance
   const filteredAnalyses = useMemo(() => {
     let filtered = allAnalyses;
 
@@ -87,8 +87,12 @@ export default function AnalysisHub() {
     }
 
     // Filter by analysis type
-    if (filters.analysisType) {
-      filtered = filtered.filter(analysis => analysis.type === filters.analysisType);
+    if (filters.analysisType && filters.analysisType !== 'all') {
+      if (filters.analysisType === 'visa_analysis') {
+        filtered = filtered.filter(analysis => analysis.type === 'visa_rejection');
+      } else if (filters.analysisType === 'enrollment_analysis') {
+        filtered = filtered.filter(analysis => analysis.type === 'enrollment');
+      }
     }
 
     // Filter by country (for enrollment analyses)
@@ -102,6 +106,35 @@ export default function AnalysisHub() {
     // Filter by date range
     if (filters.dateRange) {
       filtered = filterByDateRange(filtered, filters.dateRange, 'createdAt');
+    }
+
+    // Apply sorting
+    if (filters.sortBy) {
+      filtered.sort((a, b) => {
+        let valueA: any, valueB: any;
+        
+        switch (filters.sortBy) {
+          case 'name':
+            valueA = a.filename.toLowerCase();
+            valueB = b.filename.toLowerCase();
+            break;
+          case 'type':
+            valueA = a.type;
+            valueB = b.type;
+            break;
+          case 'date':
+          default:
+            valueA = new Date(a.createdAt).getTime();
+            valueB = new Date(b.createdAt).getTime();
+            break;
+        }
+        
+        if (filters.sortOrder === 'asc') {
+          return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+        } else {
+          return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+        }
+      });
     }
 
     return filtered;
@@ -166,8 +199,13 @@ export default function AnalysisHub() {
             showSeverity: true,
             showCountry: true,
             showDateRange: true,
+            showSorting: true,
+          }}
+          dropdownOptions={{
+            countries: dropdownOptions?.countries,
           }}
           resultCount={filteredAnalyses.length}
+          placeholder="Search by filename, summary, or country..."
         />
 
         <Tabs defaultValue="all-analyses" className="space-y-6">
