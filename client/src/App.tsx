@@ -109,6 +109,13 @@ function Router() {
           </Suspense>
         )} />
       </Route>
+      <Route path="/enrollment-analysis">
+        <UserProtectedRoute path="/enrollment-analysis" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <EnrollmentAnalysis />
+          </Suspense>
+        )} />
+      </Route>
       
       {/* Admin Routes - Only accessible by admin users */}
       <Route path="/admin">

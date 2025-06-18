@@ -40,6 +40,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const sidebarItems = [
     { icon: <Home size={20} />, label: 'Dashboard', href: '/' },
     { icon: <FileText size={20} />, label: 'My Analyses', href: '/history' },
+    { icon: <Shield size={20} />, label: 'Enrollment Analysis', href: '/enrollment-analysis' },
     { icon: <Calendar size={20} />, label: 'Appointments', href: '/consultations' },
     { icon: <FileCheck size={20} />, label: 'Document Templates', href: '/document-templates' },
     { icon: <ClipboardCheck size={20} />, label: 'Document Checklists', href: '/document-checklist' },

@@ -87,13 +87,13 @@ export default function EnrollmentAnalysis() {
   const { data: analyses = [], isLoading: analysesLoading } = useQuery({
     queryKey: ['/api/enrollment-analyses'],
     enabled: true
-  });
+  }) as { data: EnrollmentAnalysis[]; isLoading: boolean };
 
   // Fetch current user for quota checking
   const { data: user } = useQuery({
     queryKey: ['/api/user'],
     enabled: true
-  });
+  }) as { data: any };
 
   // Upload and analyze document mutation
   const analyzeMutation = useMutation({
@@ -102,10 +102,17 @@ export default function EnrollmentAnalysis() {
       formData.append('document', file);
       formData.append('documentType', documentType);
 
-      return apiRequest(`/api/enrollment-analysis`, {
+      const response = await fetch('/api/enrollment-analysis', {
         method: 'POST',
         body: formData
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Analysis failed');
+      }
+
+      return response.json();
     },
     onSuccess: (data) => {
       toast({
@@ -329,7 +336,7 @@ export default function EnrollmentAnalysis() {
               </p>
             ) : (
               <div className="space-y-3">
-                {analyses.slice(0, 5).map((analysis: EnrollmentAnalysis) => (
+                {analyses.slice(0, 5).map((analysis) => (
                   <div
                     key={analysis.id}
                     className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
