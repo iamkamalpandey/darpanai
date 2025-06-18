@@ -58,7 +58,7 @@ export default function AdminAnalyses() {
   const [modalAnalysisId, setModalAnalysisId] = useState<number | null>(null);
   const [modalAnalysisType, setModalAnalysisType] = useState<'visa_rejection' | 'enrollment' | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 9;
   
   const { toast } = useToast();
 
