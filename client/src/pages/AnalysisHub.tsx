@@ -120,25 +120,25 @@ export default function AnalysisHub() {
   const paginatedVisaAnalyses = filteredVisaAnalyses.slice(startIndex, endIndex);
   const paginatedEnrollmentAnalyses = filteredEnrollmentAnalyses.slice(startIndex, endIndex);
 
-  const getAnalysisIcon = (type: string) => {
+  const getAnalysisIcon = useMemo(() => (type: string) => {
     return type === 'visa_rejection' ? (
       <AlertTriangle className="h-5 w-5 text-red-600" />
     ) : (
       <GraduationCap className="h-5 w-5 text-blue-600" />
     );
-  };
+  }, []);
 
-  const getAnalysisTypeLabel = (type: string) => {
+  const getAnalysisTypeLabel = useMemo(() => (type: string) => {
     return type === 'visa_rejection' ? 'Visa Analysis' : 'Enrollment Analysis';
-  };
+  }, []);
 
-  const getAnalysisTypeBadge = (type: string) => {
+  const getAnalysisTypeBadge = useMemo(() => (type: string) => {
     return type === 'visa_rejection' ? (
       <Badge className="bg-blue-100 text-blue-800 border-blue-200">Visa Analysis</Badge>
     ) : (
       <Badge className="bg-blue-100 text-blue-800 border-blue-200">Enrollment Analysis</Badge>
     );
-  };
+  }, []);
 
   const totalPages = Math.ceil(filteredAnalyses.length / itemsPerPage);
   const totalVisaPages = Math.ceil(filteredVisaAnalyses.length / itemsPerPage);
