@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -66,6 +67,7 @@ export default function EnrollmentAnalysis() {
   const [selectedAnalysis, setSelectedAnalysis] = useState<EnrollmentAnalysis | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [location] = useLocation();
 
   // Fetch user's enrollment analyses
   const { data: analyses = [], isLoading } = useQuery<EnrollmentAnalysis[]>({
@@ -77,6 +79,19 @@ export default function EnrollmentAnalysis() {
     queryKey: ['/api/user'],
     enabled: true
   }) as { data: any };
+
+  // Handle URL parameter to load specific analysis
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.split('?')[1] || '');
+    const analysisId = urlParams.get('id');
+    
+    if (analysisId && analyses.length > 0) {
+      const targetAnalysis = analyses.find(analysis => analysis.id === parseInt(analysisId));
+      if (targetAnalysis) {
+        setSelectedAnalysis(targetAnalysis);
+      }
+    }
+  }, [location, analyses]);
 
   // Upload and analyze document mutation
   const analyzeMutation = useMutation({

@@ -55,9 +55,9 @@ export default function AnalysisHub() {
   // Navigate to existing analysis pages that work properly
   const viewAnalysis = (id: number, type: 'visa_rejection' | 'enrollment') => {
     if (type === 'enrollment') {
-      setLocation(`/enrollment-analysis-results/${id}`);
+      setLocation(`/enrollment-analysis?id=${id}`);
     } else {
-      setLocation(`/visa-analysis-results/${id}`);
+      setLocation(`/visa-analysis?id=${id}`);
     }
   };
 
