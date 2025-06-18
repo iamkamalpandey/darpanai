@@ -10,11 +10,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { Upload, FileText, CheckCircle, AlertCircle, Clock, DollarSign, GraduationCap, Building2, User, Calendar, TrendingUp, Globe, FileCheck, Sparkles, Target, CreditCard, BookOpen } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, Clock, DollarSign, GraduationCap, Building2, User, Calendar, TrendingUp, Globe, FileCheck, Sparkles, Target, CreditCard, BookOpen, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { CustomCTA } from '@/components/CustomCTA';
+import { EnrollmentAnalysisDisplay } from '@/components/EnrollmentAnalysisDisplay';
 
 interface EnrollmentAnalysis {
   id: number;
@@ -316,43 +317,50 @@ export default function EnrollmentAnalysis() {
             </Button>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <FileText className="h-5 w-5 text-blue-600" />
-                  <span className="font-medium">Document Type</span>
-                </div>
-                <p className="text-sm text-gray-600">{selectedAnalysis.documentType}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Calendar className="h-5 w-5 text-green-600" />
-                  <span className="font-medium">Analysis Date</span>
-                </div>
-                <p className="text-sm text-gray-600">{new Date(selectedAnalysis.createdAt).toLocaleDateString()}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <FileCheck className="h-5 w-5 text-purple-600" />
-                  <span className="font-medium">Analysis Type</span>
-                </div>
-                <p className="text-sm text-gray-600">Enrollment Document</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 bg-white shadow-sm border">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">Overview</TabsTrigger>
-              <TabsTrigger value="findings" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">Key Findings</TabsTrigger>
-              <TabsTrigger value="recommendations" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">Recommendations</TabsTrigger>
-              <TabsTrigger value="next-steps" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">Next Steps</TabsTrigger>
-            </TabsList>
+          <EnrollmentAnalysisDisplay 
+            analysis={{
+              id: selectedAnalysis.id,
+              fileName: selectedAnalysis.filename,
+              createdAt: selectedAnalysis.createdAt,
+              institution: selectedAnalysis.institutionName,
+              program: selectedAnalysis.programName,
+              studentName: selectedAnalysis.studentName,
+              programLevel: selectedAnalysis.programLevel,
+              startDate: selectedAnalysis.startDate,
+              endDate: selectedAnalysis.endDate,
+              institutionCountry: selectedAnalysis.institutionCountry,
+              visaType: selectedAnalysis.visaType,
+              healthCover: selectedAnalysis.healthCover,
+              englishTestScore: selectedAnalysis.englishTestScore,
+              institutionContact: selectedAnalysis.institutionContact,
+              visaObligations: selectedAnalysis.visaObligations,
+              orientationDate: selectedAnalysis.orientationDate,
+              passportDetails: selectedAnalysis.passportDetails,
+              supportServices: selectedAnalysis.supportServices,
+              paymentSchedule: selectedAnalysis.paymentSchedule,
+              bankDetails: selectedAnalysis.bankDetails,
+              conditionsOfOffer: selectedAnalysis.conditionsOfOffer,
+              scholarshipDetails: selectedAnalysis.scholarshipDetails,
+              scholarshipPercentage: selectedAnalysis.scholarshipPercentage,
+              scholarshipDuration: selectedAnalysis.scholarshipDuration,
+              scholarshipConditions: selectedAnalysis.scholarshipConditions,
+              internshipRequired: selectedAnalysis.internshipRequired,
+              internshipDuration: selectedAnalysis.internshipDuration,
+              workAuthorization: selectedAnalysis.workAuthorization,
+              workHoursLimit: selectedAnalysis.workHoursLimit,
+              academicRequirements: selectedAnalysis.academicRequirements,
+              gpaRequirement: selectedAnalysis.gpaRequirement,
+              attendanceRequirement: selectedAnalysis.attendanceRequirement,
+              languageRequirements: selectedAnalysis.languageRequirements,
+              graduationRequirements: selectedAnalysis.graduationRequirements,
+              termsToFulfil: selectedAnalysis.termsToFulfil,
+              summary: selectedAnalysis.summary,
+              keyFindings: selectedAnalysis.keyFindings,
+              recommendations: selectedAnalysis.recommendations,
+              missingInformation: selectedAnalysis.missingInformation
+            }}
+            isAdmin={false}
+          />
 
             <TabsContent value="overview" className="space-y-6">
               <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
