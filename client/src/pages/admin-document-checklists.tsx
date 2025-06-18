@@ -25,13 +25,7 @@ import { type DocumentChecklist } from "@shared/schema";
 import { AdvancedChecklistForm } from "@/components/AdvancedChecklistForm";
 import { AdminLayout } from "@/components/AdminLayout";
 
-const userTypes = [
-  { value: "student", label: "Student" },
-  { value: "tourist", label: "Tourist" },
-  { value: "work", label: "Work" },
-  { value: "family", label: "Family" },
-  { value: "business", label: "Business" },
-];
+
 
 const countries = [
   "Nepal", "India", "Pakistan", "Bangladesh", "Sri Lanka", "Vietnam", "China",
@@ -56,6 +50,17 @@ export default function AdminDocumentChecklists() {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingChecklist, setEditingChecklist] = useState<DocumentChecklist | null>(null);
+
+  // Load dropdown options from database
+  const { data: dropdownOptions } = useQuery({
+    queryKey: ['/api/dropdown-options'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Use dynamic dropdown options with fallback
+  const userTypeOptions = (dropdownOptions as any)?.userTypes || ["Student", "Tourist", "Work", "Family", "Business", "Other"];
+  const visaTypeOptions = (dropdownOptions as any)?.visaTypes || ["Student F-1", "Tourist B-2", "Work H-1B", "Study Permit", "Other"];
+  const countryOptions = (dropdownOptions as any)?.countries || ["USA", "UK", "Canada", "Australia", "Germany", "Other"];
 
   const { data: checklists = [], isLoading } = useQuery<DocumentChecklist[]>({
     queryKey: ['/api/admin/document-checklists'],
@@ -346,9 +351,9 @@ export default function AdminDocumentChecklists() {
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All User Types</option>
-            {userTypes.map((userType) => (
-              <option key={userType.value} value={userType.value}>
-                {userType.label}
+            {userTypeOptions.map((userType: string) => (
+              <option key={userType} value={userType.toLowerCase()}>
+                {userType}
               </option>
             ))}
           </select>

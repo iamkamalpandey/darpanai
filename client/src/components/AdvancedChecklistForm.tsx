@@ -355,7 +355,7 @@ export function AdvancedChecklistForm({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {visaTypes.map((visaType) => (
+                              {visaTypes.map((visaType: string) => (
                                 <SelectItem key={visaType} value={visaType}>
                                   {visaType}
                                 </SelectItem>
@@ -380,9 +380,9 @@ export function AdvancedChecklistForm({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {userTypes.map((userType) => (
-                                <SelectItem key={userType.value} value={userType.value}>
-                                  {userType.label}
+                              {userTypeOptions.map((userType: string) => (
+                                <SelectItem key={userType} value={userType.toLowerCase()}>
+                                  {userType}
                                 </SelectItem>
                               ))}
                             </SelectContent>
