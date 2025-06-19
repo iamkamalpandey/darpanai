@@ -297,7 +297,18 @@ function AdminAnalyses() {
                         </div>
                       </div>
                       <div className="flex gap-2 items-center">
-                        <Button variant="outline" size="sm" className="flex items-center gap-1">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex items-center gap-1"
+                          onClick={() => {
+                            if (analysis.analysisType === 'enrollment_analysis') {
+                              window.open(`/coe-analysis/${analysis.id}`, '_blank');
+                            } else {
+                              window.open(`/visa-analysis-results/${analysis.id}`, '_blank');
+                            }
+                          }}
+                        >
                           {analysis.analysisType === 'enrollment_analysis' ? (
                             <>
                               <ExternalLink className="h-3 w-3" />

@@ -129,25 +129,31 @@ export default function AnalysisHub() {
         let valueA: any, valueB: any;
         
         switch (filters.sortBy) {
-          case 'name':
+          case 'name-asc':
+          case 'name-desc':
             valueA = a.filename.toLowerCase();
             valueB = b.filename.toLowerCase();
             break;
-          case 'type':
+          case 'type-asc':
+          case 'type-desc':
             valueA = a.type;
             valueB = b.type;
             break;
-          case 'date':
+          case 'date-asc':
+          case 'date-desc':
           default:
             valueA = new Date(a.createdAt).getTime();
             valueB = new Date(b.createdAt).getTime();
             break;
         }
         
-        if (filters.sortOrder === 'asc') {
-          return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
-        } else {
+        // Determine sort direction from sortBy value
+        const isDescending = filters.sortBy?.includes('desc');
+        
+        if (isDescending) {
           return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+        } else {
+          return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
         }
       });
     }
