@@ -118,36 +118,56 @@ const extractFromSummary = (summary: string, field: string): string => {
   const patterns: Record<string, RegExp[]> = {
     institutionName: [
       /at\s+([A-Z][a-zA-Z\s&]+University)/i,
-      /at\s+([A-Z][a-zA-Z\s&]+College)/i,
-      /at\s+([A-Z][a-zA-Z\s&]+Institute)/i,
       /([A-Z][a-zA-Z\s&]+University)/i,
-      /([A-Z][a-zA-Z\s&]+College)/i
+      /at\s+([A-Z][a-zA-Z\s&]+College)/i,
+      /([A-Z][a-zA-Z\s&]+College)/i,
+      /at\s+([A-Z][a-zA-Z\s&]+Institute)/i,
+      /([A-Z][a-zA-Z\s&]+Institute)/i
     ],
     programName: [
       /Bachelor\s+of\s+([A-Z][a-zA-Z\s]+)/i,
       /Master\s+of\s+([A-Z][a-zA-Z\s]+)/i,
       /enrollment\s+in\s+the\s+([A-Z][a-zA-Z\s]+)/i,
-      /in\s+([A-Z][a-zA-Z\s]+Education)/i,
-      /course\s+([A-Z][a-zA-Z\s]+)/i
+      /in\s+the\s+([A-Z][a-zA-Z\s]+)/i,
+      /course\s+([A-Z][a-zA-Z\s]+)/i,
+      /(Bachelor[^,]+)/i,
+      /(Master[^,]+)/i
+    ],
+    programLevel: [
+      /(Bachelor)/i,
+      /(Master)/i,
+      /(Undergraduate)/i,
+      /(Graduate)/i,
+      /(Postgraduate)/i
     ],
     startDate: [
       /starting\s+on\s+(\d{2}\/\d{2}\/\d{4})/i,
       /commencing\s+(\d{2}\/\d{2}\/\d{4})/i,
-      /from\s+(\d{2}\/\d{2}\/\d{4})/i
+      /from\s+(\d{2}\/\d{2}\/\d{4})/i,
+      /(\d{2}\/\d{2}\/\d{4})\s+and\s+ending/i
     ],
     endDate: [
       /ending\s+on\s+(\d{2}\/\d{2}\/\d{4})/i,
       /until\s+(\d{2}\/\d{2}\/\d{4})/i,
-      /to\s+(\d{2}\/\d{2}\/\d{4})/i
+      /to\s+(\d{2}\/\d{2}\/\d{4})/i,
+      /and\s+ending\s+on\s+(\d{2}\/\d{2}\/\d{4})/i
+    ],
+    studentName: [
+      /student\s+([A-Z][a-zA-Z\s]+)\s+has/i,
+      /([A-Z][a-zA-Z\s]+)\s+has\s+been\s+awarded/i,
+      /for\s+([A-Z][a-zA-Z\s]+)/i
     ],
     scholarship: [
       /awarded\s+a\s+scholarship/i,
       /scholarship\s+of\s+([^.]+)/i,
-      /financial\s+aid\s+([^.]+)/i
+      /financial\s+aid\s+([^.]+)/i,
+      /has\s+been\s+awarded\s+a\s+scholarship/i
     ],
-    financialArrangement: [
+    paymentTerms: [
       /arranged\s+([^.]+with\s+[^.]+)/i,
-      /payment\s+through\s+([^.]+)/i
+      /payment\s+through\s+([^.]+)/i,
+      /with\s+([A-Z][a-zA-Z\s]+)/i,
+      /OSHC\s+with\s+([^.]+)/i
     ]
   };
 
@@ -240,6 +260,21 @@ export default function AnalysisDisplay({ analysis, showUserInfo = false, isAdmi
   const academicInfo = extractAcademicInfo(parsedData, analysis);
   const financialInfo = extractFinancialInfo(parsedData, analysis);
   
+  // Extract student name with fallback to database field or summary parsing
+  const extractedStudentName = analysis.studentName || 
+    (analysis.summary ? extractFromSummary(analysis.summary, 'studentName') : null) ||
+    'Not specified in document';
+  
+  // Extract institution name with fallback hierarchy
+  const extractedInstitutionName = analysis.institutionName ||
+    academicInfo.find(f => f.key === 'institutionName')?.value ||
+    'Not specified in document';
+  
+  // Extract program name with fallback hierarchy
+  const extractedProgramName = analysis.programName ||
+    academicInfo.find(f => f.key === 'programName')?.value ||
+    'Not specified in document';
+  
   const documentTypeDisplay = analysis.documentType === 'coe' ? 'COE (Confirmation of Enrollment)' : 
                              analysis.documentType?.toUpperCase() || 'Document Analysis';
 
@@ -310,6 +345,54 @@ export default function AnalysisDisplay({ analysis, showUserInfo = false, isAdmi
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-6">
+          {/* Quick Summary Card */}
+          <Card className="border-purple-200 bg-purple-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-purple-800">
+                <Info className="h-5 w-5 text-purple-600" />
+                Quick Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-purple-700">Institution:</span>
+                    <span className="text-sm font-bold text-purple-900">{extractedInstitutionName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-purple-700">Student:</span>
+                    <span className="text-sm font-bold text-purple-900">{extractedStudentName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-purple-700">Program:</span>
+                    <span className="text-sm font-bold text-purple-900">{extractedProgramName}</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-purple-700">Start Date:</span>
+                    <span className="text-sm font-bold text-purple-900">
+                      {academicInfo.find(f => f.key === 'startDate')?.value || 'Not specified'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-purple-700">End Date:</span>
+                    <span className="text-sm font-bold text-purple-900">
+                      {academicInfo.find(f => f.key === 'endDate')?.value || 'Not specified'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium text-purple-700">Scholarship:</span>
+                    <span className="text-sm font-bold text-purple-900">
+                      {financialInfo.find(f => f.key === 'scholarship')?.value || 'Not specified'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -345,19 +428,11 @@ export default function AnalysisDisplay({ analysis, showUserInfo = false, isAdmi
               <CardContent className="space-y-3">
                 <div>
                   <p className="text-sm font-medium text-gray-500">Institution</p>
-                  <p className="font-semibold">{
-                    academicInfo.find(f => f.key === 'institutionName')?.value || 
-                    analysis.institutionName || 
-                    'Not specified in document'
-                  }</p>
+                  <p className="font-semibold">{extractedInstitutionName}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Program</p>
-                  <p className="font-semibold">{
-                    academicInfo.find(f => f.key === 'programName')?.value || 
-                    analysis.programName || 
-                    'Not specified in document'
-                  }</p>
+                  <p className="font-semibold">{extractedProgramName}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Program Level</p>
@@ -438,26 +513,28 @@ export default function AnalysisDisplay({ analysis, showUserInfo = false, isAdmi
           </Card>
 
           {/* Student Information */}
-          {analysis.studentName && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <User className="h-4 w-4 text-blue-600" />
-                  Student Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Student Name</p>
-                  <p className="font-semibold">{analysis.studentName}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500">Document Type</p>
-                  <p className="font-semibold">{documentTypeDisplay}</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <User className="h-4 w-4 text-blue-600" />
+                Student Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Student Name</p>
+                <p className="font-semibold">{extractedStudentName}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Document Type</p>
+                <p className="font-semibold">{documentTypeDisplay}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Analysis Date</p>
+                <p className="font-semibold">{new Date(analysis.createdAt).toLocaleDateString()}</p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Academic Tab */}
