@@ -17,6 +17,7 @@ import {
   ChevronRight,
   FolderOpen
 } from 'lucide-react';
+import { Footer } from '@/components/Footer';
 
 interface SidebarItemProps {
   icon: React.ReactNode;
@@ -348,6 +349,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <div className="p-6 lg:p-8 min-w-0">
                   {children}
                 </div>
+                <Footer />
               </div>
             </div>
           </main>

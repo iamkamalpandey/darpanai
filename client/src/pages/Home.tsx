@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { ConsultationForm } from "@/components/ConsultationForm";
+import { Footer } from "@/components/Footer";
 
 interface UserStats {
   analysisCount: number;
@@ -172,14 +173,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Footer */}
-          <footer className="mt-16 py-8 border-t border-gray-200">
-            <div className="text-center">
-              <p className="text-gray-600 text-sm">
-                A product of <span className="font-semibold text-gray-900">Epitome Solutions</span>
-              </p>
-            </div>
-          </footer>
+          <Footer />
         </div>
       </div>
     );
@@ -370,14 +364,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Footer */}
-        <footer className="mt-8 py-6 border-t border-gray-200">
-          <div className="text-center">
-            <p className="text-gray-600 text-sm">
-              A product of <span className="font-semibold text-gray-900">Epitome Solutions</span>
-            </p>
-          </div>
-        </footer>
+        <Footer />
       </div>
     </DashboardLayout>
   );
