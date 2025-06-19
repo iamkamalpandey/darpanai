@@ -59,72 +59,90 @@ const parseAnalysisData = (analysis: any) => {
   let parsedData = null;
   
   try {
+    // Try multiple data sources for analysis content
+    let rawAnalysisData = null;
+    
     if (analysis?.analysis) {
-      parsedData = typeof analysis.analysis === 'string' ? JSON.parse(analysis.analysis) : analysis.analysis;
-      
-      // Log the parsed structure for debugging
-      console.log('Parsed analysis structure:', parsedData);
+      rawAnalysisData = typeof analysis.analysis === 'string' ? JSON.parse(analysis.analysis) : analysis.analysis;
+    } else if (analysis?.summary) {
+      // If no structured analysis, try to extract from summary
+      rawAnalysisData = { summary: analysis.summary };
+    }
+    
+    if (rawAnalysisData) {
+      parsedData = { ...rawAnalysisData };
       
       // Flatten nested structures for easier access
-      if (parsedData) {
-        // Extract institution details
-        if (parsedData.institutionDetails) {
-          parsedData.institutionName = parsedData.institutionDetails.institutionName;
-          parsedData.registrationCode = parsedData.institutionDetails.registrationCode;
-          parsedData.country = parsedData.institutionDetails.country;
-        }
+      if (parsedData.institutionDetails) {
+        parsedData.institutionName = parsedData.institutionDetails.institutionName || 'Not specified in document';
+        parsedData.registrationCode = parsedData.institutionDetails.registrationCode || 'Not specified in document';
+        parsedData.country = parsedData.institutionDetails.country || 'Not specified in document';
+      }
+      
+      if (parsedData.courseDetails) {
+        parsedData.programName = parsedData.courseDetails.courseTitle || 'Not specified in document';
+        parsedData.programLevel = parsedData.courseDetails.level || 'Not specified in document';
+        parsedData.fieldOfStudy = parsedData.courseDetails.fieldOfStudy || 'Not specified in document';
+        parsedData.studyMode = parsedData.courseDetails.studyMode || 'Not specified in document';
+        parsedData.courseCode = parsedData.courseDetails.courseCode || 'Not specified in document';
         
-        // Extract course details
-        if (parsedData.courseDetails) {
-          parsedData.programName = parsedData.courseDetails.courseTitle;
-          parsedData.programLevel = parsedData.courseDetails.level;
-          parsedData.fieldOfStudy = parsedData.courseDetails.fieldOfStudy;
-          parsedData.studyMode = parsedData.courseDetails.studyMode;
-          
-          if (parsedData.courseDetails.duration) {
-            parsedData.startDate = parsedData.courseDetails.duration.startDate;
-            parsedData.endDate = parsedData.courseDetails.duration.endDate;
-            parsedData.duration = parsedData.courseDetails.duration.totalDuration;
-          }
-        }
-        
-        // Extract student details
-        if (parsedData.studentDetails) {
-          parsedData.studentName = parsedData.studentDetails.fullName;
-          parsedData.studentId = parsedData.studentDetails.studentId;
-          parsedData.dateOfBirth = parsedData.studentDetails.dateOfBirth;
-          parsedData.nationality = parsedData.studentDetails.nationality;
-        }
-        
-        // Extract financial details
-        if (parsedData.financialDetails) {
-          parsedData.tuitionFee = parsedData.financialDetails.totalTuitionFee;
-          parsedData.otherFees = parsedData.financialDetails.otherFees;
-          parsedData.initialPrepaid = parsedData.financialDetails.initialPrepaid;
-          
-          if (parsedData.financialDetails.scholarships) {
-            parsedData.scholarship = parsedData.financialDetails.scholarships.details;
-            parsedData.scholarshipValue = parsedData.financialDetails.scholarships.value;
-          }
-        }
-        
-        // Extract health insurance details
-        if (parsedData.healthInsurance) {
-          parsedData.oshcProvider = parsedData.healthInsurance.provider;
-          parsedData.oshcCoverage = parsedData.healthInsurance.coverageType;
-          parsedData.oshcCost = parsedData.healthInsurance.estimatedCost;
-        }
-        
-        // Extract language requirements
-        if (parsedData.languageRequirements) {
-          parsedData.testType = parsedData.languageRequirements.testType;
-          parsedData.testScore = parsedData.languageRequirements.scoreAchieved;
-          parsedData.testDate = parsedData.languageRequirements.testDate;
+        if (parsedData.courseDetails.duration) {
+          parsedData.startDate = parsedData.courseDetails.duration.startDate || 'Not specified in document';
+          parsedData.endDate = parsedData.courseDetails.duration.endDate || 'Not specified in document';
+          parsedData.duration = parsedData.courseDetails.duration.totalDuration || 'Not specified in document';
         }
       }
+      
+      if (parsedData.studentDetails) {
+        parsedData.studentName = parsedData.studentDetails.fullName || 'Not specified in document';
+        parsedData.studentId = parsedData.studentDetails.studentId || 'Not specified in document';
+        parsedData.dateOfBirth = parsedData.studentDetails.dateOfBirth || 'Not specified in document';
+        parsedData.nationality = parsedData.studentDetails.nationality || 'Not specified in document';
+      }
+      
+      if (parsedData.financialDetails) {
+        parsedData.tuitionFee = parsedData.financialDetails.totalTuitionFee || 'Not specified in document';
+        parsedData.otherFees = parsedData.financialDetails.otherFees || 'Not specified in document';
+        parsedData.initialPrepaid = parsedData.financialDetails.initialPrepaid || 'Not specified in document';
+        
+        if (parsedData.financialDetails.scholarships) {
+          parsedData.scholarship = parsedData.financialDetails.scholarships.details || 'Not specified in document';
+          parsedData.scholarshipValue = parsedData.financialDetails.scholarships.value || 'Not specified in document';
+        }
+        
+        if (parsedData.financialDetails.costBreakdown) {
+          parsedData.perYearCost = parsedData.financialDetails.costBreakdown.perYear || 'Not specified in document';
+          parsedData.perSemesterCost = parsedData.financialDetails.costBreakdown.perSemester || 'Not specified in document';
+        }
+      }
+      
+      if (parsedData.healthInsurance) {
+        parsedData.oshcProvider = parsedData.healthInsurance.provider || 'Not specified in document';
+        parsedData.oshcCoverage = parsedData.healthInsurance.coverageType || 'Not specified in document';
+        parsedData.oshcCost = parsedData.healthInsurance.estimatedCost || 'Not specified in document';
+      }
+      
+      if (parsedData.languageRequirements) {
+        parsedData.testType = parsedData.languageRequirements.testType || 'Not specified in document';
+        parsedData.testScore = parsedData.languageRequirements.scoreAchieved || 'Not specified in document';
+        parsedData.testDate = parsedData.languageRequirements.testDate || 'Not specified in document';
+      }
+      
+      if (parsedData.keyDatesDeadlines) {
+        parsedData.courseCommencement = parsedData.keyDatesDeadlines.courseCommencement || 'Not specified in document';
+        parsedData.oshcStart = parsedData.keyDatesDeadlines.oshcStart || 'Not specified in document';
+      }
+      
+      // Also preserve direct field access for backward compatibility
+      Object.keys(analysis).forEach(key => {
+        if (!parsedData[key] && analysis[key] && key !== 'analysis') {
+          parsedData[key] = analysis[key];
+        }
+      });
     }
   } catch (error) {
     console.error('Error parsing analysis data:', error);
+    parsedData = null;
   }
   
   return parsedData;
@@ -338,19 +356,31 @@ export default function AnalysisDisplay({ analysis, showUserInfo = false, isAdmi
   const academicInfo = extractAcademicInfo(parsedData, analysis);
   const financialInfo = extractFinancialInfo(parsedData, analysis);
   
-  // Extract student name with fallback to database field or summary parsing
-  const extractedStudentName = analysis.studentName || 
+  // Debug logging to understand data structure
+  console.log('AnalysisDisplay - Raw analysis:', analysis);
+  console.log('AnalysisDisplay - Parsed data:', parsedData);
+  console.log('AnalysisDisplay - Academic info:', academicInfo);
+  console.log('AnalysisDisplay - Financial info:', financialInfo);
+  
+  // Enhanced extraction with multiple fallback strategies
+  const extractedStudentName = parsedData?.studentName || 
+    parsedData?.studentDetails?.fullName ||
+    analysis.studentName || 
     (analysis.summary ? extractFromSummary(analysis.summary, 'studentName') : null) ||
     'Not specified in document';
   
-  // Extract institution name with fallback hierarchy
-  const extractedInstitutionName = analysis.institutionName ||
+  const extractedInstitutionName = parsedData?.institutionName ||
+    parsedData?.institutionDetails?.institutionName ||
+    analysis.institutionName ||
     academicInfo.find(f => f.key === 'institutionName')?.value ||
+    (analysis.summary ? extractFromSummary(analysis.summary, 'institutionName') : null) ||
     'Not specified in document';
   
-  // Extract program name with fallback hierarchy
-  const extractedProgramName = analysis.programName ||
+  const extractedProgramName = parsedData?.programName ||
+    parsedData?.courseDetails?.courseTitle ||
+    analysis.programName ||
     academicInfo.find(f => f.key === 'programName')?.value ||
+    (analysis.summary ? extractFromSummary(analysis.summary, 'programName') : null) ||
     'Not specified in document';
   
   const documentTypeDisplay = analysis.documentType === 'coe' ? 'COE (Confirmation of Enrollment)' : 

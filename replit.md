@@ -130,6 +130,21 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 19, 2025 - Enhanced Information Extraction & Improved Enrollment Page Layout:**
+- Fixed critical information extraction issue where all analysis fields showed "Not specified in document" 
+- Enhanced parseAnalysisData function with robust multiple data source handling and comprehensive fallback strategies
+- Added extensive debugging capabilities to identify and resolve data structure parsing issues
+- Improved enrollment page layout from single large vertical cards to professional horizontal card grid (2-column layout)
+- Enhanced data flattening logic to properly extract nested JSON structures from OpenAI COE analysis responses
+- Fixed academic information extraction supporting institution details, course details, student details, financial details, and health insurance
+- Added comprehensive field mapping for all COE analysis data including CRICOS codes, tuition fees, OSHC details, and compliance information
+- Implemented backward compatibility preservation ensuring existing analysis data remains accessible
+- Enhanced error handling with detailed logging for analysis data structure debugging
+- Applied proper null safety and fallback handling throughout the information extraction pipeline
+- Successfully resolved "Invalid Date" and missing field issues in COE analysis display
+- Improved visual layout of enrollment page with responsive 2-column card design for better readability
+- Maintained all structured analysis functionality while fixing core data extraction and display problems
+
 **June 19, 2025 - Centralized Enrollment Analysis Hub with Document-Specific Analysis Types:**
 - Completely removed generic enrollment analysis module and replaced with centralized enrollment document analysis hub
 - Created comprehensive enrollment page listing all available document-specific analysis types starting with COE Analysis
