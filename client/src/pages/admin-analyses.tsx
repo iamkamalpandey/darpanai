@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
+import { useLocation } from 'wouter';
 import { AdminLayout } from '@/components/AdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertTriangle, FileText, Users, Calendar, TrendingUp, Clock } from 'lucide-react';
+import { AlertTriangle, FileText, Users, Calendar, TrendingUp, Clock, ExternalLink, Building2 } from 'lucide-react';
 import { EnhancedFilters, FilterOptions } from '@/components/EnhancedFilters';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 
@@ -71,6 +72,7 @@ export default function AdminAnalyses() {
     sortBy: 'date-desc',
     analysisType: 'all'
   });
+  const [, setLocation] = useLocation();
 
   const ITEMS_PER_PAGE = 9;
 
@@ -91,7 +93,13 @@ export default function AdminAnalyses() {
   };
 
   const openAnalysisDetails = (analysis: AnalysisData) => {
-    setSelectedAnalysis(analysis);
+    // For COE analyses, route to the COE analysis view
+    if (analysis.analysisType === 'enrollment_analysis') {
+      setLocation(`/coe-analysis/${analysis.id}`);
+    } else {
+      // For other analyses, show the detailed view
+      setSelectedAnalysis(analysis);
+    }
   };
 
   // Apply filters
@@ -290,13 +298,21 @@ export default function AdminAnalyses() {
                           )}
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          View Analysis
+                      <div className="flex gap-2 items-center">
+                        <Button variant="outline" size="sm" className="flex items-center gap-1">
+                          {analysis.analysisType === 'enrollment_analysis' ? (
+                            <>
+                              <ExternalLink className="h-3 w-3" />
+                              View COE Details
+                            </>
+                          ) : (
+                            'View Analysis'
+                          )}
                         </Button>
                         {analysis.analysisType === 'enrollment_analysis' && (
-                          <Badge variant="secondary" className="text-xs">
-                            COE Document
+                          <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
+                            <Building2 className="h-3 w-3 mr-1" />
+                            COE
                           </Badge>
                         )}
                       </div>
@@ -377,8 +393,13 @@ function AnalysisDetailView({ analysis, onBack }: { analysis: AnalysisData; onBa
                     <div>
                       <p className="text-sm text-gray-600">Document Type</p>
                       <p className="font-semibold text-gray-900">
-                        {analysis.analysisType === 'enrollment_analysis' ? 'Enrollment Analysis' : 'Visa Analysis'}
+                        {analysis.analysisType === 'enrollment_analysis' ? 'COE Analysis' : 'Visa Analysis'}
                       </p>
+                      {analysis.analysisResults?.institutionName && (
+                        <p className="text-xs text-blue-600 mt-1">
+                          {analysis.analysisResults.institutionName}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </CardContent>
