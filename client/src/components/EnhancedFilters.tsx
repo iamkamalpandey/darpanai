@@ -184,6 +184,7 @@ export function EnhancedFilters({
 
   // Active filters count for UI feedback
   const activeFiltersCount = useMemo(() => {
+    if (!filters) return 0;
     let count = 0;
     if (filters.search) count++;
     if (filters.category && filters.category !== "all") count++;

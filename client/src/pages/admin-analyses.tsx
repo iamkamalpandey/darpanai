@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, FileText, Users, Calendar, TrendingUp } from 'lucide-react';
-import { EnhancedFilters } from '@/components/EnhancedFilters';
+import { EnhancedFilters, FilterOptions } from '@/components/EnhancedFilters';
 import { Pagination } from '@/components/ui/pagination';
 
 interface AnalysisData {
@@ -61,22 +61,15 @@ interface AnalysisData {
   } | null;
 }
 
-interface FilterOptions {
-  search: string;
-  analysisType?: 'visa_analysis' | 'enrollment_analysis';
-  severity?: 'high' | 'medium' | 'low';
-  country?: string;
-  isPublic?: boolean;
-  dateRange?: string;
-  sortBy?: 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'type-asc' | 'type-desc' | 'user-asc' | 'user-desc';
-}
+
 
 export default function AdminAnalyses() {
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisData | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<FilterOptions>({
     search: '',
-    sortBy: 'date-desc'
+    sortBy: 'date-desc',
+    analysisType: 'all'
   });
 
   const ITEMS_PER_PAGE = 9;
@@ -239,6 +232,7 @@ export default function AdminAnalyses() {
         {/* Filters */}
         <EnhancedFilters
           onFiltersChange={handleFiltersChange}
+          analyses={analyses}
           showAnalysisTypeFilter={true}
           showSeverityFilter={true}
           showPublicFilter={true}
