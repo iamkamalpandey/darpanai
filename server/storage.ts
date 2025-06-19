@@ -918,6 +918,19 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getEnrollmentAnalysisById(id: number): Promise<EnrollmentAnalysis | undefined> {
+    try {
+      const [analysis] = await db
+        .select()
+        .from(enrollmentAnalyses)
+        .where(eq(enrollmentAnalyses.id, id));
+      return analysis || undefined;
+    } catch (error) {
+      console.error("Error fetching enrollment analysis by ID:", error);
+      return undefined;
+    }
+  }
+
   async getAllEnrollmentAnalyses(): Promise<EnrollmentAnalysis[]> {
     try {
       const analyses = await db
