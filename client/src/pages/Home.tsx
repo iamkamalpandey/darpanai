@@ -327,8 +327,8 @@ export default function Home() {
               <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Shield className="h-8 w-8 text-white" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Document Analysis</h3>
-              <p className="text-sm text-gray-600">AI-powered visa and enrollment document analysis with detailed insights</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Critical Document Analysis</h3>
+              <p className="text-sm text-gray-600">AI-powered analysis of visa documents, offer letters, SOPs, COE certificates, and I-20 forms</p>
             </div>
             
             <div className="text-center">
