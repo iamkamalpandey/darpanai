@@ -334,17 +334,12 @@ export default function EnrollmentAnalysis() {
                         <p className="text-base text-gray-900">{selectedAnalysis.studentName || 'Not specified in document'}</p>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Program Level:</p>
-                        <p className="text-base text-gray-900">{selectedAnalysis.programLevel || 'Not specified in document'}</p>
+                        <p className="text-sm font-medium text-gray-600">Document Type:</p>
+                        <p className="text-base text-gray-900">{selectedAnalysis.documentType || 'Not specified in document'}</p>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Duration:</p>
-                        <p className="text-base text-gray-900">
-                          {selectedAnalysis.startDate || selectedAnalysis.endDate 
-                            ? `${selectedAnalysis.startDate || 'TBD'} to ${selectedAnalysis.endDate || 'TBD'}`
-                            : 'Not specified in document'
-                          }
-                        </p>
+                        <p className="text-sm font-medium text-gray-600">Analysis Date:</p>
+                        <p className="text-base text-gray-900">{new Date(selectedAnalysis.createdAt).toLocaleDateString()}</p>
                       </div>
                     </div>
                   </CardContent>
