@@ -1096,6 +1096,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all visa analyses for admin (admin only)
+  app.get('/api/admin/visa-analyses', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const cacheKey = 'admin:visa-analyses';
+      const cached = getCachedData(cacheKey);
+      if (cached) {
+        return res.status(200).json(cached);
+      }
+
+      const analyses = await storage.getAllAnalyses();
+      
+      // Remove original text from response for security
+      const visaAnalyses = analyses.map(analysis => {
+        const { originalText, ...safeAnalysis } = analysis;
+        return safeAnalysis;
+      });
+      
+      setCacheData(cacheKey, visaAnalyses, 10);
+      return res.status(200).json(visaAnalyses);
+    } catch (error) {
+      console.error('Error fetching admin visa analyses:', error);
+      return res.status(500).json({ error: 'Failed to fetch visa analyses' });
+    }
+  });
+
+  // Get specific visa analysis by ID for admin (admin only)
+  app.get('/api/admin/visa-analyses/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const analysisId = parseInt(req.params.id);
+      
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+      
+      const analysis = await storage.getAnalysisById(analysisId);
+      
+      if (!analysis) {
+        return res.status(404).json({ error: 'Analysis not found' });
+      }
+      
+      // Remove original text from response for security
+      const { originalText, ...safeAnalysis } = analysis;
+      return res.status(200).json(safeAnalysis);
+      
+    } catch (error) {
+      console.error('Error fetching admin visa analysis:', error);
+      return res.status(500).json({ error: 'Failed to fetch visa analysis' });
+    }
+  });
+
   // Get all analyses for admin (admin only)
   app.get('/api/admin/analyses', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {

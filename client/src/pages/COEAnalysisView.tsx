@@ -113,7 +113,7 @@ export default function COEAnalysisView() {
           <div className="flex justify-center pt-8 border-t border-gray-200">
             <Button onClick={goBack} variant="outline" size="lg" className="px-8">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to COE Analysis
+              {isAdminRoute ? 'Back to All Analysis' : 'Back to My Analysis'}
             </Button>
           </div>
         </div>
