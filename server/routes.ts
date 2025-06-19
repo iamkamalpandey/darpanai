@@ -2144,6 +2144,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analysis Feedback API Routes
+  // Submit feedback for an analysis
+  app.post('/api/analyses/:id/feedback', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const analysisId = parseInt(req.params.id);
+      const userId = req.user!.id;
+
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+
+      // Validate request body
+      const validatedData = insertAnalysisFeedbackSchema.parse({
+        ...req.body,
+        analysisId,
+        userId,
+      });
+
+      const feedback = await storage.createAnalysisFeedback(validatedData);
+      
+      res.status(201).json(feedback);
+    } catch (error) {
+      console.error('Error creating analysis feedback:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid feedback data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to submit feedback' });
+    }
+  });
+
+  // Get feedback for an analysis
+  app.get('/api/analyses/:id/feedback', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const analysisId = parseInt(req.params.id);
+      const userId = req.user!.id;
+
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+
+      const feedback = await storage.getAnalysisFeedback(analysisId, userId);
+      
+      res.status(200).json(feedback);
+    } catch (error) {
+      console.error('Error fetching analysis feedback:', error);
+      res.status(500).json({ error: 'Failed to fetch feedback' });
+    }
+  });
+
+  // Update existing feedback
+  app.patch('/api/analyses/:id/feedback', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const analysisId = parseInt(req.params.id);
+      const userId = req.user!.id;
+
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+
+      const feedback = await storage.updateAnalysisFeedback(analysisId, userId, req.body);
+      
+      if (!feedback) {
+        return res.status(404).json({ error: 'Feedback not found' });
+      }
+      
+      res.status(200).json(feedback);
+    } catch (error) {
+      console.error('Error updating analysis feedback:', error);
+      res.status(500).json({ error: 'Failed to update feedback' });
+    }
+  });
+
+  // Admin routes for feedback analytics
+  app.get('/api/admin/feedback-analytics', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const analytics = await storage.getFeedbackAnalytics();
+      res.status(200).json(analytics);
+    } catch (error) {
+      console.error('Error fetching feedback analytics:', error);
+      res.status(500).json({ error: 'Failed to fetch feedback analytics' });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

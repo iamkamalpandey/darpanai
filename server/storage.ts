@@ -1,6 +1,7 @@
 import { 
   users, analyses, appointments, professionalApplications, updates, userUpdateViews,
   documentTemplates, documentChecklists, enrollmentAnalyses, documentCategories, documentTypes,
+  analysisFeedback,
   type User, type InsertUser, type Analysis, type InsertAnalysis, 
   type Appointment, type InsertAppointment, type LoginUser,
   type ProfessionalApplication, type InsertProfessionalApplication,
@@ -9,7 +10,8 @@ import {
   type DocumentChecklist, type InsertDocumentChecklist,
   type EnrollmentAnalysis, type InsertEnrollmentAnalysis,
   type DocumentCategory, type InsertDocumentCategory,
-  type DocumentType, type InsertDocumentType
+  type DocumentType, type InsertDocumentType,
+  type AnalysisFeedback, type InsertAnalysisFeedback
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, isNotNull, sql, or, gt } from "drizzle-orm";
@@ -131,6 +133,12 @@ export interface IStorage {
   getDocumentType(id: number): Promise<DocumentType | undefined>;
   updateDocumentType(id: number, updates: Partial<DocumentType>): Promise<DocumentType | undefined>;
   deleteDocumentType(id: number): Promise<boolean>;
+  
+  // Analysis Feedback methods
+  createAnalysisFeedback(feedback: InsertAnalysisFeedback): Promise<AnalysisFeedback>;
+  getAnalysisFeedback(analysisId: number, userId: number): Promise<AnalysisFeedback | undefined>;
+  updateAnalysisFeedback(analysisId: number, userId: number, updates: Partial<AnalysisFeedback>): Promise<AnalysisFeedback | undefined>;
+  getFeedbackAnalytics(): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1101,6 +1109,77 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error deleting document type:", error);
       return false;
+    }
+  }
+
+  // Analysis Feedback methods
+  async createAnalysisFeedback(feedback: InsertAnalysisFeedback): Promise<AnalysisFeedback> {
+    try {
+      const [newFeedback] = await db
+        .insert(analysisFeedback)
+        .values({
+          ...feedback,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
+      return newFeedback;
+    } catch (error) {
+      console.error("Error creating analysis feedback:", error);
+      throw error;
+    }
+  }
+
+  async getAnalysisFeedback(analysisId: number, userId: number): Promise<AnalysisFeedback | undefined> {
+    try {
+      const [feedback] = await db
+        .select()
+        .from(analysisFeedback)
+        .where(and(eq(analysisFeedback.analysisId, analysisId), eq(analysisFeedback.userId, userId)));
+      return feedback || undefined;
+    } catch (error) {
+      console.error("Error fetching analysis feedback:", error);
+      throw error;
+    }
+  }
+
+  async updateAnalysisFeedback(analysisId: number, userId: number, updates: Partial<AnalysisFeedback>): Promise<AnalysisFeedback | undefined> {
+    try {
+      const [updatedFeedback] = await db
+        .update(analysisFeedback)
+        .set({
+          ...updates,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(analysisFeedback.analysisId, analysisId), eq(analysisFeedback.userId, userId)))
+        .returning();
+      return updatedFeedback || undefined;
+    } catch (error) {
+      console.error("Error updating analysis feedback:", error);
+      throw error;
+    }
+  }
+
+  async getFeedbackAnalytics(): Promise<any> {
+    try {
+      const analytics = await db
+        .select({
+          analysisType: analysisFeedback.analysisType,
+          avgAccuracy: sql<number>`AVG(${analysisFeedback.accuracyRating})`,
+          avgHelpfulness: sql<number>`AVG(${analysisFeedback.helpfulnessRating})`,
+          avgClarity: sql<number>`AVG(${analysisFeedback.clarityRating})`,
+          avgOverall: sql<number>`AVG(${analysisFeedback.overallRating})`,
+          totalFeedback: sql<number>`COUNT(*)`,
+          positiveAccuracy: sql<number>`SUM(CASE WHEN ${analysisFeedback.isAccurate} = true THEN 1 ELSE 0 END)`,
+          positiveHelpful: sql<number>`SUM(CASE WHEN ${analysisFeedback.isHelpful} = true THEN 1 ELSE 0 END)`,
+        })
+        .from(analysisFeedback)
+        .groupBy(analysisFeedback.analysisType);
+
+      return analytics;
+    } catch (error) {
+      console.error("Error fetching feedback analytics:", error);
+      throw error;
     }
   }
 }
