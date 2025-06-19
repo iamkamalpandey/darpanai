@@ -148,6 +148,26 @@ export default function EnrollmentAnalysisUpload() {
   });
 
   const handleAnalysis = () => {
+    // Validate that CoE is selected
+    if (documentType !== 'coe') {
+      toast({
+        title: "Template Not Available",
+        description: "Currently, only Confirmation of Enrollment (CoE) documents are supported. Please select CoE as your document type.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file is selected
+    if (!selectedFile) {
+      toast({
+        title: "No File Selected",
+        description: "Please select a document to analyze.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     mutation.mutate();
   };
 
@@ -157,10 +177,10 @@ export default function EnrollmentAnalysisUpload() {
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-8 text-center">
           <div className="max-w-3xl mx-auto space-y-4">
-            <h1 className="text-4xl font-bold text-gray-900">Enrollment Document Analysis</h1>
+            <h1 className="text-4xl font-bold text-gray-900">CoE Document Analysis</h1>
             <p className="text-lg text-gray-700">
-              Get comprehensive AI-powered analysis of your enrollment documents including scholarship details, 
-              financial information, academic requirements, and important deadlines.
+              Get comprehensive AI-powered analysis of your Confirmation of Enrollment (CoE) documents including 
+              institution details, financial breakdown, scholarship information, and compliance requirements.
             </p>
             <div className="flex justify-center items-center gap-6 mt-6">
               <div className="flex items-center gap-2 text-green-600">
@@ -235,58 +255,33 @@ export default function EnrollmentAnalysisUpload() {
                       <Badge className="bg-green-100 text-green-800 text-xs">Available</Badge>
                     </div>
                   </SelectItem>
-                  <SelectItem value="i20" disabled>
-                    <div className="flex items-center gap-3 py-2 opacity-50">
-                      <FileText className="h-5 w-5 text-gray-400" />
-                      <div className="flex-1">
-                        <div className="font-medium">I-20 Form</div>
-                        <div className="text-sm text-gray-400">US student visa eligibility document</div>
-                      </div>
-                      <Badge className="bg-gray-100 text-gray-500 text-xs">Coming Soon</Badge>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="cas" disabled>
-                    <div className="flex items-center gap-3 py-2 opacity-50">
-                      <Award className="h-5 w-5 text-gray-400" />
-                      <div className="flex-1">
-                        <div className="font-medium">CAS Statement</div>
-                        <div className="text-sm text-gray-400">UK Confirmation of Acceptance for Studies</div>
-                      </div>
-                      <Badge className="bg-gray-100 text-gray-500 text-xs">Coming Soon</Badge>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="admission_letter" disabled>
-                    <div className="flex items-center gap-3 py-2 opacity-50">
-                      <CheckCircle className="h-5 w-5 text-gray-400" />
-                      <div className="flex-1">
-                        <div className="font-medium">Admission Letter</div>
-                        <div className="text-sm text-gray-400">University admission confirmation letter</div>
-                      </div>
-                      <Badge className="bg-gray-100 text-gray-500 text-xs">Coming Soon</Badge>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="offer_letter" disabled>
-                    <div className="flex items-center gap-3 py-2 opacity-50">
-                      <Briefcase className="h-5 w-5 text-gray-400" />
-                      <div className="flex-1">
-                        <div className="font-medium">Offer Letter</div>
-                        <div className="text-sm text-gray-400">Conditional or unconditional offer letter</div>
-                      </div>
-                      <Badge className="bg-gray-100 text-gray-500 text-xs">Coming Soon</Badge>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="enrollment_letter" disabled>
-                    <div className="flex items-center gap-3 py-2 opacity-50">
-                      <FileCheck className="h-5 w-5 text-gray-400" />
-                      <div className="flex-1">
-                        <div className="font-medium">Enrollment Letter</div>
-                        <div className="text-sm text-gray-400">Official enrollment confirmation document</div>
-                      </div>
-                      <Badge className="bg-gray-100 text-gray-500 text-xs">Coming Soon</Badge>
-                    </div>
-                  </SelectItem>
                 </SelectContent>
               </Select>
+              
+              {/* Template Availability Notice */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-3">
+                <div className="flex items-start gap-3">
+                  <div className="p-1 bg-blue-100 rounded-full mt-0.5">
+                    <FileText className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-blue-900 mb-1">Template Availability</h4>
+                    <p className="text-sm text-blue-700 mb-2">
+                      Currently, only <strong>Confirmation of Enrollment (CoE)</strong> documents are supported with our specialized analysis template.
+                    </p>
+                    <div className="text-xs text-blue-600 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span>CoE - Available now with comprehensive analysis</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                        <span>I-20, CAS, Admission Letters - Coming soon</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* File Upload */}
