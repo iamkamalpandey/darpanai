@@ -60,15 +60,31 @@ export default function COEAnalysisView() {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <div className="w-full max-w-none px-6 py-8">
+        <div className="max-w-7xl mx-auto space-y-8">
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">COE Analysis Details</h1>
-              <p className="text-gray-600 mt-1">Detailed analysis of your Confirmation of Enrollment document</p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">COE Analysis Details</h1>
+              <p className="text-lg text-gray-700">Detailed analysis of your Confirmation of Enrollment document</p>
+              {analysis && (
+                <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-600">
+                  <span className="flex items-center gap-1">
+                    <FileText className="h-4 w-4" />
+                    {analysis.filename}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    {new Date(analysis.createdAt).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </span>
+                </div>
+              )}
             </div>
-            <Button onClick={goBack} variant="outline">
+            <Button onClick={goBack} variant="outline" size="lg" className="shrink-0">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
