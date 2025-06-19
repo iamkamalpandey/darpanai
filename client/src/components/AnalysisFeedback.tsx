@@ -1,20 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  ThumbsUp, 
-  ThumbsDown, 
-  Star, 
-  MessageSquare, 
-  ChevronDown, 
-  ChevronUp,
-  Send 
-} from 'lucide-react';
+import { Star, MessageSquare, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useAuth } from '@/hooks/use-auth';
 
 interface AnalysisFeedbackProps {
   analysisId: number;
@@ -23,290 +15,226 @@ interface AnalysisFeedbackProps {
 
 interface FeedbackData {
   id?: number;
-  isAccurate?: boolean;
-  isHelpful?: boolean;
-  accuracyRating?: number;
-  helpfulnessRating?: number;
-  clarityRating?: number;
-  overallRating?: number;
-  feedback?: string;
-  improvementSuggestions?: string;
-  feedbackCategories?: string[];
+  rating: number;
+  feedback: string;
+  createdAt?: string;
 }
 
 export function AnalysisFeedback({ analysisId, analysisType }: AnalysisFeedbackProps) {
-  const [showDetailed, setShowDetailed] = useState(false);
+  const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState('');
-  const [suggestions, setSuggestions] = useState('');
-  const [ratings, setRatings] = useState({
-    accuracy: 0,
-    helpfulness: 0,
-    clarity: 0,
-    overall: 0,
-  });
-
+  const [hoveredStar, setHoveredStar] = useState(0);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   // Fetch existing feedback
-  const { data: existingFeedback } = useQuery<FeedbackData>({
+  const { data: existingFeedback, isLoading } = useQuery({
     queryKey: [`/api/analyses/${analysisId}/feedback`],
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!analysisId,
   });
 
-  // Submit feedback mutation
-  const submitFeedbackMutation = useMutation({
-    mutationFn: async (feedbackData: Partial<FeedbackData>) => {
-      const endpoint = `/api/analyses/${analysisId}/feedback`;
-      const method = existingFeedback ? 'PATCH' : 'POST';
-      
-      const requestData = method === 'POST' 
-        ? { analysisType, ...feedbackData }
-        : feedbackData;
-        
-      return fetch(endpoint, {
+  // Set form data from existing feedback
+  useEffect(() => {
+    if (existingFeedback) {
+      setRating((existingFeedback as any).rating || 0);
+      setFeedback((existingFeedback as any).feedback || '');
+    }
+  }, [existingFeedback]);
+
+  // Submit or update feedback
+  const submitFeedback = useMutation({
+    mutationFn: async (data: { rating: number; feedback: string }) => {
+      const method = (existingFeedback as any)?.id ? 'PATCH' : 'POST';
+      const response = await fetch(`/api/analyses/${analysisId}/feedback`, {
         method,
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-        },
-        body: JSON.stringify(requestData),
-      }).then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to submit feedback');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
-      toast({
-        title: "Feedback submitted",
-        description: "Thank you for your feedback! It helps us improve our analysis quality.",
-      });
       queryClient.invalidateQueries({ queryKey: [`/api/analyses/${analysisId}/feedback`] });
     },
-    onError: () => {
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (rating === 0) {
+      toast({
+        title: "Rating Required",
+        description: "Please select a star rating before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await submitFeedback.mutateAsync({
+        rating,
+        feedback,
+      });
+      
+      toast({
+        title: (existingFeedback as any)?.id ? "Feedback Updated" : "Feedback Submitted",
+        description: (existingFeedback as any)?.id 
+          ? "Your feedback has been updated successfully."
+          : "Thank you for your feedback! Your review has been saved.",
+      });
+    } catch (error) {
       toast({
         title: "Error",
         description: "Failed to submit feedback. Please try again.",
         variant: "destructive",
       });
-    },
-  });
-
-  // Quick feedback handlers
-  const handleQuickFeedback = (type: 'accuracy' | 'helpfulness', value: boolean) => {
-    const feedbackData = {
-      [type === 'accuracy' ? 'isAccurate' : 'isHelpful']: value,
-    };
-    submitFeedbackMutation.mutate(feedbackData);
+    }
   };
 
-  // Star rating handler
-  const handleRating = (type: keyof typeof ratings, value: number) => {
-    const newRatings = { ...ratings, [type]: value };
-    setRatings(newRatings);
-    
-    const feedbackData = {
-      [`${type}Rating`]: value,
-    };
-    submitFeedbackMutation.mutate(feedbackData);
-  };
-
-  // Detailed feedback handler
-  const handleDetailedFeedback = () => {
-    const feedbackData = {
-      feedback: feedback.trim() || undefined,
-      improvementSuggestions: suggestions.trim() || undefined,
-    };
-    submitFeedbackMutation.mutate(feedbackData);
-    setFeedback('');
-    setSuggestions('');
-    setShowDetailed(false);
-  };
-
-  const StarRating = ({ 
-    value, 
-    onChange, 
-    label 
-  }: { 
-    value: number; 
-    onChange: (value: number) => void; 
-    label: string; 
-  }) => (
-    <div className="flex items-center gap-2">
-      <span className="text-sm font-medium min-w-[80px]">{label}:</span>
-      <div className="flex gap-1">
+  const renderStars = () => {
+    return (
+      <div className="flex items-center gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <button
             key={star}
-            onClick={() => onChange(star)}
-            className="hover:scale-110 transition-transform"
+            type="button"
+            className="p-1 transition-colors"
+            onMouseEnter={() => setHoveredStar(star)}
+            onMouseLeave={() => setHoveredStar(0)}
+            onClick={() => !(existingFeedback as any)?.id && setRating(star)}
+            disabled={!!(existingFeedback as any)?.id}
           >
             <Star
-              className={`h-4 w-4 ${
-                star <= value 
-                  ? 'fill-yellow-400 text-yellow-400' 
-                  : 'text-gray-300 hover:text-yellow-300'
-              }`}
+              className={`h-6 w-6 ${
+                star <= (hoveredStar || rating)
+                  ? 'fill-yellow-400 text-yellow-400'
+                  : 'text-gray-300'
+              } ${(existingFeedback as any)?.id ? 'cursor-default' : 'cursor-pointer hover:scale-110'}`}
             />
           </button>
         ))}
+        <span className="ml-2 text-sm text-gray-600">
+          {rating > 0 && `${rating}/5 stars`}
+        </span>
       </div>
-    </div>
-  );
+    );
+  };
 
-  return (
-    <Card className="mt-6">
-      <CardContent className="p-6">
-        <div className="space-y-4">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Rate this Analysis
-            </h3>
-            {existingFeedback && (
-              <Badge variant="secondary" className="text-xs">
-                Feedback submitted
-              </Badge>
-            )}
+  if (isLoading) {
+    return (
+      <Card className="mt-8">
+        <CardContent className="p-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+            <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+            <div className="h-20 bg-gray-200 rounded"></div>
           </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-          {/* Quick Feedback - Google-style thumbs up/down */}
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Was this analysis accurate?</span>
-            <div className="flex gap-2">
-              <Button
-                variant={existingFeedback?.isAccurate === true ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleQuickFeedback('accuracy', true)}
-                disabled={submitFeedbackMutation.isPending}
-                className="flex items-center gap-1"
-              >
-                <ThumbsUp className="h-4 w-4" />
-                Yes
-              </Button>
-              <Button
-                variant={existingFeedback?.isAccurate === false ? "destructive" : "outline"}
-                size="sm"
-                onClick={() => handleQuickFeedback('accuracy', false)}
-                disabled={submitFeedbackMutation.isPending}
-                className="flex items-center gap-1"
-              >
-                <ThumbsDown className="h-4 w-4" />
-                No
-              </Button>
-            </div>
+  // Show read-only feedback if already submitted
+  if (existingFeedback?.id) {
+    return (
+      <Card className="mt-8 border-green-200 bg-green-50">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-green-800">
+            <CheckCircle className="h-5 w-5" />
+            Feedback Submitted
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-gray-700 mb-2 block">
+              Your Rating
+            </label>
+            {renderStars()}
           </div>
-
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Was this analysis helpful?</span>
-            <div className="flex gap-2">
-              <Button
-                variant={existingFeedback?.isHelpful === true ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleQuickFeedback('helpfulness', true)}
-                disabled={submitFeedbackMutation.isPending}
-                className="flex items-center gap-1"
-              >
-                <ThumbsUp className="h-4 w-4" />
-                Yes
-              </Button>
-              <Button
-                variant={existingFeedback?.isHelpful === false ? "destructive" : "outline"}
-                size="sm"
-                onClick={() => handleQuickFeedback('helpfulness', false)}
-                disabled={submitFeedbackMutation.isPending}
-                className="flex items-center gap-1"
-              >
-                <ThumbsDown className="h-4 w-4" />
-                No
-              </Button>
-            </div>
-          </div>
-
-          {/* Expandable detailed feedback */}
-          <div className="border-t pt-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowDetailed(!showDetailed)}
-              className="flex items-center gap-2 text-sm"
-            >
-              <MessageSquare className="h-4 w-4" />
-              Provide detailed feedback
-              {showDetailed ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-            </Button>
-
-            {showDetailed && (
-              <div className="mt-4 space-y-4">
-                {/* Star ratings */}
-                <div className="space-y-3">
-                  <StarRating
-                    label="Accuracy"
-                    value={ratings.accuracy}
-                    onChange={(value) => handleRating('accuracy', value)}
-                  />
-                  <StarRating
-                    label="Helpfulness"
-                    value={ratings.helpfulness}
-                    onChange={(value) => handleRating('helpfulness', value)}
-                  />
-                  <StarRating
-                    label="Clarity"
-                    value={ratings.clarity}
-                    onChange={(value) => handleRating('clarity', value)}
-                  />
-                  <StarRating
-                    label="Overall"
-                    value={ratings.overall}
-                    onChange={(value) => handleRating('overall', value)}
-                  />
-                </div>
-
-                {/* Text feedback */}
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
-                      Additional feedback
-                    </label>
-                    <Textarea
-                      placeholder="Tell us what you think about this analysis..."
-                      value={feedback}
-                      onChange={(e) => setFeedback(e.target.value)}
-                      className="min-h-[80px]"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
-                      How can we improve?
-                    </label>
-                    <Textarea
-                      placeholder="What could be better or what was missing?"
-                      value={suggestions}
-                      onChange={(e) => setSuggestions(e.target.value)}
-                      className="min-h-[60px]"
-                    />
-                  </div>
-
-                  <Button
-                    onClick={handleDetailedFeedback}
-                    disabled={submitFeedbackMutation.isPending || (!feedback.trim() && !suggestions.trim())}
-                    className="flex items-center gap-2"
-                  >
-                    <Send className="h-4 w-4" />
-                    Submit Feedback
-                  </Button>
-                </div>
+          
+          {feedback && (
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Your Feedback
+              </label>
+              <div className="bg-white p-3 rounded-md border text-gray-700">
+                {feedback}
               </div>
-            )}
+            </div>
+          )}
+          
+          <p className="text-sm text-green-700">
+            Thank you for your feedback! Your review helps us improve our analysis quality.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show feedback form for new submissions
+  return (
+    <Card className="mt-8">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <MessageSquare className="h-5 w-5" />
+          Rate This Analysis
+        </CardTitle>
+        <p className="text-sm text-gray-600">
+          Help us improve by rating the accuracy and usefulness of this analysis.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="text-sm font-medium text-gray-700 mb-3 block">
+              Overall Rating *
+            </label>
+            {renderStars()}
           </div>
-        </div>
+          
+          <div>
+            <label className="text-sm font-medium text-gray-700 mb-2 block">
+              Additional Comments (Optional)
+            </label>
+            <Textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Share your thoughts about the analysis quality, accuracy, or suggestions for improvement..."
+              className="min-h-[100px] resize-none"
+              maxLength={500}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {feedback.length}/500 characters
+            </p>
+          </div>
+          
+          <Button
+            type="submit"
+            disabled={rating === 0 || submitFeedback.isPending}
+            className="w-full"
+          >
+            {submitFeedback.isPending ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Submitting...
+              </>
+            ) : (
+              <>
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Submit Feedback
+              </>
+            )}
+          </Button>
+          
+          <p className="text-xs text-gray-500 text-center">
+            Your feedback will be saved and cannot be edited after submission.
+          </p>
+        </form>
       </CardContent>
     </Card>
   );
