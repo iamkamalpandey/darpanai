@@ -1130,7 +1130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid analysis ID' });
       }
       
-      const analysis = await storage.getAnalysisById(analysisId);
+      const analysis = await storage.getAnalysis(analysisId);
       
       if (!analysis) {
         return res.status(404).json({ error: 'Analysis not found' });

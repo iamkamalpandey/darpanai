@@ -91,11 +91,13 @@ function AdminAnalyses() {
   };
 
   const openAnalysisDetails = (analysis: AnalysisData) => {
-    // For COE analyses, route to the COE analysis view
+    // Route to appropriate admin analysis view based on type
     if (analysis.analysisType === 'enrollment_analysis') {
-      setLocation(`/coe-analysis/${analysis.id}`);
+      setLocation(`/admin/coe-analysis/${analysis.id}`);
+    } else if (analysis.analysisType === 'visa_analysis') {
+      setLocation(`/admin/visa-analysis/${analysis.id}`);
     } else {
-      // For other analyses, show the detailed view
+      // Fallback for legacy analyses without type
       setSelectedAnalysis(analysis);
     }
   };
@@ -175,6 +177,25 @@ function AdminAnalyses() {
             <p className="text-gray-600 mt-1">Review and manage all document analysis reports</p>
           </div>
         </div>
+
+        {/* Enhanced Filters */}
+        <EnhancedFilters
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          config={{
+            showSearch: true,
+            showAnalysisType: true,
+            showSeverity: true,
+            showCountry: false,
+            showDateRange: true,
+            showSorting: true,
+          }}
+          dropdownOptions={{
+            countries: [],
+          }}
+          resultCount={filtered.length}
+          placeholder="Search by filename, user, or analysis content..."
+        />
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

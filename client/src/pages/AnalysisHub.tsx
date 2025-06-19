@@ -74,7 +74,7 @@ export default function AnalysisHub() {
     if (type === 'enrollment') {
       setLocation(`/coe-analysis/${id}`);
     } else {
-      setLocation(`/visa-analysis-results/${id}`);
+      setLocation(`/visa-analysis/${id}`);
     }
   };
 

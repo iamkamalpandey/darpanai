@@ -130,24 +130,24 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
-**June 19, 2025 - Complete Analysis Routing System Fix & Admin Interface Enhancement:**
-- Fixed critical routing issues in "My Analysis" page where "View Analysis" buttons were routing to generic pages instead of specific analysis details
-- Updated AnalysisHub viewAnalysis function to properly route enrollment analyses to `/coe-analysis/{id}` and visa analyses to `/visa-analysis-results/{id}`
-- Added missing click handlers to "View COE Details" buttons in admin analysis page with proper routing to specific analysis details
-- Enhanced admin user details page by adding "View Analysis" buttons to each user's analysis history with clickable links opening in new tabs
-- Fixed TypeScript errors in AnalysisHub sorting functionality by updating sort case handling to match proper enum values
-- Successfully implemented complete admin dashboard integration for COE analyses with enhanced routing functionality
-- Added clickable analysis cards in admin interface that properly route to COE Analysis Details (/coe-analysis/{id}) 
-- Enhanced admin dashboard with COE-specific visual indicators including external link icons and "View COE Details" buttons
-- Fixed runtime error on admin analyses page by adding proper export statement and component structure
-- Improved admin analysis cards with file icons, institution names, and specialized COE document badges
-- Added comprehensive routing integration allowing administrators to access detailed COE analysis views
-- Enhanced COE Analysis Details page with expanded layout (max-w-7xl) for better space utilization and readability
-- Improved header styling with gradient backgrounds, file information display, and proper date formatting
-- Successfully integrated admin and user interfaces for seamless COE document analysis workflow
-- Applied consistent visual hierarchy with color-coded badges, institution indicators, and analysis type differentiation
-- Fixed all TypeScript errors and component imports ensuring production-ready stability across admin interface
-- Enhanced analysis display with proper text overflow handling and responsive design improvements
+**June 19, 2025 - Complete Analysis Routing System & Enhanced Filtering Implementation:**
+- Created comprehensive VisaAnalysisView component matching COE analysis structure with professional layout and proper admin/user layout handling
+- Fixed critical routing issues where "View Analysis" buttons routed to generic pages instead of specific analysis details
+- Updated AnalysisHub viewAnalysis function to properly route enrollment analyses to `/coe-analysis/{id}` and visa analyses to `/visa-analysis/{id}`
+- Added complete admin API endpoints for both COE and visa analyses (/api/admin/coe-analyses, /api/admin/visa-analyses, /api/admin/coe-analyses/:id, /api/admin/visa-analyses/:id)
+- Implemented permission-based routing system where users access only their own reports while admins can access all reports through dedicated admin routes
+- Enhanced App.tsx routing with comprehensive user and admin routes for both analysis types (/visa-analysis/:id, /admin/visa-analysis/:id, /admin/coe-analysis/:id)
+- Updated admin analyses page routing to direct COE analyses to `/admin/coe-analysis/{id}` and visa analyses to `/admin/visa-analysis/{id}`
+- Fixed back button functionality to show context-appropriate text ("Back to All Analysis" for admin, "Back to My Analysis" for users)
+- Added EnhancedFilters component to admin analyses page with comprehensive filtering options (search, analysis type, severity, date range, sorting)
+- Enhanced text overflow handling with responsive max-width classes and proper word wrapping for long filenames
+- Applied consistent visual hierarchy with color-coded sections, professional styling, and responsive design across all analysis views
+- Created unified analysis display system with proper numerical highlighting and structured information presentation
+- Fixed all TypeScript errors including server storage method references and component prop compatibility issues
+- Successfully integrated complete admin dashboard with proper permission-based access control and filtering functionality
+- Enhanced admin user details page with clickable analysis links that open detailed analysis views in appropriate admin routes
+- Applied professional gradient backgrounds, proper spacing, and responsive layout design across all analysis components
+- Completed comprehensive routing architecture supporting seamless navigation between user and admin interfaces with proper authentication checks
 
 **June 19, 2025 - Enhanced Information Extraction & Improved Enrollment Page Layout:**
 - Fixed critical information extraction issue where all analysis fields showed "Not specified in document" 
