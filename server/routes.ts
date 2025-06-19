@@ -382,15 +382,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Save analysis to database
       const analysisData = {
-        ...validationResult.data,
-        userId: user.id,
+        filename: req.file.originalname,
+        documentType: 'coe',
         originalText: extractedText,
         ...analysis,
         tokensUsed,
         processingTime
       };
 
-      const savedAnalysis = await storage.createEnrollmentAnalysis(analysisData);
+      const savedAnalysis = await storage.saveEnrollmentAnalysis(analysisData, user.id);
 
       // Update user's analysis count
       await storage.incrementUserAnalysisCount(user.id);
