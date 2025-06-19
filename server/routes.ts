@@ -402,25 +402,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       return res.status(201).json({
         ...responseData,
-        message: 'CoE document analysis completed successfully'
+        message: 'COE document analysis completed successfully'
       });
       
     } catch (error) {
-      console.error('Error in CoE analysis:', error);
+      console.error('Error in COE analysis:', error);
       return res.status(500).json({ 
-        error: 'CoE analysis failed',
-        message: 'An error occurred while analyzing your CoE document. Please try again.'
+        error: 'COE analysis failed',
+        message: 'An error occurred while analyzing your COE document. Please try again.'
       });
     }
   });
 
-  // Get user's CoE analyses
+  // Get user's COE analyses
   app.get('/api/coe-analyses', requireAuth, async (req: Request, res: Response) => {
     try {
       const user = req.user!;
       const analyses = await storage.getUserEnrollmentAnalyses(user.id);
       
-      // Filter to only CoE analyses and remove original text from response
+      // Filter to only COE analyses and remove original text from response
       const coeAnalyses = analyses
         .filter(analysis => analysis.documentType === 'coe')
         .map(analysis => {
@@ -430,8 +430,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       return res.status(200).json(coeAnalyses);
     } catch (error) {
-      console.error('Error fetching CoE analyses:', error);
-      return res.status(500).json({ error: 'Failed to fetch CoE analyses' });
+      console.error('Error fetching COE analyses:', error);
+      return res.status(500).json({ error: 'Failed to fetch COE analyses' });
+    }
+  });
+
+  // Get specific COE analysis by ID (accessible by user or admin)
+  app.get('/api/coe-analyses/:id', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+      const analysisId = parseInt(req.params.id);
+      
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+      
+      const analysis = await storage.getEnrollmentAnalysisById(analysisId);
+      
+      if (!analysis) {
+        return res.status(404).json({ error: 'Analysis not found' });
+      }
+      
+      // Check access: user can access their own analyses, admin can access all
+      if (user.role !== 'admin' && analysis.userId !== user.id) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      // Ensure it's a COE analysis
+      if (analysis.documentType !== 'coe') {
+        return res.status(404).json({ error: 'COE analysis not found' });
+      }
+      
+      // Remove original text from response for security
+      const { originalText, ...safeAnalysis } = analysis;
+      return res.status(200).json(safeAnalysis);
+      
+    } catch (error) {
+      console.error('Error fetching COE analysis:', error);
+      return res.status(500).json({ error: 'Failed to fetch COE analysis' });
     }
   });
 

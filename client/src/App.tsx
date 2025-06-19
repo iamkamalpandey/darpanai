@@ -87,13 +87,13 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      <Route path="/enrollment-analysis">
+      {/* <Route path="/enrollment-analysis">
         <UserProtectedRoute path="/enrollment-analysis" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <EnrollmentAnalysis />
           </Suspense>
         )} />
-      </Route>
+      </Route> */}
       <Route path="/coe-analysis">
         <UserProtectedRoute path="/coe-analysis" component={() => (
           <Suspense fallback={<LoadingFallback />}>

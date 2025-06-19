@@ -214,10 +214,10 @@ export async function analyzeEnrollmentDocument(
       };
     }
 
-    // For non-CoE documents, return template not available message
+    // For non-COE documents, return template not available message
     if (documentType !== 'coe') {
       const fallbackAnalysis: EnrollmentAnalysisResponse = {
-        summary: `Analysis for ${documentType} documents is not yet available. Currently, only Confirmation of Enrollment (CoE) documents are supported with our specialized template. Please select CoE as the document type if you have uploaded a CoE document, or wait for additional templates to become available.`,
+        summary: `Analysis for ${documentType} documents is not yet available. Currently, only Confirmation of Enrollment (COE) documents are supported with our specialized template. Please select COE as the document type if you have uploaded a COE document, or wait for additional templates to become available.`,
         institutionName: 'Template not available',
         studentName: 'Template not available',
         programName: 'Template not available',
