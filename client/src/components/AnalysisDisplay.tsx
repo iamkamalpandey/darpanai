@@ -59,17 +59,28 @@ const parseAnalysisData = (analysis: any): any => {
   let parsedData: any = {};
   
   try {
-    // First try to get structured analysis from the analysis field
-    if (analysis?.analysis) {
-      const rawAnalysisData = typeof analysis.analysis === 'string' ? JSON.parse(analysis.analysis) : analysis.analysis;
-      parsedData = { ...rawAnalysisData };
-      
-      // Flatten nested structures from structured analysis
-      if (parsedData.institutionDetails) {
-        parsedData.institutionName = parsedData.institutionDetails.institutionName;
-        parsedData.registrationCode = parsedData.institutionDetails.registrationCode;
-        parsedData.country = parsedData.institutionDetails.country;
+    // First try to get structured analysis from the analysis field (priority)
+    if (analysis?.analysis && analysis.analysis !== null && analysis.analysis !== '') {
+      try {
+        const rawAnalysisData = typeof analysis.analysis === 'string' ? JSON.parse(analysis.analysis) : analysis.analysis;
+        parsedData = { ...rawAnalysisData };
+        
+        console.log('AnalysisDisplay - Using structured analysis data:', parsedData);
+        
+        // Flatten nested structures from structured analysis
+        if (parsedData.institutionDetails) {
+          parsedData.institutionName = parsedData.institutionDetails.institutionName;
+          parsedData.registrationCode = parsedData.institutionDetails.registrationCode;
+          parsedData.country = parsedData.institutionDetails.country;
+        }
+      } catch (parseError) {
+        console.error('Failed to parse structured analysis:', parseError);
+        parsedData = {};
       }
+    } else {
+      console.log('AnalysisDisplay - No structured analysis found, using fallback extraction');
+      parsedData = {};
+    }
       
       if (parsedData.courseDetails) {
         parsedData.programName = parsedData.courseDetails.courseTitle;
