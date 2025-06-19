@@ -97,10 +97,17 @@ export default function COEAnalysisView() {
   // Debug: log the analysis data structure
   console.log('Analysis data:', analysis);
   
-  const parsedAnalysis = analysis.analysis ? (typeof analysis.analysis === 'string' ? JSON.parse(analysis.analysis) : analysis.analysis) : null;
+  let parsedAnalysis = null;
+  try {
+    if (analysis.analysis) {
+      parsedAnalysis = typeof analysis.analysis === 'string' ? JSON.parse(analysis.analysis) : analysis.analysis;
+    }
+  } catch (error) {
+    console.error('Error parsing analysis data:', error);
+  }
   
-  // Also check if summary exists as a direct property
-  const hasDirectData = analysis.summary || analysis.institutionName || analysis.studentName || analysis.programName;
+  // Check if we have any data to display
+  const hasData = parsedAnalysis || analysis.summary || analysis.institutionName || analysis.studentName || analysis.programName;
 
   return (
     <DashboardLayout>
@@ -150,221 +157,84 @@ export default function COEAnalysisView() {
             </CardContent>
           </Card>
 
-          {/* Analysis Content */}
-          {parsedAnalysis || hasDirectData ? (
-            <Tabs defaultValue="overview" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="overview" className="text-sm">Overview</TabsTrigger>
-                <TabsTrigger value="academic" className="text-sm">Academic</TabsTrigger>
-                <TabsTrigger value="financial" className="text-sm">Financial</TabsTrigger>
-                <TabsTrigger value="compliance" className="text-sm">Compliance</TabsTrigger>
-              </TabsList>
+          {/* Analysis Content - Show Raw Data and Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-600" />
+                COE Analysis Results
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Institution</p>
+                    <p className="font-semibold">{analysis.institutionName || 'Not specified in document'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Student Name</p>
+                    <p className="font-semibold">{analysis.studentName || 'Not specified in document'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Program</p>
+                    <p className="font-semibold">{analysis.programName || 'Not specified in document'}</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Document Type</p>
+                    <p className="font-semibold">COE (Confirmation of Enrollment)</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Analysis Date</p>
+                    <p className="font-semibold">{new Date(analysis.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">File Name</p>
+                    <p className="font-semibold">{analysis.filename}</p>
+                  </div>
+                </div>
+              </div>
 
-              <TabsContent value="overview" className="space-y-6">
-                {/* Summary */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-blue-600" />
-                      Document Summary
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-gray-800 leading-relaxed">
-                        {parsedAnalysis?.summary || analysis.summary || 'Summary not available in document'}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+              {/* Summary Section */}
+              {analysis.summary && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500 mb-2">Analysis Summary</p>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">{analysis.summary}</p>
+                  </div>
+                </div>
+              )}
 
-                {/* Key Information */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      Key Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-3">
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Student Name</p>
-                          <p className="font-semibold">{parsedAnalysis?.studentName || analysis.studentName || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Student ID</p>
-                          <p className="font-semibold">{parsedAnalysis?.studentId || analysis.studentId || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Program Level</p>
-                          <p className="font-semibold">{parsedAnalysis?.programLevel || analysis.programLevel || 'Not specified in document'}</p>
-                        </div>
-                      </div>
-                      <div className="space-y-3">
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Start Date</p>
-                          <p className="font-semibold">{parsedAnalysis?.startDate || analysis.startDate || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">End Date</p>
-                          <p className="font-semibold">{parsedAnalysis?.endDate || analysis.endDate || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Duration</p>
-                          <p className="font-semibold">{parsedAnalysis?.duration || analysis.duration || 'Not specified in document'}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+              {/* Detailed Analysis */}
+              {parsedAnalysis && (
+                <div>
+                  <p className="text-sm font-medium text-gray-500 mb-2">Detailed Analysis</p>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <pre className="text-gray-800 text-sm whitespace-pre-wrap font-mono">
+                      {JSON.stringify(parsedAnalysis, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
 
-              <TabsContent value="academic" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <School className="h-5 w-5 text-blue-600" />
-                      Academic Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Institution</p>
-                          <p className="font-semibold">{parsedAnalysis.institutionName || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Campus</p>
-                          <p className="font-semibold">{parsedAnalysis.campus || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Faculty/School</p>
-                          <p className="font-semibold">{parsedAnalysis.faculty || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Mode of Study</p>
-                          <p className="font-semibold">{parsedAnalysis.modeOfStudy || 'Not specified in document'}</p>
-                        </div>
-                      </div>
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Program Code</p>
-                          <p className="font-semibold">{parsedAnalysis.programCode || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">CRICOS Code</p>
-                          <p className="font-semibold">{parsedAnalysis.cricosCode || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Credit Points</p>
-                          <p className="font-semibold">{parsedAnalysis.creditPoints || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Language Requirements</p>
-                          <p className="font-semibold">{parsedAnalysis.languageRequirements || 'Not specified in document'}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+              {/* Fallback message if no detailed data */}
+              {!parsedAnalysis && !analysis.summary && (
+                <div className="text-center py-8">
+                  <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Limited Analysis Data</h3>
+                  <p className="text-gray-600">
+                    This COE document has been processed, but detailed analysis data is not available. 
+                    The document information shown above represents the basic details extracted.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-              <TabsContent value="financial" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <DollarSign className="h-5 w-5 text-green-600" />
-                      Financial Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Tuition Fee</p>
-                          <p className="font-semibold text-blue-600">{parsedAnalysis.tuitionFee || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Other Fees</p>
-                          <p className="font-semibold text-blue-600">{parsedAnalysis.otherFees || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Total Cost</p>
-                          <p className="font-semibold text-blue-600">{parsedAnalysis.totalCost || 'Not specified in document'}</p>
-                        </div>
-                      </div>
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Payment Terms</p>
-                          <p className="font-semibold">{parsedAnalysis.paymentTerms || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Refund Policy</p>
-                          <p className="font-semibold">{parsedAnalysis.refundPolicy || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-500">Scholarship</p>
-                          <p className="font-semibold">{parsedAnalysis.scholarship || 'Not specified in document'}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
 
-              <TabsContent value="compliance" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <AlertCircle className="h-5 w-5 text-orange-600" />
-                      Compliance & Requirements
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      <div>
-                        <p className="text-sm font-medium text-gray-500 mb-2">Health Insurance (OSHC)</p>
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <p className="text-gray-800">{parsedAnalysis.healthInsurance || parsedAnalysis.oshcDetails || 'Not specified in document'}</p>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-500 mb-2">Visa Conditions</p>
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <p className="text-gray-800">{parsedAnalysis.visaConditions || 'Not specified in document'}</p>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-500 mb-2">Academic Requirements</p>
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <p className="text-gray-800">{parsedAnalysis.academicRequirements || 'Not specified in document'}</p>
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-500 mb-2">Important Deadlines</p>
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <p className="text-gray-800">{parsedAnalysis.importantDeadlines || 'Not specified in document'}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          ) : (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Analysis Data Unavailable</h3>
-                <p className="text-gray-600">
-                  The detailed analysis data for this COE document is not available. This may be due to processing issues or data format changes.
-                </p>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Footer Actions */}
           <div className="flex justify-center pt-6">
