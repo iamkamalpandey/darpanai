@@ -145,18 +145,18 @@ FRONTEND_URL=your_domain_url
 - Successfully restored both visa analysis and enrollment analysis document upload capabilities with full TypeScript compliance
 - Confirmed users can now successfully upload documents and receive comprehensive AI-powered analysis results including scholarship information, IELTS scores, and all document details
 
-**June 19, 2025 - Simplified Enrollment Analysis Display & Redesigned Upload Interface:**
-- Directly copied user dashboard enrollment analysis structure to admin dashboard instead of creating different layouts
-- Simplified both user and admin interfaces to show only relevant academic, visa, and financial information
-- Removed confusing data like analysis scores, duplicated information, and non-relevant fields
-- Enhanced admin dashboard "Complete Details" tab to match exact user dashboard structure for consistency
-- Redesigned enrollment upload page with comprehensive hero section, document type information cards, and enhanced file upload interface
-- Created well-structured upload page with detailed document type selection showing descriptions for CoE, I-20, CAS, admission letters
-- Applied enhanced drag-and-drop interface with visual feedback, progress indicators, and professional styling
-- Implemented gradient backgrounds and improved visual hierarchy throughout upload and analysis interfaces
-- Focused data display on document summary with numerical highlighting for financial information
-- Maintained all existing analysis functionality while improving clarity and removing redundant information
-- Applied consistent design patterns across both admin and user interfaces ensuring unified experience
+**June 19, 2025 - Specialized CoE Template Implementation & Document-Specific Analysis System:**
+- Created comprehensive CoE (Confirmation of Enrollment) template with detailed extraction structure based on user requirements
+- Implemented document-specific analysis system focusing on CoE documents with specialized prompts and data extraction
+- Disabled other document types (I-20, CAS, Admission Letter, etc.) until their specific templates are developed
+- Added professional validation messaging when users attempt to upload non-CoE documents after selecting CoE type
+- Enhanced CoE analysis to extract: institution details, course information, financial breakdown, student data, language requirements, health insurance, compliance info, key dates and deadlines
+- Updated upload interface to clearly indicate CoE template availability with green "Available" badges and gray "Coming Soon" for other types
+- Applied document-specific prompts that extract comprehensive information including CRICOS codes, OSHC details, scholarship conditions, and visa obligations
+- Maintained all existing analysis functionality while providing specialized, accurate extraction for CoE documents
+- Created structured analysis output matching the detailed CoE information extraction schema provided by user
+- Implemented proper error handling and template validation to guide users toward supported document types
+- Rebuilt enrollment analysis system to focus on document-specific templates rather than generalized analysis approach
 
 **June 18, 2025 - Admin Dashboard Enhancement with Comprehensive Enrollment Analysis Display:**
 - Successfully implemented comprehensive enrollment analysis report structure from user dashboard into admin dashboard
