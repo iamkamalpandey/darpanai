@@ -1039,6 +1039,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all COE analyses for admin (admin only)
+  app.get('/api/admin/coe-analyses', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const cacheKey = 'admin:coe-analyses';
+      const cached = getCachedData(cacheKey);
+      if (cached) {
+        return res.status(200).json(cached);
+      }
+
+      const analyses = await storage.getAllEnrollmentAnalyses();
+      
+      // Filter to only COE analyses and remove original text from response for security
+      const coeAnalyses = analyses
+        .filter(analysis => analysis.documentType === 'coe')
+        .map(analysis => {
+          const { originalText, ...safeAnalysis } = analysis;
+          return safeAnalysis;
+        });
+      
+      setCacheData(cacheKey, coeAnalyses, 10);
+      return res.status(200).json(coeAnalyses);
+    } catch (error) {
+      console.error('Error fetching admin COE analyses:', error);
+      return res.status(500).json({ error: 'Failed to fetch COE analyses' });
+    }
+  });
+
+  // Get specific COE analysis by ID for admin (admin only)
+  app.get('/api/admin/coe-analyses/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const analysisId = parseInt(req.params.id);
+      
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+      
+      const analysis = await storage.getEnrollmentAnalysisById(analysisId);
+      
+      if (!analysis) {
+        return res.status(404).json({ error: 'Analysis not found' });
+      }
+      
+      // Ensure it's a COE analysis
+      if (analysis.documentType !== 'coe') {
+        return res.status(404).json({ error: 'COE analysis not found' });
+      }
+      
+      // Remove original text from response for security
+      const { originalText, ...safeAnalysis } = analysis;
+      return res.status(200).json(safeAnalysis);
+      
+    } catch (error) {
+      console.error('Error fetching admin COE analysis:', error);
+      return res.status(500).json({ error: 'Failed to fetch COE analysis' });
+    }
+  });
+
   // Get all analyses for admin (admin only)
   app.get('/api/admin/analyses', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {

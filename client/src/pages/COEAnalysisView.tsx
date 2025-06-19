@@ -52,7 +52,7 @@ export default function COEAnalysisView() {
 
   if (error || !analysis) {
     return (
-      <DashboardLayout>
+      <LayoutComponent>
         <div className="container mx-auto px-4 py-8">
           <Card>
             <CardContent className="p-8 text-center">
@@ -68,12 +68,12 @@ export default function COEAnalysisView() {
             </CardContent>
           </Card>
         </div>
-      </DashboardLayout>
+      </LayoutComponent>
     );
   }
 
   return (
-    <DashboardLayout>
+    <LayoutComponent>
       <div className="w-full max-w-none px-6 py-8">
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Header */}
@@ -83,9 +83,9 @@ export default function COEAnalysisView() {
               <p className="text-lg text-gray-700">Detailed analysis of your Confirmation of Enrollment document</p>
               {analysis && (
                 <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-600">
-                  <span className="flex items-center gap-1 min-w-0">
+                  <span className="flex items-center gap-1 min-w-0 max-w-full">
                     <FileText className="h-4 w-4 flex-shrink-0" />
-                    <span className="break-all">{(analysis as any).filename}</span>
+                    <span className="break-words overflow-wrap-anywhere max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl">{(analysis as any).filename}</span>
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
@@ -118,6 +118,6 @@ export default function COEAnalysisView() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </LayoutComponent>
   );
 }
