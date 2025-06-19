@@ -533,12 +533,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.file.originalname
       );
 
-      // Save analysis to database
+      // Save analysis to database with complete structured response
       const savedAnalysis = await storage.saveEnrollmentAnalysis({
         filename: req.file.originalname,
         documentType,
         originalText: documentText,
-        ...analysis,
+        analysis: JSON.stringify(analysis), // Store complete OpenAI response as JSON
+        ...analysis, // Also store individual fields for backward compatibility
         tokensUsed,
         processingTime
       }, user.id);

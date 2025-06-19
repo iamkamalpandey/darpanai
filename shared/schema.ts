@@ -98,6 +98,9 @@ export const enrollmentAnalyses = pgTable("enrollment_analyses", {
   passportDetails: text("passport_details"), // Passport number and expiry date
   supportServices: text("support_services"), // Available student support services
   
+  // Complete OpenAI analysis response (structured JSON)
+  analysis: text("analysis"), // Complete OpenAI response as JSON string
+  
   // Enhanced enrollment fields for comprehensive analysis
   scholarshipDetails: text("scholarship_details"),
   scholarshipPercentage: text("scholarship_percentage"),
