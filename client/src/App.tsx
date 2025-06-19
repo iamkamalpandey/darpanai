@@ -20,6 +20,7 @@ const AnalysisHistory = lazy(() => import("@/pages/AnalysisHistory"));
 const AnalysisHub = lazy(() => import("@/pages/AnalysisHub"));
 const VisaRejectionAnalysis = lazy(() => import("@/pages/VisaRejectionAnalysis"));
 const EnrollmentAnalysis = lazy(() => import("@/pages/EnrollmentAnalysis"));
+const CoEAnalysis = lazy(() => import("@/pages/CoEAnalysis"));
 const EnrollmentAnalysisResults = lazy(() => import("@/pages/EnrollmentAnalysisResults"));
 const VisaAnalysisResults = lazy(() => import("@/pages/VisaAnalysisResults"));
 const ConsultationsPage = lazy(() => import("@/pages/consultations"));

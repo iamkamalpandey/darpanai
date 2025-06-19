@@ -317,7 +317,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ENROLLMENT ANALYSIS APIS
+  // COE ANALYSIS APIS
+  // Analyze CoE document specifically
+  app.post('/api/coe-analysis', requireAuth, upload.single('document'), async (req: FileRequest, res: Response) => {
+    try {
+      const user = req.user!;
+      
+      // Check if user has remaining analyses
+      if (user.analysisCount >= user.maxAnalyses) {
+        return res.status(403).json({ 
+          error: 'Analysis limit reached',
+          message: `You've used all ${user.maxAnalyses} analyses. Please upgrade your plan or contact support.`
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: 'No CoE document file provided' });
+      }
+
+      const { documentType } = req.body;
+      // Strict validation - only CoE documents allowed
+      if (documentType !== 'coe') {
+        return res.status(400).json({ 
+          error: 'Invalid document type for CoE analysis',
+          message: 'This endpoint only accepts Confirmation of Enrollment (CoE) documents. Please use the dedicated CoE analysis tool.',
+          requiredType: 'coe',
+          receivedType: documentType
+        });
+      }
+
+      // Validate request against schema
+      const validationResult = insertEnrollmentAnalysisSchema.safeParse({
+        filename: req.file.originalname,
+        documentType: 'coe',
+        originalText: 'placeholder' // Will be replaced with extracted text
+      });
+
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: 'Validation failed', 
+          details: validationResult.error.issues 
+        });
+      }
+
+      console.log(`Starting CoE analysis for user ${user.id}: ${req.file.originalname}`);
+
+      // Extract text from document
+      const fileExtension = path.extname(req.file.originalname).toLowerCase();
+      const extractedText = await extractTextFromDocument(req.file.buffer, fileExtension);
+
+      if (!extractedText || extractedText.trim().length < 50) {
+        return res.status(400).json({ 
+          error: 'Unable to extract sufficient text from CoE document',
+          message: 'Please ensure your CoE document is clear and contains readable text.'
+        });
+      }
+
+      // Perform CoE-specific analysis
+      const { analysis, tokensUsed, processingTime } = await analyzeEnrollmentDocument(
+        extractedText,
+        'coe',
+        req.file.originalname
+      );
+
+      // Save analysis to database
+      const analysisData = {
+        ...validationResult.data,
+        userId: user.id,
+        originalText: extractedText,
+        ...analysis,
+        tokensUsed,
+        processingTime
+      };
+
+      const savedAnalysis = await storage.createEnrollmentAnalysis(analysisData);
+
+      // Update user's analysis count
+      await storage.incrementUserAnalysisCount(user.id);
+
+      console.log(`CoE analysis completed for user ${user.id}: ID ${savedAnalysis.id}`);
+
+      // Return analysis without the full original text to reduce response size
+      const { originalText, ...responseData } = savedAnalysis;
+      
+      return res.status(201).json({
+        ...responseData,
+        message: 'CoE document analysis completed successfully'
+      });
+      
+    } catch (error) {
+      console.error('Error in CoE analysis:', error);
+      return res.status(500).json({ 
+        error: 'CoE analysis failed',
+        message: 'An error occurred while analyzing your CoE document. Please try again.'
+      });
+    }
+  });
+
+  // Get user's CoE analyses
+  app.get('/api/coe-analyses', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+      const analyses = await storage.getUserEnrollmentAnalyses(user.id);
+      
+      // Filter to only CoE analyses and remove original text from response
+      const coeAnalyses = analyses
+        .filter(analysis => analysis.documentType === 'coe')
+        .map(analysis => {
+          const { originalText, ...safeAnalysis } = analysis;
+          return safeAnalysis;
+        });
+      
+      return res.status(200).json(coeAnalyses);
+    } catch (error) {
+      console.error('Error fetching CoE analyses:', error);
+      return res.status(500).json({ error: 'Failed to fetch CoE analyses' });
+    }
+  });
+
+  // ENROLLMENT ANALYSIS APIS (Legacy - kept for backward compatibility)
   // Analyze enrollment document (I-20, CAS, admission letter, etc.)
   app.post('/api/enrollment-analysis', requireAuth, upload.single('document'), async (req: FileRequest, res: Response) => {
     try {
