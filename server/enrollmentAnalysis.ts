@@ -1,6 +1,8 @@
 import OpenAI from "openai";
 import { enrollmentAnalysisResponseSchema, type EnrollmentAnalysisResponse } from "@shared/schema";
 
+// Force schema reload to ensure updated enum values are used
+
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -214,7 +216,7 @@ Please analyze this document thoroughly and provide a JSON response with the fol
       "title": "string (specific actionable recommendations)",
       "description": "string (detailed advice including deadlines, requirements, and compliance obligations)",
       "priority": "urgent|important|suggested",
-      "category": "documentation|financial|academic|visa|preparation"
+      "category": "documentation|financial|academic|visa|preparation|health|accommodation|language|legal|insurance"
     }
   ],
   "nextSteps": [
@@ -230,7 +232,7 @@ Please analyze this document thoroughly and provide a JSON response with the fol
   "complianceIssues": [
     {
       "issue": "string",
-      "severity": "critical|moderate|minor",
+      "severity": "critical|moderate|minor|low|high",
       "resolution": "string"
     }
   ],
