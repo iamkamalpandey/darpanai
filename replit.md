@@ -130,7 +130,12 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
-**June 19, 2025 - Complete Admin Dashboard COE Analysis Integration & Enhanced Layout Implementation:**
+**June 19, 2025 - Complete Analysis Routing System Fix & Admin Interface Enhancement:**
+- Fixed critical routing issues in "My Analysis" page where "View Analysis" buttons were routing to generic pages instead of specific analysis details
+- Updated AnalysisHub viewAnalysis function to properly route enrollment analyses to `/coe-analysis/{id}` and visa analyses to `/visa-analysis-results/{id}`
+- Added missing click handlers to "View COE Details" buttons in admin analysis page with proper routing to specific analysis details
+- Enhanced admin user details page by adding "View Analysis" buttons to each user's analysis history with clickable links opening in new tabs
+- Fixed TypeScript errors in AnalysisHub sorting functionality by updating sort case handling to match proper enum values
 - Successfully implemented complete admin dashboard integration for COE analyses with enhanced routing functionality
 - Added clickable analysis cards in admin interface that properly route to COE Analysis Details (/coe-analysis/{id}) 
 - Enhanced admin dashboard with COE-specific visual indicators including external link icons and "View COE Details" buttons

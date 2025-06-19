@@ -48,6 +48,7 @@ interface AnalysisData {
   id: number;
   userId: number;
   fileName: string;
+  analysisType?: 'visa_analysis' | 'enrollment_analysis';
   analysisResults: any;
   createdAt: string;
   isPublic: boolean;
@@ -1830,31 +1831,59 @@ export default function AdminUsers() {
                               </div>
                             </CardHeader>
                             <CardContent className="pt-0">
-                              {analysis.analysisResults && (
-                                <div className="space-y-2">
-                                  {analysis.analysisResults.summary && (
-                                    <div>
-                                      <Label className="text-sm font-medium">Summary</Label>
-                                      <p className="text-sm text-gray-600 mt-1">
-                                        {analysis.analysisResults.summary}
-                                      </p>
-                                    </div>
-                                  )}
-                                  {analysis.analysisResults.rejectionReasons?.length > 0 && (
-                                    <div>
-                                      <Label className="text-sm font-medium">Rejection Reasons</Label>
-                                      <div className="mt-1 space-y-1">
-                                        {analysis.analysisResults.rejectionReasons.slice(0, 2).map((reason: any, idx: number) => (
-                                          <div key={idx} className="text-sm">
-                                            <span className="font-medium">{reason.title}</span>
-                                            <p className="text-gray-600 text-xs">{reason.description}</p>
-                                          </div>
-                                        ))}
+                              <div className="space-y-3">
+                                {analysis.analysisResults && (
+                                  <div className="space-y-2">
+                                    {analysis.analysisResults.summary && (
+                                      <div>
+                                        <Label className="text-sm font-medium">Summary</Label>
+                                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                                          {analysis.analysisResults.summary}
+                                        </p>
                                       </div>
-                                    </div>
-                                  )}
+                                    )}
+                                    {analysis.analysisResults.rejectionReasons?.length > 0 && (
+                                      <div>
+                                        <Label className="text-sm font-medium">Rejection Reasons</Label>
+                                        <div className="mt-1 space-y-1">
+                                          {analysis.analysisResults.rejectionReasons.slice(0, 2).map((reason: any, idx: number) => (
+                                            <div key={idx} className="text-sm">
+                                              <span className="font-medium">{reason.title}</span>
+                                              <p className="text-gray-600 text-xs line-clamp-1">{reason.description}</p>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                                
+                                {/* View Analysis Button */}
+                                <div className="flex justify-end pt-2 border-t">
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => {
+                                      // Determine analysis type based on available data
+                                      // Check if it has enrollment-specific fields or if it's explicitly marked as enrollment
+                                      const isEnrollmentAnalysis = analysis.analysisType === 'enrollment_analysis' || 
+                                        (analysis.analysisResults?.institutionName || 
+                                         analysis.analysisResults?.programName ||
+                                         analysis.analysisResults?.studentName);
+                                      
+                                      if (isEnrollmentAnalysis) {
+                                        window.open(`/coe-analysis/${analysis.id}`, '_blank');
+                                      } else {
+                                        window.open(`/visa-analysis-results/${analysis.id}`, '_blank');
+                                      }
+                                    }}
+                                    className="flex items-center gap-1"
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                    View Analysis
+                                  </Button>
                                 </div>
-                              )}
+                              </div>
                             </CardContent>
                           </Card>
                         ))}
