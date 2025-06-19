@@ -64,7 +64,7 @@ export default function Home() {
                 Welcome back, {user?.firstName}!
               </h1>
               <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed">
-                Your complete AI-powered educational document analysis platform. Analyze visa documents, enrollment certificates, get expert consultations, and access comprehensive resources for your study abroad journey.
+                Make your study abroad journey informed with AI-powered analysis of visa documents, offer letters, SOPs, COE certificates, and other critical documents. Get expert insights and comprehensive guidance every step of the way.
               </p>
               
               {/* Single Primary CTA */}
@@ -72,7 +72,7 @@ export default function Home() {
                 <ConsultationForm 
                   buttonVariant="default" 
                   buttonSize="lg"
-                  buttonText="Book Expert Consultation"
+                  buttonText="Make Your Journey Informed"
                   className="text-base sm:text-lg px-8 sm:px-12 py-4 shadow-lg hover:shadow-xl transition-all duration-300"
                   source="dashboard-hero"
                 />
@@ -82,19 +82,19 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-                  <span>Visa & Enrollment Analysis</span>
+                  <span>Visa, SOP & Offer Letter Analysis</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-                  <span>Document Templates & Checklists</span>
+                  <span>COE & Critical Document Review</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-                  <span>Expert Consultations</span>
+                  <span>Expert Guidance & Resources</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-                  <span>Secure & Confidential</span>
+                  <span>Informed Decision Making</span>
                 </div>
               </div>
             </div>
@@ -105,10 +105,10 @@ export default function Home() {
         <div className="space-y-6">
           <div className="text-center">
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-              Complete Educational Document Platform
+              Analyze Every Critical Document for Your Journey
             </h2>
             <p className="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto">
-              Comprehensive tools for your study abroad journey - from document analysis to templates, checklists, and expert consultations.
+              Get detailed AI-powered analysis of visa documents, offer letters, SOPs, COE certificates, and all critical study abroad documents. Make informed decisions at every step.
             </p>
           </div>
 
@@ -122,25 +122,25 @@ export default function Home() {
                     <Shield className="h-8 w-8 text-white" />
                   </div>
                   <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                    Visa Analysis
+                    Visa & Immigration Documents
                   </CardTitle>
                   <CardDescription className="text-gray-600">
-                    Get detailed insights into your visa documents - both approvals and rejections with key information. For informational purposes only - consult immigration experts for decisions.
+                    Comprehensive analysis of visa applications, approvals, rejections, offer letters, and SOPs. Get detailed insights to make your immigration journey informed.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span>AI-powered visa document analysis</span>
+                      <span>Visa documents & SOP analysis</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span>Personalized improvement tips</span>
+                      <span>Offer letter detailed review</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span>Country-specific guidance</span>
+                      <span>Critical document insights</span>
                     </div>
                   </div>
                   <div className="pt-2">
@@ -161,25 +161,25 @@ export default function Home() {
                     <FileText className="h-8 w-8 text-white" />
                   </div>
                   <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-green-600 transition-colors">
-                    Enrollment Document Analysis
+                    COE & University Documents
                   </CardTitle>
                   <CardDescription className="text-gray-600">
-                    Verify and analyze your university enrollment documents for accuracy. For informational purposes only - consult education experts for decisions.
+                    Comprehensive analysis of Confirmation of Enrollment certificates, I-20 forms, admission letters, and other critical university documents with detailed insights.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span>Document authenticity check</span>
+                      <span>COE certificate analysis</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span>Compliance verification</span>
+                      <span>I-20 & admission letter review</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span>Institution validation</span>
+                      <span>Financial & compliance insights</span>
                     </div>
                   </div>
                   <div className="pt-2">
@@ -315,10 +315,10 @@ export default function Home() {
         <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 lg:p-8 border border-indigo-100">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
-              Your Complete Study Abroad Platform
+              Make Your Study Abroad Journey Informed
             </h2>
             <p className="text-gray-600 max-w-3xl mx-auto">
-              Everything you need for successful international education - from AI-powered document analysis to expert consultations and comprehensive resources.
+              Analyze every critical document with AI-powered insights - visa applications, offer letters, SOPs, COE certificates, I-20 forms, and more. Get expert guidance for informed decision-making at every step.
             </p>
           </div>
           
