@@ -71,7 +71,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { icon: <Home size={20} />, label: 'Dashboard', href: '/' },
     { icon: <FileText size={20} />, label: 'My Analysis', href: '/my-analysis' },
     { icon: <Shield size={20} />, label: 'Visa Analysis', href: '/visa-analysis' },
-    { icon: <User size={20} />, label: 'Enrollment Analysis', href: '/enrollment-analysis' },
+    { 
+      icon: <User size={20} />, 
+      label: 'Enrollment Analysis', 
+      isSubmenu: true,
+      submenuItems: [
+        { icon: <FileText size={18} />, label: 'CoE Analysis', href: '/coe-analysis' },
+        { icon: <FileCheck size={18} />, label: 'General Enrollment', href: '/enrollment-analysis' },
+      ]
+    },
     { icon: <Calendar size={20} />, label: 'Appointments', href: '/consultations' },
     { 
       icon: <FolderOpen size={20} />, 
