@@ -321,7 +321,7 @@ export default function CoEAnalysis() {
                 {analysisProgress > 0 && (
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>Analyzing CoE document...</span>
+                      <span>Analyzing COE document...</span>
                       <span>{analysisProgress}%</span>
                     </div>
                     <Progress value={analysisProgress} className="h-2" />
@@ -350,12 +350,12 @@ export default function CoEAnalysis() {
                 {isProcessing ? (
                   <>
                     <Clock className="h-4 w-4 mr-2 animate-spin" />
-                    Analyzing CoE...
+                    Analyzing COE...
                   </>
                 ) : (
                   <>
                     <GraduationCap className="h-4 w-4 mr-2" />
-                    Analyze CoE Document
+                    Analyze COE Document
                   </>
                 )}
               </Button>
@@ -368,7 +368,7 @@ export default function CoEAnalysis() {
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               <FileText className="h-6 w-6 text-blue-600" />
-              Recent CoE Analyses
+              Recent COE Analyses
             </CardTitle>
             <CardDescription>
               Your previously analyzed Confirmation of Enrollment documents
@@ -379,7 +379,7 @@ export default function CoEAnalysis() {
               <div className="text-center py-8 text-gray-500">Loading analyses...</div>
             ) : analyses.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                No CoE analyses yet. Upload your first CoE document above.
+                No COE analyses yet. Upload your first COE document above.
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">

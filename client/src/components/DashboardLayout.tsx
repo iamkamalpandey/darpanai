@@ -76,8 +76,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       label: 'Enrollment Analysis', 
       isSubmenu: true,
       submenuItems: [
-        { icon: <FileText size={18} />, label: 'CoE Analysis', href: '/coe-analysis' },
-        { icon: <FileCheck size={18} />, label: 'General Enrollment', href: '/enrollment-analysis' },
+        { icon: <FileText size={18} />, label: 'COE Analysis', href: '/coe-analysis' },
       ]
     },
     { icon: <Calendar size={20} />, label: 'Appointments', href: '/consultations' },
