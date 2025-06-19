@@ -1204,7 +1204,7 @@ export class DatabaseStorage implements IStorage {
           },
           analysis: {
             filename: sql<string>`COALESCE(${analyses.filename}, ${enrollmentAnalyses.filename})`,
-            documentType: sql<string>`CASE WHEN ${analysisFeedback.analysisType} = 'visa' THEN 'visa' ELSE 'enrollment' END`,
+            documentType: analysisFeedback.analysisType,
           }
         })
         .from(analysisFeedback)

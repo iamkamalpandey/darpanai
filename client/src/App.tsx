@@ -211,6 +211,13 @@ function Router() {
           </Suspense>
         )} />
       </Route>
+      <Route path="/admin/feedback">
+        <AdminProtectedRoute path="/admin/feedback" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminFeedback />
+          </Suspense>
+        )} />
+      </Route>
       <Route path="/admin/appointments">
         <AdminProtectedRoute path="/admin/appointments" component={() => (
           <Suspense fallback={<LoadingFallback />}>

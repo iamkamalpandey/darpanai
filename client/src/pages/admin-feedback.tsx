@@ -46,7 +46,7 @@ export default function AdminFeedback() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const feedbacks: FeedbackItem[] = (feedbackData as FeedbackItem[]) || [];
+  const feedbacks: FeedbackItem[] = Array.isArray(feedbackData) ? feedbackData : [];
 
   // Filter and search feedback
   const filteredFeedbacks = feedbacks.filter(item => {

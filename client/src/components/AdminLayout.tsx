@@ -16,7 +16,8 @@ import {
   BarChart3,
   ChevronDown,
   ChevronRight,
-  FolderOpen
+  FolderOpen,
+  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
