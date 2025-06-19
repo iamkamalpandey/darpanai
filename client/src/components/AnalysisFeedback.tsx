@@ -38,19 +38,22 @@ export function AnalysisFeedback({ analysisId, analysisType }: AnalysisFeedbackP
   // Set form data from existing feedback
   useEffect(() => {
     if (existingFeedback) {
-      setRating((existingFeedback as any).rating || 0);
+      setRating((existingFeedback as any).overallRating || 0);
       setFeedback((existingFeedback as any).feedback || '');
     }
   }, [existingFeedback]);
 
-  // Submit or update feedback
+  // Submit feedback (one-time only)
   const submitFeedback = useMutation({
     mutationFn: async (data: { rating: number; feedback: string }) => {
-      const method = (existingFeedback as any)?.id ? 'PATCH' : 'POST';
       const response = await fetch(`/api/analyses/${analysisId}/feedback`, {
-        method,
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          overallRating: data.rating,
+          feedback: data.feedback,
+          analysisType: analysisType,
+        }),
       });
       
       if (!response.ok) {
@@ -82,10 +85,8 @@ export function AnalysisFeedback({ analysisId, analysisType }: AnalysisFeedbackP
       });
       
       toast({
-        title: (existingFeedback as any)?.id ? "Feedback Updated" : "Feedback Submitted",
-        description: (existingFeedback as any)?.id 
-          ? "Your feedback has been updated successfully."
-          : "Thank you for your feedback! Your review has been saved.",
+        title: "Feedback Submitted",
+        description: "Thank you for your feedback! Your review has been saved and cannot be edited.",
       });
     } catch (error) {
       toast({

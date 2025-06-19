@@ -1160,6 +1160,32 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Admin method to get feedback with user details
+  async getAdminAnalysisFeedback(analysisId: number): Promise<any> {
+    try {
+      const [feedback] = await db
+        .select({
+          id: analysisFeedback.id,
+          rating: analysisFeedback.overallRating,
+          feedback: analysisFeedback.feedback,
+          createdAt: analysisFeedback.createdAt,
+          userId: analysisFeedback.userId,
+          user: {
+            username: users.username,
+            email: users.email,
+          }
+        })
+        .from(analysisFeedback)
+        .leftJoin(users, eq(analysisFeedback.userId, users.id))
+        .where(eq(analysisFeedback.analysisId, analysisId));
+      
+      return feedback || null;
+    } catch (error) {
+      console.error("Error fetching admin analysis feedback:", error);
+      throw error;
+    }
+  }
+
   async getFeedbackAnalytics(): Promise<any> {
     try {
       const analytics = await db

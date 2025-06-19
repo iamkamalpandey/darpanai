@@ -106,7 +106,7 @@ export function AdminFeedbackViewer({ analysisId }: AdminFeedbackViewerProps) {
           <label className="text-sm font-medium text-gray-700 mb-2 block">
             Rating
           </label>
-          {renderStars((feedback as any).rating)}
+          {renderStars((feedback as any).rating || (feedback as any).overallRating)}
         </div>
 
         {(feedback as any).feedback && (

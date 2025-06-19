@@ -2225,7 +2225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid analysis ID' });
       }
 
-      const feedback = await storage.getAnalysisFeedback(analysisId, req.user!.id);
+      const feedback = await storage.getAdminAnalysisFeedback(analysisId);
       res.status(200).json(feedback);
     } catch (error) {
       console.error('Error fetching analysis feedback:', error);
