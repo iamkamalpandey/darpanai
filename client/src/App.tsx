@@ -181,6 +181,13 @@ function Router() {
           </Suspense>
         )} />
       </Route>
+      <Route path="/visa-analysis/:id">
+        <UserProtectedRoute path="/visa-analysis/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <UserVisaAnalysisView />
+          </Suspense>
+        )} />
+      </Route>
       <Route path="/analysis/:id">
         <UserProtectedRoute path="/analysis/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
