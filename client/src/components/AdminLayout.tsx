@@ -20,6 +20,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Footer } from '@/components/Footer';
 
 interface AdminSidebarItemProps {
   icon: React.ReactNode;
@@ -336,6 +337,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 <div className="p-6 lg:p-8 min-w-0">
                   {children}
                 </div>
+                <Footer />
               </div>
             </div>
           </main>

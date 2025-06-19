@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ProfessionalApplicationForm } from "@/components/ProfessionalApplicationForm";
 import { ConsultationForm } from "@/components/ConsultationForm";
+import { Footer } from "@/components/Footer";
 import { 
   CheckCircle2, 
   Upload, 
@@ -33,7 +34,7 @@ export default function Landing() {
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <FileText className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">EduPath Intelligence</span>
+              <span className="text-xl font-bold text-gray-900">Darpan Intelligence</span>
             </div>
             
             <nav className="hidden md:flex items-center space-x-8">
@@ -64,8 +65,9 @@ export default function Landing() {
             </div>
             
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Smart Academic & Career
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> Guidance</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Darpan Intelligence</span>
+              <br />
+              Make Informed Education & Career Decisions
             </h1>
             
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
@@ -471,7 +473,8 @@ export default function Landing() {
           </div>
           
           <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 VisaAnalyzer. All rights reserved.</p>
+            <p>&copy; 2025 Darpan Intelligence. All rights reserved.</p>
+            <p className="mt-2 text-sm">A product of Epitome Solutions</p>
           </div>
         </div>
       </footer>
