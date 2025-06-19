@@ -881,6 +881,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all analyses for admin (admin only)
+  app.get('/api/admin/analyses', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const cacheKey = 'admin:analyses';
+      const cached = getCachedData(cacheKey);
+      if (cached) {
+        return res.status(200).json(cached);
+      }
+
+      // Use existing method that combines both types with user data
+      const allAnalyses = await storage.getAllAnalysesWithUsers();
+
+      setCacheData(cacheKey, allAnalyses, 10);
+      return res.status(200).json(allAnalyses);
+    } catch (error) {
+      console.error('Error fetching admin analyses:', error);
+      return res.status(500).json({ error: 'Failed to fetch analyses' });
+    }
+  });
+
   // Get user details with analyses (admin only)
   app.get('/api/admin/users/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
@@ -894,13 +914,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      const analyses = await storage.getUserAnalyses(userId);
+      const visaAnalyses = await storage.getUserAnalyses(userId);
+      const enrollmentAnalyses = await storage.getUserEnrollmentAnalyses(userId);
       const appointments = await storage.getUserAppointments(userId);
+
+      // Combine analyses with consistent structure
+      const allAnalyses = [
+        ...visaAnalyses.map(analysis => ({
+          ...analysis,
+          analysisType: 'visa_analysis' as const
+        })),
+        ...enrollmentAnalyses.map(analysis => ({
+          ...analysis,
+          analysisType: 'enrollment_analysis' as const
+        }))
+      ];
 
       const { password, ...safeUser } = user;
       return res.status(200).json({
         ...safeUser,
-        analyses,
+        analyses: allAnalyses,
         appointments
       });
     } catch (error) {
