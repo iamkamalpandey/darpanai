@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { AdminLayout } from '@/components/AdminLayout';
 import AnalysisDisplay from '@/components/AnalysisDisplay';
+import { AnalysisFeedback } from '@/components/AnalysisFeedback';
 
 export default function COEAnalysisView() {
   const [location] = useLocation();
@@ -31,7 +32,13 @@ export default function COEAnalysisView() {
   });
 
   const goBack = () => {
-    window.history.back();
+    if (window.history.length > 1) {
+      window.history.back();
+    } else if (isAdminRoute) {
+      window.location.href = '/admin/coe-analyses';
+    } else {
+      window.location.href = '/enrollment-analysis';
+    }
   };
 
   const LayoutComponent = isAdminRoute ? AdminLayout : DashboardLayout;
@@ -107,6 +114,12 @@ export default function COEAnalysisView() {
           {/* Use Unified Analysis Display Component */}
           <AnalysisDisplay 
             analysis={analysis as any} 
+          />
+
+          {/* One-click Feedback System */}
+          <AnalysisFeedback 
+            analysisId={parseInt(analysisId!)} 
+            analysisType="enrollment" 
           />
 
           {/* Footer Actions */}
