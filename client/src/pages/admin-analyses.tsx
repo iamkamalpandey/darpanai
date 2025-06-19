@@ -62,9 +62,7 @@ interface AnalysisData {
   } | null;
 }
 
-
-
-export default function AdminAnalyses() {
+function AdminAnalyses() {
   const [selectedAnalysis, setSelectedAnalysis] = useState<AnalysisData | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<FilterOptions>({
@@ -888,3 +886,5 @@ function formatNumericalInfo(text: string): string {
     '<span class="bg-blue-50 text-blue-700 px-1 py-0.5 rounded font-medium">$1</span>'
   );
 }
+
+export default AdminAnalyses;
