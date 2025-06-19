@@ -325,11 +325,27 @@ function AnalysisDetailView({ analysis, onBack }: { analysis: AnalysisData; onBa
 
         {/* Analysis Display */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="findings">Key Findings</TabsTrigger>
-            <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
-            <TabsTrigger value="next-steps">Next Steps</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="findings" className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Key Findings
+            </TabsTrigger>
+            <TabsTrigger value="recommendations" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Recommendations
+            </TabsTrigger>
+            <TabsTrigger value="next-steps" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Next Steps
+            </TabsTrigger>
+            <TabsTrigger value="details" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Complete Details
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -727,6 +743,270 @@ function AnalysisDetailView({ analysis, onBack }: { analysis: AnalysisData; onBa
               <Card>
                 <CardContent className="p-6 text-center text-gray-500">
                   No next steps provided for this analysis.
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Complete Details Tab - Enhanced for Enrollment Analysis */}
+          <TabsContent value="details" className="space-y-6">
+            {analysis.analysisType === 'enrollment_analysis' ? (
+              <>
+                {/* Academic Information Section */}
+                <Card>
+                  <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Academic Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Institution:</p>
+                          <p className="text-base text-gray-900">{analysis.analysisResults?.institutionName || 'Not specified in document'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Program:</p>
+                          <p className="text-base text-gray-900">{analysis.analysisResults?.programName || 'Not specified in document'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Student Name:</p>
+                          <p className="text-base text-gray-900">{analysis.analysisResults?.studentName || 'Not specified in document'}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Program Level:</p>
+                          <p className="text-base text-gray-900">{analysis.analysisResults?.programLevel || 'Not specified in document'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Document Type:</p>
+                          <p className="text-base text-gray-900">{analysis.analysisResults?.documentType || 'Not specified in document'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Analysis Score:</p>
+                          <p className="text-base text-gray-900">{analysis.analysisResults?.analysisScore || 'Not available'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Financial Information Section */}
+                <Card>
+                  <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5" />
+                      Financial Information & Scholarship Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Tuition Amount:</p>
+                          <p className="text-base text-gray-900" dangerouslySetInnerHTML={{ 
+                            __html: formatNumericalInfo(analysis.analysisResults?.tuitionAmount || 'Not specified in document') 
+                          }} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Scholarship Amount:</p>
+                          <p className="text-base text-gray-900" dangerouslySetInnerHTML={{ 
+                            __html: formatNumericalInfo(analysis.analysisResults?.scholarshipAmount || 'Not specified in document') 
+                          }} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Scholarship Details:</p>
+                          <p className="text-base text-gray-900 whitespace-pre-wrap break-words">{analysis.analysisResults?.scholarshipDetails || 'Not specified in document'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Payment Schedule:</p>
+                          <p className="text-base text-gray-900 whitespace-pre-wrap break-words">{analysis.analysisResults?.paymentSchedule || 'Not specified in document'}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Total Cost:</p>
+                          <p className="text-base text-gray-900" dangerouslySetInnerHTML={{ 
+                            __html: formatNumericalInfo(analysis.analysisResults?.totalCost || 'Not specified in document') 
+                          }} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Scholarship Percentage:</p>
+                          <p className="text-base text-gray-900" dangerouslySetInnerHTML={{ 
+                            __html: formatNumericalInfo(analysis.analysisResults?.scholarshipPercentage || 'Not specified in document') 
+                          }} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Scholarship Conditions:</p>
+                          <p className="text-base text-gray-900 whitespace-pre-wrap break-words">{analysis.analysisResults?.scholarshipConditions || 'Not specified in document'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Bank Details:</p>
+                          <p className="text-base text-gray-900 whitespace-pre-wrap break-words">{analysis.analysisResults?.bankDetails || 'Not specified in document'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Test Scores & Requirements Section */}
+                <Card>
+                  <CardHeader className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      Test Scores & Academic Requirements
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">English Test Score:</p>
+                          <p className="text-base text-gray-900" dangerouslySetInnerHTML={{ 
+                            __html: formatNumericalInfo(analysis.analysisResults?.englishTestScore || 'Not specified in document') 
+                          }} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Academic Requirements:</p>
+                          <p className="text-base text-gray-900 whitespace-pre-wrap break-words">{analysis.analysisResults?.academicRequirements || 'Not specified in document'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">GPA Requirement:</p>
+                          <p className="text-base text-gray-900" dangerouslySetInnerHTML={{ 
+                            __html: formatNumericalInfo(analysis.analysisResults?.gpaRequirement || 'Not specified in document') 
+                          }} />
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Language Requirements:</p>
+                          <p className="text-base text-gray-900 whitespace-pre-wrap break-words">{analysis.analysisResults?.languageRequirements || 'Not specified in document'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Attendance Requirement:</p>
+                          <p className="text-base text-gray-900">{analysis.analysisResults?.attendanceRequirement || 'Not specified in document'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Graduation Requirements:</p>
+                          <p className="text-base text-gray-900 whitespace-pre-wrap break-words">{analysis.analysisResults?.graduationRequirements || 'Not specified in document'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Support Services & Contact Information */}
+                <Card>
+                  <CardHeader className="bg-gradient-to-r from-teal-500 to-teal-600 text-white">
+                    <CardTitle className="flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5" />
+                      Support Services & Important Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Health Cover Details:</p>
+                          <p className="text-base text-gray-900 whitespace-pre-wrap break-words">{analysis.analysisResults?.healthCover || 'Not specified in document'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Institution Contact:</p>
+                          <p className="text-base text-gray-900 whitespace-pre-wrap break-words">{analysis.analysisResults?.institutionContact || 'Not specified in document'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Support Services:</p>
+                          <p className="text-base text-gray-900 whitespace-pre-wrap break-words">{analysis.analysisResults?.supportServices || 'Not specified in document'}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Terms to Fulfil:</p>
+                          <p className="text-base text-gray-900 whitespace-pre-wrap break-words">{analysis.analysisResults?.termsToFulfil || 'Not specified in document'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Conditions of Offer:</p>
+                          <p className="text-base text-gray-900 whitespace-pre-wrap break-words">{analysis.analysisResults?.conditionsOfOffer || 'Not specified in document'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Visa Obligations:</p>
+                          <p className="text-base text-gray-900 whitespace-pre-wrap break-words">{analysis.analysisResults?.visaObligations || 'Not specified in document'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Work Authorization & Internship Information */}
+                <Card>
+                  <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+                    <CardTitle className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      Work Authorization & Internship Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Work Authorization:</p>
+                          <p className="text-base text-gray-900 whitespace-pre-wrap break-words">{analysis.analysisResults?.workAuthorization || 'Not specified in document'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Work Hours Limit:</p>
+                          <p className="text-base text-gray-900" dangerouslySetInnerHTML={{ 
+                            __html: formatNumericalInfo(analysis.analysisResults?.workHoursLimit || 'Not specified in document') 
+                          }} />
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Internship Required:</p>
+                          <p className="text-base text-gray-900">{analysis.analysisResults?.internshipRequired || 'Not specified in document'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Internship Duration:</p>
+                          <p className="text-base text-gray-900" dangerouslySetInnerHTML={{ 
+                            __html: formatNumericalInfo(analysis.analysisResults?.internshipDuration || 'Not specified in document') 
+                          }} />
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              /* Visa Analysis Complete Details */
+              <Card>
+                <CardHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white">
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Complete Visa Analysis Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Analysis Type:</p>
+                      <p className="text-base text-gray-900">Visa Analysis</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Document Information:</p>
+                      <p className="text-base text-gray-900">{analysis.fileName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Complete Analysis:</p>
+                      <div 
+                        className="text-base text-gray-900 whitespace-pre-wrap break-words p-4 bg-gray-50 rounded-lg"
+                        dangerouslySetInnerHTML={{ 
+                          __html: formatNumericalInfo(analysis.analysisResults?.summary || 'Complete analysis details not available.') 
+                        }}
+                      />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )}
