@@ -462,7 +462,10 @@ export default function VisaRejectionAnalysis() {
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h2 className="text-2xl font-semibold text-gray-900">Visa Analysis Results</h2>
-                      <p className="text-gray-600 mt-1">{selectedAnalysis.filename}</p>
+                      <p className="text-gray-600 mt-1">Document: {selectedAnalysis?.filename || 'Unknown'}</p>
+                      <p className="text-gray-500 text-sm mt-1">
+                        Analyzed on {selectedAnalysis?.createdAt ? format(new Date(selectedAnalysis.createdAt), 'PPp') : 'Unknown date'}
+                      </p>
                     </div>
                     <Button variant="outline" size="sm" onClick={() => setSelectedAnalysis(null)}>
                       ← Back to My Analysis
@@ -515,7 +518,7 @@ export default function VisaRejectionAnalysis() {
 
                     <TabsContent value="overview" className="space-y-6">
                       {/* Document Summary */}
-                      {selectedAnalysis.analysisResults?.summary && (
+                      {selectedAnalysis?.analysisResults?.summary && (
                         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                           <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
                             <CardTitle className="text-xl text-gray-800">Document Summary</CardTitle>
@@ -524,7 +527,7 @@ export default function VisaRejectionAnalysis() {
                             <div 
                               className="whitespace-pre-wrap text-gray-700 leading-relaxed"
                               dangerouslySetInnerHTML={{ 
-                                __html: formatNumericalInfo(selectedAnalysis.analysisResults.summary) 
+                                __html: formatNumericalInfo(selectedAnalysis?.analysisResults?.summary || '') 
                               }}
                             />
                           </CardContent>
@@ -533,7 +536,7 @@ export default function VisaRejectionAnalysis() {
                     </TabsContent>
 
                     <TabsContent value="issues" className="space-y-6">
-                      {selectedAnalysis.analysisResults?.rejectionReasons?.map((reason, index) => (
+                      {selectedAnalysis?.analysisResults?.rejectionReasons?.map((reason: any, index: number) => (
                         <Card key={index} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                           <CardContent className="p-6">
                             <div className="flex items-start justify-between mb-3">
