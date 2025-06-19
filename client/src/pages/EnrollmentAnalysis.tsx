@@ -470,7 +470,7 @@ export default function EnrollmentAnalysis() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {analyses.slice(0, 6).map((analysis: EnrollmentAnalysis) => (
+                {(analyses as any)?.slice(0, 6).map((analysis: EnrollmentAnalysis) => (
                   <div
                     key={analysis.id}
                     onClick={() => setSelectedAnalysis(analysis)}
