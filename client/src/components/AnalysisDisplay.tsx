@@ -53,69 +53,69 @@ const parseAnalysisData = (analysis: any): any => {
         console.log('AnalysisDisplay - Parsed structured analysis data:', parsedData);
         
         // Extract structured data from nested objects
-        if (parsedData.institutionDetails) {
-          parsedData.institutionName = parsedData.institutionDetails.institutionName;
-          parsedData.registrationCode = parsedData.institutionDetails.registrationCode;
-          parsedData.country = parsedData.institutionDetails.country;
-          if (parsedData.institutionDetails.contactInfo) {
-            parsedData.institutionContact = `Phone: ${parsedData.institutionDetails.contactInfo.phone}, Email: ${parsedData.institutionDetails.contactInfo.email}`;
+        if (rawAnalysisData.institutionDetails) {
+          parsedData.institutionName = rawAnalysisData.institutionDetails.institutionName;
+          parsedData.registrationCode = rawAnalysisData.institutionDetails.registrationCode;
+          parsedData.country = rawAnalysisData.institutionDetails.country;
+          if (rawAnalysisData.institutionDetails.contactInfo) {
+            parsedData.institutionContact = `Phone: ${rawAnalysisData.institutionDetails.contactInfo.phone}, Email: ${rawAnalysisData.institutionDetails.contactInfo.email}`;
           }
         }
         
-        if (parsedData.courseDetails) {
-          parsedData.programName = parsedData.courseDetails.courseTitle;
-          parsedData.programLevel = parsedData.courseDetails.level;
-          parsedData.fieldOfStudy = parsedData.courseDetails.fieldOfStudy;
-          parsedData.studyMode = parsedData.courseDetails.studyMode;
-          parsedData.courseCode = parsedData.courseDetails.courseCode;
+        if (rawAnalysisData.courseDetails) {
+          parsedData.programName = rawAnalysisData.courseDetails.courseTitle;
+          parsedData.programLevel = rawAnalysisData.courseDetails.level;
+          parsedData.fieldOfStudy = rawAnalysisData.courseDetails.fieldOfStudy;
+          parsedData.studyMode = rawAnalysisData.courseDetails.studyMode;
+          parsedData.courseCode = rawAnalysisData.courseDetails.courseCode;
           
-          if (parsedData.courseDetails.duration) {
-            parsedData.startDate = parsedData.courseDetails.duration.startDate;
-            parsedData.endDate = parsedData.courseDetails.duration.endDate;
-            parsedData.duration = parsedData.courseDetails.duration.totalDuration;
+          if (rawAnalysisData.courseDetails.duration) {
+            parsedData.startDate = rawAnalysisData.courseDetails.duration.startDate;
+            parsedData.endDate = rawAnalysisData.courseDetails.duration.endDate;
+            parsedData.duration = rawAnalysisData.courseDetails.duration.totalDuration;
           }
         }
         
-        if (parsedData.studentDetails) {
-          parsedData.studentName = parsedData.studentDetails.fullName;
-          parsedData.studentId = parsedData.studentDetails.studentId;
-          parsedData.dateOfBirth = parsedData.studentDetails.dateOfBirth;
-          parsedData.nationality = parsedData.studentDetails.nationality;
-          parsedData.gender = parsedData.studentDetails.gender;
-          parsedData.age = parsedData.studentDetails.age;
+        if (rawAnalysisData.studentDetails) {
+          parsedData.studentName = rawAnalysisData.studentDetails.fullName;
+          parsedData.studentId = rawAnalysisData.studentDetails.studentId;
+          parsedData.dateOfBirth = rawAnalysisData.studentDetails.dateOfBirth;
+          parsedData.nationality = rawAnalysisData.studentDetails.nationality;
+          parsedData.gender = rawAnalysisData.studentDetails.gender;
+          parsedData.age = rawAnalysisData.studentDetails.age;
         }
         
-        if (parsedData.financialDetails) {
-          parsedData.tuitionFee = parsedData.financialDetails.totalTuitionFee;
-          parsedData.otherFees = parsedData.financialDetails.otherFees;
-          parsedData.initialPrepaid = parsedData.financialDetails.initialPrepaid;
+        if (rawAnalysisData.financialDetails) {
+          parsedData.tuitionFee = rawAnalysisData.financialDetails.totalTuitionFee;
+          parsedData.otherFees = rawAnalysisData.financialDetails.otherFees;
+          parsedData.initialPrepaid = rawAnalysisData.financialDetails.initialPrepaid;
           
-          if (parsedData.financialDetails.scholarships) {
-            parsedData.scholarship = parsedData.financialDetails.scholarships.details;
-            parsedData.scholarshipValue = parsedData.financialDetails.scholarships.value;
+          if (rawAnalysisData.financialDetails.scholarships) {
+            parsedData.scholarship = rawAnalysisData.financialDetails.scholarships.details;
+            parsedData.scholarshipValue = rawAnalysisData.financialDetails.scholarships.value;
           }
           
-          if (parsedData.financialDetails.costBreakdown) {
-            parsedData.perYearCost = parsedData.financialDetails.costBreakdown.perYear;
-            parsedData.perSemesterCost = parsedData.financialDetails.costBreakdown.perSemester;
+          if (rawAnalysisData.financialDetails.costBreakdown) {
+            parsedData.perYearCost = rawAnalysisData.financialDetails.costBreakdown.perYear;
+            parsedData.perSemesterCost = rawAnalysisData.financialDetails.costBreakdown.perSemester;
           }
         }
         
-        if (parsedData.healthInsurance) {
-          parsedData.oshcProvider = parsedData.healthInsurance.provider;
-          parsedData.oshcCoverage = parsedData.healthInsurance.coverageType;
-          parsedData.oshcCost = parsedData.healthInsurance.estimatedCost;
-          if (parsedData.healthInsurance.coveragePeriod) {
-            parsedData.oshcStartDate = parsedData.healthInsurance.coveragePeriod.startDate;
-            parsedData.oshcEndDate = parsedData.healthInsurance.coveragePeriod.endDate;
+        if (rawAnalysisData.healthInsurance) {
+          parsedData.oshcProvider = rawAnalysisData.healthInsurance.provider;
+          parsedData.oshcCoverage = rawAnalysisData.healthInsurance.coverageType;
+          parsedData.oshcCost = rawAnalysisData.healthInsurance.estimatedCost;
+          if (rawAnalysisData.healthInsurance.coveragePeriod) {
+            parsedData.oshcStartDate = rawAnalysisData.healthInsurance.coveragePeriod.startDate;
+            parsedData.oshcEndDate = rawAnalysisData.healthInsurance.coveragePeriod.endDate;
           }
         }
         
-        if (parsedData.languageRequirements) {
-          parsedData.testType = parsedData.languageRequirements.testType;
-          parsedData.testScore = parsedData.languageRequirements.scoreAchieved;
-          parsedData.testDate = parsedData.languageRequirements.testDate;
-          parsedData.testStatus = parsedData.languageRequirements.requirementStatus;
+        if (rawAnalysisData.languageRequirements) {
+          parsedData.testType = rawAnalysisData.languageRequirements.testType;
+          parsedData.testScore = rawAnalysisData.languageRequirements.scoreAchieved;
+          parsedData.testDate = rawAnalysisData.languageRequirements.testDate;
+          parsedData.testStatus = rawAnalysisData.languageRequirements.requirementStatus;
         }
       } catch (parseError) {
         console.error('Failed to parse structured analysis:', parseError);
@@ -224,9 +224,11 @@ const highlightNumbers = (text: string) => {
 };
 
 export default function AnalysisDisplay({ analysis }: { analysis: AnalysisData }) {
-  const parsedData = parseAnalysisData(analysis);
-  const academicInfo = extractAcademicInfo(parsedData, analysis);
-  const financialInfo = extractFinancialInfo(parsedData, analysis);
+  // Handle case where analysis might be an array instead of object
+  const analysisData = Array.isArray(analysis) ? analysis[0] : analysis;
+  const parsedData = parseAnalysisData(analysisData);
+  const academicInfo = extractAcademicInfo(parsedData, analysisData);
+  const financialInfo = extractFinancialInfo(parsedData, analysisData);
 
   return (
     <div className="space-y-6">
@@ -255,7 +257,7 @@ export default function AnalysisDisplay({ analysis }: { analysis: AnalysisData }
               <div>
                 <p className="text-sm text-gray-600">Analysis Date</p>
                 <p className="font-semibold text-gray-900">
-                  {analysis.createdAt ? new Date(analysis.createdAt).toLocaleDateString('en-US', {
+                  {analysisData.createdAt ? new Date(analysisData.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',
                     day: 'numeric'
@@ -274,7 +276,7 @@ export default function AnalysisDisplay({ analysis }: { analysis: AnalysisData }
               </div>
               <div>
                 <p className="text-sm text-gray-600">Document</p>
-                <p className="font-semibold text-gray-900">{analysis.filename}</p>
+                <p className="font-semibold text-gray-900">{analysisData.filename}</p>
               </div>
             </div>
           </CardContent>
@@ -311,7 +313,7 @@ export default function AnalysisDisplay({ analysis }: { analysis: AnalysisData }
               <div 
                 className="whitespace-pre-wrap text-gray-700 leading-relaxed break-words"
                 dangerouslySetInnerHTML={{ 
-                  __html: highlightNumbers(analysis.summary || parsedData.summary || 'No summary available')
+                  __html: highlightNumbers(analysisData.summary || parsedData.summary || 'No summary available')
                 }}
               />
             </CardContent>
@@ -378,7 +380,7 @@ export default function AnalysisDisplay({ analysis }: { analysis: AnalysisData }
 
         <TabsContent value="requirements" className="space-y-6">
           {/* Key Findings */}
-          {analysis.keyFindings && analysis.keyFindings.length > 0 && (
+          {analysisData.keyFindings && analysisData.keyFindings.length > 0 && (
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-t-lg">
                 <CardTitle className="flex items-center gap-2 text-xl text-gray-800">
@@ -387,7 +389,7 @@ export default function AnalysisDisplay({ analysis }: { analysis: AnalysisData }
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-4">
-                {analysis.keyFindings.map((finding, index) => (
+                {analysisData.keyFindings.map((finding, index) => (
                   <div key={index} className="border-l-4 border-blue-400 pl-4 py-2">
                     <div className="flex items-center gap-2 mb-2">
                       <h4 className="font-semibold text-gray-900">{finding.title}</h4>
