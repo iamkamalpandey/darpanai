@@ -75,10 +75,14 @@ export default function Home() {
                 <Brain className="h-5 w-5 text-blue-600" />
                 <span className="text-blue-800 font-medium">Powered by Advanced AI</span>
               </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
-                Turn Your Document Analysis Into 
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> Success</span>
-              </h1>
+              <div className="mb-4">
+                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 mb-2 leading-tight">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Darpan Intelligence</span>
+                </h1>
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
+                  Turn Your Document Analysis Into Success
+                </h2>
+              </div>
               <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                 Make informed education and career decisions with AI-powered document analysis. 
                 Get expert insights on visa documents, offer letters, and critical academic paperwork.
@@ -167,6 +171,15 @@ export default function Home() {
               </Link>
             </div>
           </div>
+
+          {/* Footer */}
+          <footer className="mt-16 py-8 border-t border-gray-200">
+            <div className="text-center">
+              <p className="text-gray-600 text-sm">
+                A product of <span className="font-semibold text-gray-900">Epitome Solutions</span>
+              </p>
+            </div>
+          </footer>
         </div>
       </div>
     );
@@ -224,16 +237,21 @@ export default function Home() {
           </div>
 
           {/* Analysis Options Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {/* Visa & Immigration Analysis */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {/* Visa Analysis (Available) */}
             <Link href="/visa-analysis">
               <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-200 cursor-pointer">
                 <CardHeader className="text-center">
                   <div className="mx-auto mb-4 w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
                     <Shield className="h-6 w-6 text-white" />
                   </div>
-                  <CardTitle className="text-lg font-bold text-gray-900">Visa & Immigration Analysis</CardTitle>
-                  <CardDescription>Upload visa documents, letters, or SOPs for detailed analysis</CardDescription>
+                  <CardTitle className="text-lg font-bold text-gray-900">Visa Analysis</CardTitle>
+                  <CardDescription>Upload visa documents (both rejected and successful) for comprehensive analysis</CardDescription>
+                  <div className="mt-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Available
+                    </span>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <Button className="w-full" size="sm">
@@ -244,15 +262,20 @@ export default function Home() {
               </Card>
             </Link>
 
-            {/* COE & University Analysis */}
+            {/* COE Analysis (Available) */}
             <Link href="/enrollment-analysis">
               <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-green-200 cursor-pointer">
                 <CardHeader className="text-center">
                   <div className="mx-auto mb-4 w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center">
                     <FileText className="h-6 w-6 text-white" />
                   </div>
-                  <CardTitle className="text-lg font-bold text-gray-900">COE & University Analysis</CardTitle>
+                  <CardTitle className="text-lg font-bold text-gray-900">COE Analysis</CardTitle>
                   <CardDescription>Upload COE certificates, I-20 forms, or admission letters for detailed review</CardDescription>
+                  <div className="mt-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Available
+                    </span>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <Button className="w-full" size="sm">
@@ -262,6 +285,39 @@ export default function Home() {
                 </CardContent>
               </Card>
             </Link>
+
+            {/* Offer Letter Analysis (Coming Soon) */}
+            <Card className="group transition-all duration-300 border-2 border-gray-200 opacity-75">
+              <CardHeader className="text-center">
+                <div className="mx-auto mb-4 w-12 h-12 bg-gray-400 rounded-xl flex items-center justify-center">
+                  <BookOpen className="h-6 w-6 text-white" />
+                </div>
+                <CardTitle className="text-lg font-bold text-gray-900">Offer Letter Analysis</CardTitle>
+                <CardDescription>Comprehensive analysis of university offer letters and admission conditions</CardDescription>
+                <div className="mt-2">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                    Coming Soon
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full" size="sm" disabled>
+                  <Clock className="h-4 w-4 mr-2" />
+                  Notify Me
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* More Analysis Types Coming */}
+          <div className="text-center mt-8">
+            <p className="text-gray-600 mb-4">More analysis types coming soon:</p>
+            <div className="flex flex-wrap justify-center gap-2">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">SOP Analysis</span>
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">Financial Document Review</span>
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">LOR Analysis</span>
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">Transcript Evaluation</span>
+            </div>
           </div>
         </div>
 
@@ -313,6 +369,15 @@ export default function Home() {
             />
           </div>
         </div>
+
+        {/* Footer */}
+        <footer className="mt-8 py-6 border-t border-gray-200">
+          <div className="text-center">
+            <p className="text-gray-600 text-sm">
+              A product of <span className="font-semibold text-gray-900">Epitome Solutions</span>
+            </p>
+          </div>
+        </footer>
       </div>
     </DashboardLayout>
   );

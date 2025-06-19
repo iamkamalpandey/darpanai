@@ -1,8 +1,8 @@
-# Visa Rejection Analyzer - Replit Configuration
+# Darpan Intelligence - Replit Configuration
 
 ## Overview
 
-A comprehensive AI-powered web application that analyzes visa rejection letters and provides strategic guidance for improving future applications. The platform features complete role-based access control with separate user and admin interfaces.
+Darpan Intelligence is a comprehensive AI-powered document analysis platform that helps users make informed education and career decisions. The platform analyzes visa documents (both rejected and successful), COE certificates, offer letters, and other critical academic documents. Features complete role-based access control with separate user and admin interfaces.
 
 ## System Architecture
 
@@ -130,18 +130,18 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
-**June 19, 2025 - Comprehensive Platform Rebranding & Consistent User Experience Implementation:**
-- Implemented consistent "StudyAbroad Analyzer" branding across entire platform replacing inconsistent naming
-- Redesigned public landing page with powerful "Turn Your Document Analysis Into Success" headline and compelling statistics
-- Enhanced user dashboard with personalized "Your Document Analysis Dashboard" for authenticated users
-- Added user-specific statistics showing personal analysis count, credits remaining, last analysis date, and AI availability
-- Applied consistent branding across DashboardLayout, AdminLayout, and Landing page components
-- Updated admin interface to "StudyAbroad Admin" maintaining brand consistency while differentiating admin functionality
-- Implemented dual messaging strategy: conversion-focused for public users, progress-focused for authenticated users
-- Enhanced public landing page with impressive statistics: 5K+ Documents Analyzed, 90% Success Rate, 50+ Countries Supported, 24/7 AI Analysis
-- Created personalized user experience with individual progress tracking and credit management
-- Applied professional color coding throughout: blue for documents, green for success/credits, purple for timing, orange for availability
-- Successfully unified platform messaging while optimizing each interface for its specific user purpose and engagement goals
+**June 19, 2025 - Complete Platform Rebranding to "Darpan Intelligence" & Enhanced Analysis Options:**
+- Completely rebranded platform from "StudyAbroad Analyzer" to "Darpan Intelligence" with tagline "Make Informed Education and Career Decisions"
+- Updated all branding across user dashboard, admin interface, page titles, and external-facing content
+- Enhanced analysis options to include both rejected and successful visa document analysis
+- Added comprehensive analysis grid with Available (Visa Analysis, COE Analysis) and Coming Soon (Offer Letter Analysis) sections
+- Included upcoming analysis types: SOP Analysis, Financial Document Review, LOR Analysis, Transcript Evaluation
+- Updated document page title to "Darpan Intelligence - Make Informed Education and Career Decisions"
+- Added footer across all pages with "A product of Epitome Solutions" branding
+- Fixed TypeScript errors and improved user interface with conditional CTAs based on authentication status
+- Enhanced public landing page to prominently feature "Darpan Intelligence" brand name with gradient styling
+- Simplified user dashboard to be more purposeful and action-oriented rather than repetitive marketing content
+- Applied consistent messaging emphasizing informed education and career decision-making throughout platform
 
 **June 19, 2025 - Complete Document Analysis Messaging Implementation:**
 - Completely redesigned home page to emphasize comprehensive critical document analysis capabilities for informed study abroad journeys
