@@ -228,55 +228,61 @@ export default function EnrollmentAnalysisUpload() {
                   <SelectItem value="coe">
                     <div className="flex items-center gap-3 py-2">
                       <GraduationCap className="h-5 w-5 text-green-600" />
-                      <div>
+                      <div className="flex-1">
                         <div className="font-medium">Confirmation of Enrollment (CoE)</div>
                         <div className="text-sm text-gray-500">Australian university enrollment confirmation</div>
                       </div>
+                      <Badge className="bg-green-100 text-green-800 text-xs">Available</Badge>
                     </div>
                   </SelectItem>
-                  <SelectItem value="i20">
-                    <div className="flex items-center gap-3 py-2">
-                      <FileText className="h-5 w-5 text-blue-600" />
-                      <div>
+                  <SelectItem value="i20" disabled>
+                    <div className="flex items-center gap-3 py-2 opacity-50">
+                      <FileText className="h-5 w-5 text-gray-400" />
+                      <div className="flex-1">
                         <div className="font-medium">I-20 Form</div>
-                        <div className="text-sm text-gray-500">US student visa eligibility document</div>
+                        <div className="text-sm text-gray-400">US student visa eligibility document</div>
                       </div>
+                      <Badge className="bg-gray-100 text-gray-500 text-xs">Coming Soon</Badge>
                     </div>
                   </SelectItem>
-                  <SelectItem value="cas">
-                    <div className="flex items-center gap-3 py-2">
-                      <Award className="h-5 w-5 text-purple-600" />
-                      <div>
+                  <SelectItem value="cas" disabled>
+                    <div className="flex items-center gap-3 py-2 opacity-50">
+                      <Award className="h-5 w-5 text-gray-400" />
+                      <div className="flex-1">
                         <div className="font-medium">CAS Statement</div>
-                        <div className="text-sm text-gray-500">UK Confirmation of Acceptance for Studies</div>
+                        <div className="text-sm text-gray-400">UK Confirmation of Acceptance for Studies</div>
                       </div>
+                      <Badge className="bg-gray-100 text-gray-500 text-xs">Coming Soon</Badge>
                     </div>
                   </SelectItem>
-                  <SelectItem value="admission_letter">
-                    <div className="flex items-center gap-3 py-2">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <div>
+                  <SelectItem value="admission_letter" disabled>
+                    <div className="flex items-center gap-3 py-2 opacity-50">
+                      <CheckCircle className="h-5 w-5 text-gray-400" />
+                      <div className="flex-1">
                         <div className="font-medium">Admission Letter</div>
-                        <div className="text-sm text-gray-500">University admission confirmation letter</div>
+                        <div className="text-sm text-gray-400">University admission confirmation letter</div>
                       </div>
+                      <Badge className="bg-gray-100 text-gray-500 text-xs">Coming Soon</Badge>
                     </div>
                   </SelectItem>
-                  <SelectItem value="offer_letter">
-                    <div className="flex items-center gap-3 py-2">
-                      <Briefcase className="h-5 w-5 text-orange-600" />
-                      <div>
+                  <SelectItem value="offer_letter" disabled>
+                    <div className="flex items-center gap-3 py-2 opacity-50">
+                      <Briefcase className="h-5 w-5 text-gray-400" />
+                      <div className="flex-1">
                         <div className="font-medium">Offer Letter</div>
-                        <div className="text-sm text-gray-500">Conditional or unconditional offer letter</div>
+                        <div className="text-sm text-gray-400">Conditional or unconditional offer letter</div>
                       </div>
+                      <Badge className="bg-gray-100 text-gray-500 text-xs">Coming Soon</Badge>
                     </div>
                   </SelectItem>
-                  <SelectItem value="enrollment_letter">
-                    <div className="flex items-center gap-3 py-2">
-                      <FileCheck className="h-5 w-5 text-indigo-600" />
-                      <div>
+                  <SelectItem value="enrollment_letter" disabled>
+                    <div className="flex items-center gap-3 py-2 opacity-50">
+                      <FileCheck className="h-5 w-5 text-gray-400" />
+                      <div className="flex-1">
                         <div className="font-medium">Enrollment Letter</div>
-                        <div className="text-sm text-gray-500">Official enrollment confirmation document</div>
+                        <div className="text-sm text-gray-400">Official enrollment confirmation document</div>
                       </div>
+                      <Badge className="bg-gray-100 text-gray-500 text-xs">Coming Soon</Badge>
                     </div>
                   </SelectItem>
                 </SelectContent>

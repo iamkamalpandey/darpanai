@@ -1,0 +1,290 @@
+# CoE Information Extraction Page Design Schema
+
+## Page Layout Structure
+
+### 1. Header Section
+```
+[Logo/Brand] | CoE Information Extractor | [User Account/Login]
+```
+
+### 2. Upload Section
+```
+┌─────────────────────────────────────────────────────────────┐
+│  📄 Upload Your Confirmation of Enrolment (CoE)            │
+│                                                             │
+│  [Drag & Drop Area] or [Browse Files Button]               │
+│                                                             │
+│  Supported formats: PDF, JPG, PNG                          │
+│  Maximum file size: 10MB                                   │
+│                                                             │
+│  [Upload Button] [Clear Button]                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 3. Results Display Section
+
+## Key Information Extraction Template
+
+### A. Document Status Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ✅ Document Processed Successfully                          │
+│ 📅 Processed on: [Date/Time]                               │
+│ 📋 CoE Number: [Extracted ID]                              │
+│ 🏫 Institution: [Provider Name]                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### B. Institution Information Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 🏛️ INSTITUTION DETAILS                                     │
+│                                                             │
+│ Institution Name: [Provider Name]                          │
+│ Trading Name: [If different]                               │
+│ Registration Code: [CRICOS/Reg Number]                     │
+│ Country: [Country]                                         │
+│                                                             │
+│ 📞 Contact Information:                                    │
+│   Phone: [Phone Number]                                    │
+│   Email: [Email Address]                                   │
+│   Fax: [Fax Number]                                        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### C. Course Details Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 📚 COURSE INFORMATION                                       │
+│                                                             │
+│ Course Title: [Full Course Name]                           │
+│ Course Code: [Registration Number]                         │
+│ Level: [Bachelor/Master/Diploma/Certificate]               │
+│ Field of Study: [Subject Area]                             │
+│                                                             │
+│ 📅 Duration:                                               │
+│   Start Date: [DD/MM/YYYY]                                 │
+│   End Date: [DD/MM/YYYY]                                   │
+│   Total Duration: [X years Y months]                       │
+│                                                             │
+│ 🎓 Study Mode: [Full-time/Part-time/Online]                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### D. Financial Information Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 💰 FINANCIAL DETAILS                                        │
+│                                                             │
+│ Total Tuition Fee: [Currency] [Amount]                     │
+│ Initial Pre-paid: [Currency] [Amount]                      │
+│ Other Fees: [Currency] [Amount]                            │
+│                                                             │
+│ 🎯 Cost Breakdown:                                         │
+│   • Per Year: [Calculated Amount]                          │
+│   • Per Semester: [Calculated Amount]                      │
+│                                                             │
+│ 🏆 Scholarships/Discounts:                                 │
+│   [Scholarship Details if any]                             │
+│   Value: [Amount/Percentage]                               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### E. Student Information Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 👤 STUDENT DETAILS                                          │
+│                                                             │
+│ Student ID: [Provider Student ID]                          │
+│ Name: [Full Name]                                          │
+│ Date of Birth: [DD/MM/YYYY]                                │
+│ Age: [Calculated Age]                                      │
+│ Gender: [Gender]                                           │
+│ Nationality: [Country]                                     │
+│ Country of Birth: [Country]                                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### F. Language Requirements Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 🗣️ LANGUAGE REQUIREMENTS                                   │
+│                                                             │
+│ Test Type: [IELTS/TOEFL/PTE/Other]                        │
+│ Score Achieved: [Score]                                     │
+│ Test Date: [DD/MM/YYYY]                                     │
+│ Score Validity: [Days remaining/Expired]                   │
+│                                                             │
+│ ✅ Requirement Status: [Met/Not Met]                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### G. Health & Insurance Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 🏥 HEALTH COVERAGE                                          │
+│                                                             │
+│ OSHC Required: [Yes/No]                                    │
+│ Provider: [Insurance Company]                              │
+│ Coverage Type: [Single/Family/Couple]                      │
+│                                                             │
+│ 📅 Coverage Period:                                        │
+│   Start: [DD/MM/YYYY]                                      │
+│   End: [DD/MM/YYYY]                                        │
+│   Duration: [X months]                                     │
+│                                                             │
+│ 💵 Estimated Cost: [Currency] [Amount]                     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### H. Important Dates & Deadlines Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ⏰ KEY DATES & DEADLINES                                    │
+│                                                             │
+│ Course Commencement: [DD/MM/YYYY] ([Days from now])       │
+│ OSHC Start: [DD/MM/YYYY] ([Days from now])                │
+│ Visa Application Deadline: [Estimated Date]                │
+│ Enrollment Confirmation: [DD/MM/YYYY]                      │
+│                                                             │
+│ 🚨 Urgent Actions Required:                                │
+│   • [List of immediate actions needed]                     │
+│   • [Timeline for each action]                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### I. Compliance & Legal Information Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ⚖️ COMPLIANCE INFORMATION                                   │
+│                                                             │
+│ CRICOS Registration: [Valid/Check Required]                │
+│ ESOS Act Compliance: [Compliant]                          │
+│ Government Registration: [Verified]                        │
+│                                                             │
+│ 📋 Important Notes:                                        │
+│   • [Key compliance requirements]                          │
+│   • [Student rights and responsibilities]                  │
+│   • [Complaint procedures]                                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Interactive Features
+
+### J. Action Buttons Section
+```
+┌─────────────────────────────────────────────────────────────┐
+│ [📧 Email Summary] [📄 Download PDF] [🔄 Process Another]  │
+│ [📊 Compare Courses] [💡 Get Recommendations]              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### K. Additional Services Panel
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 🔗 RELATED SERVICES                                         │
+│                                                             │
+│ • Visa Application Assistance                              │
+│ • Accommodation Search                                      │
+│ • Travel Planning                                          │
+│ • Pre-departure Checklist                                  │
+│ • Connect with Current Students                            │
+│ • Financial Planning Tools                                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Sample Data Display (Based on Provided CoE)
+
+### Example Output for User Interface:
+
+```
+✅ Document Processed Successfully
+📅 Processed on: 19/06/2025 14:30:22
+📋 CoE Number: 106EBD133
+🏫 Institution: Victoria University
+```
+
+```
+🏛️ INSTITUTION DETAILS
+Institution Name: Victoria University
+Registration Code: 00124K (CRICOS)
+Country: Australia
+📞 Phone: (03) 9919 1164
+📧 Email: international@vu.edu.au
+```
+
+```
+📚 COURSE INFORMATION
+Course: Bachelor of Early Childhood Education
+Course Code: 096869G
+Level: Bachelor Degree
+📅 Start Date: 28/07/2025 (39 days from now)
+📅 End Date: 16/06/2028
+⏱️ Duration: 2 years 10 months
+```
+
+```
+💰 FINANCIAL DETAILS
+Total Tuition Fee: AUD $95,958
+Initial Pre-paid: AUD $12,880
+Other Fees: AUD $2,473
+📊 Per Year: AUD $33,866 (approx.)
+🏆 Scholarship: VU Block Model International (20% off first 2 semesters)
+```
+
+```
+👤 STUDENT DETAILS
+Student ID: 8188302
+Name: Sneha GURUNG
+Date of Birth: 10/03/2006 (Age: 19)
+Gender: Female
+Nationality: Nepal
+```
+
+```
+🗣️ LANGUAGE REQUIREMENTS
+Test Type: IELTS
+Score: 7.0
+Test Date: 19/09/2024
+✅ Requirement Status: Met
+```
+
+```
+🏥 HEALTH COVERAGE
+Provider: Medibank Private
+Coverage: Single
+📅 Start: 14/07/2025 (25 days from now)
+📅 End: 16/08/2028
+⏱️ Duration: 37 months
+```
+
+```
+⏰ KEY DATES & DEADLINES
+Course Start: 28/07/2025 (39 days from now)
+OSHC Start: 14/07/2025 (25 days from now)
+🚨 Action Required: Apply for student visa immediately
+```
+
+## Design Considerations
+
+### Visual Design Elements:
+- **Color Coding**: Green for positive status, Orange for pending actions, Red for urgent items
+- **Icons**: Consistent iconography for each section
+- **Typography**: Clear hierarchy with headers, subheaders, and body text
+- **Spacing**: Adequate white space for readability
+- **Responsive**: Mobile-friendly design
+
+### User Experience Features:
+- **Progress Indicators**: Show processing status
+- **Tooltips**: Explain technical terms
+- **Expandable Sections**: Allow users to show/hide details
+- **Search & Filter**: Find specific information quickly
+- **Export Options**: PDF, email, print functionality
+
+### Error Handling:
+- **File Upload Errors**: Clear error messages
+- **Processing Failures**: Alternative options
+- **Missing Information**: Highlight incomplete data
+- **Format Issues**: Suggestions for better uploads
+
+This schema provides a comprehensive framework for designing a user-friendly CoE information extraction page that presents complex document data in an accessible, organized format.

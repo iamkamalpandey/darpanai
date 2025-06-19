@@ -76,6 +76,169 @@ function truncateText(text: string, maxTokens: number = MAX_INPUT_TOKENS): strin
 }
 
 /**
+ * CoE-specific analysis prompt for detailed extraction
+ */
+function getCoEAnalysisPrompt(documentText: string): string {
+  return `You are analyzing a Confirmation of Enrollment (CoE) document. Extract the following specific information and return it in JSON format:
+
+{
+  "documentStatus": {
+    "processed": true,
+    "coeNumber": "extracted CoE/registration number",
+    "processedDate": "${new Date().toLocaleDateString()}"
+  },
+  "institutionDetails": {
+    "institutionName": "provider name",
+    "tradingName": "trading name if different",
+    "registrationCode": "CRICOS/registration number",
+    "country": "country",
+    "contactInfo": {
+      "phone": "phone number",
+      "email": "email address",
+      "fax": "fax number"
+    }
+  },
+  "courseDetails": {
+    "courseTitle": "full course name",
+    "courseCode": "course registration number",
+    "level": "Bachelor/Master/Diploma/Certificate",
+    "fieldOfStudy": "subject area",
+    "duration": {
+      "startDate": "DD/MM/YYYY",
+      "endDate": "DD/MM/YYYY",
+      "totalDuration": "X years Y months"
+    },
+    "studyMode": "Full-time/Part-time/Online"
+  },
+  "financialDetails": {
+    "totalTuitionFee": "currency and amount",
+    "initialPrepaid": "currency and amount",
+    "otherFees": "currency and amount",
+    "costBreakdown": {
+      "perYear": "calculated amount",
+      "perSemester": "calculated amount"
+    },
+    "scholarships": {
+      "details": "scholarship information if any",
+      "value": "amount or percentage"
+    }
+  },
+  "studentDetails": {
+    "studentId": "provider student ID",
+    "fullName": "student full name",
+    "dateOfBirth": "DD/MM/YYYY",
+    "age": "calculated age",
+    "gender": "gender",
+    "nationality": "country",
+    "countryOfBirth": "country"
+  },
+  "languageRequirements": {
+    "testType": "IELTS/TOEFL/PTE/Other",
+    "scoreAchieved": "score",
+    "testDate": "DD/MM/YYYY",
+    "scoreValidity": "days remaining/expired",
+    "requirementStatus": "Met/Not Met"
+  },
+  "healthInsurance": {
+    "oshcRequired": "Yes/No",
+    "provider": "insurance company",
+    "coverageType": "Single/Family/Couple",
+    "coveragePeriod": {
+      "startDate": "DD/MM/YYYY",
+      "endDate": "DD/MM/YYYY",
+      "duration": "X months"
+    },
+    "estimatedCost": "currency and amount"
+  },
+  "keyDatesDeadlines": {
+    "courseCommencement": "DD/MM/YYYY",
+    "oshcStart": "DD/MM/YYYY",
+    "visaApplicationDeadline": "estimated date",
+    "enrollmentConfirmation": "DD/MM/YYYY",
+    "urgentActions": ["list of immediate actions needed"]
+  },
+  "complianceInfo": {
+    "cricosRegistration": "Valid/Check Required",
+    "esosCompliance": "Compliant",
+    "governmentRegistration": "Verified",
+    "importantNotes": ["key compliance requirements"]
+  },
+  "summary": "comprehensive summary of the CoE document",
+  "keyFindings": [
+    {
+      "category": "academic",
+      "finding": "specific finding",
+      "importance": "high",
+      "actionRequired": "specific action if needed",
+      "deadline": "deadline if applicable"
+    }
+  ],
+  "recommendations": [
+    {
+      "category": "visa",
+      "recommendation": "specific recommendation",
+      "priority": "high"
+    }
+  ],
+  "nextSteps": [
+    {
+      "step": "specific action",
+      "description": "detailed description",
+      "timeline": "when to complete",
+      "priority": "high"
+    }
+  ]
+}
+
+Document text to analyze:
+${documentText}
+
+Extract all available information. If information is not found in the document, use "Not specified in document" for that field.`;
+}
+
+/**
+ * Generic enrollment analysis prompt for other document types
+ */
+function getGenericEnrollmentPrompt(documentText: string, documentType: string): string {
+  return `Analyze this ${documentType} enrollment document and extract key information in JSON format:
+
+{
+  "summary": "comprehensive summary",
+  "institutionName": "institution name",
+  "studentName": "student name",
+  "programName": "program/course name",
+  "programLevel": "level of study",
+  "startDate": "start date",
+  "endDate": "end date", 
+  "tuitionFee": "tuition fee amount",
+  "scholarshipDetails": "scholarship information",
+  "keyFindings": [
+    {
+      "category": "academic",
+      "finding": "specific finding",
+      "importance": "high"
+    }
+  ],
+  "recommendations": [
+    {
+      "category": "visa", 
+      "recommendation": "specific recommendation",
+      "priority": "high"
+    }
+  ],
+  "nextSteps": [
+    {
+      "step": "specific action",
+      "description": "detailed description",
+      "priority": "high"
+    }
+  ]
+}
+
+Document text: ${documentText}`;
+}
+
+/**
  * Analyze enrollment confirmation documents using OpenAI
  */
 export async function analyzeEnrollmentDocument(
@@ -102,37 +265,102 @@ export async function analyzeEnrollmentDocument(
     // Truncate text to control costs
     const truncatedText = truncateText(documentText);
     
-    // Create comprehensive prompt for enrollment document analysis
-    const prompt = `You are an expert international education counselor and visa specialist. Analyze this ${documentType} enrollment document and extract ALL available information including financial details, scholarship terms, health cover arrangements, visa requirements, and compliance obligations.
+    // Use document-specific prompts
+    let prompt: string;
+    if (documentType === 'coe') {
+      prompt = getCoEAnalysisPrompt(truncatedText);
+    } else {
+      // For non-CoE documents, return an error indicating template not available
+      const fallbackAnalysis: EnrollmentAnalysisResponse = {
+        summary: `Analysis for ${documentType} documents is not yet available. Currently, only Confirmation of Enrollment (CoE) documents are supported with our specialized template. Please select CoE as the document type if you have uploaded a CoE document, or wait for additional templates to become available.`,
+        institutionName: 'Template not available',
+        studentName: 'Template not available',
+        programName: 'Template not available',
+        programLevel: 'Template not available',
+        startDate: 'Template not available',
+        endDate: 'Template not available',
+        tuitionFee: 'Template not available',
+        scholarshipDetails: 'Template not available',
+        keyFindings: [{
+          category: 'system',
+          finding: `${documentType} analysis template is not yet available`,
+          importance: 'high' as const,
+          actionRequired: 'Please use CoE document type for now',
+          deadline: 'N/A'
+        }],
+        recommendations: [{
+          category: 'system',
+          recommendation: 'Please upload a CoE document or wait for additional templates',
+          priority: 'high' as const
+        }],
+        nextSteps: [{
+          step: 'Upload CoE document',
+          description: 'Currently only CoE (Confirmation of Enrollment) documents are supported with specialized templates',
+          timeline: 'Immediate',
+          priority: 'high' as const
+        }]
+      };
+      
+      return {
+        analysis: fallbackAnalysis,
+        tokensUsed: 0,
+        processingTime: Date.now() - startTime
+      };
+    }
+    
+    // Using CoE-specific prompt for detailed analysis
+    
+    // Call OpenAI with the appropriate prompt
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert at analyzing Australian Confirmation of Enrollment (CoE) documents. Extract information accurately and return valid JSON."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.1,
+      max_tokens: 4000,
+    });
 
-Document Type: ${documentType.toUpperCase().replace('_', ' ')}
-Filename: ${filename}
+    const analysisText = response.choices[0].message.content;
+    if (!analysisText) {
+      throw new Error('No analysis content received from OpenAI');
+    }
 
-Document Content:
-${truncatedText}
+    // Parse the JSON response
+    let analysis: EnrollmentAnalysisResponse;
+    try {
+      analysis = JSON.parse(analysisText);
+    } catch (parseError) {
+      console.error('Failed to parse OpenAI response:', analysisText);
+      throw new Error('Invalid JSON response from analysis');
+    }
 
-Extract every detail present in this document. Pay special attention to:
+    const tokensUsed = response.usage?.total_tokens || 0;
+    
+    // Cache the result
+    cacheAnalysis(cacheKey, analysis);
+    
+    console.log(`Enrollment analysis completed in ${Date.now() - startTime}ms using ${tokensUsed} tokens`);
+    
+    return {
+      analysis,
+      tokensUsed,
+      processingTime: Date.now() - startTime
+    };
 
-For CoE documents:
-- All financial amounts (tuition fees, pre-paid amounts, total costs, scholarships)
-- Student health cover (OSHC) details including provider, dates, and coverage type
-- Scholarship terms, conditions, and percentage discounts
-- Important deadlines and compliance requirements
-- Visa-related information and obligations
-- Institution contact details and course codes
-- English language test requirements and scores
-
-For Offer Letters:
-- Complete payment schedule with all study periods and due dates
-- Enrolment fees, material fees, and total fees due
-- Payment methods and bank details
-- Conditions of offer including academic requirements
-- Course duration, start/end dates, and orientation details
-- Student personal details and passport information
-- Special needs support options available
-- Student declaration requirements and visa obligations
-
-Please analyze this document thoroughly and provide a JSON response with the following structure:
+  } catch (error: any) {
+    console.error('Enrollment analysis error:', error);
+    
+    // Return fallback analysis
+    const fallbackAnalysis: EnrollmentAnalysisResponse = {
+      summary: `Unable to fully analyze this ${documentType} due to processing limitations. Please verify all information manually and consult with qualified education counselors for accurate guidance.`,
 
 {
   "institutionName": "string (full institution name with trading name if different)",
