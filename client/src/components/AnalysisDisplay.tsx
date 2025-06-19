@@ -55,8 +55,8 @@ const safeGet = (obj: any, path: string, fallback: string = 'Not specified in do
 };
 
 // Function to parse analysis data safely with enhanced structure handling
-const parseAnalysisData = (analysis: any) => {
-  let parsedData = null;
+const parseAnalysisData = (analysis: any): any => {
+  let parsedData: any = null;
   
   try {
     // Try multiple data sources for analysis content
@@ -134,7 +134,7 @@ const parseAnalysisData = (analysis: any) => {
       }
       
       // Also preserve direct field access for backward compatibility
-      Object.keys(analysis).forEach(key => {
+      Object.keys(analysis).forEach((key: string) => {
         if (!parsedData[key] && analysis[key] && key !== 'analysis') {
           parsedData[key] = analysis[key];
         }
@@ -142,10 +142,10 @@ const parseAnalysisData = (analysis: any) => {
     }
   } catch (error) {
     console.error('Error parsing analysis data:', error);
-    parsedData = null;
+    parsedData = {};
   }
   
-  return parsedData;
+  return parsedData || {};
 };
 
 // Function to extract financial information with enhanced structured data handling
