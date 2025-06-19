@@ -577,7 +577,7 @@ export const enrollmentAnalysisResponseSchema = z.object({
     title: z.string(),
     description: z.string(),
     priority: z.enum(["urgent", "important", "suggested"]),
-    category: z.enum(["documentation", "financial", "academic", "visa", "preparation"]),
+    category: z.enum(["documentation", "financial", "academic", "visa", "preparation", "health", "accommodation", "language", "legal", "insurance"]),
   })),
   nextSteps: z.array(z.object({
     step: z.string(),
@@ -591,7 +591,7 @@ export const enrollmentAnalysisResponseSchema = z.object({
   expiryDate: z.string().optional(),
   complianceIssues: z.array(z.object({
     issue: z.string(),
-    severity: z.enum(["critical", "moderate", "minor"]),
+    severity: z.enum(["critical", "moderate", "minor", "low", "high"]),
     resolution: z.string(),
   })),
   

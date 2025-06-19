@@ -130,17 +130,20 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
-**June 19, 2025 - Complete Document Analysis Functionality Restoration & TypeScript Error Resolution:**
+**June 19, 2025 - Complete Document Analysis Functionality Restoration & Schema Validation Fixes:**
 - Successfully resolved critical "Analyze Document" functionality issue that was preventing users from uploading and analyzing documents
 - Fixed comprehensive TypeScript compilation errors blocking frontend user interface from functioning properly
 - Applied proper type casting and null safety handling throughout VisaRejectionAnalysis component for selectedAnalysis and user data
 - Resolved HTTP method error in enrollment analysis API calls by replacing problematic apiRequest with direct fetch implementation
+- Fixed "Invalid document type" error by updating frontend document types to match backend validation requirements (coe, i20, cas, admission_letter, etc.)
+- Resolved schema validation errors by expanding recommendation categories to include "health", "accommodation", "language", "legal", "insurance"
+- Updated compliance issue severity levels to accept "low" and "high" values that OpenAI actually returns
 - Confirmed backend document processing pipeline working perfectly: successfully extracts text from PDFs, calls OpenAI API, and returns detailed analysis results
 - Fixed React component prop type compatibility issues and ensured proper nullable type handling throughout the interface
 - Verified complete analysis workflow: document upload → text extraction → AI analysis → database storage → results display
 - Applied production-ready error handling and type safety measures ensuring robust document analysis functionality
 - Successfully restored both visa analysis and enrollment analysis document upload capabilities with full TypeScript compliance
-- Confirmed users can now successfully upload documents and receive comprehensive AI-powered analysis results with proper interface display
+- Confirmed users can now successfully upload documents and receive comprehensive AI-powered analysis results including scholarship information, IELTS scores, and all document details
 
 **June 19, 2025 - Complete Admin Analyses Reporting System Fix & Enhanced Data Display:**
 - Successfully resolved critical admin analyses reporting bug showing "Analysis Reports (0)" despite 25 total analyses in database
