@@ -54,13 +54,74 @@ const safeGet = (obj: any, path: string, fallback: string = 'Not specified in do
   return current || fallback;
 };
 
-// Function to parse analysis data safely
+// Function to parse analysis data safely with enhanced structure handling
 const parseAnalysisData = (analysis: any) => {
   let parsedData = null;
   
   try {
     if (analysis?.analysis) {
       parsedData = typeof analysis.analysis === 'string' ? JSON.parse(analysis.analysis) : analysis.analysis;
+      
+      // Log the parsed structure for debugging
+      console.log('Parsed analysis structure:', parsedData);
+      
+      // Flatten nested structures for easier access
+      if (parsedData) {
+        // Extract institution details
+        if (parsedData.institutionDetails) {
+          parsedData.institutionName = parsedData.institutionDetails.institutionName;
+          parsedData.registrationCode = parsedData.institutionDetails.registrationCode;
+          parsedData.country = parsedData.institutionDetails.country;
+        }
+        
+        // Extract course details
+        if (parsedData.courseDetails) {
+          parsedData.programName = parsedData.courseDetails.courseTitle;
+          parsedData.programLevel = parsedData.courseDetails.level;
+          parsedData.fieldOfStudy = parsedData.courseDetails.fieldOfStudy;
+          parsedData.studyMode = parsedData.courseDetails.studyMode;
+          
+          if (parsedData.courseDetails.duration) {
+            parsedData.startDate = parsedData.courseDetails.duration.startDate;
+            parsedData.endDate = parsedData.courseDetails.duration.endDate;
+            parsedData.duration = parsedData.courseDetails.duration.totalDuration;
+          }
+        }
+        
+        // Extract student details
+        if (parsedData.studentDetails) {
+          parsedData.studentName = parsedData.studentDetails.fullName;
+          parsedData.studentId = parsedData.studentDetails.studentId;
+          parsedData.dateOfBirth = parsedData.studentDetails.dateOfBirth;
+          parsedData.nationality = parsedData.studentDetails.nationality;
+        }
+        
+        // Extract financial details
+        if (parsedData.financialDetails) {
+          parsedData.tuitionFee = parsedData.financialDetails.totalTuitionFee;
+          parsedData.otherFees = parsedData.financialDetails.otherFees;
+          parsedData.initialPrepaid = parsedData.financialDetails.initialPrepaid;
+          
+          if (parsedData.financialDetails.scholarships) {
+            parsedData.scholarship = parsedData.financialDetails.scholarships.details;
+            parsedData.scholarshipValue = parsedData.financialDetails.scholarships.value;
+          }
+        }
+        
+        // Extract health insurance details
+        if (parsedData.healthInsurance) {
+          parsedData.oshcProvider = parsedData.healthInsurance.provider;
+          parsedData.oshcCoverage = parsedData.healthInsurance.coverageType;
+          parsedData.oshcCost = parsedData.healthInsurance.estimatedCost;
+        }
+        
+        // Extract language requirements
+        if (parsedData.languageRequirements) {
+          parsedData.testType = parsedData.languageRequirements.testType;
+          parsedData.testScore = parsedData.languageRequirements.scoreAchieved;
+          parsedData.testDate = parsedData.languageRequirements.testDate;
+        }
+      }
     }
   } catch (error) {
     console.error('Error parsing analysis data:', error);
@@ -69,21 +130,26 @@ const parseAnalysisData = (analysis: any) => {
   return parsedData;
 };
 
-// Function to extract financial information with intelligent parsing
+// Function to extract financial information with enhanced structured data handling
 const extractFinancialInfo = (parsedData: any, rawAnalysis: any) => {
   const financialFields = [
-    { key: 'tuitionFee', label: 'Tuition Fee', paths: ['tuitionFee', 'fees.tuition', 'costs.tuition', 'courseFee'] },
-    { key: 'otherFees', label: 'Other Fees', paths: ['otherFees', 'fees.other', 'costs.other', 'additionalFees'] },
+    { key: 'tuitionFee', label: 'Tuition Fee', paths: ['tuitionFee', 'financialDetails.totalTuitionFee', 'fees.tuition', 'costs.tuition', 'courseFee'] },
+    { key: 'otherFees', label: 'Other Fees', paths: ['otherFees', 'financialDetails.otherFees', 'fees.other', 'costs.other', 'additionalFees'] },
+    { key: 'initialPrepaid', label: 'Initial Prepaid', paths: ['initialPrepaid', 'financialDetails.initialPrepaid', 'prepaidAmount', 'deposit'] },
     { key: 'totalCost', label: 'Total Cost', paths: ['totalCost', 'fees.total', 'costs.total', 'totalAmount'] },
-    { key: 'scholarship', label: 'Scholarship', paths: ['scholarship', 'scholarshipDetails', 'financialAid', 'scholarshipInfo'] },
+    { key: 'scholarship', label: 'Scholarship', paths: ['scholarship', 'financialDetails.scholarships.details', 'scholarshipDetails', 'financialAid', 'scholarshipInfo'] },
+    { key: 'scholarshipValue', label: 'Scholarship Value', paths: ['scholarshipValue', 'financialDetails.scholarships.value', 'scholarshipAmount'] },
     { key: 'paymentTerms', label: 'Payment Arrangement', paths: ['paymentTerms', 'payment.terms', 'paymentMethod', 'financialArrangement'] },
-    { key: 'refundPolicy', label: 'Refund Policy', paths: ['refundPolicy', 'policies.refund', 'refundTerms'] }
+    { key: 'oshcProvider', label: 'OSHC Provider', paths: ['oshcProvider', 'healthInsurance.provider', 'insuranceProvider'] },
+    { key: 'oshcCost', label: 'OSHC Cost', paths: ['oshcCost', 'healthInsurance.estimatedCost', 'insuranceCost'] },
+    { key: 'perYearCost', label: 'Per Year Cost', paths: ['perYearCost', 'financialDetails.costBreakdown.perYear', 'yearlyFee'] },
+    { key: 'perSemesterCost', label: 'Per Semester Cost', paths: ['perSemesterCost', 'financialDetails.costBreakdown.perSemester', 'semesterFee'] }
   ];
 
   return financialFields.map(field => {
     let value = 'Not specified in document';
     
-    // Try to find value in parsed data first
+    // Try structured data extraction first (from parsed JSON)
     if (parsedData) {
       for (const path of field.paths) {
         const pathValue = safeGet(parsedData, path, '');
@@ -94,12 +160,17 @@ const extractFinancialInfo = (parsedData: any, rawAnalysis: any) => {
       }
     }
     
-    // Try direct property access
+    // Try direct property access on flattened data
+    if (value === 'Not specified in document' && parsedData && parsedData[field.key]) {
+      value = parsedData[field.key];
+    }
+    
+    // Try direct property access on raw analysis
     if (value === 'Not specified in document' && rawAnalysis[field.key]) {
       value = rawAnalysis[field.key];
     }
     
-    // Try intelligent extraction from summary if still not found
+    // Try intelligent extraction from summary as last resort
     if (value === 'Not specified in document' && rawAnalysis.summary) {
       const extractedValue = extractFromSummary(rawAnalysis.summary, field.key);
       if (extractedValue !== 'Not specified in document') {
@@ -187,23 +258,25 @@ const extractFromSummary = (summary: string, field: string): string => {
   return 'Not specified in document';
 };
 
-// Function to extract academic information with intelligent parsing
+// Function to extract academic information with enhanced structured data handling
 const extractAcademicInfo = (parsedData: any, rawAnalysis: any) => {
   const academicFields = [
-    { key: 'institutionName', label: 'Institution', paths: ['institutionName', 'institution.name', 'school', 'universityName'] },
-    { key: 'programName', label: 'Program', paths: ['programName', 'course.name', 'program', 'courseName', 'degree'] },
-    { key: 'programLevel', label: 'Level', paths: ['programLevel', 'course.level', 'level', 'degreeLevel'] },
-    { key: 'startDate', label: 'Start Date', paths: ['startDate', 'course.startDate', 'duration.start', 'commencementDate'] },
-    { key: 'endDate', label: 'End Date', paths: ['endDate', 'course.endDate', 'duration.end', 'completionDate'] },
-    { key: 'duration', label: 'Duration', paths: ['duration', 'course.duration', 'totalDuration', 'courseDuration'] },
-    { key: 'campus', label: 'Campus', paths: ['campus', 'location.campus', 'campusLocation'] },
-    { key: 'modeOfStudy', label: 'Mode of Study', paths: ['modeOfStudy', 'course.mode', 'studyMode', 'deliveryMode'] }
+    { key: 'institutionName', label: 'Institution', paths: ['institutionName', 'institutionDetails.institutionName', 'institution.name', 'school', 'universityName'] },
+    { key: 'programName', label: 'Program', paths: ['programName', 'courseDetails.courseTitle', 'course.name', 'program', 'courseName', 'degree'] },
+    { key: 'programLevel', label: 'Level', paths: ['programLevel', 'courseDetails.level', 'course.level', 'level', 'degreeLevel'] },
+    { key: 'startDate', label: 'Start Date', paths: ['startDate', 'courseDetails.duration.startDate', 'course.startDate', 'duration.start', 'commencementDate'] },
+    { key: 'endDate', label: 'End Date', paths: ['endDate', 'courseDetails.duration.endDate', 'course.endDate', 'duration.end', 'completionDate'] },
+    { key: 'duration', label: 'Duration', paths: ['duration', 'courseDetails.duration.totalDuration', 'course.duration', 'totalDuration', 'courseDuration'] },
+    { key: 'fieldOfStudy', label: 'Field of Study', paths: ['fieldOfStudy', 'courseDetails.fieldOfStudy', 'subject', 'area'] },
+    { key: 'studyMode', label: 'Study Mode', paths: ['studyMode', 'courseDetails.studyMode', 'course.mode', 'modeOfStudy', 'deliveryMode'] },
+    { key: 'courseCode', label: 'Course Code', paths: ['courseCode', 'courseDetails.courseCode', 'registrationCode'] },
+    { key: 'registrationCode', label: 'Registration Code', paths: ['registrationCode', 'institutionDetails.registrationCode', 'cricosCode'] }
   ];
 
   return academicFields.map(field => {
     let value = 'Not specified in document';
     
-    // Try to find value in parsed data first
+    // Try structured data extraction first (from parsed JSON)
     if (parsedData) {
       for (const path of field.paths) {
         const pathValue = safeGet(parsedData, path, '');
@@ -214,12 +287,17 @@ const extractAcademicInfo = (parsedData: any, rawAnalysis: any) => {
       }
     }
     
-    // Try direct property access
+    // Try direct property access on flattened data
+    if (value === 'Not specified in document' && parsedData && parsedData[field.key]) {
+      value = parsedData[field.key];
+    }
+    
+    // Try direct property access on raw analysis
     if (value === 'Not specified in document' && rawAnalysis[field.key]) {
       value = rawAnalysis[field.key];
     }
     
-    // Try intelligent extraction from summary if still not found
+    // Try intelligent extraction from summary as last resort
     if (value === 'Not specified in document' && rawAnalysis.summary) {
       const extractedValue = extractFromSummary(rawAnalysis.summary, field.key);
       if (extractedValue !== 'Not specified in document') {
@@ -589,95 +667,182 @@ export default function AnalysisDisplay({ analysis, showUserInfo = false, isAdmi
 
         {/* Requirements Tab */}
         <TabsContent value="requirements" className="space-y-6">
+          {/* Language Requirements */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-purple-600" />
-                Test Scores & Requirements
+                <Shield className="h-5 w-5 text-blue-600" />
+                Language Requirements
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {/* Extract and display test scores from summary */}
-                {analysis.summary && analysis.summary.match(/IELTS|TOEFL|GRE|GMAT|SAT|ACT/i) ? (
-                  <div>
-                    <h4 className="font-semibold text-sm text-gray-700 mb-2">Test Scores Mentioned:</h4>
-                    <div className="bg-blue-50 rounded-lg p-3">
-                      <p className="text-sm text-blue-800">
-                        {analysis.summary.match(/[^.]*(?:IELTS|TOEFL|GRE|GMAT|SAT|ACT)[^.]*/gi)?.join('. ') || 'No specific test scores mentioned'}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <h4 className="font-semibold text-sm text-gray-700 mb-2">Test Scores:</h4>
-                    <p className="text-gray-600 italic">No test score requirements specified in document</p>
-                  </div>
-                )}
-
-                {/* Academic Requirements */}
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-semibold text-sm text-gray-700 mb-2">Academic Requirements:</h4>
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-sm text-gray-800">
-                      {academicInfo.find(f => f.key === 'programLevel')?.value !== 'Not specified in document' 
-                        ? `Program Level: ${academicInfo.find(f => f.key === 'programLevel')?.value}`
-                        : 'Academic requirements not specified in document'
-                      }
-                    </p>
-                  </div>
+                  <p className="text-sm font-medium text-gray-500">Test Type</p>
+                  <p className="font-semibold">{parsedData?.testType || 'Not specified in document'}</p>
                 </div>
-
-                {/* Financial Requirements */}
-                {financialInfo.find(f => f.key === 'scholarship')?.value !== 'Not specified in document' && (
-                  <div>
-                    <h4 className="font-semibold text-sm text-gray-700 mb-2">Financial Arrangements:</h4>
-                    <div className="bg-green-50 rounded-lg p-3">
-                      <div className="space-y-2">
-                        <p className="text-sm text-green-800">
-                          <span className="font-medium">Scholarship:</span> {financialInfo.find(f => f.key === 'scholarship')?.value}
-                        </p>
-                        {financialInfo.find(f => f.key === 'paymentTerms')?.value !== 'Not specified in document' && (
-                          <p className="text-sm text-green-800">
-                            <span className="font-medium">Payment Method:</span> {financialInfo.find(f => f.key === 'paymentTerms')?.value}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Compliance Information */}
                 <div>
-                  <h4 className="font-semibold text-sm text-gray-700 mb-2">Compliance & Next Steps:</h4>
-                  <div className="bg-amber-50 rounded-lg p-3">
-                    <div className="space-y-2">
-                      <div className="flex items-start gap-2">
-                        <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5" />
-                        <p className="text-sm text-amber-800">
-                          Ensure all enrollment conditions are met as specified in the COE document
-                        </p>
-                      </div>
-                      {academicInfo.find(f => f.key === 'startDate')?.value !== 'Not specified in document' && (
-                        <div className="flex items-start gap-2">
-                          <Calendar className="h-4 w-4 text-amber-600 mt-0.5" />
-                          <p className="text-sm text-amber-800">
-                            Program begins: {academicInfo.find(f => f.key === 'startDate')?.value}
-                          </p>
-                        </div>
-                      )}
-                      <div className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-amber-600 mt-0.5" />
-                        <p className="text-sm text-amber-800">
-                          Verify visa conditions and maintain enrollment status
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                  <p className="text-sm font-medium text-gray-500">Score Achieved</p>
+                  <p className="font-semibold">{parsedData?.testScore || 'Not specified in document'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Test Date</p>
+                  <p className="font-semibold">{parsedData?.testDate || 'Not specified in document'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Requirement Status</p>
+                  <p className="font-semibold">{parsedData?.languageRequirements?.requirementStatus || 'Not specified in document'}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* Health Insurance (OSHC) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-green-600" />
+                Health Insurance (OSHC)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Provider</p>
+                  <p className="font-semibold">{financialInfo.find(f => f.key === 'oshcProvider')?.value || 'Not specified in document'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Coverage Type</p>
+                  <p className="font-semibold">{parsedData?.oshcCoverage || 'Not specified in document'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Estimated Cost</p>
+                  <p className="font-semibold text-blue-600">{financialInfo.find(f => f.key === 'oshcCost')?.value || 'Not specified in document'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">Coverage Period</p>
+                  <p className="font-semibold">{parsedData?.healthInsurance?.coveragePeriod?.duration || 'Not specified in document'}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Key Findings from Analysis */}
+          {parsedData?.keyFindings && parsedData.keyFindings.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-orange-600" />
+                  Key Findings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {parsedData.keyFindings.map((finding: any, index: number) => (
+                    <div key={index} className="border-l-4 border-orange-300 bg-orange-50 p-3 rounded-r-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-xs font-medium text-orange-700 uppercase tracking-wide">
+                          {finding.category || 'General'}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          finding.importance === 'high' ? 'bg-red-100 text-red-700' : 
+                          finding.importance === 'medium' ? 'bg-yellow-100 text-yellow-700' : 
+                          'bg-blue-100 text-blue-700'
+                        }`}>
+                          {finding.importance || 'Medium'} Priority
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-800 mb-2">{finding.finding}</p>
+                      {finding.actionRequired && (
+                        <p className="text-sm font-medium text-orange-700">
+                          Action Required: {finding.actionRequired}
+                        </p>
+                      )}
+                      {finding.deadline && (
+                        <p className="text-xs text-orange-600 mt-1">
+                          Deadline: {finding.deadline}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Compliance Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-purple-600" />
+                Compliance & Registration
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">CRICOS Registration</p>
+                    <p className="font-semibold">{parsedData?.complianceInfo?.cricosRegistration || academicInfo.find(f => f.key === 'registrationCode')?.value || 'Not specified in document'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Government Registration</p>
+                    <p className="font-semibold">{parsedData?.complianceInfo?.governmentRegistration || 'Not specified in document'}</p>
+                  </div>
+                </div>
+                
+                {/* Important Notes */}
+                {parsedData?.complianceInfo?.importantNotes && (
+                  <div>
+                    <h4 className="font-semibold text-sm text-gray-700 mb-2">Important Compliance Notes:</h4>
+                    <div className="bg-purple-50 rounded-lg p-3">
+                      <ul className="list-disc list-inside space-y-1">
+                        {parsedData.complianceInfo.importantNotes.map((note: string, index: number) => (
+                          <li key={index} className="text-sm text-purple-800">{note}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Next Steps */}
+          {parsedData?.nextSteps && parsedData.nextSteps.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-indigo-600" />
+                  Next Steps
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {parsedData.nextSteps.map((step: any, index: number) => (
+                    <div key={index} className="border border-indigo-200 bg-indigo-50 p-3 rounded-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-semibold text-indigo-900">{step.step}</h4>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          step.priority === 'high' ? 'bg-red-100 text-red-700' : 
+                          step.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' : 
+                          'bg-green-100 text-green-700'
+                        }`}>
+                          {step.priority || 'Normal'} Priority
+                        </span>
+                      </div>
+                      <p className="text-sm text-indigo-800 mb-2">{step.description}</p>
+                      {step.timeline && (
+                        <p className="text-xs text-indigo-600">
+                          Timeline: {step.timeline}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         {/* Details Tab */}
