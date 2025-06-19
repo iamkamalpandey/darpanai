@@ -1,19 +1,31 @@
 import { useQuery } from '@tanstack/react-query';
-import { useRoute } from 'wouter';
+import { useRoute, useLocation } from 'wouter';
 import { ArrowLeft, AlertCircle, FileText, Calendar } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { AdminLayout } from '@/components/AdminLayout';
 import AnalysisDisplay from '@/components/AnalysisDisplay';
 
 export default function COEAnalysisView() {
-  const [, params] = useRoute('/coe-analysis/:id');
-  const analysisId = params?.id;
+  const [location] = useLocation();
+  const isAdminRoute = location.startsWith('/admin/');
+  
+  // Handle both user and admin routes
+  const [, userParams] = useRoute('/coe-analysis/:id');
+  const [, adminParams] = useRoute('/admin/coe-analysis/:id');
+  const analysisId = userParams?.id || adminParams?.id;
+  
   const { toast } = useToast();
+  const { user } = useAuth();
 
+  // Use appropriate API endpoint based on admin/user access
+  const apiEndpoint = isAdminRoute ? '/api/admin/coe-analyses' : '/api/coe-analyses';
+  
   const { data: analysis, isLoading, error } = useQuery({
-    queryKey: ['/api/coe-analyses', analysisId],
+    queryKey: [apiEndpoint, analysisId],
     enabled: !!analysisId,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
@@ -22,9 +34,11 @@ export default function COEAnalysisView() {
     window.history.back();
   };
 
+  const LayoutComponent = isAdminRoute ? AdminLayout : DashboardLayout;
+
   if (isLoading) {
     return (
-      <DashboardLayout>
+      <LayoutComponent>
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-gray-200 rounded w-1/3"></div>
@@ -32,7 +46,7 @@ export default function COEAnalysisView() {
             <div className="h-32 bg-gray-200 rounded"></div>
           </div>
         </div>
-      </DashboardLayout>
+      </LayoutComponent>
     );
   }
 
@@ -69,9 +83,9 @@ export default function COEAnalysisView() {
               <p className="text-lg text-gray-700">Detailed analysis of your Confirmation of Enrollment document</p>
               {analysis && (
                 <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-600">
-                  <span className="flex items-center gap-1">
-                    <FileText className="h-4 w-4" />
-                    {(analysis as any).filename}
+                  <span className="flex items-center gap-1 min-w-0">
+                    <FileText className="h-4 w-4 flex-shrink-0" />
+                    <span className="break-all">{(analysis as any).filename}</span>
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />

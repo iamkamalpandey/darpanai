@@ -303,9 +303,9 @@ function AdminAnalyses() {
                           className="flex items-center gap-1"
                           onClick={() => {
                             if (analysis.analysisType === 'enrollment_analysis') {
-                              window.open(`/coe-analysis/${analysis.id}`, '_blank');
+                              window.open(`/admin/coe-analysis/${analysis.id}`, '_blank');
                             } else {
-                              window.open(`/visa-analysis-results/${analysis.id}`, '_blank');
+                              window.open(`/admin/visa-analysis/${analysis.id}`, '_blank');
                             }
                           }}
                         >

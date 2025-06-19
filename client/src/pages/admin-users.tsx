@@ -1864,17 +1864,16 @@ export default function AdminUsers() {
                                     size="sm" 
                                     variant="outline"
                                     onClick={() => {
-                                      // Determine analysis type based on available data
-                                      // Check if it has enrollment-specific fields or if it's explicitly marked as enrollment
+                                      // Admin access to analysis details - use admin routes
                                       const isEnrollmentAnalysis = analysis.analysisType === 'enrollment_analysis' || 
                                         (analysis.analysisResults?.institutionName || 
                                          analysis.analysisResults?.programName ||
                                          analysis.analysisResults?.studentName);
                                       
                                       if (isEnrollmentAnalysis) {
-                                        window.open(`/coe-analysis/${analysis.id}`, '_blank');
+                                        window.open(`/admin/coe-analysis/${analysis.id}`, '_blank');
                                       } else {
-                                        window.open(`/visa-analysis-results/${analysis.id}`, '_blank');
+                                        window.open(`/admin/visa-analysis/${analysis.id}`, '_blank');
                                       }
                                     }}
                                     className="flex items-center gap-1"

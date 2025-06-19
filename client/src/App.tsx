@@ -243,6 +243,20 @@ function Router() {
           </Suspense>
         )} />
       </Route>
+      <Route path="/admin/coe-analysis/:id">
+        <AdminProtectedRoute path="/admin/coe-analysis/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <COEAnalysisView />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/visa-analysis/:id">
+        <AdminProtectedRoute path="/admin/visa-analysis/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <VisaAnalysisResults />
+          </Suspense>
+        )} />
+      </Route>
       
       {/* 404 Route */}
       <Route component={NotFound} />
