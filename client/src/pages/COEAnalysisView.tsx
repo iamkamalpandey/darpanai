@@ -76,18 +76,7 @@ export default function COEAnalysisView() {
 
           {/* Use Unified Analysis Display Component */}
           <AnalysisDisplay 
-            analysis={{
-              id: analysis.id,
-              filename: analysis.filename,
-              documentType: analysis.documentType,
-              institutionName: analysis.institutionName,
-              studentName: analysis.studentName,
-              programName: analysis.programName,
-              summary: analysis.summary,
-              analysis: analysis.analysis,
-              createdAt: analysis.createdAt,
-              userId: analysis.userId
-            }} 
+            analysis={analysis as any} 
             showUserInfo={false} 
             isAdmin={false} 
           />
