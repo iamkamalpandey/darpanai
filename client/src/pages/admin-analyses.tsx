@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertTriangle, FileText, Users, Calendar, TrendingUp } from 'lucide-react';
+import { AlertTriangle, FileText, Users, Calendar, TrendingUp, Clock } from 'lucide-react';
 import { EnhancedFilters, FilterOptions } from '@/components/EnhancedFilters';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 
@@ -748,75 +748,62 @@ function AnalysisDetailView({ analysis, onBack }: { analysis: AnalysisData; onBa
             )}
           </TabsContent>
 
-          {/* Complete Details Tab - Simplified for Enrollment Analysis */}
+          {/* Complete Details Tab - Copy from User Dashboard */}
           <TabsContent value="details" className="space-y-6">
             {analysis.analysisType === 'enrollment_analysis' ? (
-              <>
-                {/* Academic & Visa Information Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Academic Information */}
                 <Card>
                   <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white">
                     <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      Academic & Visa Information
+                      <Users className="h-5 w-5" />
+                      Academic Information
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Institution:</p>
-                          <p className="text-base text-gray-900">{analysis.analysisResults?.institutionName || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Program:</p>
-                          <p className="text-base text-gray-900">{analysis.analysisResults?.programName || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Student Name:</p>
-                          <p className="text-base text-gray-900">{analysis.analysisResults?.studentName || 'Not specified in document'}</p>
-                        </div>
+                  <CardContent className="pt-6 space-y-4">
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Institution:</p>
+                        <p className="text-base text-gray-900">{analysis.analysisResults?.institutionName || 'Not specified in document'}</p>
                       </div>
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Document Type:</p>
-                          <p className="text-base text-gray-900">{analysis.analysisResults?.documentType || 'Not specified in document'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">Analysis Date:</p>
-                          <p className="text-base text-gray-900">{format(new Date(analysis.createdAt), 'MMM dd, yyyy')}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-600">File Name:</p>
-                          <p className="text-base text-gray-900">{analysis.fileName}</p>
-                        </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Program:</p>
+                        <p className="text-base text-gray-900">{analysis.analysisResults?.programName || 'Not specified in document'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Student Name:</p>
+                        <p className="text-base text-gray-900">{analysis.analysisResults?.studentName || 'Not specified in document'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Document Type:</p>
+                        <p className="text-base text-gray-900">{analysis.analysisResults?.documentType || 'Not specified in document'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Analysis Date:</p>
+                        <p className="text-base text-gray-900">{format(new Date(analysis.createdAt), 'MMM dd, yyyy')}</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Financial & Scholarship Information Section */}
+                {/* Quick Summary */}
                 <Card>
-                  <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                  <CardHeader className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
                     <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5" />
-                      Financial & Scholarship Information
+                      <Calendar className="h-5 w-5" />
+                      Quick Summary
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-6">
-                    <div className="space-y-6">
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h4 className="font-medium text-gray-800 mb-3">Financial Details from Document</h4>
-                        <div 
-                          className="text-gray-700 whitespace-pre-wrap break-words"
-                          dangerouslySetInnerHTML={{ 
-                            __html: formatNumericalInfo(analysis.analysisResults?.summary || 'No financial information available in the analysis.') 
-                          }}
-                        />
-                      </div>
-                    </div>
+                    <div 
+                      className="text-gray-700 whitespace-pre-wrap break-words"
+                      dangerouslySetInnerHTML={{ 
+                        __html: formatNumericalInfo(analysis.analysisResults?.summary || 'Analysis summary not available.') 
+                      }}
+                    />
                   </CardContent>
                 </Card>
-              </>
+              </div>
             ) : (
               /* Visa Analysis Complete Details */
               <Card>
