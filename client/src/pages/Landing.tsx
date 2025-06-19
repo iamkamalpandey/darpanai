@@ -33,7 +33,7 @@ export default function Landing() {
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <FileText className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">StudyAbroad Analyzer</span>
+              <span className="text-xl font-bold text-gray-900">EduPath Intelligence</span>
             </div>
             
             <nav className="hidden md:flex items-center space-x-8">
@@ -64,26 +64,25 @@ export default function Landing() {
             </div>
             
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Turn Your Document Analysis Into
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> Success</span>
+              Smart Academic & Career
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> Guidance</span>
             </h1>
             
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Get expert AI analysis of your visa documents, offer letters, SOPs, COE certificates, and critical study abroad documents. 
-              Make informed decisions and strengthen your applications with personalized insights.
+              AI-powered analysis of offer letters, COE certificates, and academic documents. Make informed decisions about your education and career path with expert guidance available when needed.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <Link href="/auth">
                 <Button size="lg" className="text-lg px-8 py-4 h-auto shadow-lg hover:shadow-xl transition-all duration-300">
                   <Upload className="h-5 w-5 mr-2" />
-                  Analyze My Documents
+                  Get Document Analysis
                 </Button>
               </Link>
               <ConsultationForm 
                 buttonVariant="outline" 
                 buttonSize="lg"
-                buttonText="Book Free Consultation"
+                buttonText="Speak with Expert"
                 className="text-lg px-8 py-4 h-auto border-2 hover:bg-gray-50 transition-all duration-300"
                 source="landing-hero"
               />
@@ -93,15 +92,15 @@ export default function Landing() {
             <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-gray-600">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <span className="font-medium">5,000+ Documents Analyzed</span>
+                <span className="font-medium">Academic Document Analysis</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <span className="font-medium">90% Success Rate Improvement</span>
+                <span className="font-medium">Expert Career Guidance</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <span className="font-medium">Confidential & Secure</span>
+                <span className="font-medium">Informed Decisions</span>
               </div>
             </div>
           </div>
@@ -120,20 +119,20 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
             <div className="text-center">
-              <div className="text-4xl lg:text-5xl font-bold text-blue-600 mb-3">5K+</div>
-              <div className="text-gray-600 font-medium">Documents Analyzed</div>
+              <div className="text-4xl lg:text-5xl font-bold text-blue-600 mb-3">AI</div>
+              <div className="text-gray-600 font-medium">Document Analysis</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl lg:text-5xl font-bold text-green-600 mb-3">90%</div>
-              <div className="text-gray-600 font-medium">Success Rate</div>
+              <div className="text-4xl lg:text-5xl font-bold text-green-600 mb-3">Expert</div>
+              <div className="text-gray-600 font-medium">Career Guidance</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl lg:text-5xl font-bold text-purple-600 mb-3">50+</div>
-              <div className="text-gray-600 font-medium">Countries Supported</div>
+              <div className="text-4xl lg:text-5xl font-bold text-purple-600 mb-3">Global</div>
+              <div className="text-gray-600 font-medium">Education Support</div>
             </div>
             <div className="text-center">
               <div className="text-4xl lg:text-5xl font-bold text-orange-600 mb-3">24/7</div>
-              <div className="text-gray-600 font-medium">AI Analysis</div>
+              <div className="text-gray-600 font-medium">Available</div>
             </div>
           </div>
         </div>
@@ -144,10 +143,10 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Comprehensive Document Analysis Platform
+              Intelligent Academic & Career Solutions
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Advanced AI technology analyzes visa documents, offer letters, SOPs, COE certificates, and critical study abroad documents for informed decision-making
+              AI-powered analysis of academic documents combined with expert guidance to help students and professionals make informed educational and career decisions
             </p>
           </div>
 
@@ -157,9 +156,9 @@ export default function Landing() {
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                   <Zap className="h-6 w-6 text-blue-600" />
                 </div>
-                <CardTitle>AI-Powered Document Analysis</CardTitle>
+                <CardTitle>Smart Document Intelligence</CardTitle>
                 <CardDescription>
-                  Advanced machine learning algorithms analyze visa documents, offer letters, SOPs, and COE certificates with 95% accuracy
+                  AI analysis of offer letters, COE certificates, and academic documents to extract key insights for your educational decisions
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -169,9 +168,9 @@ export default function Landing() {
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
                   <Award className="h-6 w-6 text-green-600" />
                 </div>
-                <CardTitle>Expert Study Abroad Consultation</CardTitle>
+                <CardTitle>Expert Academic Guidance</CardTitle>
                 <CardDescription>
-                  Connect with certified education consultants for personalized guidance on document preparation and application strategy
+                  Connect with experienced academic advisors and career counselors for personalized guidance on your educational journey
                 </CardDescription>
               </CardHeader>
             </Card>
