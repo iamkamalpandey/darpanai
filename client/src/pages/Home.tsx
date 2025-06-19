@@ -34,8 +34,16 @@ interface RecentAnalysis {
   isPublic: boolean;
 }
 
+interface User {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+}
+
 export default function Home() {
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<User>({
     queryKey: ['/api/user'],
     staleTime: 15 * 60 * 1000,
     refetchOnMount: false,

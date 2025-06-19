@@ -157,7 +157,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex flex-col h-full">
             <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-white flex-shrink-0">
               <Shield className="h-6 w-6 text-blue-600 mr-3" />
-              <span className="text-lg font-semibold text-gray-900">EduPath Intelligence</span>
+              <span className="text-lg font-semibold text-gray-900">Darpan Intelligence</span>
             </div>
             <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto min-h-0">
               {sidebarItems.map((item, index) => (
@@ -258,7 +258,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Header */}
             <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-white flex-shrink-0">
               <Shield className="h-6 w-6 text-blue-600 mr-3" />
-              <span className="text-lg font-semibold text-gray-900">EduPath Intelligence</span>
+              <span className="text-lg font-semibold text-gray-900">Darpan Intelligence</span>
             </div>
             
             {/* Navigation */}
