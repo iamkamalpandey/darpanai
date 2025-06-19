@@ -33,7 +33,7 @@ export default function Landing() {
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <FileText className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">VisaAnalyzer</span>
+              <span className="text-xl font-bold text-gray-900">StudyAbroad Analyzer</span>
             </div>
             
             <nav className="hidden md:flex items-center space-x-8">
@@ -58,50 +58,50 @@ export default function Landing() {
       <section className="relative overflow-hidden bg-gradient-to-b from-blue-50 via-white to-purple-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
-            <Badge variant="secondary" className="mb-6">
-              <Zap className="h-3 w-3 mr-1" />
-              AI-Powered Visa Analysis
-            </Badge>
+            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
+              <span className="text-yellow-500">✨</span>
+              AI-Powered Document Analysis
+            </div>
             
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Turn Your Visa
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> Rejection</span>
-              <br />Into Success
+              Turn Your Document Analysis Into
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> Success</span>
             </h1>
             
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Get expert AI analysis of your rejection letter and personalized guidance to strengthen your next application. 
-              Join thousands who've improved their visa success rate.
+              Get expert AI analysis of your visa documents, offer letters, SOPs, COE certificates, and critical study abroad documents. 
+              Make informed decisions and strengthen your applications with personalized insights.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <Link href="/auth">
-                <Button size="lg" className="text-lg px-8 py-4 h-auto">
+                <Button size="lg" className="text-lg px-8 py-4 h-auto shadow-lg hover:shadow-xl transition-all duration-300">
                   <Upload className="h-5 w-5 mr-2" />
-                  Analyze My Rejection Letter
+                  Analyze My Documents
                 </Button>
               </Link>
               <ConsultationForm 
-                buttonVariant="secondary" 
+                buttonVariant="outline" 
                 buttonSize="lg"
                 buttonText="Book Free Consultation"
-                className="text-lg px-8 py-4 h-auto bg-white text-blue-600 border-2 border-white hover:bg-blue-50 transition-all duration-200 font-medium"
+                className="text-lg px-8 py-4 h-auto border-2 hover:bg-gray-50 transition-all duration-300"
+                source="landing-hero"
               />
             </div>
 
             {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-gray-500">
+            <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-gray-600">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <span>10,000+ Documents Analyzed</span>
+                <span className="font-medium">5,000+ Documents Analyzed</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <span>85% Success Rate Improvement</span>
+                <span className="font-medium">90% Success Rate Improvement</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <span>Confidential & Secure</span>
+                <span className="font-medium">Confidential & Secure</span>
               </div>
             </div>
           </div>
@@ -116,24 +116,24 @@ export default function Landing() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
             <div className="text-center">
-              <div className="text-3xl font-bold text-gray-900 mb-2">10K+</div>
-              <div className="text-gray-600">Documents Analyzed</div>
+              <div className="text-4xl lg:text-5xl font-bold text-blue-600 mb-3">5K+</div>
+              <div className="text-gray-600 font-medium">Documents Analyzed</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-gray-900 mb-2">85%</div>
-              <div className="text-gray-600">Success Rate</div>
+              <div className="text-4xl lg:text-5xl font-bold text-green-600 mb-3">90%</div>
+              <div className="text-gray-600 font-medium">Success Rate</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-gray-900 mb-2">150+</div>
-              <div className="text-gray-600">Countries Supported</div>
+              <div className="text-4xl lg:text-5xl font-bold text-purple-600 mb-3">50+</div>
+              <div className="text-gray-600 font-medium">Countries Supported</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-gray-900 mb-2">24/7</div>
-              <div className="text-gray-600">AI Analysis</div>
+              <div className="text-4xl lg:text-5xl font-bold text-orange-600 mb-3">24/7</div>
+              <div className="text-gray-600 font-medium">AI Analysis</div>
             </div>
           </div>
         </div>
@@ -144,10 +144,10 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Why Choose VisaAnalyzer?
+              Comprehensive Document Analysis Platform
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Advanced AI technology combined with expert human insight to maximize your visa application success
+              Advanced AI technology analyzes visa documents, offer letters, SOPs, COE certificates, and critical study abroad documents for informed decision-making
             </p>
           </div>
 
@@ -157,9 +157,9 @@ export default function Landing() {
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                   <Zap className="h-6 w-6 text-blue-600" />
                 </div>
-                <CardTitle>AI-Powered Analysis</CardTitle>
+                <CardTitle>AI-Powered Document Analysis</CardTitle>
                 <CardDescription>
-                  Advanced machine learning algorithms analyze your rejection letter and identify specific issues with 95% accuracy
+                  Advanced machine learning algorithms analyze visa documents, offer letters, SOPs, and COE certificates with 95% accuracy
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -169,9 +169,9 @@ export default function Landing() {
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
                   <Award className="h-6 w-6 text-green-600" />
                 </div>
-                <CardTitle>Expert Consultation</CardTitle>
+                <CardTitle>Expert Study Abroad Consultation</CardTitle>
                 <CardDescription>
-                  Connect with certified immigration experts for personalized guidance and application strategy
+                  Connect with certified education consultants for personalized guidance on document preparation and application strategy
                 </CardDescription>
               </CardHeader>
             </Card>
