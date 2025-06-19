@@ -167,10 +167,18 @@ export default function EnrollmentAnalysis() {
       formData.append('document', file);
       formData.append('documentType', documentType);
 
-      return apiRequest('/api/enrollment-analysis', {
+      const response = await fetch('/api/enrollment-analysis', {
         method: 'POST',
         body: formData,
+        credentials: 'include',
       });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`${response.status}: ${errorText}`);
+      }
+      
+      return response.json();
     },
     onSuccess: (data) => {
       setSelectedAnalysis(data);
@@ -205,7 +213,7 @@ export default function EnrollmentAnalysis() {
       return;
     }
 
-    if (user && user.analysisCount >= user.maxAnalyses) {
+    if (user && (user as any)?.analysisCount >= (user as any)?.maxAnalyses) {
       toast({
         title: 'Analysis Limit Reached',
         description: 'You have reached your analysis limit. Please upgrade your plan to continue.',
@@ -425,7 +433,7 @@ export default function EnrollmentAnalysis() {
                 <div className="flex items-center gap-2 text-blue-800">
                   <CheckCircle className="h-5 w-5" />
                   <span className="font-medium">
-                    Analysis Credits: {user.maxAnalyses - user.analysisCount} remaining
+                    Analysis Credits: {(user as any)?.maxAnalyses - (user as any)?.analysisCount} remaining
                   </span>
                 </div>
               </div>
@@ -435,7 +443,7 @@ export default function EnrollmentAnalysis() {
             <div className="mt-6 flex justify-center">
               <Button
                 onClick={handleAnalysis}
-                disabled={!selectedFile || !documentType || mutation.isPending || analysisProgress > 0 || (user && user.analysisCount >= user.maxAnalyses)}
+                disabled={!selectedFile || !documentType || mutation.isPending || analysisProgress > 0 || Boolean(user && (user as any)?.analysisCount >= (user as any)?.maxAnalyses)}
                 className="px-8 py-3 text-base font-medium bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
               >
                 {mutation.isPending ? (
@@ -452,7 +460,7 @@ export default function EnrollmentAnalysis() {
         </Card>
 
         {/* Recent Analyses */}
-        {analyses && analyses.length > 0 && (
+        {(analyses as any)?.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
