@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, FileText, Users, Calendar, TrendingUp } from 'lucide-react';
 import { EnhancedFilters, FilterOptions } from '@/components/EnhancedFilters';
-import { Pagination } from '@/components/ui/pagination';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
 interface AnalysisData {
   id: number;
@@ -231,12 +231,15 @@ export default function AdminAnalyses() {
 
         {/* Filters */}
         <EnhancedFilters
+          filters={filters}
           onFiltersChange={handleFiltersChange}
-          analyses={analyses}
-          showAnalysisTypeFilter={true}
-          showSeverityFilter={true}
-          showPublicFilter={true}
-          initialFilters={filters}
+          config={{
+            showAnalysisType: true,
+            showSeverity: true,
+            showPublicFilter: true,
+            showSearch: true,
+            showSorting: true
+          }}
         />
 
         {/* Analysis List */}
@@ -289,7 +292,7 @@ export default function AdminAnalyses() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="mt-6">
-                <Pagination
+                <PaginationControls
                   currentPage={currentPage}
                   totalPages={totalPages}
                   onPageChange={setCurrentPage}
