@@ -72,6 +72,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: <BarChart3 size={20} />, label: 'Dashboard', href: '/admin' },
     { icon: <Users size={20} />, label: 'User Management', href: '/admin/users' },
     { icon: <FileText size={20} />, label: 'Analysis Reports', href: '/admin/analyses' },
+    { icon: <MessageSquare size={20} />, label: 'User Feedback', href: '/admin/feedback' },
     { icon: <Calendar size={20} />, label: 'Appointments', href: '/admin/appointments' },
     { icon: <Briefcase size={20} />, label: 'Professional Applications', href: '/admin/professional-applications' },
     { icon: <Bell size={20} />, label: 'Updates & Notifications', href: '/admin/updates' },

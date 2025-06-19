@@ -2233,6 +2233,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin endpoint to get all feedback
+  app.get('/api/admin/feedback', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const feedback = await storage.getAllFeedback();
+      res.status(200).json(feedback);
+    } catch (error) {
+      console.error('Error fetching all feedback:', error);
+      res.status(500).json({ error: 'Failed to fetch feedback' });
+    }
+  });
+
   // Admin routes for feedback analytics
   app.get('/api/admin/feedback-analytics', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {

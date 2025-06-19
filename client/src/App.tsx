@@ -39,6 +39,7 @@ const AdminUpdates = lazy(() => import("@/pages/admin-updates"));
 const AdminSettings = lazy(() => import("@/pages/admin-settings"));
 const AdminDocumentTemplates = lazy(() => import("@/pages/admin-document-templates"));
 const AdminDocumentChecklists = lazy(() => import("@/pages/admin-document-checklists"));
+const AdminFeedback = lazy(() => import("@/pages/admin-feedback"));
 
 // Loading fallback component
 const LoadingFallback = () => (

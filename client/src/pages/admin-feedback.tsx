@@ -46,7 +46,7 @@ export default function AdminFeedback() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const feedbacks: FeedbackItem[] = feedbackData || [];
+  const feedbacks: FeedbackItem[] = (feedbackData as FeedbackItem[]) || [];
 
   // Filter and search feedback
   const filteredFeedbacks = feedbacks.filter(item => {
@@ -297,8 +297,6 @@ export default function AdminFeedback() {
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
-              totalItems={filteredFeedbacks.length}
-              itemsPerPage={itemsPerPage}
             />
           </div>
         )}

@@ -1186,6 +1186,46 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Admin method to get all feedback with user and analysis details
+  async getAllFeedback(): Promise<any[]> {
+    try {
+      const feedback = await db
+        .select({
+          id: analysisFeedback.id,
+          analysisId: analysisFeedback.analysisId,
+          userId: analysisFeedback.userId,
+          analysisType: analysisFeedback.analysisType,
+          overallRating: analysisFeedback.overallRating,
+          feedback: analysisFeedback.feedback,
+          createdAt: analysisFeedback.createdAt,
+          user: {
+            username: users.username,
+            email: users.email,
+          },
+          analysis: {
+            filename: sql<string>`COALESCE(${analyses.filename}, ${enrollmentAnalyses.filename})`,
+            documentType: sql<string>`CASE WHEN ${analysisFeedback.analysisType} = 'visa' THEN 'visa' ELSE 'enrollment' END`,
+          }
+        })
+        .from(analysisFeedback)
+        .leftJoin(users, eq(analysisFeedback.userId, users.id))
+        .leftJoin(analyses, and(
+          eq(analysisFeedback.analysisId, analyses.id),
+          eq(analysisFeedback.analysisType, 'visa')
+        ))
+        .leftJoin(enrollmentAnalyses, and(
+          eq(analysisFeedback.analysisId, enrollmentAnalyses.id),
+          eq(analysisFeedback.analysisType, 'enrollment')
+        ))
+        .orderBy(desc(analysisFeedback.createdAt));
+      
+      return feedback;
+    } catch (error) {
+      console.error("Error fetching all feedback:", error);
+      throw error;
+    }
+  }
+
   async getFeedbackAnalytics(): Promise<any> {
     try {
       const analytics = await db
