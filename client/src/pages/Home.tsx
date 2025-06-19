@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { ConsultationForm } from "@/components/ConsultationForm";
-import { Footer } from "@/components/Footer";
 
 interface UserStats {
   analysisCount: number;
@@ -364,7 +363,6 @@ export default function Home() {
           </div>
         </div>
 
-        <Footer />
       </div>
     </DashboardLayout>
   );
