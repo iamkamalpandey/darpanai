@@ -76,8 +76,8 @@ export default function AdminAnalyses() {
 
   const { data: analyses = [], isLoading } = useQuery({
     queryKey: ['/api/admin/analyses'],
-    staleTime: 15 * 60 * 1000,
-    refetchOnMount: false,
+    staleTime: 0, // Disable cache to get fresh data
+    refetchOnMount: true,
     refetchOnWindowFocus: false
   });
 
@@ -107,7 +107,7 @@ export default function AdminAnalyses() {
     );
   }
 
-  if (filters.analysisType) {
+  if (filters.analysisType && filters.analysisType !== 'all') {
     filtered = filtered.filter((analysis: AnalysisData) => analysis.analysisType === filters.analysisType);
   }
 
