@@ -77,8 +77,6 @@ export default function COEAnalysisView() {
           {/* Use Unified Analysis Display Component */}
           <AnalysisDisplay 
             analysis={analysis as any} 
-            showUserInfo={false} 
-            isAdmin={false} 
           />
 
           {/* Footer Actions */}

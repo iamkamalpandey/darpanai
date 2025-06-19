@@ -333,7 +333,11 @@ export default function AnalysisDisplay({ analysis }: { analysis: AnalysisData }
               <div>
                 <p className="text-sm text-gray-600">Analysis Date</p>
                 <p className="font-semibold text-gray-900">
-                  {new Date(analysis.createdAt).toLocaleDateString()}
+                  {analysis.createdAt ? new Date(analysis.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  }) : 'Not available'}
                 </p>
               </div>
             </div>
