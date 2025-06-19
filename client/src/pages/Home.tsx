@@ -60,43 +60,79 @@ export default function Home() {
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl p-4 sm:p-6 lg:p-8 border border-blue-100">
           <div className="max-w-4xl mx-auto">
             <div className="text-center">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight">
-                Welcome back, {user?.firstName}!
+              <div className="mb-4">
+                <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium mb-4">
+                  <span className="text-yellow-500">✨</span>
+                  AI-Powered Document Analysis
+                </div>
+              </div>
+              {user && (
+                <div className="text-lg sm:text-xl text-gray-700 mb-3 font-medium">
+                  Welcome back, {user.firstName}!
+                </div>
+              )}
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
+                Turn Your Document Analysis Into 
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> Success</span>
               </h1>
-              <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed">
-                Make your study abroad journey informed with AI-powered analysis of visa documents, offer letters, SOPs, COE certificates, and other critical documents. Get expert insights and comprehensive guidance every step of the way.
+              <p className="text-lg sm:text-xl lg:text-2xl text-gray-600 mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed">
+                Get expert AI analysis of your visa documents, offer letters, SOPs, COE certificates, and critical study abroad documents. Make informed decisions and strengthen your applications with personalized insights.
               </p>
               
-              {/* Single Primary CTA */}
-              <div className="flex justify-center mb-6 sm:mb-8">
+              {/* Dual CTA Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 sm:mb-10">
+                <Link href="/visa-analysis">
+                  <Button size="lg" className="w-full sm:w-auto text-base sm:text-lg px-8 sm:px-12 py-4 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <Upload className="h-5 w-5 mr-2" />
+                    Analyze My Documents
+                  </Button>
+                </Link>
                 <ConsultationForm 
-                  buttonVariant="default" 
+                  buttonVariant="outline" 
                   buttonSize="lg"
-                  buttonText="Make Your Journey Informed"
-                  className="text-base sm:text-lg px-8 sm:px-12 py-4 shadow-lg hover:shadow-xl transition-all duration-300"
+                  buttonText="Book Free Consultation"
+                  className="w-full sm:w-auto text-base sm:text-lg px-8 sm:px-12 py-4 border-2 hover:bg-gray-50 transition-all duration-300"
                   source="dashboard-hero"
                 />
               </div>
 
               {/* Trust Indicators */}
-              <div className="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-500">
+              <div className="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 sm:gap-8 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-                  <span>Visa, SOP & Offer Letter Analysis</span>
+                  <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  <span className="font-medium">5,000+ Documents Analyzed</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-                  <span>COE & Critical Document Review</span>
+                  <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  <span className="font-medium">90% Success Rate Improvement</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-                  <span>Expert Guidance & Resources</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-                  <span>Informed Decision Making</span>
+                  <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                  <span className="font-medium">Confidential & Secure</span>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Statistics Section */}
+        <div className="bg-white rounded-xl p-6 lg:p-8 border border-gray-200 shadow-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8 text-center">
+            <div className="space-y-2">
+              <div className="text-3xl lg:text-4xl font-bold text-blue-600">5K+</div>
+              <div className="text-sm lg:text-base text-gray-600 font-medium">Documents Analyzed</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-3xl lg:text-4xl font-bold text-green-600">90%</div>
+              <div className="text-sm lg:text-base text-gray-600 font-medium">Success Rate</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-3xl lg:text-4xl font-bold text-purple-600">50+</div>
+              <div className="text-sm lg:text-base text-gray-600 font-medium">Countries Supported</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-3xl lg:text-4xl font-bold text-orange-600">24/7</div>
+              <div className="text-sm lg:text-base text-gray-600 font-medium">AI Analysis</div>
             </div>
           </div>
         </div>
