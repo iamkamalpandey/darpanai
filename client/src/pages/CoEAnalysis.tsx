@@ -184,16 +184,16 @@ export default function CoEAnalysis() {
           <div className="max-w-3xl mx-auto space-y-4">
             <div className="flex items-center justify-center gap-3 mb-4">
               <GraduationCap className="h-10 w-10 text-blue-600" />
-              <h1 className="text-4xl font-bold text-gray-900">CoE Document Analysis</h1>
+              <h1 className="text-4xl font-bold text-gray-900">COE Document Analysis</h1>
             </div>
             <p className="text-lg text-gray-700">
-              Specialized AI-powered analysis for Australian Confirmation of Enrollment (CoE) documents. 
+              Specialized AI-powered analysis for Confirmation of Enrollment (COE) documents from universities worldwide. 
               Extract comprehensive institution details, financial breakdown, and compliance requirements.
             </p>
             <div className="flex justify-center items-center gap-6 mt-6">
               <div className="flex items-center gap-2 text-blue-600">
                 <CheckCircle className="h-5 w-5" />
-                <span className="font-medium">CoE Specialized</span>
+                <span className="font-medium">COE Specialized</span>
               </div>
               <div className="flex items-center gap-2 text-green-600">
                 <Shield className="h-5 w-5" />
@@ -237,10 +237,10 @@ export default function CoEAnalysis() {
           <CardHeader className="bg-gradient-to-r from-blue-500 to-green-500 text-white">
             <CardTitle className="flex items-center gap-3 text-xl">
               <Upload className="h-6 w-6" />
-              Upload Your CoE Document
+              Upload Your COE Document
             </CardTitle>
             <CardDescription className="text-blue-50">
-              Our specialized AI analyzes Australian CoE documents to extract critical enrollment and compliance information
+              Our specialized AI analyzes COE documents to extract critical enrollment and compliance information
             </CardDescription>
           </CardHeader>
           <CardContent className="p-8 space-y-8">
@@ -251,21 +251,21 @@ export default function CoEAnalysis() {
                 <div className="flex items-center gap-3">
                   <GraduationCap className="h-6 w-6 text-blue-600" />
                   <div className="flex-1">
-                    <div className="font-medium text-blue-800">Confirmation of Enrollment (CoE)</div>
-                    <div className="text-sm text-blue-600">Australian university enrollment confirmation - specialized analysis</div>
+                    <div className="font-medium text-blue-800">Confirmation of Enrollment (COE)</div>
+                    <div className="text-sm text-blue-600">University enrollment confirmation - specialized analysis for all countries</div>
                   </div>
                   <Badge className="bg-green-100 text-green-800">Active Template</Badge>
                 </div>
               </div>
               
-              {/* CoE Requirements Notice */}
+              {/* COE Requirements Notice */}
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">
                   <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
                   <div className="flex-1">
-                    <h4 className="font-medium text-amber-800 mb-1">CoE Documents Only</h4>
+                    <h4 className="font-medium text-amber-800 mb-1">COE Documents Only</h4>
                     <p className="text-sm text-amber-700">
-                      This analysis is specifically designed for Australian Confirmation of Enrollment documents. 
+                      This analysis is specifically designed for Confirmation of Enrollment documents from any country. 
                       Other enrollment documents (I-20, CAS, Admission Letters) require different analysis templates.
                     </p>
                   </div>
