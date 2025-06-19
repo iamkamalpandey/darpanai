@@ -19,6 +19,30 @@ interface COEAnalysis {
   summary?: string;
   analysis?: any;
   createdAt: string;
+  // Additional fields that might be present
+  studentId?: string;
+  programLevel?: string;
+  startDate?: string;
+  endDate?: string;
+  duration?: string;
+  campus?: string;
+  faculty?: string;
+  modeOfStudy?: string;
+  programCode?: string;
+  cricosCode?: string;
+  creditPoints?: string;
+  languageRequirements?: string;
+  tuitionFee?: string;
+  otherFees?: string;
+  totalCost?: string;
+  paymentTerms?: string;
+  refundPolicy?: string;
+  scholarship?: string;
+  healthInsurance?: string;
+  oshcDetails?: string;
+  visaConditions?: string;
+  academicRequirements?: string;
+  importantDeadlines?: string;
 }
 
 export default function COEAnalysisView() {
@@ -70,7 +94,13 @@ export default function COEAnalysisView() {
     );
   }
 
+  // Debug: log the analysis data structure
+  console.log('Analysis data:', analysis);
+  
   const parsedAnalysis = analysis.analysis ? (typeof analysis.analysis === 'string' ? JSON.parse(analysis.analysis) : analysis.analysis) : null;
+  
+  // Also check if summary exists as a direct property
+  const hasDirectData = analysis.summary || analysis.institutionName || analysis.studentName || analysis.programName;
 
   return (
     <DashboardLayout>
@@ -121,7 +151,7 @@ export default function COEAnalysisView() {
           </Card>
 
           {/* Analysis Content */}
-          {parsedAnalysis ? (
+          {parsedAnalysis || hasDirectData ? (
             <Tabs defaultValue="overview" className="space-y-6">
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="overview" className="text-sm">Overview</TabsTrigger>
@@ -142,7 +172,7 @@ export default function COEAnalysisView() {
                   <CardContent>
                     <div className="bg-gray-50 rounded-lg p-4">
                       <p className="text-gray-800 leading-relaxed">
-                        {parsedAnalysis.summary || analysis.summary || 'Summary not available in document'}
+                        {parsedAnalysis?.summary || analysis.summary || 'Summary not available in document'}
                       </p>
                     </div>
                   </CardContent>
@@ -161,29 +191,29 @@ export default function COEAnalysisView() {
                       <div className="space-y-3">
                         <div>
                           <p className="text-sm font-medium text-gray-500">Student Name</p>
-                          <p className="font-semibold">{parsedAnalysis.studentName || analysis.studentName || 'Not specified in document'}</p>
+                          <p className="font-semibold">{parsedAnalysis?.studentName || analysis.studentName || 'Not specified in document'}</p>
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-500">Student ID</p>
-                          <p className="font-semibold">{parsedAnalysis.studentId || 'Not specified in document'}</p>
+                          <p className="font-semibold">{parsedAnalysis?.studentId || analysis.studentId || 'Not specified in document'}</p>
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-500">Program Level</p>
-                          <p className="font-semibold">{parsedAnalysis.programLevel || 'Not specified in document'}</p>
+                          <p className="font-semibold">{parsedAnalysis?.programLevel || analysis.programLevel || 'Not specified in document'}</p>
                         </div>
                       </div>
                       <div className="space-y-3">
                         <div>
                           <p className="text-sm font-medium text-gray-500">Start Date</p>
-                          <p className="font-semibold">{parsedAnalysis.startDate || 'Not specified in document'}</p>
+                          <p className="font-semibold">{parsedAnalysis?.startDate || analysis.startDate || 'Not specified in document'}</p>
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-500">End Date</p>
-                          <p className="font-semibold">{parsedAnalysis.endDate || 'Not specified in document'}</p>
+                          <p className="font-semibold">{parsedAnalysis?.endDate || analysis.endDate || 'Not specified in document'}</p>
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-500">Duration</p>
-                          <p className="font-semibold">{parsedAnalysis.duration || 'Not specified in document'}</p>
+                          <p className="font-semibold">{parsedAnalysis?.duration || analysis.duration || 'Not specified in document'}</p>
                         </div>
                       </div>
                     </div>
