@@ -49,13 +49,6 @@ export default function Home() {
   });
 
   const remainingAnalyses = user ? user.maxAnalyses - user.analysisCount : 0;
-  
-  // Create user statistics object
-  const userStats: UserStats = {
-    analysisCount: user?.analysisCount || 0,
-    maxAnalyses: user?.maxAnalyses || 3,
-    lastAnalysisDate: recentAnalyses.length > 0 ? recentAnalyses[0].createdAt : undefined,
-  };
 
   return (
     <DashboardLayout>
