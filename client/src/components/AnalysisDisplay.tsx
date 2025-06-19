@@ -4,10 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { 
   FileText, 
-  School, 
   DollarSign, 
-  AlertCircle, 
-  CheckCircle, 
   User,
   Calendar,
   Building,
@@ -28,23 +25,6 @@ interface AnalysisData {
   analysis?: any;
   createdAt: string;
   userId?: number;
-  rejectionReasons?: Array<{
-    title: string;
-    description: string;
-    category?: string;
-    severity?: 'high' | 'medium' | 'low';
-  }>;
-  recommendations?: Array<{
-    title: string;
-    description: string;
-    priority?: 'urgent' | 'important' | 'suggested';
-  }>;
-  nextSteps?: Array<{
-    title: string;
-    description: string;
-    category?: 'immediate' | 'short_term' | 'long_term';
-    step?: string;
-  }> | string;
   keyFindings?: Array<{
     title: string;
     description: string;
@@ -61,20 +41,25 @@ interface AnalysisData {
 const parseAnalysisData = (analysis: any): any => {
   let parsedData: any = {};
   
+  console.log('AnalysisDisplay - Input analysis data:', analysis);
+  
   try {
-    // First try to get structured analysis from the analysis field (priority)
+    // Parse the main analysis JSON field
     if (analysis?.analysis && analysis.analysis !== null && analysis.analysis !== '') {
       try {
         const rawAnalysisData = typeof analysis.analysis === 'string' ? JSON.parse(analysis.analysis) : analysis.analysis;
         parsedData = { ...rawAnalysisData };
         
-        console.log('AnalysisDisplay - Using structured analysis data:', parsedData);
+        console.log('AnalysisDisplay - Parsed structured analysis data:', parsedData);
         
-        // Flatten nested structures from structured analysis
+        // Extract structured data from nested objects
         if (parsedData.institutionDetails) {
           parsedData.institutionName = parsedData.institutionDetails.institutionName;
           parsedData.registrationCode = parsedData.institutionDetails.registrationCode;
           parsedData.country = parsedData.institutionDetails.country;
+          if (parsedData.institutionDetails.contactInfo) {
+            parsedData.institutionContact = `Phone: ${parsedData.institutionDetails.contactInfo.phone}, Email: ${parsedData.institutionDetails.contactInfo.email}`;
+          }
         }
         
         if (parsedData.courseDetails) {
@@ -96,6 +81,8 @@ const parseAnalysisData = (analysis: any): any => {
           parsedData.studentId = parsedData.studentDetails.studentId;
           parsedData.dateOfBirth = parsedData.studentDetails.dateOfBirth;
           parsedData.nationality = parsedData.studentDetails.nationality;
+          parsedData.gender = parsedData.studentDetails.gender;
+          parsedData.age = parsedData.studentDetails.age;
         }
         
         if (parsedData.financialDetails) {
@@ -118,54 +105,29 @@ const parseAnalysisData = (analysis: any): any => {
           parsedData.oshcProvider = parsedData.healthInsurance.provider;
           parsedData.oshcCoverage = parsedData.healthInsurance.coverageType;
           parsedData.oshcCost = parsedData.healthInsurance.estimatedCost;
+          if (parsedData.healthInsurance.coveragePeriod) {
+            parsedData.oshcStartDate = parsedData.healthInsurance.coveragePeriod.startDate;
+            parsedData.oshcEndDate = parsedData.healthInsurance.coveragePeriod.endDate;
+          }
         }
         
         if (parsedData.languageRequirements) {
           parsedData.testType = parsedData.languageRequirements.testType;
           parsedData.testScore = parsedData.languageRequirements.scoreAchieved;
           parsedData.testDate = parsedData.languageRequirements.testDate;
+          parsedData.testStatus = parsedData.languageRequirements.requirementStatus;
         }
       } catch (parseError) {
         console.error('Failed to parse structured analysis:', parseError);
-        parsedData = {};
-      }
-    } else {
-      console.log('AnalysisDisplay - No structured analysis found, using fallback extraction');
-      parsedData = {};
-    }
-    
-    // Extract data from individual database fields (for newer analyses stored in separate columns)
-    if (analysis.languageRequirements) {
-      try {
-        const langReq = typeof analysis.languageRequirements === 'string' 
-          ? JSON.parse(analysis.languageRequirements) 
-          : analysis.languageRequirements;
-        parsedData.testType = langReq.testType;
-        parsedData.testScore = langReq.scoreAchieved;
-        parsedData.testDate = langReq.testDate;
-      } catch (e) {
-        console.error('Error parsing languageRequirements:', e);
       }
     }
     
-    if (analysis.scholarshipDetails) {
-      try {
-        const scholarship = typeof analysis.scholarshipDetails === 'string' 
-          ? JSON.parse(analysis.scholarshipDetails) 
-          : analysis.scholarshipDetails;
-        parsedData.scholarship = scholarship.details || scholarship.name;
-        parsedData.scholarshipValue = scholarship.value || scholarship.amount;
-      } catch (e) {
-        console.error('Error parsing scholarshipDetails:', e);
-      }
-    }
-    
-    // Extract direct database fields
+    // Extract from direct database fields as fallback
     const directFields = [
       'institutionName', 'studentName', 'programName', 'programLevel', 
       'startDate', 'endDate', 'tuitionAmount', 'currency', 'scholarshipAmount',
       'totalCost', 'healthCover', 'englishTestScore', 'institutionContact',
-      'visaObligations', 'paymentSchedule', 'bankDetails'
+      'visaObligations', 'paymentSchedule', 'bankDetails', 'summary'
     ];
     
     directFields.forEach(field => {
@@ -174,22 +136,20 @@ const parseAnalysisData = (analysis: any): any => {
       }
     });
     
-    // Map database field names to display names
-    if (analysis.tuitionAmount && !parsedData.tuitionFee) {
-      parsedData.tuitionFee = `${analysis.currency || ''} ${analysis.tuitionAmount}`.trim();
+    // Parse JSON fields from database
+    if (analysis.languageRequirements && typeof analysis.languageRequirements === 'string') {
+      try {
+        const langReq = JSON.parse(analysis.languageRequirements);
+        if (!parsedData.testType) parsedData.testType = langReq.testType;
+        if (!parsedData.testScore) parsedData.testScore = langReq.scoreAchieved;
+        if (!parsedData.testDate) parsedData.testDate = langReq.testDate;
+        if (!parsedData.testStatus) parsedData.testStatus = langReq.requirementStatus;
+      } catch (e) {
+        console.error('Error parsing languageRequirements:', e);
+      }
     }
     
-    if (analysis.scholarshipAmount && !parsedData.scholarshipValue) {
-      parsedData.scholarshipValue = `${analysis.currency || ''} ${analysis.scholarshipAmount}`.trim();
-    }
-    
-    if (analysis.healthCover && !parsedData.oshcProvider) {
-      parsedData.oshcProvider = analysis.healthCover;
-    }
-    
-    if (analysis.englishTestScore && !parsedData.testScore) {
-      parsedData.testScore = analysis.englishTestScore;
-    }
+    console.log('AnalysisDisplay - Final parsed data:', parsedData);
     
   } catch (error) {
     console.error('Error parsing analysis data:', error);
@@ -198,104 +158,66 @@ const parseAnalysisData = (analysis: any): any => {
   return parsedData;
 };
 
-// Function to extract financial information with enhanced structured data handling
+// Function to extract financial information
 const extractFinancialInfo = (parsedData: any, rawAnalysis: any) => {
   const financialFields = [
-    { key: 'tuitionFee', label: 'Tuition Fee', paths: ['tuitionFee', 'financialDetails.totalTuitionFee', 'fees.tuition', 'costs.tuition', 'courseFee'], dbField: 'tuitionAmount' },
-    { key: 'otherFees', label: 'Other Fees', paths: ['otherFees', 'financialDetails.otherFees', 'fees.other', 'costs.other', 'additionalFees'] },
-    { key: 'initialPrepaid', label: 'Initial Prepaid', paths: ['initialPrepaid', 'financialDetails.initialPrepaid', 'prepaidAmount', 'deposit'] },
-    { key: 'totalCost', label: 'Total Cost', paths: ['totalCost', 'fees.total', 'costs.total', 'totalAmount'], dbField: 'totalCost' },
-    { key: 'scholarship', label: 'Scholarship', paths: ['scholarship', 'financialDetails.scholarships.details', 'scholarshipDetails', 'financialAid', 'scholarshipInfo'] },
-    { key: 'scholarshipValue', label: 'Scholarship Value', paths: ['scholarshipValue', 'financialDetails.scholarships.value', 'scholarshipAmount'], dbField: 'scholarshipAmount' },
-    { key: 'paymentTerms', label: 'Payment Arrangement', paths: ['paymentTerms', 'payment.terms', 'paymentMethod', 'financialArrangement'], dbField: 'paymentSchedule' },
-    { key: 'oshcProvider', label: 'OSHC Provider', paths: ['oshcProvider', 'healthInsurance.provider', 'insuranceProvider'], dbField: 'healthCover' },
-    { key: 'oshcCost', label: 'OSHC Cost', paths: ['oshcCost', 'healthInsurance.estimatedCost', 'insuranceCost'] },
-    { key: 'perYearCost', label: 'Per Year Cost', paths: ['perYearCost', 'financialDetails.costBreakdown.perYear', 'yearlyFee'] },
-    { key: 'perSemesterCost', label: 'Per Semester Cost', paths: ['perSemesterCost', 'financialDetails.costBreakdown.perSemester', 'semesterFee'] }
+    { key: 'tuitionFee', label: 'Total Tuition Fee', paths: ['tuitionFee', 'totalTuitionFee'] },
+    { key: 'otherFees', label: 'Other Fees', paths: ['otherFees'] },
+    { key: 'initialPrepaid', label: 'Initial Prepaid', paths: ['initialPrepaid'] },
+    { key: 'totalCost', label: 'Total Cost', paths: ['totalCost'] },
+    { key: 'scholarship', label: 'Scholarship', paths: ['scholarship'] },
+    { key: 'scholarshipValue', label: 'Scholarship Value', paths: ['scholarshipValue'] },
+    { key: 'oshcProvider', label: 'Health Insurance Provider', paths: ['oshcProvider'] },
+    { key: 'oshcCost', label: 'Health Insurance Cost', paths: ['oshcCost'] },
+    { key: 'perYearCost', label: 'Cost Per Year', paths: ['perYearCost'] },
+    { key: 'perSemesterCost', label: 'Cost Per Semester', paths: ['perSemesterCost'] }
   ];
 
   return financialFields.map(field => {
     let value = 'Not specified in document';
     
-    // First check parsed data from structured analysis or database fields
-    if (parsedData && parsedData[field.key] && parsedData[field.key] !== 'Not specified in document') {
+    if (parsedData && parsedData[field.key]) {
       value = parsedData[field.key];
-    }
-    // Then check database field mappings
-    else if (field.dbField && rawAnalysis[field.dbField]) {
-      value = rawAnalysis[field.dbField];
-      if (rawAnalysis.currency && typeof value === 'number') {
-        value = `${rawAnalysis.currency} ${value}`;
-      }
-    }
-    // Finally check structured data paths
-    else {
-      for (const path of field.paths) {
-        const pathValue = getNestedValue(parsedData, path);
-        if (pathValue && pathValue !== 'Not specified in document') {
-          value = pathValue;
-          break;
-        }
-      }
+    } else if (rawAnalysis[field.key]) {
+      value = rawAnalysis[field.key];
     }
     
     return { ...field, value };
   });
 };
 
-// Helper function to get nested values from object
-const getNestedValue = (obj: any, path: string): any => {
-  return path.split('.').reduce((current, key) => {
-    return current && current[key] !== undefined ? current[key] : null;
-  }, obj);
-};
-
-// Function to extract academic information with enhanced structured data handling
+// Function to extract academic information
 const extractAcademicInfo = (parsedData: any, rawAnalysis: any) => {
   const academicFields = [
-    { key: 'institutionName', label: 'Institution', paths: ['institutionName', 'institutionDetails.institutionName', 'institution.name'] },
-    { key: 'programName', label: 'Program', paths: ['programName', 'courseDetails.courseTitle', 'course.title', 'program.name'] },
-    { key: 'programLevel', label: 'Level', paths: ['programLevel', 'courseDetails.level', 'program.level', 'studyLevel'] },
-    { key: 'startDate', label: 'Start Date', paths: ['startDate', 'courseDetails.duration.startDate', 'enrollment.startDate'] },
-    { key: 'endDate', label: 'End Date', paths: ['endDate', 'courseDetails.duration.endDate', 'enrollment.endDate'] },
-    { key: 'fieldOfStudy', label: 'Field of Study', paths: ['fieldOfStudy', 'courseDetails.fieldOfStudy', 'program.field'] },
-    { key: 'studyMode', label: 'Study Mode', paths: ['studyMode', 'courseDetails.studyMode', 'program.mode'] },
-    { key: 'courseCode', label: 'Course Code', paths: ['courseCode', 'courseDetails.courseCode', 'program.code'] },
-    { key: 'registrationCode', label: 'Registration Code', paths: ['registrationCode', 'institutionDetails.registrationCode', 'institution.code'] },
-    { key: 'duration', label: 'Duration', paths: ['duration', 'courseDetails.duration.totalDuration', 'program.duration'] }
+    { key: 'institutionName', label: 'Institution' },
+    { key: 'programName', label: 'Program' },
+    { key: 'programLevel', label: 'Level' },
+    { key: 'startDate', label: 'Start Date' },
+    { key: 'endDate', label: 'End Date' },
+    { key: 'duration', label: 'Duration' },
+    { key: 'fieldOfStudy', label: 'Field of Study' },
+    { key: 'studyMode', label: 'Study Mode' },
+    { key: 'courseCode', label: 'Course Code' },
+    { key: 'registrationCode', label: 'Registration Code' }
   ];
 
   return academicFields.map(field => {
     let value = 'Not specified in document';
     
-    // First check parsed data from structured analysis
-    if (parsedData && parsedData[field.key] && parsedData[field.key] !== 'Not specified in document') {
+    if (parsedData && parsedData[field.key]) {
       value = parsedData[field.key];
-    }
-    // Then check database fields
-    else if (rawAnalysis[field.key] && rawAnalysis[field.key] !== 'Not specified in document') {
+    } else if (rawAnalysis[field.key]) {
       value = rawAnalysis[field.key];
-    }
-    // Finally check structured data paths
-    else {
-      for (const path of field.paths) {
-        const pathValue = getNestedValue(parsedData, path);
-        if (pathValue && pathValue !== 'Not specified in document') {
-          value = pathValue;
-          break;
-        }
-      }
     }
     
     return { ...field, value };
   });
 };
 
-// Function to highlight numerical values with blue color
+// Function to highlight numerical values
 const highlightNumbers = (text: string) => {
   if (!text || typeof text !== 'string') return text;
   
-  // Enhanced regex to capture various numerical formats
   const numberRegex = /(\$?[\d,]+\.?\d*\s?(?:USD|CAD|EUR|GBP|AUD|₹)?|\d+\.?\d*\s?%|[A-Z]{2,4}-?\d+|\d+\.\d+\s?(?:GPA|CGPA)|\d+\s?(?:credits?|hours?|semesters?|years?|months?))/gi;
   
   return text.replace(numberRegex, '<span class="bg-blue-100 text-blue-800 px-1 rounded font-medium">$1</span>');
@@ -389,7 +311,7 @@ export default function AnalysisDisplay({ analysis }: { analysis: AnalysisData }
               <div 
                 className="whitespace-pre-wrap text-gray-700 leading-relaxed break-words"
                 dangerouslySetInnerHTML={{ 
-                  __html: highlightNumbers(analysis.summary || 'No summary available')
+                  __html: highlightNumbers(analysis.summary || parsedData.summary || 'No summary available')
                 }}
               />
             </CardContent>
@@ -542,12 +464,16 @@ export default function AnalysisDisplay({ analysis }: { analysis: AnalysisData }
                     <p className="text-gray-600">{parsedData.oshcProvider || 'Not specified'}</p>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-700">Coverage</p>
+                    <p className="font-medium text-gray-700">Coverage Type</p>
                     <p className="text-gray-600">{parsedData.oshcCoverage || 'Not specified'}</p>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-700">Cost</p>
-                    <p className="text-gray-600">{parsedData.oshcCost || 'Not specified'}</p>
+                    <p className="font-medium text-gray-700">Coverage Period</p>
+                    <p className="text-gray-600">
+                      {parsedData.oshcStartDate && parsedData.oshcEndDate 
+                        ? `${parsedData.oshcStartDate} to ${parsedData.oshcEndDate}`
+                        : 'Not specified'}
+                    </p>
                   </div>
                 </div>
               </CardContent>
