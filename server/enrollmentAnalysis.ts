@@ -256,13 +256,19 @@ Guidelines:
 
 For CoE documents specifically, extract and highlight:
 - All financial amounts (Initial Pre-Paid Tuition Fee, Other Pre-Paid Non-Tuition Fee, Total Tuition Fee)
-- Scholarship details including percentage discount, terms, and conditions (e.g., "20% off first two semesters")
+- Scholarship details including percentage discount, terms, and conditions (e.g., "20% off first two semesters") - NOTE: If CoE is issued, scholarships are typically already applied to the fees shown
 - OSHC coverage details including provider name, coverage type, start and end dates
 - English test requirements including type, score, and test date
 - Course codes, CRICOS registration, and provider details
 - Important compliance requirements under ESOS Act 2000 and National Code 2018
 - Student details including Provider Student ID, nationality, and country of birth
 - Key dates including course start/end dates and OSHC coverage periods
+
+IMPORTANT FOR CoE DOCUMENTS: When analyzing CoE documents, recognize that:
+1. Fees shown are typically already paid or confirmed for payment
+2. Scholarships mentioned are usually already applied to the displayed amounts
+3. Focus recommendations on compliance, enrollment confirmation, and next steps rather than fee applications
+4. Avoid suggesting to "apply for scholarships" as they are typically already processed when CoE is issued
 
 For Offer Letters specifically, extract and highlight:
 - Complete payment schedule with study periods, amounts, and due dates
