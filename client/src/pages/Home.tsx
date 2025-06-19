@@ -49,6 +49,13 @@ export default function Home() {
   });
 
   const remainingAnalyses = user ? user.maxAnalyses - user.analysisCount : 0;
+  
+  // Create user statistics object
+  const userStats: UserStats = {
+    analysisCount: user?.analysisCount || 0,
+    maxAnalyses: user?.maxAnalyses || 3,
+    lastAnalysisDate: recentAnalyses.length > 0 ? recentAnalyses[0].createdAt : undefined,
+  };
 
   return (
     <DashboardLayout>
@@ -66,18 +73,30 @@ export default function Home() {
                   AI-Powered Document Analysis
                 </div>
               </div>
-              {user && (
-                <div className="text-lg sm:text-xl text-gray-700 mb-3 font-medium">
-                  Welcome back, {user.firstName}!
+              {user ? (
+                <div>
+                  <div className="text-lg sm:text-xl text-gray-700 mb-3 font-medium">
+                    Welcome back, {user.firstName}!
+                  </div>
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
+                    Your Document Analysis 
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> Dashboard</span>
+                  </h1>
+                  <p className="text-lg sm:text-xl text-gray-600 mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed">
+                    Analyze your visa documents, offer letters, SOPs, and COE certificates with AI-powered insights. Track your progress and make informed decisions for your study abroad journey.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
+                    Turn Your Document Analysis Into 
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> Success</span>
+                  </h1>
+                  <p className="text-lg sm:text-xl lg:text-2xl text-gray-600 mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed">
+                    Get expert AI analysis of your visa documents, offer letters, SOPs, COE certificates, and critical study abroad documents. Make informed decisions and strengthen your applications with personalized insights.
+                  </p>
                 </div>
               )}
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
-                Turn Your Document Analysis Into 
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600"> Success</span>
-              </h1>
-              <p className="text-lg sm:text-xl lg:text-2xl text-gray-600 mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed">
-                Get expert AI analysis of your visa documents, offer letters, SOPs, COE certificates, and critical study abroad documents. Make informed decisions and strengthen your applications with personalized insights.
-              </p>
               
               {/* Dual CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 sm:mb-10">
@@ -117,24 +136,47 @@ export default function Home() {
 
         {/* Statistics Section */}
         <div className="bg-white rounded-xl p-6 lg:p-8 border border-gray-200 shadow-sm">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8 text-center">
-            <div className="space-y-2">
-              <div className="text-3xl lg:text-4xl font-bold text-blue-600">5K+</div>
-              <div className="text-sm lg:text-base text-gray-600 font-medium">Documents Analyzed</div>
+          {user ? (
+            /* User-specific statistics */
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8 text-center">
+              <div className="space-y-2">
+                <div className="text-3xl lg:text-4xl font-bold text-blue-600">{user.analysisCount}</div>
+                <div className="text-sm lg:text-base text-gray-600 font-medium">Your Analyses</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-3xl lg:text-4xl font-bold text-green-600">{user.maxAnalyses - user.analysisCount}</div>
+                <div className="text-sm lg:text-base text-gray-600 font-medium">Credits Left</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-3xl lg:text-4xl font-bold text-purple-600">{recentAnalyses.length > 0 ? new Date(recentAnalyses[0].createdAt).toLocaleDateString() : 'N/A'}</div>
+                <div className="text-sm lg:text-base text-gray-600 font-medium">Last Analysis</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-3xl lg:text-4xl font-bold text-orange-600">24/7</div>
+                <div className="text-sm lg:text-base text-gray-600 font-medium">AI Available</div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <div className="text-3xl lg:text-4xl font-bold text-green-600">90%</div>
-              <div className="text-sm lg:text-base text-gray-600 font-medium">Success Rate</div>
+          ) : (
+            /* General platform statistics for non-authenticated users */
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8 text-center">
+              <div className="space-y-2">
+                <div className="text-3xl lg:text-4xl font-bold text-blue-600">5K+</div>
+                <div className="text-sm lg:text-base text-gray-600 font-medium">Documents Analyzed</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-3xl lg:text-4xl font-bold text-green-600">90%</div>
+                <div className="text-sm lg:text-base text-gray-600 font-medium">Success Rate</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-3xl lg:text-4xl font-bold text-purple-600">50+</div>
+                <div className="text-sm lg:text-base text-gray-600 font-medium">Countries Supported</div>
+              </div>
+              <div className="space-y-2">
+                <div className="text-3xl lg:text-4xl font-bold text-orange-600">24/7</div>
+                <div className="text-sm lg:text-base text-gray-600 font-medium">AI Analysis</div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <div className="text-3xl lg:text-4xl font-bold text-purple-600">50+</div>
-              <div className="text-sm lg:text-base text-gray-600 font-medium">Countries Supported</div>
-            </div>
-            <div className="space-y-2">
-              <div className="text-3xl lg:text-4xl font-bold text-orange-600">24/7</div>
-              <div className="text-sm lg:text-base text-gray-600 font-medium">AI Analysis</div>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Analysis Types Section */}

@@ -149,7 +149,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <div className="flex flex-col h-full">
             <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-white flex-shrink-0">
               <Shield className="h-6 w-6 text-blue-600 mr-3" />
-              <span className="text-lg font-semibold text-gray-900">Study Abroad Admin</span>
+              <span className="text-lg font-semibold text-gray-900">StudyAbroad Admin</span>
             </div>
             <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto min-h-0">
               {adminSidebarItems.map((item, index) => (
@@ -248,7 +248,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             {/* Header */}
             <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-white flex-shrink-0">
               <Shield className="h-6 w-6 text-blue-600 mr-3" />
-              <span className="text-lg font-semibold text-gray-900">Study Abroad Admin</span>
+              <span className="text-lg font-semibold text-gray-900">StudyAbroad Admin</span>
             </div>
             
             {/* Navigation */}
