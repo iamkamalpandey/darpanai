@@ -69,12 +69,12 @@ export default function AnalysisHub() {
     staleTime: 20 * 60 * 1000, // 20 minutes
   });
 
-  // Navigate to existing analysis pages that work properly
+  // Navigate to specific analysis detail pages
   const viewAnalysis = (id: number, type: 'visa_rejection' | 'enrollment') => {
     if (type === 'enrollment') {
-      setLocation(`/enrollment-analysis?id=${id}`);
+      setLocation(`/coe-analysis/${id}`);
     } else {
-      setLocation(`/visa-analysis?id=${id}`);
+      setLocation(`/visa-analysis-results/${id}`);
     }
   };
 
