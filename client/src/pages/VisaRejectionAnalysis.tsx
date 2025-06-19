@@ -379,11 +379,9 @@ export default function VisaRejectionAnalysis() {
               {/* Action Buttons */}
               <div className="flex justify-between items-center pt-4 border-t border-gray-200">
                 <div className="text-sm text-gray-600">
-                  {user && (
-                    <span>
-                      Analysis quota: {(user as any)?.analysisCount || 0}/{(user as any)?.maxAnalyses || 0} used
-                    </span>
-                  )}
+                  {user ? (
+                    <span>Analysis quota: {(user as any)?.analysisCount || 0}/{(user as any)?.maxAnalyses || 0} used</span>
+                  ) : null}
                 </div>
                 <Button
                   onClick={handleAnalyze}
@@ -491,7 +489,7 @@ export default function VisaRejectionAnalysis() {
                           <span className="font-medium">Analysis Date</span>
                         </div>
                         <p className="text-sm text-gray-600">
-                          {format(new Date(selectedAnalysis.createdAt), "MMM dd, yyyy")}
+                          {format(new Date((selectedAnalysis as VisaAnalysis)?.createdAt || Date.now()), "MMM dd, yyyy")}
                         </p>
                       </CardContent>
                     </Card>
@@ -604,7 +602,7 @@ export default function VisaRejectionAnalysis() {
                                 <div 
                                   className="text-gray-700 leading-relaxed whitespace-pre-wrap"
                                   dangerouslySetInnerHTML={{ 
-                                    __html: formatNumericalInfo(typeof (selectedAnalysis as VisaAnalysis)?.analysisResults?.nextSteps === 'string' ? (selectedAnalysis as VisaAnalysis)?.analysisResults?.nextSteps : JSON.stringify((selectedAnalysis as VisaAnalysis)?.analysisResults?.nextSteps) || '') 
+                                    __html: formatNumericalInfo(JSON.stringify((selectedAnalysis as VisaAnalysis)?.analysisResults?.nextSteps || '')) 
                                   }}
                                 />
                               </CardContent>
