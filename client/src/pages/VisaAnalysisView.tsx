@@ -12,7 +12,8 @@ import { AdminLayout } from '@/components/AdminLayout';
 interface VisaAnalysisData {
   id: number;
   filename: string;
-  analysisResults: {
+  summary?: string;
+  analysisResults?: {
     summary?: string;
     rejectionReasons?: Array<{
       title: string;
@@ -35,6 +36,22 @@ interface VisaAnalysisData {
       description: string;
     }>;
   };
+  rejectionReasons?: Array<{
+    title: string;
+    description: string;
+    category?: string;
+    severity?: 'high' | 'medium' | 'low';
+  }>;
+  recommendations?: Array<{
+    title: string;
+    description: string;
+    priority?: 'urgent' | 'important' | 'suggested';
+  }>;
+  nextSteps?: Array<{
+    title: string;
+    description: string;
+    category?: 'immediate' | 'short_term' | 'long_term';
+  }>;
   country?: string;
   visaType?: string;
   isPublic?: boolean;
@@ -55,13 +72,18 @@ export default function VisaAnalysisView() {
   const { user } = useAuth();
 
   // Use appropriate API endpoint based on admin/user access
-  const apiEndpoint = isAdminRoute ? '/api/admin/analyses' : '/api/analyses';
+  const apiEndpoint = isAdminRoute ? `/api/admin/visa-analyses/${analysisId}` : `/api/analyses/${analysisId}`;
   
   const { data: analysis, isLoading, error } = useQuery<VisaAnalysisData>({
-    queryKey: [apiEndpoint, analysisId],
+    queryKey: [apiEndpoint],
     enabled: !!analysisId,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
+
+  // Debug logging to understand data structure
+  if (analysis) {
+    console.log('VisaAnalysisView - Analysis data:', analysis);
+  }
 
   const goBack = () => {
     window.history.back();
@@ -145,126 +167,171 @@ export default function VisaAnalysisView() {
 
           {/* Analysis Content */}
           <div className="grid grid-cols-1 gap-8">
-            {/* Summary */}
-            {analysis.analysisResults?.summary && (
+            {/* Quick Info Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Card>
-                <CardContent className="p-6">
-                  <h2 className="text-xl font-semibold mb-4 text-blue-700">Analysis Summary</h2>
-                  <div 
-                    className="text-gray-700 whitespace-pre-wrap break-words"
-                    dangerouslySetInnerHTML={{ 
-                      __html: analysis.analysisResults.summary.replace(/\$(\d+(?:,\d{3})*(?:\.\d{2})?)/g, '<span style="background-color: #dbeafe; padding: 2px 4px; border-radius: 4px; font-weight: 600;">$$$1</span>')
-                    }}
-                  />
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    <span className="font-medium">Document Type</span>
+                  </div>
+                  <p className="text-sm text-gray-600">Visa Analysis</p>
                 </CardContent>
               </Card>
-            )}
+              
+              {analysis.country && (
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Calendar className="h-5 w-5 text-green-600" />
+                      <span className="font-medium">Country</span>
+                    </div>
+                    <p className="text-sm text-gray-600">{analysis.country}</p>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {analysis.visaType && (
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileText className="h-5 w-5 text-purple-600" />
+                      <span className="font-medium">Visa Type</span>
+                    </div>
+                    <p className="text-sm text-gray-600">{analysis.visaType}</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
 
-            {/* Rejection Reasons / Issues */}
-            {analysis.analysisResults?.rejectionReasons && analysis.analysisResults.rejectionReasons.length > 0 && (
+            {/* Tabbed Content */}
+            <div className="space-y-6">
+              {/* Overview Tab */}
               <Card>
                 <CardContent className="p-6">
-                  <h2 className="text-xl font-semibold mb-4 text-red-700">Key Issues Identified</h2>
-                  <div className="space-y-4">
-                    {analysis.analysisResults.rejectionReasons.map((reason, index) => (
-                      <div key={index} className="border-l-4 border-red-400 pl-4 py-3 bg-red-50 rounded-r">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h3 className="font-medium text-red-800">{reason.title}</h3>
-                            <p className="text-gray-700 mt-1">{reason.description}</p>
+                  <h2 className="text-xl font-semibold mb-4 text-blue-700 border-b border-blue-200 pb-2">
+                    Overview
+                  </h2>
+                  <div className="text-gray-700 whitespace-pre-wrap break-words">
+                    {(analysis.analysisResults?.summary || analysis.summary) ? (
+                      <div 
+                        dangerouslySetInnerHTML={{ 
+                          __html: (analysis.analysisResults?.summary || analysis.summary || '').replace(
+                            /\$(\d+(?:,\d{3})*(?:\.\d{2})?)/g, 
+                            '<span style="background-color: #dbeafe; padding: 2px 4px; border-radius: 4px; font-weight: 600;">$$$1</span>'
+                          )
+                        }}
+                      />
+                    ) : (
+                      <p className="text-gray-500 italic">No analysis summary available.</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Issues Tab */}
+              {((analysis.analysisResults?.rejectionReasons && analysis.analysisResults.rejectionReasons.length > 0) || 
+                (analysis.rejectionReasons && analysis.rejectionReasons.length > 0)) && (
+                <Card>
+                  <CardContent className="p-6">
+                    <h2 className="text-xl font-semibold mb-4 text-red-700 border-b border-red-200 pb-2">
+                      Key Issues
+                    </h2>
+                    <div className="space-y-4">
+                      {(analysis.analysisResults?.rejectionReasons || analysis.rejectionReasons || []).map((reason, index) => (
+                        <div key={index} className="border-l-4 border-red-400 pl-4 py-3 bg-red-50 rounded-r">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="font-medium text-red-800">{reason.title}</h3>
+                              <p className="text-gray-700 mt-1">{reason.description}</p>
+                            </div>
+                            {reason.severity && (
+                              <Badge 
+                                variant={reason.severity === 'high' ? 'destructive' : reason.severity === 'medium' ? 'default' : 'secondary'}
+                                className="ml-2"
+                              >
+                                {reason.severity.toUpperCase()}
+                              </Badge>
+                            )}
                           </div>
-                          {reason.severity && (
-                            <Badge 
-                              variant={reason.severity === 'high' ? 'destructive' : reason.severity === 'medium' ? 'default' : 'secondary'}
-                              className="ml-2"
-                            >
-                              {reason.severity}
+                          {reason.category && (
+                            <Badge variant="outline" className="mt-2 text-xs">
+                              {reason.category}
                             </Badge>
                           )}
                         </div>
-                        {reason.category && (
-                          <Badge variant="outline" className="mt-2 text-xs">
-                            {reason.category}
-                          </Badge>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-            {/* Recommendations */}
-            {analysis.analysisResults?.recommendations && analysis.analysisResults.recommendations.length > 0 && (
-              <Card>
-                <CardContent className="p-6">
-                  <h2 className="text-xl font-semibold mb-4 text-green-700">Recommendations</h2>
-                  <div className="space-y-4">
-                    {analysis.analysisResults.recommendations.map((rec, index) => (
-                      <div key={index} className="border-l-4 border-green-400 pl-4 py-3 bg-green-50 rounded-r">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h3 className="font-medium text-green-800">{rec.title}</h3>
-                            <p className="text-gray-700 mt-1">{rec.description}</p>
+              {/* Recommendations Tab */}
+              {((analysis.analysisResults?.recommendations && analysis.analysisResults.recommendations.length > 0) || 
+                (analysis.recommendations && analysis.recommendations.length > 0)) && (
+                <Card>
+                  <CardContent className="p-6">
+                    <h2 className="text-xl font-semibold mb-4 text-green-700 border-b border-green-200 pb-2">
+                      Recommendations
+                    </h2>
+                    <div className="space-y-4">
+                      {(analysis.analysisResults?.recommendations || analysis.recommendations || []).map((rec, index) => (
+                        <div key={index} className="border-l-4 border-green-400 pl-4 py-3 bg-green-50 rounded-r">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="font-medium text-green-800">{rec.title}</h3>
+                              <p className="text-gray-700 mt-1">{rec.description}</p>
+                            </div>
+                            {rec.priority && (
+                              <Badge 
+                                variant={rec.priority === 'urgent' ? 'destructive' : rec.priority === 'important' ? 'default' : 'secondary'}
+                                className="ml-2"
+                              >
+                                {rec.priority.toUpperCase()}
+                              </Badge>
+                            )}
                           </div>
-                          {rec.priority && (
-                            <Badge 
-                              variant={rec.priority === 'urgent' ? 'destructive' : rec.priority === 'important' ? 'default' : 'secondary'}
-                              className="ml-2"
-                            >
-                              {rec.priority}
-                            </Badge>
-                          )}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-            {/* Next Steps */}
-            {analysis.analysisResults?.nextSteps && analysis.analysisResults.nextSteps.length > 0 && (
-              <Card>
-                <CardContent className="p-6">
-                  <h2 className="text-xl font-semibold mb-4 text-purple-700">Next Steps</h2>
-                  <div className="space-y-4">
-                    {analysis.analysisResults.nextSteps.map((step, index) => (
-                      <div key={index} className="border-l-4 border-purple-400 pl-4 py-3 bg-purple-50 rounded-r">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h3 className="font-medium text-purple-800">{step.title}</h3>
-                            <p className="text-gray-700 mt-1">{step.description}</p>
+              {/* Next Steps Tab */}
+              {((analysis.analysisResults?.nextSteps && analysis.analysisResults.nextSteps.length > 0) || 
+                (analysis.nextSteps && analysis.nextSteps.length > 0)) && (
+                <Card>
+                  <CardContent className="p-6">
+                    <h2 className="text-xl font-semibold mb-4 text-purple-700 border-b border-purple-200 pb-2">
+                      Next Steps
+                    </h2>
+                    <div className="space-y-4">
+                      {(analysis.analysisResults?.nextSteps || analysis.nextSteps || []).map((step, index) => (
+                        <div key={index} className="border-l-4 border-purple-400 pl-4 py-3 bg-purple-50 rounded-r">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                  {index + 1}
+                                </span>
+                                <h3 className="font-medium text-purple-800">{step.title}</h3>
+                              </div>
+                              <p className="text-gray-700 ml-7">{step.description}</p>
+                            </div>
+                            {step.category && (
+                              <Badge variant="outline" className="ml-2">
+                                {step.category}
+                              </Badge>
+                            )}
                           </div>
-                          {step.category && (
-                            <Badge variant="outline" className="ml-2">
-                              {step.category}
-                            </Badge>
-                          )}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Key Terms */}
-            {analysis.analysisResults?.keyTerms && analysis.analysisResults.keyTerms.length > 0 && (
-              <Card>
-                <CardContent className="p-6">
-                  <h2 className="text-xl font-semibold mb-4 text-gray-700">Key Terms & Conditions</h2>
-                  <div className="space-y-3">
-                    {analysis.analysisResults.keyTerms.map((term, index) => (
-                      <div key={index} className="border rounded-lg p-4 bg-gray-50">
-                        <h3 className="font-medium text-gray-800 mb-1">{term.term}</h3>
-                        <p className="text-gray-600 text-sm">{term.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
 
           {/* Footer Actions */}
