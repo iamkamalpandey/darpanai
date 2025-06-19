@@ -33,6 +33,10 @@ interface VisaAnalysis {
       description: string;
       priority: string;
     }>;
+    nextSteps?: Array<{
+      title: string;
+      description: string;
+    }>;
     summary?: string;
   };
   rejectionReasons?: RejectionReason[];
@@ -40,6 +44,10 @@ interface VisaAnalysis {
     title: string;
     description: string;
     priority: string;
+  }>;
+  nextSteps?: Array<{
+    title: string;
+    description: string;
   }>;
   summary?: string;
   createdAt: string;
@@ -117,6 +125,7 @@ export default function VisaRejectionAnalysis() {
       setSelectedAnalysis(data);
     },
     onError: (error: any) => {
+      console.error('Analysis mutation error:', error);
       const errorMessage = error.message || 'Failed to analyze document';
       toast({
         title: "Analysis Failed",
@@ -378,13 +387,18 @@ export default function VisaRejectionAnalysis() {
                 </div>
                 <Button
                   onClick={handleAnalyze}
-                  disabled={!selectedFile || analyzeMutation.isPending}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 text-base font-medium"
+                  disabled={!selectedFile || analyzeMutation.isPending || (user && user.analysisCount >= user.maxAnalyses)}
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {analyzeMutation.isPending ? (
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       Analyzing...
+                    </div>
+                  ) : (user && user.analysisCount >= user.maxAnalyses) ? (
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      Limit Reached
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
@@ -409,7 +423,7 @@ export default function VisaRejectionAnalysis() {
             </CardHeader>
             <CardContent className="p-6">
               <div className="grid gap-4">
-                {analyses.map((analysis) => (
+                {analyses.map((analysis: VisaAnalysis) => (
                   <div
                     key={analysis.id}
                     className="flex items-center justify-between p-4 bg-gray-50 hover:bg-red-50 rounded-lg cursor-pointer transition-colors duration-200 border border-gray-200 hover:border-red-300"
