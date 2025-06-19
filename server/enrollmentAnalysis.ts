@@ -224,7 +224,7 @@ export async function analyzeEnrollmentDocument(
         programLevel: 'Template not available',
         startDate: 'Template not available',
         endDate: 'Template not available',
-        tuitionFee: 'Template not available',
+        tuitionAmount: 'Template not available',
         scholarshipDetails: 'Template not available',
         keyFindings: [{
           title: 'Template Not Available',
@@ -244,7 +244,12 @@ export async function analyzeEnrollmentDocument(
           category: 'immediate',
           step: 'Upload CoE document',
           description: 'Currently only CoE (Confirmation of Enrollment) documents are supported with specialized templates'
-        }]
+        }],
+        missingInformation: [],
+        isValid: false,
+        complianceIssues: [],
+        analysisScore: 0,
+        confidence: 0
       };
       
       return {
@@ -317,23 +322,30 @@ export async function analyzeEnrollmentDocument(
       programLevel: 'Analysis failed',
       startDate: 'Analysis failed',
       endDate: 'Analysis failed',
-      tuitionFee: 'Analysis failed',
+      tuitionAmount: 'Analysis failed',
       scholarshipDetails: 'Analysis failed',
       keyFindings: [{
-        category: 'other',
-        finding: 'Analysis processing failed',
-        importance: 'high' as const
+        title: 'Analysis Failed',
+        description: 'Analysis processing failed',
+        importance: 'high' as const,
+        category: 'other'
       }],
       recommendations: [{
+        title: 'Try Again',
+        description: 'Please try again or contact support',
         category: 'documentation',
-        recommendation: 'Please try again or contact support',
         priority: 'urgent' as const
       }],
       nextSteps: [{
         category: 'immediate',
         step: 'Retry analysis',
         description: 'Please try uploading the document again'
-      }]
+      }],
+      missingInformation: [],
+      isValid: false,
+      complianceIssues: [],
+      analysisScore: 0,
+      confidence: 0
     };
     
     return {
