@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, FileText, Calendar, AlertTriangle, CheckCircle, Clock, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { AnalysisFeedback } from '@/components/AnalysisFeedback';
 
 interface VisaAnalysisData {
   id: number;
@@ -71,7 +72,11 @@ export default function UserVisaAnalysisView() {
   });
 
   const goBack = () => {
-    window.location.href = '/my-analysis';
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = '/my-analysis';
+    }
   };
 
   if (isLoading) {
@@ -343,6 +348,12 @@ export default function UserVisaAnalysisView() {
               </Card>
             </TabsContent>
           </Tabs>
+
+          {/* One-click Feedback System */}
+          <AnalysisFeedback 
+            analysisId={parseInt(analysisId!)} 
+            analysisType="visa" 
+          />
         </div>
       </div>
     </DashboardLayout>

@@ -60,22 +60,23 @@ export function AnalysisFeedback({ analysisId, analysisType }: AnalysisFeedbackP
       const endpoint = `/api/analyses/${analysisId}/feedback`;
       const method = existingFeedback ? 'PATCH' : 'POST';
       
-      if (method === 'POST') {
-        return apiRequest(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            analysisType,
-            ...feedbackData,
-          }),
-        });
-      } else {
-        return apiRequest(endpoint, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(feedbackData),
-        });
-      }
+      const requestData = method === 'POST' 
+        ? { analysisType, ...feedbackData }
+        : feedbackData;
+        
+      return fetch(endpoint, {
+        method,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+        },
+        body: JSON.stringify(requestData),
+      }).then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      });
     },
     onSuccess: () => {
       toast({
