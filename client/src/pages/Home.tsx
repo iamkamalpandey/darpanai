@@ -64,7 +64,7 @@ export default function Home() {
                 Welcome back, {user?.firstName}!
               </h1>
               <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed">
-                Your comprehensive AI-powered platform for study abroad success. From document analysis to expert guidance, we simplify your journey every step of the way.
+                Your complete AI-powered educational document analysis platform. Analyze visa documents, enrollment certificates, get expert consultations, and access comprehensive resources for your study abroad journey.
               </p>
               
               {/* Single Primary CTA */}
@@ -82,19 +82,19 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-                  <span>AI-Powered Document Analysis</span>
+                  <span>Visa & Enrollment Analysis</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-                  <span>Country-Specific Guidance</span>
+                  <span>Document Templates & Checklists</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-                  <span>Expert Consultation Available</span>
+                  <span>Expert Consultations</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
-                  <span>Confidential & Secure</span>
+                  <span>Secure & Confidential</span>
                 </div>
               </div>
             </div>
@@ -105,15 +105,15 @@ export default function Home() {
         <div className="space-y-6">
           <div className="text-center">
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-              Choose Your Analysis Type
+              Complete Educational Document Platform
             </h2>
             <p className="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto">
-              Select the type of document you'd like to analyze. Our AI-powered system provides detailed insights and actionable recommendations.
+              Comprehensive tools for your study abroad journey - from document analysis to templates, checklists, and expert consultations.
             </p>
           </div>
 
-          {/* Analysis Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          {/* Feature Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
             {/* Visa Rejection Analysis Card */}
             <Link href="/visa-analysis">
               <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-200 cursor-pointer h-full">
@@ -192,41 +192,168 @@ export default function Home() {
               </Card>
             </Link>
 
-            {/* Coming Soon Card - Placeholder for Future Analysis */}
-            <Card className="group hover:shadow-lg transition-all duration-300 border-2 border-dashed border-gray-300 cursor-default h-full opacity-75">
-              <CardHeader className="text-center pb-4">
-                <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-r from-gray-400 to-gray-500 rounded-2xl flex items-center justify-center">
-                  <Calendar className="h-8 w-8 text-white" />
-                </div>
-                <CardTitle className="text-xl font-bold text-gray-600">
-                  More Analysis Coming Soon
-                </CardTitle>
-                <CardDescription className="text-gray-500">
-                  We're working on additional analysis types to support your study abroad journey
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Clock className="h-4 w-4 text-gray-400" />
-                    <span>Financial document analysis</span>
+            {/* Document Templates Card */}
+            <Link href="/document-templates">
+              <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-purple-200 cursor-pointer h-full">
+                <CardHeader className="text-center pb-4">
+                  <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-r from-purple-500 to-violet-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <FileCheck className="h-8 w-8 text-white" />
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Clock className="h-4 w-4 text-gray-400" />
-                    <span>Academic transcript review</span>
+                  <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors">
+                    Document Templates
+                  </CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Download professional document templates for your visa and study abroad applications
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>Country-specific templates</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>Professional formats</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>Financial & academic forms</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Clock className="h-4 w-4 text-gray-400" />
-                    <span>Language proficiency analysis</span>
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-900">Browse Templates</span>
+                      <ArrowRight className="h-4 w-4 text-purple-600 group-hover:translate-x-1 transition-transform" />
+                    </div>
                   </div>
-                </div>
-                <div className="pt-2">
-                  <div className="flex items-center justify-center">
-                    <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Document Checklists Card */}
+            <Link href="/document-checklists">
+              <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-orange-200 cursor-pointer h-full">
+                <CardHeader className="text-center pb-4">
+                  <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <ClipboardCheck className="h-8 w-8 text-white" />
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-orange-600 transition-colors">
+                    Document Checklists
+                  </CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Comprehensive requirement checklists for different countries and visa types
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>Complete requirements list</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>Processing timelines</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>Application guidance</span>
+                    </div>
+                  </div>
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-900">View Checklists</span>
+                      <ArrowRight className="h-4 w-4 text-orange-600 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Expert Consultations Card */}
+            <Link href="/consultations">
+              <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-indigo-200 cursor-pointer h-full">
+                <CardHeader className="text-center pb-4">
+                  <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Phone className="h-8 w-8 text-white" />
+                  </div>
+                  <CardTitle className="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                    Expert Consultations
+                  </CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Book personalized consultations with education and immigration experts
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>One-on-one guidance</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>Personalized strategies</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>Follow-up support</span>
+                    </div>
+                  </div>
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-900">Book Session</span>
+                      <ArrowRight className="h-4 w-4 text-indigo-600 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </div>
+
+        {/* Platform Overview */}
+        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 lg:p-8 border border-indigo-100">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
+              Your Complete Study Abroad Platform
+            </h2>
+            <p className="text-gray-600 max-w-3xl mx-auto">
+              Everything you need for successful international education - from AI-powered document analysis to expert consultations and comprehensive resources.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Shield className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Document Analysis</h3>
+              <p className="text-sm text-gray-600">AI-powered visa and enrollment document analysis with detailed insights</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <FileCheck className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Document Templates</h3>
+              <p className="text-sm text-gray-600">Professional templates for financial, academic, and legal documents</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <ClipboardCheck className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Requirements Checklists</h3>
+              <p className="text-sm text-gray-600">Country-specific checklists with timelines and guidance</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Phone className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Expert Consultations</h3>
+              <p className="text-sm text-gray-600">One-on-one sessions with education and immigration experts</p>
+            </div>
           </div>
         </div>
 
