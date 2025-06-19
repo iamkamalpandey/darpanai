@@ -108,13 +108,16 @@ interface EnrollmentAnalysis {
 }
 
 const documentTypes = [
-  { value: 'confirmation_of_enrollment', label: 'Confirmation of Enrollment (CoE)', icon: '📋' },
+  { value: 'coe', label: 'Confirmation of Enrollment (CoE)', icon: '📋' },
   { value: 'offer_letter', label: 'Offer Letter', icon: '📄' },
-  { value: 'acceptance_letter', label: 'Acceptance Letter', icon: '✅' },
-  { value: 'enrollment_contract', label: 'Enrollment Contract', icon: '📝' },
-  { value: 'tuition_invoice', label: 'Tuition Invoice', icon: '💰' },
-  { value: 'scholarship_letter', label: 'Scholarship Letter', icon: '🎓' },
-  { value: 'housing_contract', label: 'Housing Contract', icon: '🏠' },
+  { value: 'admission_letter', label: 'Admission Letter', icon: '✅' },
+  { value: 'enrollment_letter', label: 'Enrollment Letter', icon: '📝' },
+  { value: 'i20', label: 'I-20 Form', icon: '📋' },
+  { value: 'cas', label: 'CAS Statement', icon: '📄' },
+  { value: 'confirmation_enrollment', label: 'Enrollment Confirmation', icon: '✅' },
+  { value: 'visa_letter', label: 'Visa Support Letter', icon: '📝' },
+  { value: 'sponsor_letter', label: 'Sponsor Letter', icon: '💰' },
+  { value: 'financial_guarantee', label: 'Financial Guarantee', icon: '🎓' },
   { value: 'other', label: 'Other Document', icon: '📎' },
 ];
 
