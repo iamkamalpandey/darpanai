@@ -155,6 +155,34 @@ export const enrollmentAnalyses = pgTable("enrollment_analyses", {
   isPublic: boolean("is_public").default(false),
 });
 
+// Analysis Feedback and Rating System
+export const analysisFeedback = pgTable("analysis_feedback", {
+  id: serial("id").primaryKey(),
+  analysisId: integer("analysis_id").references(() => analyses.id),
+  userId: integer("user_id").references(() => users.id),
+  analysisType: text("analysis_type").notNull(), // 'visa' or 'enrollment'
+  
+  // Rating system (1-5 stars)
+  accuracyRating: integer("accuracy_rating"), // How accurate was the analysis?
+  helpfulnessRating: integer("helpfulness_rating"), // How helpful were the recommendations?
+  clarityRating: integer("clarity_rating"), // How clear was the analysis?
+  overallRating: integer("overall_rating"), // Overall satisfaction
+  
+  // Quick feedback options
+  isAccurate: boolean("is_accurate"), // Quick thumbs up/down for accuracy
+  isHelpful: boolean("is_helpful"), // Quick thumbs up/down for helpfulness
+  
+  // Detailed feedback
+  feedback: text("feedback"), // Open text feedback
+  improvementSuggestions: text("improvement_suggestions"), // What could be better?
+  
+  // Specific feedback categories
+  feedbackCategories: jsonb("feedback_categories").default([]), // ['accuracy', 'completeness', 'relevance', 'clarity']
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Professional Account Applications
 export const professionalApplications = pgTable("professional_applications", {
   id: serial("id").primaryKey(),
@@ -484,6 +512,33 @@ export type DocumentTemplateUpload = z.infer<typeof documentTemplateUploadSchema
 export type DocumentChecklist = typeof documentChecklists.$inferSelect;
 export type InsertDocumentChecklist = z.infer<typeof insertDocumentChecklistSchema>;
 export type DocumentChecklistFormData = InsertDocumentChecklist;
+
+// Analysis Feedback schemas
+export const insertAnalysisFeedbackSchema = createInsertSchema(analysisFeedback, {
+  analysisId: z.number().positive("Analysis ID is required"),
+  userId: z.number().positive("User ID is required"),
+  analysisType: z.enum(["visa", "enrollment"], {
+    required_error: "Analysis type is required",
+  }),
+  accuracyRating: z.number().min(1).max(5).optional(),
+  helpfulnessRating: z.number().min(1).max(5).optional(),
+  clarityRating: z.number().min(1).max(5).optional(),
+  overallRating: z.number().min(1).max(5).optional(),
+  isAccurate: z.boolean().optional(),
+  isHelpful: z.boolean().optional(),
+  feedback: z.string().max(1000).optional(),
+  improvementSuggestions: z.string().max(1000).optional(),
+  feedbackCategories: z.array(z.enum([
+    "accuracy", "completeness", "relevance", "clarity", "helpfulness", "timeliness"
+  ])).default([]),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type AnalysisFeedback = typeof analysisFeedback.$inferSelect;
+export type InsertAnalysisFeedback = z.infer<typeof insertAnalysisFeedbackSchema>;
 
 // Enrollment Analysis schemas
 export const insertEnrollmentAnalysisSchema = z.object({
