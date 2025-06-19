@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRoute } from 'wouter';
-import { ArrowLeft, AlertCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle, FileText, Calendar } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -71,11 +71,11 @@ export default function COEAnalysisView() {
                 <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-600">
                   <span className="flex items-center gap-1">
                     <FileText className="h-4 w-4" />
-                    {analysis.filename}
+                    {(analysis as any).filename}
                   </span>
                   <span className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    {new Date(analysis.createdAt).toLocaleDateString('en-US', {
+                    {new Date((analysis as any).createdAt).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'
@@ -96,8 +96,8 @@ export default function COEAnalysisView() {
           />
 
           {/* Footer Actions */}
-          <div className="flex justify-center pt-6">
-            <Button onClick={goBack} variant="outline" size="lg">
+          <div className="flex justify-center pt-8 border-t border-gray-200">
+            <Button onClick={goBack} variant="outline" size="lg" className="px-8">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to COE Analysis
             </Button>

@@ -221,7 +221,7 @@ export default function AdminAnalyses() {
                   <TrendingUp className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Enrollment Analyses</p>
+                  <p className="text-sm text-gray-600">COE Analyses</p>
                   <p className="text-xl font-bold">{filtered.filter((a: AnalysisData) => a.analysisType === 'enrollment_analysis').length}</p>
                 </div>
               </div>
@@ -265,9 +265,10 @@ export default function AdminAnalyses() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-medium text-gray-900">{analysis.fileName}</h3>
+                          <FileText className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                          <h3 className="font-medium text-gray-900 truncate">{analysis.fileName}</h3>
                           <Badge variant={analysis.analysisType === 'visa_analysis' ? 'destructive' : 'default'}>
-                            {analysis.analysisType === 'visa_analysis' ? 'Visa Analysis' : 'Enrollment Analysis'}
+                            {analysis.analysisType === 'visa_analysis' ? 'Visa' : analysis.analysisType === 'enrollment_analysis' ? 'COE' : 'Document'}
                           </Badge>
                           {analysis.isPublic && (
                             <Badge variant="outline">Public</Badge>
@@ -276,13 +277,29 @@ export default function AdminAnalyses() {
                         <p className="text-sm text-gray-600 mb-1">
                           User: {analysis.user ? `${analysis.user.firstName} ${analysis.user.lastName}` : 'Unknown'}
                         </p>
-                        <p className="text-sm text-gray-500">
-                          {format(new Date(analysis.createdAt), 'PPp')}
-                        </p>
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {format(new Date(analysis.createdAt), 'MMM dd, yyyy')}
+                          </span>
+                          {analysis.analysisResults?.institutionName && (
+                            <span className="flex items-center gap-1 text-blue-600">
+                              <Users className="h-3 w-3" />
+                              {analysis.analysisResults.institutionName}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <Button variant="outline" size="sm">
-                        View Details
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm">
+                          View Analysis
+                        </Button>
+                        {analysis.analysisType === 'enrollment_analysis' && (
+                          <Badge variant="secondary" className="text-xs">
+                            COE Document
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
