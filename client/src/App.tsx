@@ -21,6 +21,7 @@ const AnalysisHub = lazy(() => import("@/pages/AnalysisHub"));
 const VisaRejectionAnalysis = lazy(() => import("@/pages/VisaRejectionAnalysis"));
 const EnrollmentAnalysis = lazy(() => import("@/pages/EnrollmentAnalysis"));
 const CoEAnalysis = lazy(() => import("@/pages/CoEAnalysis"));
+const COEAnalysisView = lazy(() => import("@/pages/COEAnalysisView"));
 const EnrollmentAnalysisResults = lazy(() => import("@/pages/EnrollmentAnalysisResults"));
 const VisaAnalysisResults = lazy(() => import("@/pages/VisaAnalysisResults"));
 const ConsultationsPage = lazy(() => import("@/pages/consultations"));
@@ -97,6 +98,13 @@ function Router() {
         <UserProtectedRoute path="/coe-analysis" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <CoEAnalysis />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/coe-analysis/:id">
+        <UserProtectedRoute path="/coe-analysis/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <COEAnalysisView />
           </Suspense>
         )} />
       </Route>
