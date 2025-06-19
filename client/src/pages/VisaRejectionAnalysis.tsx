@@ -387,7 +387,7 @@ export default function VisaRejectionAnalysis() {
                 </div>
                 <Button
                   onClick={handleAnalyze}
-                  disabled={!selectedFile || analyzeMutation.isPending || (user && (user as any)?.analysisCount >= (user as any)?.maxAnalyses)}
+                  disabled={!selectedFile || analyzeMutation.isPending || Boolean(user && (user as any)?.analysisCount >= (user as any)?.maxAnalyses)}
                   className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {analyzeMutation.isPending ? (
@@ -536,7 +536,7 @@ export default function VisaRejectionAnalysis() {
                     </TabsContent>
 
                     <TabsContent value="issues" className="space-y-6">
-                      {selectedAnalysis?.analysisResults?.rejectionReasons?.map((reason: any, index: number) => (
+                      {(selectedAnalysis as VisaAnalysis)?.analysisResults?.rejectionReasons?.map((reason: any, index: number) => (
                         <Card key={index} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                           <CardContent className="p-6">
                             <div className="flex items-start justify-between mb-3">
@@ -557,7 +557,7 @@ export default function VisaRejectionAnalysis() {
                     </TabsContent>
 
                     <TabsContent value="recommendations" className="space-y-6">
-                      {selectedAnalysis?.analysisResults?.recommendations?.map((recommendation: any, index: number) => (
+                      {(selectedAnalysis as VisaAnalysis)?.analysisResults?.recommendations?.map((recommendation: any, index: number) => (
                         <Card key={index} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                           <CardContent className="p-6">
                             <h3 className="font-semibold text-lg text-gray-800 mb-3">{recommendation.title}</h3>
@@ -573,8 +573,8 @@ export default function VisaRejectionAnalysis() {
                     </TabsContent>
 
                     <TabsContent value="next-steps" className="space-y-6">
-                      {Array.isArray(selectedAnalysis?.analysisResults?.nextSteps) 
-                        ? selectedAnalysis.analysisResults.nextSteps.map((step: any, index: number) => (
+                      {Array.isArray((selectedAnalysis as VisaAnalysis)?.analysisResults?.nextSteps) 
+                        ? (selectedAnalysis as VisaAnalysis)?.analysisResults?.nextSteps?.map((step: any, index: number) => (
                             <Card key={index} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                               <CardContent className="p-6">
                                 <div className="flex items-start gap-4">
@@ -598,13 +598,13 @@ export default function VisaRejectionAnalysis() {
                               </CardContent>
                             </Card>
                           ))
-                        : selectedAnalysis?.analysisResults?.nextSteps && (
+                        : (selectedAnalysis as VisaAnalysis)?.analysisResults?.nextSteps && (
                             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                               <CardContent className="p-6">
                                 <div 
                                   className="text-gray-700 leading-relaxed whitespace-pre-wrap"
                                   dangerouslySetInnerHTML={{ 
-                                    __html: formatNumericalInfo(selectedAnalysis?.analysisResults?.nextSteps || '') 
+                                    __html: formatNumericalInfo(typeof (selectedAnalysis as VisaAnalysis)?.analysisResults?.nextSteps === 'string' ? (selectedAnalysis as VisaAnalysis)?.analysisResults?.nextSteps : JSON.stringify((selectedAnalysis as VisaAnalysis)?.analysisResults?.nextSteps) || '') 
                                   }}
                                 />
                               </CardContent>
