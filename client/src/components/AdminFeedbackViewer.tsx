@@ -90,15 +90,15 @@ export function AdminFeedbackViewer({ analysisId }: AdminFeedbackViewerProps) {
           <div className="flex items-center gap-3">
             <User className="h-4 w-4 text-gray-500" />
             <span className="text-sm font-medium text-gray-700">
-              {feedback.user?.username || `User #${feedback.userId}`}
+              {(feedback as any).user?.username || `User #${(feedback as any).userId}`}
             </span>
             <Badge variant="outline" className="text-xs">
-              {feedback.user?.email}
+              {(feedback as any).user?.email}
             </Badge>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Calendar className="h-4 w-4" />
-            {format(new Date(feedback.createdAt), 'MMM dd, yyyy')}
+            {format(new Date((feedback as any).createdAt), 'MMM dd, yyyy')}
           </div>
         </div>
 
@@ -106,17 +106,17 @@ export function AdminFeedbackViewer({ analysisId }: AdminFeedbackViewerProps) {
           <label className="text-sm font-medium text-gray-700 mb-2 block">
             Rating
           </label>
-          {renderStars(feedback.rating)}
+          {renderStars((feedback as any).rating)}
         </div>
 
-        {feedback.feedback && (
+        {(feedback as any).feedback && (
           <div>
             <label className="text-sm font-medium text-gray-700 mb-2 block">
               Comments
             </label>
             <div className="bg-white p-4 rounded-md border border-gray-200">
               <p className="text-gray-700 whitespace-pre-wrap">
-                {feedback.feedback}
+                {(feedback as any).feedback}
               </p>
             </div>
           </div>

@@ -140,7 +140,7 @@ export function AnalysisFeedback({ analysisId, analysisType }: AnalysisFeedbackP
   }
 
   // Show read-only feedback if already submitted
-  if (existingFeedback?.id) {
+  if ((existingFeedback as any)?.id) {
     return (
       <Card className="mt-8 border-green-200 bg-green-50">
         <CardHeader className="pb-4">

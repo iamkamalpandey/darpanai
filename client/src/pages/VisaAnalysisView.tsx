@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { AdminLayout } from '@/components/AdminLayout';
 import { AnalysisFeedback } from '@/components/AnalysisFeedback';
+import { AdminFeedbackViewer } from '@/components/AdminFeedbackViewer';
 
 interface VisaAnalysisData {
   id: number;
@@ -341,11 +342,15 @@ export default function VisaAnalysisView() {
             </div>
           </div>
 
-          {/* One-click Feedback System */}
-          <AnalysisFeedback 
-            analysisId={parseInt(analysisId!)} 
-            analysisType="visa" 
-          />
+          {/* Feedback System */}
+          {isAdminRoute ? (
+            <AdminFeedbackViewer analysisId={parseInt(analysisId!)} />
+          ) : (
+            <AnalysisFeedback 
+              analysisId={parseInt(analysisId!)} 
+              analysisType="visa" 
+            />
+          )}
 
           {/* Footer Actions */}
           <div className="flex justify-center pt-8 border-t border-gray-200">

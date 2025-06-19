@@ -9,6 +9,7 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { AdminLayout } from '@/components/AdminLayout';
 import AnalysisDisplay from '@/components/AnalysisDisplay';
 import { AnalysisFeedback } from '@/components/AnalysisFeedback';
+import { AdminFeedbackViewer } from '@/components/AdminFeedbackViewer';
 
 export default function COEAnalysisView() {
   const [location] = useLocation();
@@ -116,11 +117,15 @@ export default function COEAnalysisView() {
             analysis={analysis as any} 
           />
 
-          {/* One-click Feedback System */}
-          <AnalysisFeedback 
-            analysisId={parseInt(analysisId!)} 
-            analysisType="enrollment" 
-          />
+          {/* Feedback System */}
+          {isAdminRoute ? (
+            <AdminFeedbackViewer analysisId={parseInt(analysisId!)} />
+          ) : (
+            <AnalysisFeedback 
+              analysisId={parseInt(analysisId!)} 
+              analysisType="enrollment" 
+            />
+          )}
 
           {/* Footer Actions */}
           <div className="flex justify-center pt-8 border-t border-gray-200">

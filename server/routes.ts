@@ -2216,6 +2216,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin endpoint to view feedback for specific analysis
+  app.get('/api/admin/analyses/:id/feedback', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const analysisId = parseInt(req.params.id);
+      
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+
+      const feedback = await storage.getAnalysisFeedback(analysisId, req.user!.id);
+      res.status(200).json(feedback);
+    } catch (error) {
+      console.error('Error fetching analysis feedback:', error);
+      res.status(500).json({ error: 'Failed to fetch feedback' });
+    }
+  });
+
   // Admin routes for feedback analytics
   app.get('/api/admin/feedback-analytics', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
