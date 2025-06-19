@@ -336,11 +336,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { documentType } = req.body;
-      const validTypes = ['i20', 'cas', 'admission_letter', 'offer_letter', 'confirmation_enrollment', 'enrollment_letter', 'coe', 'visa_letter', 'sponsor_letter', 'financial_guarantee', 'other'];
+      const validTypes = ['coe']; // Only CoE documents are currently supported
       if (!documentType || !validTypes.includes(documentType)) {
         return res.status(400).json({ 
-          error: 'Invalid document type',
-          validTypes
+          error: 'Invalid document type. Currently only Confirmation of Enrollment (CoE) documents are supported.',
+          message: 'We are working on adding support for other document types like I-20, CAS, and Admission Letters. Please use CoE documents for now.',
+          validTypes,
+          supportedTypes: ['Confirmation of Enrollment (CoE)']
         });
       }
 

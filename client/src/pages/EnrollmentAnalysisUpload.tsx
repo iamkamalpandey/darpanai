@@ -25,7 +25,7 @@ interface EnrollmentAnalysis {
 
 export default function EnrollmentAnalysisUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [documentType, setDocumentType] = useState<string>('');
+  const [documentType, setDocumentType] = useState<string>('coe'); // Pre-select CoE as the only available option
   const [uploadProgress, setUploadProgress] = useState(0);
   const [analysisProgress, setAnalysisProgress] = useState(0);
   
@@ -99,7 +99,11 @@ export default function EnrollmentAnalysisUpload() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Analysis failed');
+        // Show detailed error message with supported types information
+        const errorMessage = errorData.message 
+          ? `${errorData.error}\n\n${errorData.message}`
+          : errorData.error || 'Analysis failed';
+        throw new Error(errorMessage);
       }
 
       // Simulate analysis progress
@@ -238,11 +242,20 @@ export default function EnrollmentAnalysisUpload() {
           <CardContent className="p-8 space-y-8">
             {/* Document Type Selection */}
             <div className="space-y-3">
-              <label className="text-base font-semibold text-gray-800">Select Document Type</label>
-              <p className="text-sm text-gray-600 mb-4">Choose the type that best matches your document for accurate analysis</p>
-              <Select value={documentType} onValueChange={setDocumentType}>
-                <SelectTrigger className="h-12 text-base">
-                  <SelectValue placeholder="Choose your document type..." />
+              <label className="text-base font-semibold text-gray-800">Document Type</label>
+              <p className="text-sm text-gray-600 mb-4">CoE is pre-selected as the only currently supported document type for analysis</p>
+              <Select value={documentType} onValueChange={setDocumentType} disabled>
+                <SelectTrigger className="h-12 text-base bg-green-50 border-green-200">
+                  <SelectValue>
+                    <div className="flex items-center gap-3">
+                      <GraduationCap className="h-5 w-5 text-green-600" />
+                      <div className="flex-1 text-left">
+                        <div className="font-medium text-green-800">Confirmation of Enrollment (CoE)</div>
+                        <div className="text-sm text-green-600">Currently the only supported document type</div>
+                      </div>
+                      <Badge className="bg-green-100 text-green-800 text-xs">Active</Badge>
+                    </div>
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="coe">
