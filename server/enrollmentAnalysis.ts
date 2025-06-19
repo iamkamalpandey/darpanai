@@ -73,12 +73,12 @@ function truncateText(text: string, maxTokens: number = MAX_INPUT_TOKENS): strin
  * CoE-specific analysis prompt for detailed extraction
  */
 function getCoEAnalysisPrompt(documentText: string): string {
-  return `You are analyzing a Confirmation of Enrollment (CoE) document. Extract the following specific information and return it in JSON format:
+  return `You are analyzing a Confirmation of Enrollment (COE) document from any country. Extract the following specific information and return it in JSON format. If any information is not available in the document, use "Not specified in document" as the value:
 
 {
   "documentStatus": {
     "processed": true,
-    "coeNumber": "extracted CoE/registration number",
+    "coeNumber": "extracted COE/registration number",
     "processedDate": "${new Date().toLocaleDateString()}"
   },
   "institutionDetails": {
@@ -157,7 +157,7 @@ function getCoEAnalysisPrompt(documentText: string): string {
     "governmentRegistration": "Verified",
     "importantNotes": ["key compliance requirements"]
   },
-  "summary": "comprehensive summary of the CoE document",
+  "summary": "comprehensive summary of the COE document",
   "keyFindings": [
     {
       "category": "academic",

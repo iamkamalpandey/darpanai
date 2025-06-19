@@ -46,6 +46,7 @@ export default function CoEAnalysis() {
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   // Fetch user data for credit validation
   const { data: user } = useQuery<User>({
@@ -385,7 +386,11 @@ export default function CoEAnalysis() {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {analyses.slice(0, 6).map((analysis: CoEAnalysis) => (
-                  <Card key={analysis.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                  <Card 
+                    key={analysis.id} 
+                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => setLocation(`/coe-analysis/${analysis.id}`)}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <FileText className="h-8 w-8 text-blue-600 mt-1" />
@@ -399,7 +404,7 @@ export default function CoEAnalysis() {
                             </p>
                           )}
                           <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="secondary" className="text-xs">CoE</Badge>
+                            <Badge variant="secondary" className="text-xs">COE</Badge>
                             <span className="text-xs text-gray-500">
                               {new Date(analysis.createdAt).toLocaleDateString()}
                             </span>
