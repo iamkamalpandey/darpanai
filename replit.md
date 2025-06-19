@@ -130,6 +130,21 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 19, 2025 - Centralized Enrollment Analysis Hub with Document-Specific Analysis Types:**
+- Completely removed generic enrollment analysis module and replaced with centralized enrollment document analysis hub
+- Created comprehensive enrollment page listing all available document-specific analysis types starting with COE Analysis
+- Built professional card-based layout showcasing COE Document Analysis as the primary available option with specialized features
+- Added Offer Letter Analysis as "Coming Soon" option preparing for future implementation with admission conditions and enrollment steps
+- Enhanced COE Analysis card with detailed feature highlights: Institution & Course Details, Financial Breakdown, and Visa Compliance
+- Implemented color-coded visual design: blue gradient for available COE analysis, gray gradient for upcoming Offer Letter analysis
+- Added comprehensive feature descriptions: CRICOS codes, course structure, tuition fees, OSHC, visa obligations, and compliance requirements
+- Created bottom consultation CTA for users needing help choosing the right document analysis type
+- Applied consistent design patterns with badges (Available/Coming Soon), feature grids, and action buttons
+- Successfully transformed from single generic upload interface to specialized document-type selection hub
+- Prepared architecture for easy addition of new document analysis types (Offer Letter, I-20, CAS Statement, etc.)
+- Enhanced user experience with clear document type differentiation and specialized analysis capabilities
+- Maintained all existing COE analysis functionality while improving navigation and document type clarity
+
 **June 19, 2025 - Complete Document Analysis Functionality Restoration & Schema Validation Fixes:**
 - Successfully resolved critical "Analyze Document" functionality issue that was preventing users from uploading and analyzing documents
 - Fixed comprehensive TypeScript compilation errors blocking frontend user interface from functioning properly
