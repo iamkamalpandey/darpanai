@@ -333,10 +333,61 @@ function AnalysisDetailView({ analysis, onBack }: { analysis: AnalysisData; onBa
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
+            {/* Document Metadata */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Document Type</p>
+                      <p className="font-semibold text-gray-900">
+                        {analysis.analysisType === 'enrollment_analysis' ? 'Enrollment Analysis' : 'Visa Analysis'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <Calendar className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Analysis Date</p>
+                      <p className="font-semibold text-gray-900">
+                        {format(new Date(analysis.createdAt), 'MMM dd, yyyy')}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Users className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">User</p>
+                      <p className="font-semibold text-gray-900">
+                        {analysis.user ? `${analysis.user.firstName} ${analysis.user.lastName}` : 'Unknown User'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Document Summary */}
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
-                <CardTitle className="text-xl text-gray-800">Document Summary</CardTitle>
+                <CardTitle className="text-xl text-gray-800">Analysis Summary</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div 
@@ -345,6 +396,60 @@ function AnalysisDetailView({ analysis, onBack }: { analysis: AnalysisData; onBa
                     __html: formatNumericalInfo(analysis.analysisResults?.summary || 'No summary available for this analysis.') 
                   }}
                 />
+                
+                {/* Analysis Quality Indicators */}
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <h4 className="font-medium text-gray-800 mb-3">Analysis Quality Metrics</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-blue-700">Findings</span>
+                        <Badge className="bg-blue-100 text-blue-800">
+                          {analysis.analysisResults?.keyFindings?.length || 
+                           analysis.analysisResults?.rejectionReasons?.length || 0}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-green-700">Recommendations</span>
+                        <Badge className="bg-green-100 text-green-800">
+                          {analysis.analysisResults?.recommendations?.length || 0}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="bg-purple-50 p-3 rounded-lg border border-purple-200">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-purple-700">Action Steps</span>
+                        <Badge className="bg-purple-100 text-purple-800">
+                          {Array.isArray(analysis.analysisResults?.nextSteps) ? 
+                           analysis.analysisResults.nextSteps.length : 
+                           analysis.analysisResults?.nextSteps ? 1 : 0}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Analysis Confidence */}
+                {analysis.analysisResults?.confidence && (
+                  <div className="mt-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-gray-800">Analysis Confidence</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-32 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full" 
+                            style={{ width: `${analysis.analysisResults.confidence * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-medium text-blue-600">
+                          {Math.round(analysis.analysisResults.confidence * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -362,15 +467,54 @@ function AnalysisDetailView({ analysis, onBack }: { analysis: AnalysisData; onBa
                           finding.importance === 'medium' ? 'bg-yellow-400' : 'bg-blue-400'
                         }`} />
                         <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 mb-2">{finding.title}</h3>
-                          <p className="text-gray-700 leading-relaxed mb-3">{finding.description}</p>
-                          <Badge className={
-                            finding.importance === 'high' ? 'bg-red-100 text-red-800 border-red-200' :
-                            finding.importance === 'medium' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
-                            'bg-blue-100 text-blue-800 border-blue-200'
-                          }>
-                            {finding.importance}
-                          </Badge>
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="font-semibold text-gray-900">{finding.title}</h3>
+                            <Badge className={
+                              finding.importance === 'high' ? 'bg-red-100 text-red-800 border-red-200' :
+                              finding.importance === 'medium' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                              'bg-blue-100 text-blue-800 border-blue-200'
+                            }>
+                              {finding.importance} priority
+                            </Badge>
+                          </div>
+                          <p className="text-gray-700 leading-relaxed mb-3" 
+                             dangerouslySetInnerHTML={{ __html: formatNumericalInfo(finding.description) }} />
+                          
+                          {/* Enhanced Action Items */}
+                          {(finding as any).actionRequired && (
+                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-3">
+                              <h4 className="font-medium text-amber-800 mb-2">Action Required</h4>
+                              <p className="text-amber-700">{(finding as any).actionRequired}</p>
+                              {(finding as any).deadline && (
+                                <div className="flex items-center gap-2 mt-2">
+                                  <Calendar className="h-4 w-4 text-amber-600" />
+                                  <span className="text-sm text-amber-600 font-medium">
+                                    Deadline: {(finding as any).deadline}
+                                  </span>
+                                </div>
+                              )}
+                              {(finding as any).amount && (
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="text-sm font-medium text-green-700 bg-green-50 px-2 py-1 rounded">
+                                    Amount: {(finding as any).amount}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Consequences Warning */}
+                          {(finding as any).consequence && (
+                            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+                              <div className="flex items-start gap-2">
+                                <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <h4 className="font-medium text-red-800 mb-1">Potential Consequence</h4>
+                                  <p className="text-red-700 text-sm">{(finding as any).consequence}</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </CardContent>
@@ -415,19 +559,56 @@ function AnalysisDetailView({ analysis, onBack }: { analysis: AnalysisData; onBa
                   <Card key={index} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        <div className="w-2 h-full bg-green-400 rounded-full" />
+                        <div className={`w-2 h-full rounded-full ${
+                          rec.priority === 'urgent' ? 'bg-red-400' :
+                          rec.priority === 'important' ? 'bg-orange-400' : 'bg-green-400'
+                        }`} />
                         <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 mb-2">{rec.title}</h3>
-                          <p className="text-gray-700 leading-relaxed mb-3">{rec.description}</p>
-                          {rec.priority && (
-                            <Badge className={
-                              rec.priority === 'urgent' ? 'bg-red-100 text-red-800 border-red-200' :
-                              rec.priority === 'important' ? 'bg-orange-100 text-orange-800 border-orange-200' :
-                              'bg-blue-100 text-blue-800 border-blue-200'
-                            }>
-                              {rec.priority}
-                            </Badge>
-                          )}
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="font-semibold text-gray-900">{rec.title}</h3>
+                            {rec.priority && (
+                              <Badge className={
+                                rec.priority === 'urgent' ? 'bg-red-100 text-red-800 border-red-200' :
+                                rec.priority === 'important' ? 'bg-orange-100 text-orange-800 border-orange-200' :
+                                'bg-green-100 text-green-800 border-green-200'
+                              }>
+                                {rec.priority}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-gray-700 leading-relaxed mb-3" 
+                             dangerouslySetInnerHTML={{ __html: formatNumericalInfo(rec.description) }} />
+                          
+                          {/* Actionable Steps */}
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-3">
+                            <h4 className="font-medium text-green-800 mb-2">Recommended Action</h4>
+                            <div className="space-y-2">
+                              <div className="flex items-start gap-2">
+                                <div className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></div>
+                                <p className="text-green-700">{rec.description}</p>
+                              </div>
+                              
+                              {/* Timeline Indicator */}
+                              <div className="flex items-center gap-2 mt-3">
+                                <Calendar className="h-4 w-4 text-green-600" />
+                                <span className="text-sm text-green-600 font-medium">
+                                  {rec.priority === 'urgent' ? 'Complete within 1-2 weeks' :
+                                   rec.priority === 'important' ? 'Complete within 1 month' :
+                                   'Complete within 2-3 months'}
+                                </span>
+                              </div>
+                              
+                              {/* Impact Level */}
+                              <div className="flex items-center gap-2">
+                                <TrendingUp className="h-4 w-4 text-green-600" />
+                                <span className="text-sm text-green-600">
+                                  {rec.priority === 'urgent' ? 'High impact on application success' :
+                                   rec.priority === 'important' ? 'Moderate impact on approval chances' :
+                                   'Recommended for optimal outcome'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </CardContent>
@@ -448,31 +629,97 @@ function AnalysisDetailView({ analysis, onBack }: { analysis: AnalysisData; onBa
             {analysis.analysisResults?.nextSteps ? (
               <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                 <CardHeader className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-t-lg">
-                  <CardTitle className="text-xl text-gray-800">Next Steps</CardTitle>
+                  <CardTitle className="text-xl text-gray-800">Next Steps & Action Plan</CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
                   {Array.isArray(analysis.analysisResults.nextSteps) ? (
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       {analysis.analysisResults.nextSteps.map((step, index) => (
-                        <div key={index} className="flex items-start gap-4">
-                          <div className="flex-shrink-0 w-8 h-8 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center text-sm font-medium">
-                            {index + 1}
-                          </div>
-                          <div className="flex-1">
-                            {typeof step === 'string' ? (
-                              <p className="text-gray-700 leading-relaxed">{step}</p>
-                            ) : (
-                              <>
-                                <h4 className="font-medium text-gray-800 mb-1">{step.step || step.title}</h4>
-                                <p className="text-gray-700 leading-relaxed">{step.description}</p>
-                              </>
-                            )}
+                        <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                          <div className="flex items-start gap-4">
+                            <div className="flex-shrink-0 w-10 h-10 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center text-sm font-bold border-2 border-purple-200">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1">
+                              {typeof step === 'string' ? (
+                                <div>
+                                  <p className="text-gray-700 leading-relaxed font-medium" 
+                                     dangerouslySetInnerHTML={{ __html: formatNumericalInfo(step) }} />
+                                  
+                                  {/* Auto-generated action framework */}
+                                  <div className="mt-4 bg-white border border-gray-200 rounded-lg p-3">
+                                    <h5 className="font-medium text-gray-800 mb-2">Action Framework</h5>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                                      <div className="bg-blue-50 p-2 rounded border-l-2 border-blue-400">
+                                        <span className="font-medium text-blue-800">Timeline:</span>
+                                        <p className="text-blue-700">
+                                          {index === 0 ? 'Immediate (1-2 weeks)' :
+                                           index === 1 ? 'Short-term (2-4 weeks)' :
+                                           'Long-term (1-3 months)'}
+                                        </p>
+                                      </div>
+                                      <div className="bg-green-50 p-2 rounded border-l-2 border-green-400">
+                                        <span className="font-medium text-green-800">Priority:</span>
+                                        <p className="text-green-700">
+                                          {index === 0 ? 'Critical' :
+                                           index === 1 ? 'High' :
+                                           'Standard'}
+                                        </p>
+                                      </div>
+                                      <div className="bg-purple-50 p-2 rounded border-l-2 border-purple-400">
+                                        <span className="font-medium text-purple-800">Category:</span>
+                                        <p className="text-purple-700">Action Required</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div>
+                                  <h4 className="font-semibold text-gray-800 mb-2">{step.step || step.title}</h4>
+                                  <p className="text-gray-700 leading-relaxed mb-3" 
+                                     dangerouslySetInnerHTML={{ __html: formatNumericalInfo(step.description) }} />
+                                  
+                                  {/* Enhanced step details */}
+                                  <div className="bg-white border border-gray-200 rounded-lg p-3">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                      <div>
+                                        <span className="font-medium text-gray-800">Category:</span>
+                                        <Badge className="ml-2 bg-purple-100 text-purple-800">
+                                          {step.category || 'General'}
+                                        </Badge>
+                                      </div>
+                                      <div>
+                                        <span className="font-medium text-gray-800">Timeline:</span>
+                                        <span className="ml-2 text-purple-700">
+                                          {step.category === 'immediate' ? '1-2 weeks' :
+                                           step.category === 'short_term' ? '2-8 weeks' :
+                                           step.category === 'long_term' ? '2-6 months' :
+                                           'As needed'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{analysis.analysisResults.nextSteps}</p>
+                    <div>
+                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap mb-4" 
+                         dangerouslySetInnerHTML={{ __html: formatNumericalInfo(analysis.analysisResults.nextSteps) }} />
+                      
+                      {/* Summary action box */}
+                      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-4">
+                        <h4 className="font-medium text-purple-800 mb-2">Summary Action Required</h4>
+                        <p className="text-purple-700 text-sm">
+                          Review the detailed steps above and prioritize actions based on your specific timeline and requirements. 
+                          Consider consulting with relevant experts for complex matters.
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </CardContent>
               </Card>
