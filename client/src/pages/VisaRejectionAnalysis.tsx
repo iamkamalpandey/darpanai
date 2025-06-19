@@ -80,7 +80,7 @@ export default function VisaRejectionAnalysis() {
   const { data: user } = useQuery({
     queryKey: ['/api/user'],
     enabled: true
-  }) as { data: any };
+  });
 
   // Handle URL parameter to load specific analysis
   useEffect(() => {
@@ -173,7 +173,7 @@ export default function VisaRejectionAnalysis() {
     }
 
     // Check user's quota
-    if (user.analysisCount >= user.maxAnalyses) {
+    if ((user as any)?.analysisCount >= (user as any)?.maxAnalyses) {
       toast({
         title: "Analysis Limit Reached",
         description: "You have reached your analysis limit. Please contact support to increase your quota.",
@@ -381,13 +381,13 @@ export default function VisaRejectionAnalysis() {
                 <div className="text-sm text-gray-600">
                   {user && (
                     <span>
-                      Analysis quota: {user.analysisCount}/{user.maxAnalyses} used
+                      Analysis quota: {(user as any)?.analysisCount || 0}/{(user as any)?.maxAnalyses || 0} used
                     </span>
                   )}
                 </div>
                 <Button
                   onClick={handleAnalyze}
-                  disabled={!selectedFile || analyzeMutation.isPending || (user && user.analysisCount >= user.maxAnalyses)}
+                  disabled={!selectedFile || analyzeMutation.isPending || (user && (user as any)?.analysisCount >= (user as any)?.maxAnalyses)}
                   className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {analyzeMutation.isPending ? (
@@ -395,7 +395,7 @@ export default function VisaRejectionAnalysis() {
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       Analyzing...
                     </div>
-                  ) : (user && user.analysisCount >= user.maxAnalyses) ? (
+                  ) : (user && (user as any)?.analysisCount >= (user as any)?.maxAnalyses) ? (
                     <div className="flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4" />
                       Limit Reached
@@ -462,9 +462,9 @@ export default function VisaRejectionAnalysis() {
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h2 className="text-2xl font-semibold text-gray-900">Visa Analysis Results</h2>
-                      <p className="text-gray-600 mt-1">Document: {selectedAnalysis?.filename || 'Unknown'}</p>
+                      <p className="text-gray-600 mt-1">Document: {(selectedAnalysis as VisaAnalysis)?.filename || 'Unknown'}</p>
                       <p className="text-gray-500 text-sm mt-1">
-                        Analyzed on {selectedAnalysis?.createdAt ? format(new Date(selectedAnalysis.createdAt), 'PPp') : 'Unknown date'}
+                        Analyzed on {(selectedAnalysis as VisaAnalysis)?.createdAt ? format(new Date((selectedAnalysis as VisaAnalysis).createdAt), 'PPp') : 'Unknown date'}
                       </p>
                     </div>
                     <Button variant="outline" size="sm" onClick={() => setSelectedAnalysis(null)}>
@@ -518,7 +518,7 @@ export default function VisaRejectionAnalysis() {
 
                     <TabsContent value="overview" className="space-y-6">
                       {/* Document Summary */}
-                      {selectedAnalysis?.analysisResults?.summary && (
+                      {(selectedAnalysis as VisaAnalysis)?.analysisResults?.summary && (
                         <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                           <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
                             <CardTitle className="text-xl text-gray-800">Document Summary</CardTitle>
@@ -527,7 +527,7 @@ export default function VisaRejectionAnalysis() {
                             <div 
                               className="whitespace-pre-wrap text-gray-700 leading-relaxed"
                               dangerouslySetInnerHTML={{ 
-                                __html: formatNumericalInfo(selectedAnalysis?.analysisResults?.summary || '') 
+                                __html: formatNumericalInfo((selectedAnalysis as VisaAnalysis)?.analysisResults?.summary || '') 
                               }}
                             />
                           </CardContent>
