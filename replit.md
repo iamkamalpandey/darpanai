@@ -130,24 +130,25 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
-**June 19, 2025 - Complete Analysis Routing System & Enhanced Filtering Implementation:**
-- Created comprehensive VisaAnalysisView component matching COE analysis structure with professional layout and proper admin/user layout handling
+**June 19, 2025 - Complete Visa Analysis Template Implementation & Comprehensive Routing System:**
+- Created comprehensive VisaAnalysisView component for admin interface with customized template based on visa analysis data structure
+- Built dedicated UserVisaAnalysisView component for user interface with professional tabbed layout matching user dashboard format
 - Fixed critical routing issues where "View Analysis" buttons routed to generic pages instead of specific analysis details
-- Updated AnalysisHub viewAnalysis function to properly route enrollment analyses to `/coe-analysis/{id}` and visa analyses to `/visa-analysis/{id}`
-- Added complete admin API endpoints for both COE and visa analyses (/api/admin/coe-analyses, /api/admin/visa-analyses, /api/admin/coe-analyses/:id, /api/admin/visa-analyses/:id)
-- Implemented permission-based routing system where users access only their own reports while admins can access all reports through dedicated admin routes
-- Enhanced App.tsx routing with comprehensive user and admin routes for both analysis types (/visa-analysis/:id, /admin/visa-analysis/:id, /admin/coe-analysis/:id)
-- Updated admin analyses page routing to direct COE analyses to `/admin/coe-analysis/{id}` and visa analyses to `/admin/visa-analysis/{id}`
-- Fixed back button functionality to show context-appropriate text ("Back to All Analysis" for admin, "Back to My Analysis" for users)
-- Added EnhancedFilters component to admin analyses page with comprehensive filtering options (search, analysis type, severity, date range, sorting)
-- Enhanced text overflow handling with responsive max-width classes and proper word wrapping for long filenames
-- Applied consistent visual hierarchy with color-coded sections, professional styling, and responsive design across all analysis views
-- Created unified analysis display system with proper numerical highlighting and structured information presentation
-- Fixed all TypeScript errors including server storage method references and component prop compatibility issues
-- Successfully integrated complete admin dashboard with proper permission-based access control and filtering functionality
-- Enhanced admin user details page with clickable analysis links that open detailed analysis views in appropriate admin routes
-- Applied professional gradient backgrounds, proper spacing, and responsive layout design across all analysis components
-- Completed comprehensive routing architecture supporting seamless navigation between user and admin interfaces with proper authentication checks
+- Updated App.tsx routing with separate components: UserVisaAnalysisView for `/visa-analysis/:id` and VisaAnalysisView for `/admin/visa-analysis/:id`
+- Fixed API endpoint routing for admin visa analyses to use `/api/admin/visa-analyses/:id` endpoint with proper data loading
+- Implemented context-aware back button functionality with proper text ("Back to All Analysis" for admin, "Back to My Analysis" for users)
+- Created professional card-based layout for visa analysis with quick info cards showing document type, country, and visa type
+- Built comprehensive tabbed content structure with Overview, Key Issues, Recommendations, and Next Steps sections
+- Enhanced data structure compatibility to handle both nested analysisResults properties and direct analysis properties
+- Added proper numerical highlighting with blue background for financial amounts and quantitative data
+- Applied responsive design with gradient backgrounds, professional styling, and proper visual hierarchy
+- Created complete permission-based routing system where users access only their own reports while admins access all reports
+- Fixed back button navigation to redirect to appropriate pages based on user role and context
+- Enhanced visa analysis template with color-coded sections (blue for overview, red for issues, green for recommendations, purple for next steps)
+- Implemented numbered step layout for next steps with priority badges and action categorization
+- Added comprehensive fallback handling for missing data with proper user-friendly messaging
+- Successfully resolved data loading issues and created professional analysis display templates for both user and admin interfaces
+- Applied consistent visual design patterns across all analysis components with proper spacing and typography
 
 **June 19, 2025 - Enhanced Information Extraction & Improved Enrollment Page Layout:**
 - Fixed critical information extraction issue where all analysis fields showed "Not specified in document" 

@@ -23,6 +23,7 @@ const EnrollmentAnalysis = lazy(() => import("@/pages/EnrollmentAnalysis"));
 const CoEAnalysis = lazy(() => import("@/pages/CoEAnalysis"));
 const COEAnalysisView = lazy(() => import("@/pages/COEAnalysisView"));
 const VisaAnalysisView = lazy(() => import("@/pages/VisaAnalysisView"));
+const UserVisaAnalysisView = lazy(() => import("@/pages/UserVisaAnalysisView"));
 const EnrollmentAnalysisResults = lazy(() => import("@/pages/EnrollmentAnalysisResults"));
 const VisaAnalysisResults = lazy(() => import("@/pages/VisaAnalysisResults"));
 const ConsultationsPage = lazy(() => import("@/pages/consultations"));
@@ -112,7 +113,7 @@ function Router() {
       <Route path="/visa-analysis/:id">
         <UserProtectedRoute path="/visa-analysis/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <VisaAnalysisView />
+            <UserVisaAnalysisView />
           </Suspense>
         )} />
       </Route>
