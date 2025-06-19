@@ -123,7 +123,7 @@ const extractAcademicInfo = (parsedData: any, rawAnalysis: any) => {
     if (parsedData) {
       for (const path of field.paths) {
         const pathValue = safeGet(parsedData, path, '');
-        if (pathValue && pathValue !== 'Not specified in document' && pathValue !== '') {
+        if (pathValue && pathValue !== 'Not specified in document' && pathValue !== '' && pathValue !== null) {
           value = pathValue;
           break;
         }
