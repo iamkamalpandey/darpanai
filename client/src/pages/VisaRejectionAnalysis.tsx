@@ -557,7 +557,7 @@ export default function VisaRejectionAnalysis() {
                     </TabsContent>
 
                     <TabsContent value="recommendations" className="space-y-6">
-                      {selectedAnalysis.analysisResults?.recommendations?.map((recommendation, index) => (
+                      {selectedAnalysis?.analysisResults?.recommendations?.map((recommendation: any, index: number) => (
                         <Card key={index} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                           <CardContent className="p-6">
                             <h3 className="font-semibold text-lg text-gray-800 mb-3">{recommendation.title}</h3>
@@ -573,8 +573,8 @@ export default function VisaRejectionAnalysis() {
                     </TabsContent>
 
                     <TabsContent value="next-steps" className="space-y-6">
-                      {Array.isArray(selectedAnalysis.analysisResults?.nextSteps) 
-                        ? selectedAnalysis.analysisResults.nextSteps.map((step, index) => (
+                      {Array.isArray(selectedAnalysis?.analysisResults?.nextSteps) 
+                        ? selectedAnalysis.analysisResults.nextSteps.map((step: any, index: number) => (
                             <Card key={index} className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                               <CardContent className="p-6">
                                 <div className="flex items-start gap-4">
@@ -598,13 +598,13 @@ export default function VisaRejectionAnalysis() {
                               </CardContent>
                             </Card>
                           ))
-                        : selectedAnalysis.analysisResults?.nextSteps && (
+                        : selectedAnalysis?.analysisResults?.nextSteps && (
                             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                               <CardContent className="p-6">
                                 <div 
                                   className="text-gray-700 leading-relaxed whitespace-pre-wrap"
                                   dangerouslySetInnerHTML={{ 
-                                    __html: formatNumericalInfo(selectedAnalysis.analysisResults.nextSteps) 
+                                    __html: formatNumericalInfo(selectedAnalysis?.analysisResults?.nextSteps || '') 
                                   }}
                                 />
                               </CardContent>
