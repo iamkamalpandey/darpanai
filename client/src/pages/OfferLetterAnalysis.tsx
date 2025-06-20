@@ -334,29 +334,76 @@ export default function OfferLetterAnalysis() {
           </CardContent>
         </Card>
 
-        {/* Analysis Results */}
-        {analysesLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-            <span className="ml-2 text-lg text-gray-600">Loading analyses...</span>
-          </div>
-        ) : analyses.length > 0 ? (
+        {/* Previous Analyses */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              <div className="p-2 bg-gray-100 rounded-full">
+                <FileText className="h-5 w-5 text-gray-600" />
+              </div>
+              Previous Analyses
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {analysesLoading ? (
+              <div className="text-center py-8 text-gray-500">Loading analyses...</div>
+            ) : analyses.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No offer letter analyses yet. Upload your first offer letter above.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {analyses.slice(0, 10).map((analysis) => (
+                  <div 
+                    key={analysis.id}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 cursor-pointer transition-colors"
+                    onClick={() => {
+                      // Show detailed analysis in expanded card
+                      const expandedCard = document.getElementById(`analysis-${analysis.id}`);
+                      if (expandedCard) {
+                        expandedCard.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-red-100 rounded">
+                        <FileText className="h-5 w-5 text-red-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900 text-sm">
+                          {analysis.fileName}
+                        </h4>
+                        <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+                          <span>Offer Letter Analysis</span>
+                          <span>{new Date(analysis.analysisDate).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-red-600 text-sm font-medium">View Analysis</span>
+                      <div className="p-1">
+                        <svg className="h-4 w-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Detailed Analysis Results */}
+        {analyses.length > 0 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Your Analysis Results</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Detailed Analysis Results</h2>
             {analyses.map((analysis) => (
-              <OfferLetterAnalysisCard key={analysis.id} analysis={analysis} />
+              <div key={analysis.id} id={`analysis-${analysis.id}`}>
+                <OfferLetterAnalysisCard analysis={analysis} />
+              </div>
             ))}
           </div>
-        ) : (
-          <Card className="text-center py-12">
-            <CardContent>
-              <GraduationCap className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">No Analyses Yet</h3>
-              <p className="text-gray-500 mb-6">
-                Upload your first offer letter to get comprehensive analysis with scholarship matching and cost-saving strategies.
-              </p>
-            </CardContent>
-          </Card>
         )}
 
         {/* CTA for Expert Guidance */}

@@ -365,18 +365,17 @@ export default function CoEAnalysis() {
           </CardContent>
         </Card>
 
-        {/* Recent CoE Analyses */}
+        {/* Previous Analyses */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
-              <FileText className="h-6 w-6 text-blue-600" />
-              Recent COE Analyses
+              <div className="p-2 bg-gray-100 rounded-full">
+                <FileText className="h-5 w-5 text-gray-600" />
+              </div>
+              Previous Analyses
             </CardTitle>
-            <CardDescription>
-              Your previously analyzed Confirmation of Enrollment documents
-            </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
             {isLoadingAnalyses ? (
               <div className="text-center py-8 text-gray-500">Loading analyses...</div>
             ) : analyses.length === 0 ? (
@@ -384,35 +383,36 @@ export default function CoEAnalysis() {
                 No COE analyses yet. Upload your first COE document above.
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {analyses.slice(0, 6).map((analysis: CoEAnalysis) => (
-                  <Card 
-                    key={analysis.id} 
-                    className="cursor-pointer hover:shadow-md transition-shadow"
+              <div className="space-y-3">
+                {analyses.slice(0, 10).map((analysis: CoEAnalysis) => (
+                  <div 
+                    key={analysis.id}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 cursor-pointer transition-colors"
                     onClick={() => setLocation(`/coe-analysis/${analysis.id}`)}
                   >
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <FileText className="h-8 w-8 text-blue-600 mt-1" />
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-900 truncate">
-                            {analysis.filename}
-                          </h4>
-                          {analysis.institutionName && (
-                            <p className="text-sm text-gray-600 truncate">
-                              {analysis.institutionName}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="secondary" className="text-xs">COE</Badge>
-                            <span className="text-xs text-gray-500">
-                              {new Date(analysis.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-red-100 rounded">
+                        <FileText className="h-5 w-5 text-red-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900 text-sm">
+                          {analysis.filename}
+                        </h4>
+                        <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+                          <span>COE Document Analysis</span>
+                          <span>{new Date(analysis.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-red-600 text-sm font-medium">View Analysis</span>
+                      <div className="p-1">
+                        <svg className="h-4 w-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
