@@ -108,12 +108,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sponsorDetails: freshUser.sponsorDetails
       });
       
-      // Prevent caching to ensure fresh data
+      // Prevent all caching to ensure fresh data
       res.set({
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Cache-Control': 'no-cache, no-store, must-revalidate, private',
         'Pragma': 'no-cache',
         'Expires': '0',
-        'ETag': `"${Date.now()}-${userId}"` // Dynamic ETag to prevent 304
+        'Last-Modified': new Date().toUTCString(),
+        'ETag': `"fresh-${Date.now()}-${userId}"` // Dynamic ETag to prevent 304
       });
       
       console.log('=== USER DATA RESPONSE SENT ===');
@@ -121,6 +122,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching user data:', error);
       res.status(500).json({ error: 'Failed to fetch user data' });
+    }
+  });
+
+  // Dedicated fresh user data endpoint - bypass all caching
+  app.get('/api/user/fresh', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const timestamp = Date.now();
+      
+      console.log(`=== FRESH DATA REQUEST ${timestamp} ===`);
+      console.log('User ID:', userId);
+      
+      // Direct database query for absolute fresh data
+      const freshUser = await storage.getUser(userId);
+      
+      if (!freshUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      console.log('Financial data confirmed:', {
+        fundingSource: freshUser.fundingSource,
+        estimatedBudget: freshUser.estimatedBudget,
+        savingsAmount: freshUser.savingsAmount
+      });
+      
+      // No caching headers
+      res.set({
+        'Cache-Control': 'no-store',
+        'X-Fresh-Data': timestamp.toString()
+      });
+      
+      res.json({ ...freshUser, _timestamp: timestamp });
+    } catch (error) {
+      console.error('Fresh data error:', error);
+      res.status(500).json({ error: 'Failed to fetch fresh data' });
     }
   });
   

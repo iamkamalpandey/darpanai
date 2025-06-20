@@ -77,20 +77,6 @@ export default function EnhancedUserProfile() {
 
   const formatSavingsRange = (value: string) => {
     const ranges = {
-      'help-me-plan': 'Help me Plan (Need Guidance)',
-      'under-5000': 'Under $5,000',
-      '5000-15000': '$5,000 - $15,000',
-      '15000-30000': '$15,000 - $30,000',
-      '30000-50000': '$30,000 - $50,000',
-      '50000-100000': '$50,000 - $100,000',
-      'over-100000': 'Over $100,000',
-      'prefer-not-to-say': 'Prefer not to say'
-    };
-    return ranges[value as keyof typeof ranges] || value;
-  };
-
-  const formatSavingsRange = (value: string) => {
-    const ranges = {
       'no-savings': 'No Current Savings',
       'under-5000': 'Under $5,000',
       '5000-15000': '$5,000 - $15,000',
@@ -104,9 +90,12 @@ export default function EnhancedUserProfile() {
     return ranges[value as keyof typeof ranges] || value;
   };
   
-  const { data: user, isLoading } = useQuery({
-    queryKey: ['/api/user'],
-  }) as { data: any, isLoading: boolean };
+  // Use fresh data endpoint to bypass caching
+  const { data: user, isLoading, refetch } = useQuery({
+    queryKey: ['/api/user/fresh'],
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+  }) as { data: any, isLoading: boolean, refetch: any };
 
   // Calculate completion percentage based on actual user data
   const completionPercentage = useMemo(() => {
