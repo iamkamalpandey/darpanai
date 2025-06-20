@@ -653,6 +653,25 @@ const ProfilePageRedesign: React.FC = () => {
     },
   });
 
+  // Update additional form when entering edit mode
+  React.useEffect(() => {
+    if (user && editingSection === 'additional') {
+      additionalForm.reset({
+        source: user.source || '',
+        studyDestination: user.studyDestination || '',
+        startDate: user.startDate || '',
+        city: user.city || '',
+        country: user.country || '',
+        counsellingMode: user.counsellingMode || '',
+        studyLevel: user.studyLevel || '',
+        leadType: user.leadType || '',
+        applicationStatus: user.applicationStatus || '',
+        campaignId: user.campaignId || '',
+        isArchived: user.isArchived || false,
+        dropout: user.dropout || false,
+      });
+    }
+  }, [user, editingSection, additionalForm]);
 
 
   // Check section completion

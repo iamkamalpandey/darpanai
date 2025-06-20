@@ -80,6 +80,13 @@ export default function Home() {
     refetchOnMount: false
   }) as { data: any };
 
+  // Get authentic platform statistics for public display
+  const { data: platformStats } = useQuery<PlatformStats>({
+    queryKey: ['/api/platform-stats'],
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    refetchOnMount: false
+  });
+
   // Show profile completion prompt if profile is incomplete (less than 70%)
   useEffect(() => {
     if (completionStatus && !completionStatus.isComplete && completionStatus.completionPercentage < 70) {
@@ -135,23 +142,23 @@ export default function Home() {
               />
             </div>
 
-            {/* Trust Indicators */}
+            {/* Trust Indicators - Authentic Platform Statistics */}
             <div className="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 sm:gap-8 text-sm text-gray-600">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <span>5K+ Documents Analyzed</span>
+                <span>{platformStats?.documentsProcessed || 0}+ Documents Analyzed</span>
               </div>
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-blue-500" />
-                <span>90% Success Rate</span>
+                <span>{platformStats?.successfulAnalyses === platformStats?.totalAnalyses ? '100%' : Math.round(((platformStats?.successfulAnalyses || 0) / (platformStats?.totalAnalyses || 1)) * 100)}% Success Rate</span>
               </div>
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-purple-500" />
-                <span>50+ Countries Supported</span>
+                <span>{platformStats?.totalCountries || 0}+ Countries Supported</span>
               </div>
               <div className="flex items-center gap-2">
                 <Zap className="h-4 w-4 text-orange-500" />
-                <span>24/7 AI Analysis</span>
+                <span>Avg {platformStats?.averageProcessingTime || '2-5 min'} Processing</span>
               </div>
             </div>
           </div>
