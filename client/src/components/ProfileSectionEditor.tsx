@@ -492,14 +492,60 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
       if (formData.hasOwnProperty(field)) {
         let value = formData[field];
         
-        // Convert empty strings to null for optional fields
+        // Data type conversion and null handling for different field types
         if (typeof value === 'string' && value.trim() === '') {
           const rules = getValidationRules(section);
           const rule = rules.find(r => r.field === field);
           
-          // If field is not required, allow null/empty
-          if (!rule || !rule.required) {
+          // Convert empty strings to null for optional fields
+          if (!rule?.required) {
             value = null;
+          }
+        }
+        
+        // Special handling for numeric fields
+        if (field === 'graduationYear' && value) {
+          value = parseInt(value, 10);
+        }
+        
+        if (field === 'currentAcademicGap' && value) {
+          // Convert to number if it's a string number, otherwise keep as string for gap reasons
+          const numValue = parseInt(value, 10);
+          value = !isNaN(numValue) ? numValue : value;
+        }
+        
+        if (field === 'workExperienceYears' && value) {
+          // Handle both string and number formats for work experience
+          if (typeof value === 'string' && !isNaN(parseInt(value))) {
+            value = parseInt(value, 10);
+          }
+        }
+        
+        if (field === 'loanAmount' && value) {
+          const numValue = parseFloat(value);
+          value = !isNaN(numValue) ? numValue : null;
+        }
+        
+        // Boolean field conversions
+        if (['partTimeInterest', 'accommodationRequired', 'hasDependents', 'loanApproval', 'financialDocuments'].includes(field)) {
+          if (value === 'true' || value === true) value = true;
+          else if (value === 'false' || value === false) value = false;
+          else if (value === '' || value === null || value === undefined) value = null;
+        }
+        
+        // Array field handling
+        if (field === 'preferredCountries' && value) {
+          // Ensure it's an array
+          if (!Array.isArray(value)) {
+            value = [value];
+          }
+        }
+        
+        // JSON field handling for language tests
+        if (['englishProficiencyTests', 'standardizedTests'].includes(field) && value) {
+          // Ensure proper array structure
+          if (!Array.isArray(value)) {
+            value = [];
           }
         }
         

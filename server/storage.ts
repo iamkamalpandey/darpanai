@@ -286,66 +286,78 @@ export class DatabaseStorage implements IStorage {
     // Build update object dynamically to include all provided fields
     const updateData: any = {};
     
-    // Helper function to handle field updates - preserves existing data when field is undefined
-    const setField = (field: string, value: any) => {
+    // Helper function to handle field updates with proper null handling
+    const setField = (field: string, value: any, isMandatory: boolean = false) => {
       if (value !== undefined) {
-        updateData[field] = value;
+        // For mandatory fields, convert empty strings to null only if they're truly empty
+        // For optional fields, allow null values and convert empty strings to null
+        if (isMandatory && (value === '' || value === null)) {
+          // Don't update mandatory fields with empty/null values - keep existing data
+          return;
+        }
+        
+        // For optional fields, convert empty strings to null for proper database storage
+        if (!isMandatory && (value === '' || value === 'null' || value === 'undefined')) {
+          updateData[field] = null;
+        } else {
+          updateData[field] = value;
+        }
       }
     };
     
-    // Personal Information
-    setField('firstName', profileData.firstName);
-    setField('lastName', profileData.lastName);
-    setField('dateOfBirth', profileData.dateOfBirth);
-    setField('gender', profileData.gender);
-    setField('nationality', profileData.nationality);
-    setField('phoneNumber', profileData.phoneNumber);
-    setField('secondaryNumber', profileData.secondaryNumber);
-    setField('passportNumber', profileData.passportNumber);
-    setField('city', profileData.city);
-    setField('country', profileData.country);
-    setField('address', profileData.address);
+    // Personal Information (mandatory fields marked as true)
+    setField('firstName', profileData.firstName, true);
+    setField('lastName', profileData.lastName, true);
+    setField('dateOfBirth', profileData.dateOfBirth, true);
+    setField('gender', profileData.gender, true);
+    setField('nationality', profileData.nationality, true);
+    setField('phoneNumber', profileData.phoneNumber, true);
+    setField('secondaryNumber', profileData.secondaryNumber, false); // Optional
+    setField('passportNumber', profileData.passportNumber, false); // Optional
+    setField('city', profileData.city, false); // Optional
+    setField('country', profileData.country, false); // Optional
+    setField('address', profileData.address, false); // Optional
     
-    // Academic Information
-    setField('highestQualification', profileData.highestQualification);
-    setField('highestInstitution', profileData.highestInstitution);
-    setField('highestCountry', profileData.highestCountry);
-    setField('highestGpa', profileData.highestGpa);
-    setField('graduationYear', profileData.graduationYear);
-    setField('currentAcademicGap', profileData.currentAcademicGap);
-    setField('educationHistory', profileData.educationHistory);
+    // Academic Information (mandatory fields marked as true)
+    setField('highestQualification', profileData.highestQualification, true);
+    setField('highestInstitution', profileData.highestInstitution, true);
+    setField('highestCountry', profileData.highestCountry, false); // Optional
+    setField('highestGpa', profileData.highestGpa, true);
+    setField('graduationYear', profileData.graduationYear, true);
+    setField('currentAcademicGap', profileData.currentAcademicGap, false); // Optional
+    setField('educationHistory', profileData.educationHistory, false); // Optional
     
-    // Study Preferences
-    setField('interestedCourse', profileData.interestedCourse);
-    setField('fieldOfStudy', profileData.fieldOfStudy);
-    setField('preferredIntake', profileData.preferredIntake);
-    setField('budgetRange', profileData.budgetRange);
-    setField('preferredCountries', profileData.preferredCountries);
-    setField('interestedServices', profileData.interestedServices);
-    setField('partTimeInterest', profileData.partTimeInterest);
-    setField('accommodationRequired', profileData.accommodationRequired);
-    setField('hasDependents', profileData.hasDependents);
+    // Study Preferences (mandatory fields marked as true)
+    setField('interestedCourse', profileData.interestedCourse, true);
+    setField('fieldOfStudy', profileData.fieldOfStudy, true);
+    setField('preferredIntake', profileData.preferredIntake, true);
+    setField('budgetRange', profileData.budgetRange, true);
+    setField('preferredCountries', profileData.preferredCountries, true);
+    setField('interestedServices', profileData.interestedServices, false); // Optional
+    setField('partTimeInterest', profileData.partTimeInterest, false); // Optional
+    setField('accommodationRequired', profileData.accommodationRequired, false); // Optional
+    setField('hasDependents', profileData.hasDependents, false); // Optional
     
-    // Financial Information
-    setField('fundingSource', profileData.fundingSource);
-    setField('estimatedBudget', profileData.estimatedBudget);
-    setField('savingsAmount', profileData.savingsAmount);
-    setField('loanApproval', profileData.loanApproval);
-    setField('loanAmount', profileData.loanAmount);
-    setField('sponsorDetails', profileData.sponsorDetails);
-    setField('financialDocuments', profileData.financialDocuments);
+    // Financial Information (mandatory fields marked as true)
+    setField('fundingSource', profileData.fundingSource, true);
+    setField('estimatedBudget', profileData.estimatedBudget, true);
+    setField('savingsAmount', profileData.savingsAmount, false); // Optional
+    setField('loanApproval', profileData.loanApproval, false); // Optional
+    setField('loanAmount', profileData.loanAmount, false); // Optional
+    setField('sponsorDetails', profileData.sponsorDetails, false); // Optional
+    setField('financialDocuments', profileData.financialDocuments, false); // Optional
     
-    // Employment Information
-    setField('currentEmploymentStatus', profileData.currentEmploymentStatus);
-    setField('workExperienceYears', profileData.workExperienceYears);
-    setField('jobTitle', profileData.jobTitle);
-    setField('organizationName', profileData.organizationName);
-    setField('fieldOfWork', profileData.fieldOfWork);
-    setField('gapReasonIfAny', profileData.gapReasonIfAny);
+    // Employment Information (mandatory field: employment status)
+    setField('currentEmploymentStatus', profileData.currentEmploymentStatus, true);
+    setField('workExperienceYears', profileData.workExperienceYears, false); // Conditional - depends on employment status
+    setField('jobTitle', profileData.jobTitle, false); // Conditional - depends on employment status
+    setField('organizationName', profileData.organizationName, false); // Conditional - depends on employment status
+    setField('fieldOfWork', profileData.fieldOfWork, false); // Optional
+    setField('gapReasonIfAny', profileData.gapReasonIfAny, false); // Conditional - depends on employment status
     
-    // Language Proficiency
-    setField('englishProficiencyTests', profileData.englishProficiencyTests);
-    setField('standardizedTests', profileData.standardizedTests);
+    // Language Proficiency (optional but if provided, must be complete)
+    setField('englishProficiencyTests', profileData.englishProficiencyTests, false); // Optional
+    setField('standardizedTests', profileData.standardizedTests, false); // Optional
     
     // Legacy fields for compatibility
     if (profileData.studyLevel !== undefined) updateData.studyLevel = profileData.studyLevel;
