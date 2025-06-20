@@ -12,7 +12,7 @@ import { AdminRedirect } from "@/components/AdminRedirect";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Landing from "@/pages/Landing";
-import AuthPage from "@/pages/auth-page";
+import SimplifiedAuth from "@/components/SimplifiedAuth";
 
 // Lazy load heavy components for better initial performance
 const VisaAnalyzer = lazy(() => import("@/pages/VisaAnalyzer"));
@@ -78,7 +78,7 @@ function Router() {
   return (
     <Switch>
       {/* Public Routes */}
-      <Route path="/auth" component={AuthPage} />
+      <Route path="/auth" component={SimplifiedAuth} />
       
       {/* Home Route - Shows Landing for guests, Dashboard for authenticated users */}
       <Route path="/" component={HomePage} />
