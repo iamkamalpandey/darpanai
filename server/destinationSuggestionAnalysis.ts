@@ -6,16 +6,22 @@ interface UserProfile {
   id: number;
   firstName: string;
   lastName: string;
-  country: string;
-  studyLevel?: string | null;
-  preferredStudyFields?: string[] | null;
-  budgetRange?: string | null;
-  languagePreferences?: string[] | null;
-  climatePreference?: string | null;
-  universityRankingImportance?: string | null;
-  workPermitImportance?: string | null;
-  culturalPreferences?: string[] | null;
-  careerGoals?: string | null;
+  country: string | null;
+  dateOfBirth?: string | undefined;
+  gender?: string | undefined;
+  nationality?: string | undefined;
+  highestQualification?: string | undefined;
+  highestInstitution?: string | undefined;
+  highestGpa?: string | undefined;
+  graduationYear?: number | undefined;
+  interestedCourse?: string | undefined;
+  fieldOfStudy?: string | undefined;
+  preferredIntake?: string | undefined;
+  budgetRange?: string | undefined;
+  preferredCountries?: string[] | undefined;
+  currentEmploymentStatus?: string | undefined;
+  englishProficiencyTests?: any[] | undefined;
+  standardizedTests?: any[] | undefined;
 }
 
 interface DestinationSuggestionRequest {
