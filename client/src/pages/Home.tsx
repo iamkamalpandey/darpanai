@@ -57,12 +57,8 @@ export default function Home() {
     refetchOnMount: false
   });
 
-  const { data: recentAnalyses } = useQuery<RecentAnalysis[]>({
-    queryKey: ['/api/analyses/recent'],
-    enabled: !!user,
-    staleTime: 15 * 60 * 1000,
-    refetchOnMount: false
-  });
+  // Removed non-existent /api/analyses/recent endpoint to fix "Invalid analysis ID" error
+  const recentAnalyses: RecentAnalysis[] = [];
 
   if (!user) {
     return (

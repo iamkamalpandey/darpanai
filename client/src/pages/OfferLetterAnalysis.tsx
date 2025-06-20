@@ -512,7 +512,7 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                           Critical Deadlines
                         </h4>
                         <ul className="space-y-2">
-                          {analysis.documentAnalysis.termsAndConditions.criticalDeadlines.map((deadline, index) => (
+                          {analysis.documentAnalysis?.termsAndConditions?.criticalDeadlines?.map((deadline, index) => (
                             <li key={index} className="text-sm text-red-700 flex items-start gap-2">
                               <span className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></span>
                               {deadline}
@@ -523,14 +523,14 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                     )}
 
                     {/* Hidden Clauses */}
-                    {analysis.documentAnalysis.termsAndConditions.hiddenClauses.length > 0 && (
+                    {(analysis.documentAnalysis?.termsAndConditions?.hiddenClauses?.length || 0) > 0 && (
                       <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
                         <h4 className="font-semibold text-orange-800 mb-3 flex items-center gap-2">
                           <Eye className="h-4 w-4" />
                           Important Hidden Clauses
                         </h4>
                         <ul className="space-y-2">
-                          {analysis.documentAnalysis.termsAndConditions.hiddenClauses.map((clause, index) => (
+                          {analysis.documentAnalysis?.termsAndConditions?.hiddenClauses?.map((clause, index) => (
                             <li key={index} className="text-sm text-orange-700 flex items-start gap-2">
                               <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
                               {clause}
@@ -541,14 +541,14 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                     )}
 
                     {/* Penalties */}
-                    {analysis.documentAnalysis.termsAndConditions.penalties.length > 0 && (
+                    {(analysis.documentAnalysis?.termsAndConditions?.penalties?.length || 0) > 0 && (
                       <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                         <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                           <AlertTriangle className="h-4 w-4" />
                           Penalties & Consequences
                         </h4>
                         <ul className="space-y-2">
-                          {analysis.documentAnalysis.termsAndConditions.penalties.map((penalty, index) => (
+                          {analysis.documentAnalysis?.termsAndConditions?.penalties?.map((penalty, index) => (
                             <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
                               <span className="w-2 h-2 bg-gray-500 rounded-full mt-2 flex-shrink-0"></span>
                               {penalty}
@@ -574,12 +574,12 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                       <div className="space-y-3">
                         <h4 className="font-semibold text-red-800 border-b border-red-200 pb-1">High Risk Factors</h4>
                         <ul className="space-y-2">
-                          {analysis.documentAnalysis.riskAssessment.highRiskFactors.map((risk, index) => (
+                          {analysis.documentAnalysis?.riskAssessment?.highRiskFactors?.map((risk, index) => (
                             <li key={index} className="text-sm text-red-700 flex items-start gap-2">
                               <span className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></span>
                               {risk}
                             </li>
-                          ))}
+                          )) || [<li key="no-data" className="text-sm text-gray-500 italic">No high risk factors identified</li>]}
                         </ul>
                       </div>
 
@@ -587,12 +587,12 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                       <div className="space-y-3">
                         <h4 className="font-semibold text-orange-800 border-b border-orange-200 pb-1">Financial Risks</h4>
                         <ul className="space-y-2">
-                          {analysis.documentAnalysis.riskAssessment.financialRisks.map((risk, index) => (
+                          {analysis.documentAnalysis?.riskAssessment?.financialRisks?.map((risk, index) => (
                             <li key={index} className="text-sm text-orange-700 flex items-start gap-2">
                               <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
                               {risk}
                             </li>
-                          ))}
+                          )) || [<li key="no-data" className="text-sm text-gray-500 italic">No financial risks identified</li>]}
                         </ul>
                       </div>
 
@@ -600,12 +600,12 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                       <div className="space-y-3">
                         <h4 className="font-semibold text-blue-800 border-b border-blue-200 pb-1">Academic Risks</h4>
                         <ul className="space-y-2">
-                          {analysis.documentAnalysis.riskAssessment.academicRisks.map((risk, index) => (
+                          {analysis.documentAnalysis?.riskAssessment?.academicRisks?.map((risk, index) => (
                             <li key={index} className="text-sm text-blue-700 flex items-start gap-2">
                               <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
                               {risk}
                             </li>
-                          ))}
+                          )) || [<li key="no-data" className="text-sm text-gray-500 italic">No academic risks identified</li>]}
                         </ul>
                       </div>
 
@@ -613,12 +613,12 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                       <div className="space-y-3">
                         <h4 className="font-semibold text-purple-800 border-b border-purple-200 pb-1">Compliance Risks</h4>
                         <ul className="space-y-2">
-                          {analysis.documentAnalysis.riskAssessment.complianceRisks.map((risk, index) => (
+                          {analysis.documentAnalysis?.riskAssessment?.complianceRisks?.map((risk, index) => (
                             <li key={index} className="text-sm text-purple-700 flex items-start gap-2">
                               <span className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
                               {risk}
                             </li>
-                          ))}
+                          )) || [<li key="no-data" className="text-sm text-gray-500 italic">No compliance risks identified</li>]}
                         </ul>
                       </div>
                     </div>
@@ -630,12 +630,12 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                         Risk Mitigation Strategies
                       </h4>
                       <ul className="space-y-2">
-                        {analysis.documentAnalysis.riskAssessment.mitigationStrategies.map((strategy, index) => (
+                        {analysis.documentAnalysis?.riskAssessment?.mitigationStrategies?.map((strategy, index) => (
                           <li key={index} className="text-sm text-green-700 flex items-start gap-2">
                             <span className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
                             {strategy}
                           </li>
-                        ))}
+                        )) || [<li key="no-data" className="text-sm text-gray-500 italic">No mitigation strategies specified</li>]}
                       </ul>
                     </div>
                   </CardContent>

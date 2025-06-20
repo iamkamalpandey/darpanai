@@ -20,6 +20,15 @@ interface UniversityScholarshipInfo {
     matchesAcademic: boolean;
     overallMatch: number; // percentage 0-100
   };
+  competitiveness?: 'Low' | 'Medium' | 'High';
+  renewalRequirements?: string;
+  additionalBenefits?: string[];
+  applicationStrategy?: {
+    recommendedSubmissionTime?: string;
+    requiredDocuments?: string[];
+    preparationTime?: string;
+    successTips?: string[];
+  };
 }
 
 interface OfferLetterAnalysisResponse {
