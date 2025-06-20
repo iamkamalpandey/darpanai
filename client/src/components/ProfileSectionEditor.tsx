@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -670,6 +670,9 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
           <DialogTitle className="text-xl font-bold text-gray-900">
             Edit {getSectionTitle()}
           </DialogTitle>
+          <DialogDescription>
+            Update your {getSectionTitle().toLowerCase()} to improve profile completion and unlock premium AI analysis features.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
