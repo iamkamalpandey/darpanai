@@ -41,9 +41,11 @@ const personalInfoSchema = z.object({
       if (!date) return true;
       const birthDate = new Date(date);
       const today = new Date();
+      // Check if date is not in future
+      if (birthDate > today) return false;
       const age = today.getFullYear() - birthDate.getFullYear();
       return age >= 16 && age <= 100;
-    }, 'Age must be between 16 and 100 years'),
+    }, 'Date of birth cannot be in the future and age must be between 16 and 100 years'),
   gender: z.enum(['Male', 'Female', 'Non-binary', 'Prefer not to say', 'Other']).optional().nullable(),
   nationality: z.string()
     .min(1, 'Nationality is required')
@@ -54,8 +56,10 @@ const personalInfoSchema = z.object({
     .nullable()
     .refine((passport) => {
       if (!passport) return true;
-      return passport.length >= 6 && passport.length <= 15;
-    }, 'Passport number must be 6-15 characters'),
+      // Enhanced passport validation for common formats
+      const cleanPassport = passport.replace(/\s/g, '');
+      return cleanPassport.length >= 6 && cleanPassport.length <= 15 && /^[A-Z0-9]+$/i.test(cleanPassport);
+    }, 'Passport number must be 6-15 alphanumeric characters'),
   secondaryNumber: z.string()
     .optional()
     .nullable()
@@ -63,7 +67,15 @@ const personalInfoSchema = z.object({
       if (!phone) return true;
       return /^[\+]?[1-9][\d]{9,19}$/.test(phone);
     }, 'Invalid secondary phone number format'),
-  address: z.string().optional().nullable(),
+  address: z.string()
+    .optional()
+    .nullable()
+    .refine((address) => {
+      if (!address) return true;
+      // Address should be more than just numbers or very short text
+      const trimmed = address.trim();
+      return trimmed.length >= 10 && !/^\d+$/.test(trimmed);
+    }, 'Address must be at least 10 characters and include more than just numbers'),
 });
 
 const academicInfoSchema = z.object({
@@ -107,9 +119,13 @@ const academicInfoSchema = z.object({
 
 const studyPreferencesSchema = z.object({
   interestedCourse: z.string()
-    .min(1, 'Course interest is required')
+    .min(3, 'Course name must be at least 3 characters')
     .max(100, 'Course name too long')
-    .regex(/^[a-zA-Z0-9\s\-\.&,()]+$/, 'Course name contains invalid characters'),
+    .regex(/^[a-zA-Z][a-zA-Z0-9\s\-\.&,()]*$/, 'Course name must start with a letter and contain only valid characters')
+    .refine((course) => {
+      // Prevent numeric-only course names like "123"
+      return !/^\d+$/.test(course.trim());
+    }, 'Course name cannot be only numbers'),
   fieldOfStudy: z.enum(['Engineering', 'Business', 'Medicine', 'Arts', 'Science', 'Technology', 'Other'])
     .refine((field) => field !== undefined, 'Field of study is required'),
   preferredIntake: z.enum(['Fall 2024', 'Spring 2025', 'Fall 2025', 'Spring 2026', 'Fall 2026'])
@@ -211,6 +227,100 @@ const calculateProfileCompletion = (user: any) => {
   const percentage = Math.round((completedSections / totalSections) * 100);
 
   return { percentage, completedSections, totalSections, sections };
+};
+
+// Data validation warning component
+const DataValidationWarnings: React.FC<{ user: any }> = ({ user }) => {
+  const warnings = [];
+  
+  // Check for critical data integrity issues
+  if (user?.dateOfBirth) {
+    const birthDate = new Date(user.dateOfBirth);
+    const today = new Date();
+    if (birthDate > today) {
+      warnings.push({
+        type: 'error',
+        field: 'Date of Birth',
+        issue: 'Future date detected',
+        value: user.dateOfBirth,
+        recommendation: 'Please correct to a valid past date'
+      });
+    }
+  }
+  
+  if (user?.passportNumber && user.passportNumber.length < 6) {
+    warnings.push({
+      type: 'error',
+      field: 'Passport Number',
+      issue: 'Invalid format',
+      value: user.passportNumber,
+      recommendation: 'Passport number must be 6-15 alphanumeric characters'
+    });
+  }
+  
+  if (user?.highestGpa && /^\d+%$/.test(user.highestGpa)) {
+    const percentage = parseInt(user.highestGpa);
+    if (percentage > 100) {
+      warnings.push({
+        type: 'error',
+        field: 'GPA/Grade',
+        issue: 'Invalid percentage format',
+        value: user.highestGpa,
+        recommendation: 'Percentage cannot exceed 100%'
+      });
+    }
+  }
+  
+  if (user?.address && (user.address.length < 10 || /^\d+$/.test(user.address.trim()))) {
+    warnings.push({
+      type: 'warning',
+      field: 'Address',
+      issue: 'Incomplete address',
+      value: user.address,
+      recommendation: 'Please provide a complete address with street, city, and state'
+    });
+  }
+  
+  if (user?.interestedCourse && /^\d+$/.test(user.interestedCourse.trim())) {
+    warnings.push({
+      type: 'error',
+      field: 'Interested Course',
+      issue: 'Invalid course name',
+      value: user.interestedCourse,
+      recommendation: 'Course name cannot be only numbers'
+    });
+  }
+  
+  // Budget consistency check
+  if (user?.budgetRange && user?.estimatedBudget && user.budgetRange !== user.estimatedBudget) {
+    warnings.push({
+      type: 'warning',
+      field: 'Budget Consistency',
+      issue: 'Budget mismatch between sections',
+      value: `Study: ${user.budgetRange}, Financial: ${user.estimatedBudget}`,
+      recommendation: 'Ensure budget ranges are consistent across all sections'
+    });
+  }
+  
+  if (warnings.length === 0) return null;
+  
+  return (
+    <Alert className="mb-6 border-orange-200 bg-orange-50">
+      <AlertCircle className="h-4 w-4 text-orange-600" />
+      <AlertDescription>
+        <div className="space-y-2">
+          <p className="font-medium text-orange-800">Data Validation Issues Detected:</p>
+          {warnings.map((warning, index) => (
+            <div key={index} className={`p-2 rounded text-sm ${warning.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-yellow-50 text-yellow-700'}`}>
+              <p className="font-medium">{warning.field}: {warning.issue}</p>
+              <p className="text-xs">Current: {warning.value}</p>
+              <p className="text-xs">{warning.recommendation}</p>
+            </div>
+          ))}
+        </div>
+      </AlertDescription>
+    </Alert>
+  );
 };
 
 const ProfileSectionCard: React.FC<{
@@ -536,6 +646,9 @@ const ProfilePageRedesign: React.FC = () => {
             Complete your profile to unlock personalized AI analysis and study destination recommendations.
           </p>
         </div>
+
+        {/* Data Validation Warnings */}
+        <DataValidationWarnings user={user} />
 
         {/* Profile Completion Card */}
         <Card className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
