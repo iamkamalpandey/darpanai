@@ -192,16 +192,28 @@ async function researchUniversityScholarships(
         },
         {
           role: "user",
-          content: `Research scholarships for ${universityName} in ${location} for the ${program} program. Provide minimum 8-12 verified scholarships with complete details including:
+          content: `Research comprehensive scholarship opportunities for ${universityName} in ${location} for the ${program} program. Conduct thorough research of official university databases and provide minimum 8-12 verified scholarships with complete details including:
           
-          1. Official scholarship names and amounts
-          2. Detailed eligibility criteria
-          3. Application processes and deadlines
-          4. Competitiveness levels
-          5. Renewal requirements
-          6. Application strategies
+          1. Official scholarship names with exact amounts in local currency
+          2. Detailed eligibility criteria with specific GPA, academic, and demographic requirements
+          3. Complete application processes with step-by-step instructions
+          4. Exact application deadlines and submission requirements
+          5. Competitiveness levels based on historical acceptance rates
+          6. Renewal requirements and conditions for maintaining funding
+          7. Strategic application guidance and success tips
+          8. Official university scholarship page URLs where students can apply
           
-          Focus on merit-based, need-based, international student, and program-specific scholarships. Ensure all information is from official university sources.
+          Research Categories:
+          - Merit-based scholarships (academic excellence, leadership)
+          - Need-based financial aid (income-tested, hardship funds)
+          - International student specific scholarships
+          - Program-specific funding (course-related, research opportunities)
+          - Diversity and inclusion scholarships
+          - Industry partnership scholarships
+          - Alumni-funded scholarships
+          - Government and external funding opportunities
+          
+          For each scholarship, provide the official university webpage URL where students can find complete information and application forms. Ensure all scholarship information is from verified official university sources and current for the 2024-2025 academic year.
           
           Return as JSON with this structure:
           {

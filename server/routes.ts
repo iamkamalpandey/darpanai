@@ -2072,8 +2072,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Extract text from document
-      const extractedText = await extractTextFromDocument(file.buffer, fileExtension);
+      // Extract text from document - ensure extension has dot prefix
+      const extractedText = await extractTextFromDocument(file.buffer, `.${fileExtension}`);
       
       if (!extractedText || extractedText.trim().length < 50) {
         return res.status(400).json({ 
