@@ -443,6 +443,17 @@ const ProfilePageRedesign: React.FC = () => {
   // Update form values when user data loads or when entering edit mode
   React.useEffect(() => {
     if (user && editingSection === 'personal') {
+      console.log('Preloading personal form with data:', {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phoneNumber: user.phoneNumber,
+        dateOfBirth: user.dateOfBirth,
+        gender: user.gender,
+        nationality: user.nationality,
+        passportNumber: user.passportNumber,
+        secondaryNumber: user.secondaryNumber,
+        address: user.address,
+      });
       personalForm.reset({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
@@ -594,29 +605,41 @@ const ProfilePageRedesign: React.FC = () => {
     }
   };
 
-  // Submit handlers
+  // Submit handlers with validation logging
   const submitPersonalInfo = (data: any) => {
+    console.log('Submitting personal info:', data);
     updateProfileMutation.mutate(data);
+    setEditingSection(null);
   };
 
   const submitAcademicInfo = (data: any) => {
+    console.log('Submitting academic info:', data);
     updateProfileMutation.mutate(data);
+    setEditingSection(null);
   };
 
   const submitStudyPreferences = (data: any) => {
+    console.log('Submitting study preferences:', data);
     updateProfileMutation.mutate(data);
+    setEditingSection(null);
   };
 
   const submitFinancialInfo = (data: any) => {
+    console.log('Submitting financial info:', data);
     updateProfileMutation.mutate(data);
+    setEditingSection(null);
   };
 
   const submitEmploymentInfo = (data: any) => {
+    console.log('Submitting employment info:', data);
     updateProfileMutation.mutate(data);
+    setEditingSection(null);
   };
 
   const submitLanguageProficiency = (data: any) => {
+    console.log('Submitting language proficiency:', data);
     updateProfileMutation.mutate(data);
+    setEditingSection(null);
   };
 
   if (isLoading) {
@@ -790,7 +813,7 @@ const ProfilePageRedesign: React.FC = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Gender</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || ''}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select gender" />
