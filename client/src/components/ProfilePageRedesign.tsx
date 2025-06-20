@@ -958,6 +958,47 @@ const ProfilePageRedesign: React.FC = () => {
                       </FormItem>
                     )}
                   />
+                  
+                  {/* Missing Personal Information Fields */}
+                  <FormField
+                    control={personalForm.control}
+                    name="passportNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Passport Number</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter passport number" value={field.value || ''} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={personalForm.control}
+                    name="secondaryNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Secondary Phone Number</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter secondary phone" value={field.value || ''} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={personalForm.control}
+                    name="address"
+                    render={({ field }) => (
+                      <FormItem className="lg:col-span-3">
+                        <FormLabel>Address</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} placeholder="Enter your complete address" value={field.value || ''} className="min-h-[60px]" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
                 <div className="flex justify-end space-x-2">
                   <Button
@@ -1129,19 +1170,7 @@ const ProfilePageRedesign: React.FC = () => {
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={academicForm.control}
-                    name="highestGpa"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>GPA/Grade</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="3.8 or 85%" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
                   <FormField
                     control={academicForm.control}
                     name="currentAcademicGap"
@@ -1879,6 +1908,10 @@ const ProfilePageRedesign: React.FC = () => {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">Field of Work</Label>
                 <p className="text-sm mt-1 font-medium">{user?.fieldOfWork || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg lg:col-span-3">
+                <Label className="text-sm font-medium text-gray-600">Gap Reason</Label>
+                <p className="text-sm mt-1 font-medium">{user?.gapReasonIfAny || 'Not provided'}</p>
               </div>
             </div>
           )}
