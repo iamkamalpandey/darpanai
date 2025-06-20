@@ -139,11 +139,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   )}
                 </div>
               </Link>
-              <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                <span className="text-xs font-semibold text-white">
-                  {user?.firstName?.[0]}{user?.lastName?.[0]}
-                </span>
-              </div>
+              <Link href="/profile">
+                <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-colors cursor-pointer">
+                  <span className="text-xs font-semibold text-white">
+                    {user?.firstName?.[0]}{user?.lastName?.[0]}
+                  </span>
+                </div>
+              </Link>
             </div>
           </div>
         </header>
@@ -217,7 +219,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="sticky bottom-4 mt-auto mx-3 mb-4">
               <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-lg">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center min-w-0 flex-1">
+                  <Link href="/profile" className="flex items-center min-w-0 flex-1 hover:bg-gray-50 rounded-md p-1 -m-1 transition-colors">
                     <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
                       <span className="text-xs font-medium text-white">
                         {user?.firstName?.[0]}{user?.lastName?.[0]}
@@ -231,7 +233,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         {user?.analysisCount || 0}/{user?.maxAnalyses || 3} analyses
                       </p>
                     </div>
-                  </div>
+                  </Link>
                   
                   <button
                     onClick={handleLogout}
