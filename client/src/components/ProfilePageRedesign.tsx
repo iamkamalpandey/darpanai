@@ -330,74 +330,130 @@ const ProfilePageRedesign: React.FC = () => {
     },
   });
 
-  // Update form values when user data loads
+  // Update form values when user data loads or when entering edit mode
   React.useEffect(() => {
-    if (user) {
+    if (user && editingSection === 'personal') {
       personalForm.reset({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         phoneNumber: user.phoneNumber || '',
-        dateOfBirth: user.dateOfBirth || null,
-        gender: user.gender || null,
+        dateOfBirth: user.dateOfBirth || '',
+        gender: user.gender || '',
         nationality: user.nationality || '',
-        passportNumber: user.passportNumber || null,
-        secondaryNumber: user.secondaryNumber || null,
-        address: user.address || null,
+        passportNumber: user.passportNumber || '',
+        secondaryNumber: user.secondaryNumber || '',
+        address: user.address || '',
       });
     }
-  }, [user, personalForm]);
+  }, [user, editingSection, personalForm]);
 
   // Academic Information Form
   const academicForm = useForm({
     resolver: zodResolver(academicInfoSchema),
     defaultValues: {
-      highestQualification: user?.highestQualification || '',
-      highestInstitution: user?.highestInstitution || '',
-      highestCountry: user?.highestCountry || '',
-      highestGpa: user?.highestGpa || '',
-      graduationYear: user?.graduationYear || null,
-      currentAcademicGap: user?.currentAcademicGap || null,
+      highestQualification: '',
+      highestInstitution: '',
+      highestCountry: '',
+      highestGpa: '',
+      graduationYear: undefined,
+      currentAcademicGap: undefined,
     },
   });
+
+  // Update academic form when entering edit mode
+  React.useEffect(() => {
+    if (user && editingSection === 'academic') {
+      academicForm.reset({
+        highestQualification: user.highestQualification || '',
+        highestInstitution: user.highestInstitution || '',
+        highestCountry: user.highestCountry || '',
+        highestGpa: user.highestGpa || '',
+        graduationYear: user.graduationYear || undefined,
+        currentAcademicGap: user.currentAcademicGap || undefined,
+      });
+    }
+  }, [user, editingSection, academicForm]);
 
   // Study Preferences Form
   const studyForm = useForm({
     resolver: zodResolver(studyPreferencesSchema),
     defaultValues: {
-      interestedCourse: user?.interestedCourse || '',
-      fieldOfStudy: user?.fieldOfStudy || '',
-      preferredIntake: user?.preferredIntake || '',
-      budgetRange: user?.budgetRange || '',
-      preferredCountries: user?.preferredCountries || [],
+      interestedCourse: '',
+      fieldOfStudy: '',
+      preferredIntake: '',
+      budgetRange: '',
+      preferredCountries: [],
     },
   });
+
+  // Update study form when entering edit mode
+  React.useEffect(() => {
+    if (user && editingSection === 'study') {
+      studyForm.reset({
+        interestedCourse: user.interestedCourse || '',
+        fieldOfStudy: user.fieldOfStudy || '',
+        preferredIntake: user.preferredIntake || '',
+        budgetRange: user.budgetRange || '',
+        preferredCountries: user.preferredCountries || [],
+      });
+    }
+  }, [user, editingSection, studyForm]);
 
   // Financial Information Form
   const financialForm = useForm({
     resolver: zodResolver(financialInfoSchema),
     defaultValues: {
-      fundingSource: user?.fundingSource || '',
-      estimatedBudget: user?.estimatedBudget || '',
-      savingsAmount: user?.savingsAmount || '',
-      loanApproval: user?.loanApproval || false,
-      loanAmount: user?.loanAmount || 0,
-      sponsorDetails: user?.sponsorDetails || '',
-      financialDocuments: user?.financialDocuments || false,
+      fundingSource: '',
+      estimatedBudget: '',
+      savingsAmount: '',
+      loanApproval: false,
+      loanAmount: 0,
+      sponsorDetails: '',
+      financialDocuments: false,
     },
   });
+
+  // Update financial form when entering edit mode
+  React.useEffect(() => {
+    if (user && editingSection === 'financial') {
+      financialForm.reset({
+        fundingSource: user.fundingSource || '',
+        estimatedBudget: user.estimatedBudget || '',
+        savingsAmount: user.savingsAmount || '',
+        loanApproval: user.loanApproval || false,
+        loanAmount: user.loanAmount || 0,
+        sponsorDetails: user.sponsorDetails || '',
+        financialDocuments: user.financialDocuments || false,
+      });
+    }
+  }, [user, editingSection, financialForm]);
 
   // Employment Information Form
   const employmentForm = useForm({
     resolver: zodResolver(employmentInfoSchema),
     defaultValues: {
-      currentEmploymentStatus: user?.currentEmploymentStatus || '',
-      workExperienceYears: user?.workExperienceYears || 0,
-      jobTitle: user?.jobTitle || '',
-      organizationName: user?.organizationName || '',
-      fieldOfWork: user?.fieldOfWork || '',
-      gapReasonIfAny: user?.gapReasonIfAny || '',
+      currentEmploymentStatus: '',
+      workExperienceYears: 0,
+      jobTitle: '',
+      organizationName: '',
+      fieldOfWork: '',
+      gapReasonIfAny: '',
     },
   });
+
+  // Update employment form when entering edit mode
+  React.useEffect(() => {
+    if (user && editingSection === 'employment') {
+      employmentForm.reset({
+        currentEmploymentStatus: user.currentEmploymentStatus || '',
+        workExperienceYears: user.workExperienceYears || 0,
+        jobTitle: user.jobTitle || '',
+        organizationName: user.organizationName || '',
+        fieldOfWork: user.fieldOfWork || '',
+        gapReasonIfAny: user.gapReasonIfAny || '',
+      });
+    }
+  }, [user, editingSection, employmentForm]);
 
   // Language Proficiency Form
   const languageForm = useForm({
