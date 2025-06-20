@@ -1191,8 +1191,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (analysis.universityName === 'Analysis Error - Please Try Again') {
         return res.status(404).json({ error: 'Analysis failed or corrupted' });
       }
-      
-      return res.status(200).json(analysis);
+
+      // Parse analysis results if available
+      let parsedAnalysis = null;
+      if (analysis.analysisResults) {
+        try {
+          parsedAnalysis = typeof analysis.analysisResults === 'string' 
+            ? JSON.parse(analysis.analysisResults) 
+            : analysis.analysisResults;
+        } catch (error) {
+          console.error('Error parsing analysis results:', error);
+        }
+      }
+
+      return res.status(200).json({
+        ...analysis,
+        documentAnalysis: parsedAnalysis?.documentAnalysis || {
+          totalPages: "Complete document processed",
+          documentSections: ["Full offer letter analysis completed"],
+          termsAndConditions: {
+            academicRequirements: parsedAnalysis?.academicRequirements || [],
+            financialObligations: parsedAnalysis?.financialObligations || [],
+            enrollmentConditions: parsedAnalysis?.enrollmentConditions || [],
+            academicProgress: parsedAnalysis?.academicProgress || [],
+            complianceRequirements: parsedAnalysis?.complianceRequirements || [],
+            hiddenClauses: parsedAnalysis?.hiddenClauses || [],
+            criticalDeadlines: parsedAnalysis?.criticalDeadlines || [],
+            penalties: parsedAnalysis?.penalties || [],
+          },
+          riskAssessment: {
+            highRiskFactors: parsedAnalysis?.highRiskFactors || [],
+            financialRisks: parsedAnalysis?.financialRisks || [],
+            academicRisks: parsedAnalysis?.academicRisks || [],
+            complianceRisks: parsedAnalysis?.complianceRisks || [],
+            mitigationStrategies: parsedAnalysis?.mitigationStrategies || [],
+          }
+        },
+        profileAnalysis: parsedAnalysis?.profileAnalysis || {
+          academicStanding: analysis.academicStanding,
+          gpa: analysis.gpa,
+          financialStatus: analysis.financialStatus,
+          relevantSkills: analysis.relevantSkills || [],
+          strengths: analysis.strengths || [],
+          weaknesses: analysis.weaknesses || [],
+        },
+        universityInfo: parsedAnalysis?.universityInfo || {
+          name: analysis.universityName,
+          location: analysis.universityLocation,
+          program: analysis.program,
+          tuition: analysis.tuition,
+          duration: analysis.duration,
+        },
+        scholarshipOpportunities: parsedAnalysis?.scholarshipOpportunities || analysis.scholarshipOpportunities || [],
+        costSavingStrategies: parsedAnalysis?.costSavingStrategies || analysis.costSavingStrategies || [],
+        recommendations: parsedAnalysis?.recommendations || analysis.recommendations || [],
+        nextSteps: parsedAnalysis?.nextSteps || analysis.nextSteps || [],
+      });
       
     } catch (error) {
       console.error('Error fetching admin offer letter analysis:', error);
@@ -2123,12 +2177,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Analysis failed or corrupted' });
       }
 
+      // Parse analysis results if available
+      let parsedAnalysis = null;
+      if (analysis.analysisResults) {
+        try {
+          parsedAnalysis = typeof analysis.analysisResults === 'string' 
+            ? JSON.parse(analysis.analysisResults) 
+            : analysis.analysisResults;
+        } catch (error) {
+          console.error('Error parsing analysis results:', error);
+        }
+      }
+
       return res.status(200).json({
         id: analysis.id,
         fileName: analysis.filename,
         fileSize: analysis.fileSize,
         analysisDate: analysis.createdAt,
-        profileAnalysis: {
+        documentAnalysis: parsedAnalysis?.documentAnalysis || {
+          totalPages: "Complete document processed",
+          documentSections: ["Full offer letter analysis completed"],
+          termsAndConditions: {
+            academicRequirements: parsedAnalysis?.academicRequirements || [],
+            financialObligations: parsedAnalysis?.financialObligations || [],
+            enrollmentConditions: parsedAnalysis?.enrollmentConditions || [],
+            academicProgress: parsedAnalysis?.academicProgress || [],
+            complianceRequirements: parsedAnalysis?.complianceRequirements || [],
+            hiddenClauses: parsedAnalysis?.hiddenClauses || [],
+            criticalDeadlines: parsedAnalysis?.criticalDeadlines || [],
+            penalties: parsedAnalysis?.penalties || [],
+          },
+          riskAssessment: {
+            highRiskFactors: parsedAnalysis?.highRiskFactors || [],
+            financialRisks: parsedAnalysis?.financialRisks || [],
+            academicRisks: parsedAnalysis?.academicRisks || [],
+            complianceRisks: parsedAnalysis?.complianceRisks || [],
+            mitigationStrategies: parsedAnalysis?.mitigationStrategies || [],
+          }
+        },
+        profileAnalysis: parsedAnalysis?.profileAnalysis || {
           academicStanding: analysis.academicStanding,
           gpa: analysis.gpa,
           financialStatus: analysis.financialStatus,
@@ -2136,17 +2223,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           strengths: analysis.strengths || [],
           weaknesses: analysis.weaknesses || [],
         },
-        universityInfo: {
+        universityInfo: parsedAnalysis?.universityInfo || {
           name: analysis.universityName,
           location: analysis.universityLocation,
           program: analysis.program,
           tuition: analysis.tuition,
           duration: analysis.duration,
         },
-        scholarshipOpportunities: analysis.scholarshipOpportunities || [],
-        costSavingStrategies: analysis.costSavingStrategies || [],
-        recommendations: analysis.recommendations || [],
-        nextSteps: analysis.nextSteps || [],
+        scholarshipOpportunities: parsedAnalysis?.scholarshipOpportunities || analysis.scholarshipOpportunities || [],
+        costSavingStrategies: parsedAnalysis?.costSavingStrategies || analysis.costSavingStrategies || [],
+        recommendations: parsedAnalysis?.recommendations || analysis.recommendations || [],
+        nextSteps: parsedAnalysis?.nextSteps || analysis.nextSteps || [],
       });
     } catch (error) {
       console.error('Error fetching offer letter analysis:', error);
