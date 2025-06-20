@@ -436,8 +436,8 @@ export async function analyzeOfferLetterDocument(
     // Comprehensive analysis with institution research and scholarship integration
     const comprehensivePrompt = `You are an expert education consultant specializing in offer letter analysis and financial optimization. Provide comprehensive analysis of this university offer letter with detailed scholarship integration and strategic recommendations.
 
-DOCUMENT TEXT (first 6000 characters):
-${documentText.substring(0, 6000)}
+COMPLETE DOCUMENT TEXT (FULL ANALYSIS):
+${documentText}
 
 COMPREHENSIVE SCHOLARSHIP RESEARCH RESULTS:
 ${JSON.stringify(scholarships, null, 2)}
@@ -445,19 +445,50 @@ ${JSON.stringify(scholarships, null, 2)}
 EXTRACTED STUDENT PROFILE:
 ${JSON.stringify(studentProfile, null, 2)}
 
-ANALYSIS REQUIREMENTS:
-Provide detailed strategic analysis that goes beyond simple data extraction. Focus on actionable insights, financial optimization, and comprehensive guidance for informed decision-making.
+COMPREHENSIVE ANALYSIS REQUIREMENTS:
+Perform deep analysis of the ENTIRE DOCUMENT including all pages, terms & conditions, fine print, and hidden clauses. Focus on strategic insights, financial optimization, and actionable recommendations rather than basic data extraction.
 
-REQUIRED ANALYSIS STRUCTURE:
+KEY ANALYSIS FOCUS AREAS:
+1. COMPLETE DOCUMENT EXAMINATION: Analyze every section, page, terms, conditions, and fine print
+2. HIDDEN COSTS & CONDITIONS: Identify all fees, penalties, conditions, and requirements not immediately obvious
+3. STRATEGIC SCHOLARSHIP OPPORTUNITIES: Research and match comprehensive funding opportunities with detailed application strategies
+4. TERMS & CONDITIONS ANALYSIS: Examine all academic, financial, and legal obligations
+5. RISK ASSESSMENT: Identify potential challenges, deadlines, and compliance requirements
+6. FINANCIAL OPTIMIZATION: Calculate total costs, potential savings, and funding strategies
+7. ACTIONABLE RECOMMENDATIONS: Provide specific, prioritized actions with timelines
+
+REQUIRED COMPREHENSIVE ANALYSIS STRUCTURE:
 {
+  "documentAnalysis": {
+    "totalPages": "Number of pages analyzed",
+    "documentSections": ["List all major sections found in document"],
+    "termsAndConditions": {
+      "academicRequirements": ["Specific GPA, attendance, performance requirements"],
+      "financialObligations": ["All fees, payment deadlines, penalty charges"],
+      "enrollmentConditions": ["Deposit requirements, confirmation deadlines, withdrawal policies"],
+      "academicProgress": ["Progress requirements, probation policies, dismissal conditions"],
+      "complianceRequirements": ["Visa, immigration, health, insurance requirements"],
+      "hiddenClauses": ["Important conditions buried in fine print"],
+      "criticalDeadlines": ["All time-sensitive requirements with exact dates"],
+      "penalties": ["Financial and academic penalties for non-compliance"]
+    },
+    "riskAssessment": {
+      "highRiskFactors": ["Major risks identified in terms"],
+      "financialRisks": ["Cost overruns, hidden fees, penalty risks"],
+      "academicRisks": ["Performance requirements, dismissal risks"],
+      "complianceRisks": ["Visa, legal, regulatory compliance risks"],
+      "mitigationStrategies": ["Specific actions to reduce identified risks"]
+    }
+  },
   "universityInfo": {
-    "name": "Official university name",
+    "name": "Official university name from document",
     "location": "Complete location with city, state/province, country",
     "program": "Full program name with degree level",
-    "tuition": "Annual tuition with currency and additional fees",
+    "tuition": "Annual tuition with currency and ALL additional fees",
     "duration": "Complete program duration",
     "institutionalRanking": "University ranking and reputation insights",
-    "programAccreditation": "Relevant accreditations and recognitions"
+    "programAccreditation": "Relevant accreditations and recognitions",
+    "totalProgramCost": "Complete cost including all fees, living expenses, insurance"
   },
   "profileAnalysis": {
     "academicStanding": "Detailed academic assessment",
@@ -512,7 +543,9 @@ ANALYSIS DEPTH REQUIREMENTS:
 - Address potential challenges and provide contingency planning
 - Ensure all recommendations are specific, measurable, and achievable
 
-Focus on creating a comprehensive strategic plan that maximizes the student's funding opportunities while providing clear, actionable guidance for their educational investment.`;
+Focus on creating a comprehensive strategic plan that maximizes the student's funding opportunities while providing clear, actionable guidance for their educational investment.
+
+RESPONSE FORMAT: Provide complete analysis in JSON format with all required sections and detailed strategic insights.`;
 
     console.log('Sending comprehensive analysis request to OpenAI...');
     

@@ -27,6 +27,27 @@ interface OfferLetterAnalysis {
   fileName: string;
   fileSize: number;
   analysisDate: string;
+  documentAnalysis?: {
+    totalPages: string;
+    documentSections: string[];
+    termsAndConditions: {
+      academicRequirements: string[];
+      financialObligations: string[];
+      enrollmentConditions: string[];
+      academicProgress: string[];
+      complianceRequirements: string[];
+      hiddenClauses: string[];
+      criticalDeadlines: string[];
+      penalties: string[];
+    };
+    riskAssessment: {
+      highRiskFactors: string[];
+      financialRisks: string[];
+      academicRisks: string[];
+      complianceRisks: string[];
+      mitigationStrategies: string[];
+    };
+  };
   profileAnalysis: {
     academicStanding: string;
     gpa: string;
@@ -34,6 +55,7 @@ interface OfferLetterAnalysis {
     relevantSkills: string[];
     strengths: string[];
     weaknesses: string[];
+    competitivePosition?: string;
   };
   universityInfo: {
     name: string;
@@ -41,6 +63,9 @@ interface OfferLetterAnalysis {
     program: string;
     tuition: string;
     duration: string;
+    institutionalRanking?: string;
+    programAccreditation?: string;
+    totalProgramCost?: string;
   };
   scholarshipOpportunities: Array<{
     name: string;
@@ -357,8 +382,12 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
       </CardHeader>
 
       <CardContent className="p-6">
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs defaultValue="document" className="w-full">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="document" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Document Analysis
+            </TabsTrigger>
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
@@ -376,6 +405,247 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
               Next Steps
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="document" className="mt-6">
+            {analysis.documentAnalysis ? (
+              <div className="space-y-6">
+                {/* Document Overview */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <FileText className="h-5 w-5 text-purple-600" />
+                      Complete Document Analysis
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <span className="font-medium text-gray-700">Total Pages Analyzed:</span>
+                        <p className="text-purple-600 font-semibold">{analysis.documentAnalysis.totalPages}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Document Sections:</span>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {analysis.documentAnalysis.documentSections.map((section, index) => (
+                            <Badge key={index} variant="outline" className="bg-purple-50 text-purple-700">
+                              {section}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Terms & Conditions Analysis */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <AlertTriangle className="h-5 w-5 text-orange-600" />
+                      Terms & Conditions Deep Analysis
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Academic Requirements */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-blue-800 border-b border-blue-200 pb-1">Academic Requirements</h4>
+                        <ul className="space-y-1">
+                          {analysis.documentAnalysis.termsAndConditions.academicRequirements.map((req, index) => (
+                            <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
+                              <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                              {req}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Financial Obligations */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-green-800 border-b border-green-200 pb-1">Financial Obligations</h4>
+                        <ul className="space-y-1">
+                          {analysis.documentAnalysis.termsAndConditions.financialObligations.map((obligation, index) => (
+                            <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
+                              <span className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
+                              {obligation}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Enrollment Conditions */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-purple-800 border-b border-purple-200 pb-1">Enrollment Conditions</h4>
+                        <ul className="space-y-1">
+                          {analysis.documentAnalysis.termsAndConditions.enrollmentConditions.map((condition, index) => (
+                            <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
+                              <span className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
+                              {condition}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Compliance Requirements */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-indigo-800 border-b border-indigo-200 pb-1">Compliance Requirements</h4>
+                        <ul className="space-y-1">
+                          {analysis.documentAnalysis.termsAndConditions.complianceRequirements.map((req, index) => (
+                            <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
+                              <span className="w-2 h-2 bg-indigo-500 rounded-full mt-2 flex-shrink-0"></span>
+                              {req}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Critical Deadlines */}
+                    {analysis.documentAnalysis.termsAndConditions.criticalDeadlines.length > 0 && (
+                      <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <h4 className="font-semibold text-red-800 mb-3 flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Critical Deadlines
+                        </h4>
+                        <ul className="space-y-2">
+                          {analysis.documentAnalysis.termsAndConditions.criticalDeadlines.map((deadline, index) => (
+                            <li key={index} className="text-sm text-red-700 flex items-start gap-2">
+                              <span className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></span>
+                              {deadline}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Hidden Clauses */}
+                    {analysis.documentAnalysis.termsAndConditions.hiddenClauses.length > 0 && (
+                      <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                        <h4 className="font-semibold text-orange-800 mb-3 flex items-center gap-2">
+                          <Eye className="h-4 w-4" />
+                          Important Hidden Clauses
+                        </h4>
+                        <ul className="space-y-2">
+                          {analysis.documentAnalysis.termsAndConditions.hiddenClauses.map((clause, index) => (
+                            <li key={index} className="text-sm text-orange-700 flex items-start gap-2">
+                              <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
+                              {clause}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Penalties */}
+                    {analysis.documentAnalysis.termsAndConditions.penalties.length > 0 && (
+                      <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4" />
+                          Penalties & Consequences
+                        </h4>
+                        <ul className="space-y-2">
+                          {analysis.documentAnalysis.termsAndConditions.penalties.map((penalty, index) => (
+                            <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
+                              <span className="w-2 h-2 bg-gray-500 rounded-full mt-2 flex-shrink-0"></span>
+                              {penalty}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Risk Assessment */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Shield className="h-5 w-5 text-red-600" />
+                      Risk Assessment & Mitigation
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* High Risk Factors */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-red-800 border-b border-red-200 pb-1">High Risk Factors</h4>
+                        <ul className="space-y-2">
+                          {analysis.documentAnalysis.riskAssessment.highRiskFactors.map((risk, index) => (
+                            <li key={index} className="text-sm text-red-700 flex items-start gap-2">
+                              <span className="w-2 h-2 bg-red-500 rounded-full mt-2 flex-shrink-0"></span>
+                              {risk}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Financial Risks */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-orange-800 border-b border-orange-200 pb-1">Financial Risks</h4>
+                        <ul className="space-y-2">
+                          {analysis.documentAnalysis.riskAssessment.financialRisks.map((risk, index) => (
+                            <li key={index} className="text-sm text-orange-700 flex items-start gap-2">
+                              <span className="w-2 h-2 bg-orange-500 rounded-full mt-2 flex-shrink-0"></span>
+                              {risk}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Academic Risks */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-blue-800 border-b border-blue-200 pb-1">Academic Risks</h4>
+                        <ul className="space-y-2">
+                          {analysis.documentAnalysis.riskAssessment.academicRisks.map((risk, index) => (
+                            <li key={index} className="text-sm text-blue-700 flex items-start gap-2">
+                              <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
+                              {risk}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Compliance Risks */}
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-purple-800 border-b border-purple-200 pb-1">Compliance Risks</h4>
+                        <ul className="space-y-2">
+                          {analysis.documentAnalysis.riskAssessment.complianceRisks.map((risk, index) => (
+                            <li key={index} className="text-sm text-purple-700 flex items-start gap-2">
+                              <span className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
+                              {risk}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Mitigation Strategies */}
+                    <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <h4 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4" />
+                        Risk Mitigation Strategies
+                      </h4>
+                      <ul className="space-y-2">
+                        {analysis.documentAnalysis.riskAssessment.mitigationStrategies.map((strategy, index) => (
+                          <li key={index} className="text-sm text-green-700 flex items-start gap-2">
+                            <span className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
+                            {strategy}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Document analysis data not available. This may be from an older analysis before comprehensive document examination was implemented.
+                </AlertDescription>
+              </Alert>
+            )}
+          </TabsContent>
 
           <TabsContent value="profile" className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
