@@ -249,6 +249,47 @@ export const userUpdateViews = pgTable("user_update_views", {
   actionTaken: boolean("action_taken").default(false).notNull(),
 });
 
+// Offer Letter Analysis
+export const offerLetterAnalyses = pgTable("offer_letter_analyses", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  filename: text("filename").notNull(),
+  fileSize: integer("file_size").notNull(),
+  originalText: text("original_text").notNull(),
+  
+  // University Information
+  universityName: text("university_name"),
+  universityLocation: text("university_location"),
+  program: text("program"),
+  tuition: text("tuition"),
+  duration: text("duration"),
+  
+  // Profile Analysis
+  academicStanding: text("academic_standing"),
+  gpa: text("gpa"),
+  financialStatus: text("financial_status"),
+  relevantSkills: text("relevant_skills").array(),
+  strengths: text("strengths").array(),
+  weaknesses: text("weaknesses").array(),
+  
+  // Scholarship Opportunities (JSONB for structured data)
+  scholarshipOpportunities: jsonb("scholarship_opportunities"),
+  
+  // Cost Saving Strategies (JSONB for structured data)
+  costSavingStrategies: jsonb("cost_saving_strategies"),
+  
+  // Recommendations and Next Steps
+  recommendations: text("recommendations").array(),
+  nextSteps: text("next_steps").array(),
+  
+  // Analysis metadata
+  analysisResults: jsonb("analysis_results"), // Complete OpenAI response
+  tokensUsed: integer("tokens_used"),
+  processingTime: integer("processing_time"), // in milliseconds
+  isPublic: boolean("is_public").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Base user schema for registration
 const baseUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -356,6 +397,51 @@ export type LoginUser = z.infer<typeof loginUserSchema>;
 
 export type Analysis = typeof analyses.$inferSelect;
 export type InsertAnalysis = z.infer<typeof insertAnalysisSchema>;
+
+export type OfferLetterAnalysis = typeof offerLetterAnalyses.$inferSelect;
+export type InsertOfferLetterAnalysis = typeof offerLetterAnalyses.$inferInsert;
+
+// Offer Letter Analysis schemas
+export const insertOfferLetterAnalysisSchema = createInsertSchema(offerLetterAnalyses).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const offerLetterAnalysisResponseSchema = z.object({
+  universityInfo: z.object({
+    name: z.string(),
+    location: z.string(),
+    program: z.string(),
+    tuition: z.string(),
+    duration: z.string(),
+  }),
+  profileAnalysis: z.object({
+    academicStanding: z.string(),
+    gpa: z.string(),
+    financialStatus: z.string(),
+    relevantSkills: z.array(z.string()),
+    strengths: z.array(z.string()),
+    weaknesses: z.array(z.string()),
+  }),
+  scholarshipOpportunities: z.array(z.object({
+    name: z.string(),
+    amount: z.string(),
+    criteria: z.array(z.string()),
+    applicationDeadline: z.string(),
+    applicationProcess: z.string(),
+    sourceUrl: z.string(),
+  })),
+  costSavingStrategies: z.array(z.object({
+    strategy: z.string(),
+    description: z.string(),
+    potentialSavings: z.string(),
+    implementationSteps: z.array(z.string()),
+    timeline: z.string(),
+    difficulty: z.enum(['Low', 'Medium', 'High']),
+  })),
+  recommendations: z.array(z.string()),
+  nextSteps: z.array(z.string()),
+});
 
 export type Appointment = typeof appointments.$inferSelect;
 export type InsertAppointment = z.infer<typeof appointmentSchema>;

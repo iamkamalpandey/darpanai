@@ -4,13 +4,13 @@ import { CheckCircle2, ArrowRight, Calendar, Shield, FileText, Award } from "luc
 import { Link } from "wouter";
 
 interface CustomCTAProps {
-  variant: "dashboard" | "visa-analysis" | "enrollment-analysis" | "resources" | "appointments" | "generic";
-  source: string;
+  variant: "dashboard" | "visa-analysis" | "enrollment-analysis" | "offer-letter-analysis" | "resources" | "appointments" | "generic";
+  source?: string;
   className?: string;
 }
 
-export function CustomCTA({ variant, source, className = "" }: CustomCTAProps) {
-  const ctaConfigs = {
+export function CustomCTA({ variant, source = "default", className = "" }: CustomCTAProps) {
+  const ctaConfigs: Record<string, any> = {
     dashboard: {
       title: "Ready to Take the Next Step?",
       description: "Join thousands of successful students who used our expert guidance to achieve their study abroad dreams. Get personalized consultation tailored to your specific situation.",
@@ -43,6 +43,17 @@ export function CustomCTA({ variant, source, className = "" }: CustomCTAProps) {
       descriptionColor: "text-gray-700",
       supportText: "Document compliance specialists",
       icon: FileText
+    },
+    "offer-letter-analysis": {
+      title: "Maximize Your Education Investment",
+      description: "Your offer letter contains valuable opportunities for scholarships and cost savings. Get expert analysis to identify funding options and strategies that could save you thousands.",
+      buttonText: "Optimize My Funding",
+      buttonClass: "bg-purple-600 text-white hover:bg-purple-700 text-base px-8 py-3 shadow-lg",
+      backgroundClass: "bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100",
+      textColor: "text-gray-900",
+      descriptionColor: "text-gray-700",
+      supportText: "Financial optimization experts",
+      icon: Award
     },
     resources: {
       title: "Need Help With Your Documents?",

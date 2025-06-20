@@ -67,7 +67,7 @@ interface UserStats {
   maxAnalyses: number;
 }
 
-export function OfferLetterAnalysis() {
+export default function OfferLetterAnalysis() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const { toast } = useToast();
