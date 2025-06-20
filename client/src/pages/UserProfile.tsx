@@ -1,464 +1,399 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { queryClient } from '@/lib/queryClient';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { 
-  User, 
-  Settings, 
-  GraduationCap, 
-  DollarSign, 
-  Globe, 
-  BookOpen, 
-  CheckCircle, 
-  AlertTriangle,
-  Calendar as CalendarIcon,
-  Languages,
-  Target,
-  Briefcase
-} from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { User, Calendar, GraduationCap, Globe, Briefcase, Languages } from 'lucide-react';
 
-// Form validation schema
-const profileUpdateSchema = z.object({
-  // Academic Information
-  studyLevel: z.string().optional(),
-  preferredStudyFields: z.array(z.string()).optional(),
-  startDate: z.string().optional(),
-  
-  // Financial Information
-  budgetRange: z.string().optional(),
-  fundingSource: z.string().optional(),
-  
-  // Destination Preferences
-  studyDestination: z.string().optional(),
-  languagePreferences: z.array(z.string()).optional(),
-  climatePreference: z.string().optional(),
-  culturalPreferences: z.array(z.string()).optional(),
-  
-  // Academic Priorities
-  universityRankingImportance: z.string().optional(),
-  workPermitImportance: z.string().optional(),
-  careerGoals: z.string().optional(),
-  counsellingMode: z.string().optional(),
-  
-  // English Language Proficiency
-  englishProficiency: z.string().optional(),
-  englishTestType: z.string().optional(),
-  englishTestScore: z.string().optional(),
-  englishTestDate: z.string().optional(),
-  englishTestExpiry: z.string().optional(),
-  needsEnglishImprovement: z.boolean().optional(),
+// Comprehensive form schemas based on global student lead profile
+const personalInfoSchema = z.object({
+  firstName: z.string().min(1, "First name is required").max(50),
+  lastName: z.string().min(1, "Last name is required").max(50),
+  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+  gender: z.enum(["Male", "Female", "Non-binary", "Prefer not to say", "Other"]),
+  email: z.string().email("Invalid email format"),
+  phoneNumber: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format"),
+  secondaryNumber: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format").optional().or(z.literal("")),
+  nationality: z.string().min(1, "Nationality is required"),
+  passportNumber: z.string().optional(),
+  address: z.string().max(150).optional(),
 });
 
-type ProfileUpdateData = z.infer<typeof profileUpdateSchema>;
+const academicInfoSchema = z.object({
+  highestQualification: z.enum(["High School", "Bachelor", "Master", "PhD"]),
+  highestInstitution: z.string().min(1, "Institution name is required"),
+  highestCountry: z.string().min(1, "Country is required"),
+  highestGpa: z.string().min(1, "GPA is required"),
+  graduationYear: z.number().int().min(1950).max(new Date().getFullYear() + 10),
+  currentAcademicGap: z.number().int().min(0).max(20).optional(),
+});
 
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-  city: string;
-  country: string;
-  role: string;
-  status: string;
-  analysisCount: number;
-  maxAnalyses: number;
-  createdAt: string;
-  
-  // Extended profile fields
-  studyLevel?: string;
-  preferredStudyFields?: string[];
-  startDate?: string;
-  budgetRange?: string;
-  fundingSource?: string;
-  studyDestination?: string;
-  languagePreferences?: string[];
-  climatePreference?: string;
-  culturalPreferences?: string[];
-  universityRankingImportance?: string;
-  workPermitImportance?: string;
-  careerGoals?: string;
-  counsellingMode?: string;
-  
-  // English Language Proficiency
-  englishProficiency?: string;
-  englishTestType?: string;
-  englishTestScore?: string;
-  englishTestDate?: string;
-  englishTestExpiry?: string;
-  needsEnglishImprovement?: boolean;
-}
+const studyPreferencesSchema = z.object({
+  interestedCourse: z.string().min(1, "Interested course is required"),
+  fieldOfStudy: z.string().min(1, "Field of study is required"),
+  preferredIntake: z.string().min(1, "Preferred intake is required"),
+  budgetRange: z.enum(["<10K", "10-20K", "20-30K", "30K+"]),
+  preferredCountries: z.array(z.string()).min(1, "At least one preferred country is required"),
+  partTimeInterest: z.boolean().default(false),
+  accommodationRequired: z.boolean().default(false),
+  hasDependents: z.boolean().default(false),
+});
 
-interface ProfileStatus {
-  isComplete: boolean;
-  completionPercentage: number;
-  missingFields: string[];
-}
+const employmentInfoSchema = z.object({
+  currentEmploymentStatus: z.enum(["Employed", "Self-employed", "Studying", "Unemployed"]),
+  workExperienceYears: z.number().int().min(0).max(50).optional(),
+  jobTitle: z.string().optional(),
+  organizationName: z.string().optional(),
+  fieldOfWork: z.string().optional(),
+});
+
+const englishTestSchema = z.object({
+  testType: z.enum(["IELTS", "TOEFL", "PTE", "Duolingo", "Cambridge"]),
+  testDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+  overallScore: z.number().min(0),
+  listening: z.number().min(0).optional(),
+  reading: z.number().min(0).optional(),
+  writing: z.number().min(0).optional(),
+  speaking: z.number().min(0).optional(),
+});
 
 export default function UserProfile() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
 
-  // Get user data
-  const { data: user, isLoading: userLoading } = useQuery<User>({
+  // Fetch user data
+  const { data: user, isLoading } = useQuery({
     queryKey: ['/api/user'],
     staleTime: 5 * 60 * 1000,
   });
 
-  // Get profile completion status
-  const { data: profileStatus, isLoading: statusLoading } = useQuery<ProfileStatus>({
-    queryKey: ['/api/user/profile-completion'],
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // Form setup
-  const form = useForm<ProfileUpdateData>({
-    resolver: zodResolver(profileUpdateSchema),
+  // Personal Info Form
+  const personalForm = useForm({
+    resolver: zodResolver(personalInfoSchema),
     defaultValues: {
-      studyLevel: user?.studyLevel || '',
-      preferredStudyFields: user?.preferredStudyFields || [],
-      startDate: user?.startDate || '',
-      budgetRange: user?.budgetRange || '',
-      fundingSource: user?.fundingSource || '',
-      studyDestination: user?.studyDestination || '',
-      languagePreferences: user?.languagePreferences || [],
-      climatePreference: user?.climatePreference || '',
-      culturalPreferences: user?.culturalPreferences || [],
-      universityRankingImportance: user?.universityRankingImportance || '',
-      workPermitImportance: user?.workPermitImportance || '',
-      careerGoals: user?.careerGoals || '',
-      counsellingMode: user?.counsellingMode || '',
-      englishProficiency: user?.englishProficiency || '',
-      englishTestType: user?.englishTestType || '',
-      englishTestScore: user?.englishTestScore || '',
-      englishTestDate: user?.englishTestDate || '',
-      englishTestExpiry: user?.englishTestExpiry || '',
-      needsEnglishImprovement: user?.needsEnglishImprovement || false,
+      firstName: user?.firstName || "",
+      lastName: user?.lastName || "",
+      dateOfBirth: user?.dateOfBirth || "",
+      gender: user?.gender || "",
+      email: user?.email || "",
+      phoneNumber: user?.phoneNumber || "",
+      secondaryNumber: user?.secondaryNumber || "",
+      nationality: user?.nationality || "",
+      passportNumber: user?.passportNumber || "",
+      address: user?.address || "",
     },
   });
 
-  // Profile update mutation
+  // Academic Info Form
+  const academicForm = useForm({
+    resolver: zodResolver(academicInfoSchema),
+    defaultValues: {
+      highestQualification: user?.highestQualification || "",
+      highestInstitution: user?.highestInstitution || "",
+      highestCountry: user?.highestCountry || "",
+      highestGpa: user?.highestGpa || "",
+      graduationYear: user?.graduationYear || new Date().getFullYear(),
+      currentAcademicGap: user?.currentAcademicGap || 0,
+    },
+  });
+
+  // Study Preferences Form
+  const studyForm = useForm({
+    resolver: zodResolver(studyPreferencesSchema),
+    defaultValues: {
+      interestedCourse: user?.interestedCourse || "",
+      fieldOfStudy: user?.fieldOfStudy || "",
+      preferredIntake: user?.preferredIntake || "",
+      budgetRange: user?.budgetRange || "",
+      preferredCountries: user?.preferredCountries || [],
+      partTimeInterest: user?.partTimeInterest || false,
+      accommodationRequired: user?.accommodationRequired || false,
+      hasDependents: user?.hasDependents || false,
+    },
+  });
+
+  // Employment Form
+  const employmentForm = useForm({
+    resolver: zodResolver(employmentInfoSchema),
+    defaultValues: {
+      currentEmploymentStatus: user?.currentEmploymentStatus || "",
+      workExperienceYears: user?.workExperienceYears || 0,
+      jobTitle: user?.jobTitle || "",
+      organizationName: user?.organizationName || "",
+      fieldOfWork: user?.fieldOfWork || "",
+    },
+  });
+
+  // Update profile mutation
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: ProfileUpdateData) => {
-      const response = await fetch('/api/user/profile', {
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/user/complete-profile', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || errorData.error || 'Failed to update profile');
+        throw new Error(errorData.message || 'Failed to update profile');
       }
-
       return response.json();
     },
     onSuccess: () => {
       toast({
-        title: 'Profile Updated',
-        description: 'Your profile has been successfully updated.',
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile-completion'] });
     },
     onError: (error: Error) => {
       toast({
-        title: 'Update Failed',
+        title: "Update Failed",
         description: error.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
 
-  const onSubmit = (data: ProfileUpdateData) => {
+  const onSubmitPersonal = (data: z.infer<typeof personalInfoSchema>) => {
     updateProfileMutation.mutate(data);
   };
 
-  if (userLoading || statusLoading) {
+  const onSubmitAcademic = (data: z.infer<typeof academicInfoSchema>) => {
+    updateProfileMutation.mutate(data);
+  };
+
+  const onSubmitStudy = (data: z.infer<typeof studyPreferencesSchema>) => {
+    updateProfileMutation.mutate(data);
+  };
+
+  const onSubmitEmployment = (data: z.infer<typeof employmentInfoSchema>) => {
+    updateProfileMutation.mutate(data);
+  };
+
+  if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading profile...</p>
+          </div>
         </div>
       </DashboardLayout>
     );
   }
-
-  if (!user) {
-    return (
-      <DashboardLayout>
-        <div className="text-center py-12">
-          <p className="text-gray-500">Unable to load user profile</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  const getCompletionColor = (percentage: number) => {
-    if (percentage >= 90) return 'text-green-600';
-    if (percentage >= 70) return 'text-blue-600';
-    if (percentage >= 50) return 'text-yellow-600';
-    return 'text-red-600';
-  };
-
-  const getEnglishProficiencyBadge = (level?: string) => {
-    const colors = {
-      'native': 'bg-green-100 text-green-800',
-      'advanced': 'bg-blue-100 text-blue-800',
-      'intermediate': 'bg-yellow-100 text-yellow-800',
-      'basic': 'bg-orange-100 text-orange-800',
-      'none': 'bg-red-100 text-red-800'
-    };
-    return colors[level as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-  };
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">User Profile</h1>
-            <p className="text-gray-600">Manage your account and preferences</p>
-          </div>
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Profile</h1>
+          <p className="text-gray-600">Manage your comprehensive student profile information</p>
         </div>
 
-        {/* Profile Completion Alert */}
-        {profileStatus && !profileStatus.isComplete && (
-          <Alert className="border-orange-200 bg-orange-50">
-            <AlertTriangle className="h-4 w-4 text-orange-600" />
-            <AlertDescription className="text-orange-800">
-              <strong>Complete Your Profile</strong>
-              <br />
-              Your profile is {profileStatus.completionPercentage}% complete. 
-              Complete it to unlock AI destination suggestions and personalized recommendations.
-            </AlertDescription>
-          </Alert>
-        )}
-
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="academic">Academic</TabsTrigger>
-            <TabsTrigger value="preferences">Preferences</TabsTrigger>
-            <TabsTrigger value="english">English</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="personal" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Personal
+            </TabsTrigger>
+            <TabsTrigger value="academic" className="flex items-center gap-2">
+              <GraduationCap className="h-4 w-4" />
+              Academic
+            </TabsTrigger>
+            <TabsTrigger value="preferences" className="flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              Study
+            </TabsTrigger>
+            <TabsTrigger value="employment" className="flex items-center gap-2">
+              <Briefcase className="h-4 w-4" />
+              Employment
+            </TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Basic Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <User className="w-5 h-5 mr-2" />
-                    Basic Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-3">
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Full Name</label>
-                      <p className="text-sm">{user.firstName} {user.lastName}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Email</label>
-                      <p className="text-sm">{user.email}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Phone</label>
-                      <p className="text-sm">{user.phoneNumber}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Location</label>
-                      <p className="text-sm">{user.city}, {user.country}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Account Status</label>
-                      <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
-                        {user.status}
-                      </Badge>
-                    </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile Overview</CardTitle>
+                <CardDescription>
+                  Summary of your student profile information
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-semibold mb-2">Personal Information</h3>
+                    <p><strong>Name:</strong> {user?.firstName} {user?.lastName}</p>
+                    <p><strong>Email:</strong> {user?.email}</p>
+                    <p><strong>Phone:</strong> {user?.phoneNumber}</p>
+                    <p><strong>Nationality:</strong> {user?.nationality || "Not specified"}</p>
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Profile Completion */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Settings className="w-5 h-5 mr-2" />
-                    Profile Completion
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm font-medium">Overall Progress</span>
-                      <span className={cn("text-sm font-medium", getCompletionColor(profileStatus?.completionPercentage || 0))}>
-                        {profileStatus?.completionPercentage || 0}%
-                      </span>
-                    </div>
-                    <Progress value={profileStatus?.completionPercentage || 0} className="w-full" />
+                  <div>
+                    <h3 className="font-semibold mb-2">Academic Information</h3>
+                    <p><strong>Qualification:</strong> {user?.highestQualification || "Not specified"}</p>
+                    <p><strong>Institution:</strong> {user?.highestInstitution || "Not specified"}</p>
+                    <p><strong>GPA:</strong> {user?.highestGpa || "Not specified"}</p>
+                    <p><strong>Graduation:</strong> {user?.graduationYear || "Not specified"}</p>
                   </div>
-                  
-                  {profileStatus?.missingFields && profileStatus.missingFields.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium">Missing Fields:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {profileStatus.missingFields.map((field, index) => (
-                          <Badge key={index} variant="outline" className="text-orange-700 border-orange-200">
-                            {field}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {profileStatus?.isComplete && (
-                    <div className="flex items-center text-green-600">
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      <span className="text-sm font-medium">Profile Complete!</span>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Analysis Usage */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <BookOpen className="w-5 h-5 mr-2" />
-                    Analysis Usage
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Analyses Used</span>
-                      <span className="text-sm font-medium">{user.analysisCount} / {user.maxAnalyses}</span>
-                    </div>
-                    <Progress 
-                      value={(user.analysisCount / user.maxAnalyses) * 100} 
-                      className="w-full" 
-                    />
-                    <p className="text-xs text-gray-500">
-                      {user.maxAnalyses - user.analysisCount} analyses remaining
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* English Proficiency Status */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Languages className="w-5 h-5 mr-2" />
-                    English Proficiency
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Proficiency Level</span>
-                    <Badge className={getEnglishProficiencyBadge(user.englishProficiency)}>
-                      {user.englishProficiency || 'Not specified'}
-                    </Badge>
-                  </div>
-                  {user.englishTestType && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Test Type</span>
-                      <span className="text-sm font-medium">{user.englishTestType.toUpperCase()}</span>
-                    </div>
-                  )}
-                  {user.englishTestScore && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Test Score</span>
-                      <span className="text-sm font-medium">{user.englishTestScore}</span>
-                    </div>
-                  )}
-                  {user.needsEnglishImprovement && (
-                    <div className="flex items-center text-orange-600">
-                      <AlertTriangle className="w-4 h-4 mr-2" />
-                      <span className="text-sm">Needs Improvement</span>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-2">Study Preferences</h3>
+                  <p><strong>Course:</strong> {user?.interestedCourse || "Not specified"}</p>
+                  <p><strong>Field:</strong> {user?.fieldOfStudy || "Not specified"}</p>
+                  <p><strong>Budget:</strong> {user?.budgetRange || "Not specified"}</p>
+                  <p><strong>Countries:</strong> {user?.preferredCountries?.join(", ") || "Not specified"}</p>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          {/* Academic Tab */}
-          <TabsContent value="academic" className="space-y-6">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <GraduationCap className="w-5 h-5 mr-2" />
-                      Academic Information
-                    </CardTitle>
-                    <CardDescription>
-                      Your academic background and study preferences
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid gap-6 md:grid-cols-2">
+          <TabsContent value="personal" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Personal Information</CardTitle>
+                <CardDescription>
+                  Update your personal details and contact information
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Form {...personalForm}>
+                  <form onSubmit={personalForm.handleSubmit(onSubmitPersonal)} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
-                        control={form.control}
-                        name="studyLevel"
+                        control={personalForm.control}
+                        name="firstName"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Study Level</FormLabel>
+                            <FormLabel>First Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={personalForm.control}
+                        name="lastName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={personalForm.control}
+                        name="dateOfBirth"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Date of Birth</FormLabel>
+                            <FormControl>
+                              <Input type="date" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={personalForm.control}
+                        name="gender"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Gender</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select study level" />
+                                  <SelectValue placeholder="Select gender" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="undergraduate">Undergraduate</SelectItem>
-                                <SelectItem value="graduate">Graduate</SelectItem>
-                                <SelectItem value="postgraduate">Postgraduate</SelectItem>
-                                <SelectItem value="phd">PhD</SelectItem>
-                                <SelectItem value="diploma">Diploma</SelectItem>
-                                <SelectItem value="certificate">Certificate</SelectItem>
+                                <SelectItem value="Male">Male</SelectItem>
+                                <SelectItem value="Female">Female</SelectItem>
+                                <SelectItem value="Non-binary">Non-binary</SelectItem>
+                                <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
+                    </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
-                        control={form.control}
-                        name="startDate"
+                        control={personalForm.control}
+                        name="phoneNumber"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Preferred Start Date</FormLabel>
+                            <FormLabel>Phone Number</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., Fall 2025, January 2025" {...field} />
+                              <Input {...field} placeholder="+1234567890" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={personalForm.control}
+                        name="secondaryNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Secondary Number (Optional)</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="+1234567890" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={personalForm.control}
+                        name="nationality"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nationality</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={personalForm.control}
+                        name="passportNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Passport Number (Optional)</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -467,16 +402,140 @@ export default function UserProfile() {
                     </div>
 
                     <FormField
-                      control={form.control}
-                      name="careerGoals"
+                      control={personalForm.control}
+                      name="address"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Career Goals</FormLabel>
+                          <FormLabel>Address (Optional)</FormLabel>
                           <FormControl>
-                            <Textarea 
-                              placeholder="Describe your career goals and how this education will help you achieve them"
-                              className="min-h-[100px]"
-                              {...field}
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Button 
+                      type="submit" 
+                      disabled={updateProfileMutation.isPending}
+                      className="w-full"
+                    >
+                      {updateProfileMutation.isPending ? "Updating..." : "Update Personal Information"}
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="academic" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Academic Information</CardTitle>
+                <CardDescription>
+                  Provide details about your educational background
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Form {...academicForm}>
+                  <form onSubmit={academicForm.handleSubmit(onSubmitAcademic)} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={academicForm.control}
+                        name="highestQualification"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Highest Qualification</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select qualification" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="High School">High School</SelectItem>
+                                <SelectItem value="Bachelor">Bachelor's Degree</SelectItem>
+                                <SelectItem value="Master">Master's Degree</SelectItem>
+                                <SelectItem value="PhD">PhD</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={academicForm.control}
+                        name="graduationYear"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Graduation Year</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="number" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value))}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={academicForm.control}
+                      name="highestInstitution"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Institution Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={academicForm.control}
+                        name="highestCountry"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Country of Institution</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={academicForm.control}
+                        name="highestGpa"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>GPA/Grade</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="e.g., 3.5, 85%, First Class" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={academicForm.control}
+                      name="currentAcademicGap"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Academic Gap (Years)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              {...field} 
+                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                             />
                           </FormControl>
                           <FormMessage />
@@ -484,154 +543,79 @@ export default function UserProfile() {
                       )}
                     />
 
-                    <div className="grid gap-6 md:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="universityRankingImportance"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>University Ranking Importance</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select importance" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="not-important">Not Important</SelectItem>
-                                <SelectItem value="somewhat">Somewhat Important</SelectItem>
-                                <SelectItem value="very-important">Very Important</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="workPermitImportance"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Work Permit Importance</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select importance" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="not-important">Not Important</SelectItem>
-                                <SelectItem value="somewhat">Somewhat Important</SelectItem>
-                                <SelectItem value="very-important">Very Important</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <div className="flex justify-end">
-                  <Button 
-                    type="submit" 
-                    disabled={updateProfileMutation.isPending}
-                    className="min-w-[120px]"
-                  >
-                    {updateProfileMutation.isPending ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Saving...
-                      </div>
-                    ) : (
-                      'Save Changes'
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </Form>
+                    <Button 
+                      type="submit" 
+                      disabled={updateProfileMutation.isPending}
+                      className="w-full"
+                    >
+                      {updateProfileMutation.isPending ? "Updating..." : "Update Academic Information"}
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          {/* Preferences Tab */}
           <TabsContent value="preferences" className="space-y-6">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Globe className="w-5 h-5 mr-2" />
-                      Study Preferences
-                    </CardTitle>
-                    <CardDescription>
-                      Your destination and study environment preferences
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Study Preferences</CardTitle>
+                <CardDescription>
+                  Tell us about your study abroad preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Form {...studyForm}>
+                  <form onSubmit={studyForm.handleSubmit(onSubmitStudy)} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
-                        control={form.control}
-                        name="studyDestination"
+                        control={studyForm.control}
+                        name="interestedCourse"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Preferred Study Destination</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select destination" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="usa">United States</SelectItem>
-                                <SelectItem value="canada">Canada</SelectItem>
-                                <SelectItem value="uk">United Kingdom</SelectItem>
-                                <SelectItem value="australia">Australia</SelectItem>
-                                <SelectItem value="germany">Germany</SelectItem>
-                                <SelectItem value="france">France</SelectItem>
-                                <SelectItem value="netherlands">Netherlands</SelectItem>
-                                <SelectItem value="singapore">Singapore</SelectItem>
-                                <SelectItem value="other">Other</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <FormLabel>Interested Course</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="e.g., Computer Science" />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-
                       <FormField
-                        control={form.control}
-                        name="climatePreference"
+                        control={studyForm.control}
+                        name="fieldOfStudy"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Climate Preference</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select climate" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="tropical">Tropical</SelectItem>
-                                <SelectItem value="temperate">Temperate</SelectItem>
-                                <SelectItem value="cold">Cold</SelectItem>
-                                <SelectItem value="arid">Arid</SelectItem>
-                                <SelectItem value="no-preference">No Preference</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <FormLabel>Field of Study</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="e.g., Technology" />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     </div>
 
-                    <div className="grid gap-6 md:grid-cols-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
-                        control={form.control}
+                        control={studyForm.control}
+                        name="preferredIntake"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Preferred Intake</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="e.g., Fall 2025" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={studyForm.control}
                         name="budgetRange"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Budget Range (Annual)</FormLabel>
+                            <FormLabel>Budget Range (USD)</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
@@ -639,126 +623,10 @@ export default function UserProfile() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="low">Low ($10,000 - $25,000)</SelectItem>
-                                <SelectItem value="medium">Medium ($25,000 - $50,000)</SelectItem>
-                                <SelectItem value="high">High ($50,000+)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="fundingSource"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Primary Funding Source</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select funding source" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="self-funded">Self-Funded</SelectItem>
-                                <SelectItem value="family-funded">Family-Funded</SelectItem>
-                                <SelectItem value="scholarship">Scholarship</SelectItem>
-                                <SelectItem value="loan">Education Loan</SelectItem>
-                                <SelectItem value="employer">Employer Sponsored</SelectItem>
-                                <SelectItem value="government">Government Grant</SelectItem>
-                                <SelectItem value="mixed">Mixed Sources</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <div className="flex justify-end">
-                  <Button 
-                    type="submit" 
-                    disabled={updateProfileMutation.isPending}
-                    className="min-w-[120px]"
-                  >
-                    {updateProfileMutation.isPending ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Saving...
-                      </div>
-                    ) : (
-                      'Save Changes'
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </TabsContent>
-
-          {/* English Proficiency Tab */}
-          <TabsContent value="english" className="space-y-6">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Languages className="w-5 h-5 mr-2" />
-                      English Language Proficiency
-                    </CardTitle>
-                    <CardDescription>
-                      Your English language skills and test scores
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid gap-6 md:grid-cols-2">
-                      <FormField
-                        control={form.control}
-                        name="englishProficiency"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>English Proficiency Level</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select proficiency level" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="native">Native Speaker</SelectItem>
-                                <SelectItem value="advanced">Advanced (C1-C2)</SelectItem>
-                                <SelectItem value="intermediate">Intermediate (B1-B2)</SelectItem>
-                                <SelectItem value="basic">Basic (A1-A2)</SelectItem>
-                                <SelectItem value="none">Beginner</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="englishTestType"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>English Test Type</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select test type" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="ielts">IELTS</SelectItem>
-                                <SelectItem value="toefl">TOEFL</SelectItem>
-                                <SelectItem value="pte">PTE Academic</SelectItem>
-                                <SelectItem value="duolingo">Duolingo English Test</SelectItem>
-                                <SelectItem value="cambridge">Cambridge English</SelectItem>
-                                <SelectItem value="none">No Test Taken</SelectItem>
+                                <SelectItem value="<10K">Less than $10,000</SelectItem>
+                                <SelectItem value="10-20K">$10,000 - $20,000</SelectItem>
+                                <SelectItem value="20-30K">$20,000 - $30,000</SelectItem>
+                                <SelectItem value="30K+">More than $30,000</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -767,38 +635,149 @@ export default function UserProfile() {
                       />
                     </div>
 
-                    <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-3">
                       <FormField
-                        control={form.control}
-                        name="englishTestScore"
+                        control={studyForm.control}
+                        name="partTimeInterest"
                         render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Test Score</FormLabel>
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                             <FormControl>
-                              <Input 
-                                placeholder="e.g., 7.5, 100, 65"
-                                {...field}
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
                               />
                             </FormControl>
-                            <FormDescription>
-                              Enter your overall score (IELTS: 0-9, TOEFL: 0-120, PTE: 10-90)
-                            </FormDescription>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Interested in part-time work</FormLabel>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={studyForm.control}
+                        name="accommodationRequired"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Accommodation required</FormLabel>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={studyForm.control}
+                        name="hasDependents"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Have dependents</FormLabel>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      disabled={updateProfileMutation.isPending}
+                      className="w-full"
+                    >
+                      {updateProfileMutation.isPending ? "Updating..." : "Update Study Preferences"}
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="employment" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Employment Information</CardTitle>
+                <CardDescription>
+                  Provide details about your work experience
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Form {...employmentForm}>
+                  <form onSubmit={employmentForm.handleSubmit(onSubmitEmployment)} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={employmentForm.control}
+                        name="currentEmploymentStatus"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Employment Status</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Employed">Employed</SelectItem>
+                                <SelectItem value="Self-employed">Self-employed</SelectItem>
+                                <SelectItem value="Studying">Studying</SelectItem>
+                                <SelectItem value="Unemployed">Unemployed</SelectItem>
+                              </SelectContent>
+                            </Select>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-
                       <FormField
-                        control={form.control}
-                        name="englishTestDate"
+                        control={employmentForm.control}
+                        name="workExperienceYears"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Test Date</FormLabel>
+                            <FormLabel>Work Experience (Years)</FormLabel>
                             <FormControl>
                               <Input 
-                                type="date"
-                                {...field}
+                                type="number" 
+                                {...field} 
+                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                               />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={employmentForm.control}
+                        name="jobTitle"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Job Title</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={employmentForm.control}
+                        name="organizationName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Organization Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -807,68 +786,30 @@ export default function UserProfile() {
                     </div>
 
                     <FormField
-                      control={form.control}
-                      name="englishTestExpiry"
+                      control={employmentForm.control}
+                      name="fieldOfWork"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Test Expiry Date</FormLabel>
+                          <FormLabel>Field of Work</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="date"
-                              {...field}
-                            />
+                            <Input {...field} />
                           </FormControl>
-                          <FormDescription>
-                            Most English tests are valid for 2 years from the test date
-                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="needsEnglishImprovement"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>
-                              I need to improve my English skills
-                            </FormLabel>
-                            <FormDescription>
-                              Check this if you plan to take English courses or retake language tests
-                            </FormDescription>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                </Card>
-
-                <div className="flex justify-end">
-                  <Button 
-                    type="submit" 
-                    disabled={updateProfileMutation.isPending}
-                    className="min-w-[120px]"
-                  >
-                    {updateProfileMutation.isPending ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Saving...
-                      </div>
-                    ) : (
-                      'Save Changes'
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </Form>
+                    <Button 
+                      type="submit" 
+                      disabled={updateProfileMutation.isPending}
+                      className="w-full"
+                    >
+                      {updateProfileMutation.isPending ? "Updating..." : "Update Employment Information"}
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

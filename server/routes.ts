@@ -1698,21 +1698,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate AI-powered destination suggestions
       const { generateDestinationSuggestions } = await import('./destinationSuggestionAnalysis');
       
-      // Transform user data to match UserProfile interface
+      // Transform user data to match enhanced UserProfile interface
       const userProfile = {
         id: updatedUser.id,
         firstName: updatedUser.firstName,
         lastName: updatedUser.lastName,
         country: updatedUser.country,
-        studyLevel: updatedUser.studyLevel || undefined,
-        preferredStudyFields: updatedUser.preferredStudyFields || undefined,
+        dateOfBirth: updatedUser.dateOfBirth || undefined,
+        gender: updatedUser.gender || undefined,
+        nationality: updatedUser.nationality || undefined,
+        highestQualification: updatedUser.highestQualification || undefined,
+        highestInstitution: updatedUser.highestInstitution || undefined,
+        highestGpa: updatedUser.highestGpa || undefined,
+        graduationYear: updatedUser.graduationYear || undefined,
+        interestedCourse: updatedUser.interestedCourse || undefined,
+        fieldOfStudy: updatedUser.fieldOfStudy || undefined,
+        preferredIntake: updatedUser.preferredIntake || undefined,
         budgetRange: updatedUser.budgetRange || undefined,
-        languagePreferences: updatedUser.languagePreferences || undefined,
-        climatePreference: updatedUser.climatePreference || undefined,
-        universityRankingImportance: updatedUser.universityRankingImportance || undefined,
-        workPermitImportance: updatedUser.workPermitImportance || undefined,
-        culturalPreferences: updatedUser.culturalPreferences || undefined,
-        careerGoals: updatedUser.careerGoals || undefined,
+        preferredCountries: updatedUser.preferredCountries || undefined,
+        currentEmploymentStatus: updatedUser.currentEmploymentStatus || undefined,
+        englishProficiencyTests: updatedUser.englishProficiencyTests || undefined,
+        standardizedTests: updatedUser.standardizedTests || undefined,
       };
       
       const { analysis, tokensUsed, processingTime } = await generateDestinationSuggestions(
