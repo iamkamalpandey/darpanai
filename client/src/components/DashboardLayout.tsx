@@ -15,7 +15,8 @@ import {
   Bell,
   ChevronDown,
   ChevronRight,
-  FolderOpen
+  FolderOpen,
+  GraduationCap
 } from 'lucide-react';
 import { Footer } from '@/components/Footer';
 
@@ -78,6 +79,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       isSubmenu: true,
       submenuItems: [
         { icon: <FileText size={18} />, label: 'COE Analysis', href: '/coe-analysis' },
+        { icon: <GraduationCap size={18} />, label: 'Offer Letter Analysis', href: '/offer-letter-analysis' },
       ]
     },
     { icon: <Calendar size={20} />, label: 'Appointments', href: '/consultations' },
