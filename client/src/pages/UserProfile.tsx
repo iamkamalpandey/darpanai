@@ -58,14 +58,34 @@ const employmentInfoSchema = z.object({
   fieldOfWork: z.string().optional(),
 });
 
+// English Language Proficiency Tests
 const englishTestSchema = z.object({
   testType: z.enum(["IELTS", "TOEFL", "PTE", "Duolingo", "Cambridge"]),
   testDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
   overallScore: z.number().min(0),
-  listening: z.number().min(0).optional(),
-  reading: z.number().min(0).optional(),
-  writing: z.number().min(0).optional(),
-  speaking: z.number().min(0).optional(),
+  subscores: z.object({
+    listening: z.number().min(0).optional(),
+    reading: z.number().min(0).optional(),
+    writing: z.number().min(0).optional(),
+    speaking: z.number().min(0).optional(),
+  }).optional(),
+});
+
+// Academic Standardized Tests
+const academicTestSchema = z.object({
+  testType: z.enum(["GRE", "GMAT", "SAT", "ACT"]),
+  testDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+  overallScore: z.number().int().min(0),
+  subscores: z.object({
+    math: z.number().int().min(0).optional(),
+    verbal: z.number().int().min(0).optional(),
+    writing: z.number().int().min(0).optional(),
+  }).optional(),
+});
+
+const languageProficiencySchema = z.object({
+  englishProficiencyTests: z.array(englishTestSchema).optional(),
+  standardizedTests: z.array(academicTestSchema).optional(),
 });
 
 export default function UserProfile() {
@@ -204,26 +224,30 @@ export default function UserProfile() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-6 bg-gray-50 rounded-lg p-1">
+            <TabsTrigger value="overview" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
               <User className="h-4 w-4" />
-              Overview
+              <span className="hidden sm:inline">Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="personal" className="flex items-center gap-2">
+            <TabsTrigger value="personal" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
               <Calendar className="h-4 w-4" />
-              Personal
+              <span className="hidden sm:inline">Personal</span>
             </TabsTrigger>
-            <TabsTrigger value="academic" className="flex items-center gap-2">
+            <TabsTrigger value="academic" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
               <GraduationCap className="h-4 w-4" />
-              Academic
+              <span className="hidden sm:inline">Academic</span>
             </TabsTrigger>
-            <TabsTrigger value="preferences" className="flex items-center gap-2">
+            <TabsTrigger value="preferences" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
               <Globe className="h-4 w-4" />
-              Study
+              <span className="hidden sm:inline">Study</span>
             </TabsTrigger>
-            <TabsTrigger value="employment" className="flex items-center gap-2">
+            <TabsTrigger value="employment" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
               <Briefcase className="h-4 w-4" />
-              Employment
+              <span className="hidden sm:inline">Work</span>
+            </TabsTrigger>
+            <TabsTrigger value="tests" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <Languages className="h-4 w-4" />
+              <span className="hidden sm:inline">Tests</span>
             </TabsTrigger>
           </TabsList>
 
