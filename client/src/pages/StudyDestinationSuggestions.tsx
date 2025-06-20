@@ -109,7 +109,11 @@ export default function StudyDestinationSuggestions() {
   });
 
   // Get profile completion status
-  const { data: profileStatus, isLoading: profileLoading } = useQuery({
+  const { data: profileStatus, isLoading: profileLoading } = useQuery<{
+    isComplete: boolean;
+    completionPercentage: number;
+    missingFields?: string[];
+  }>({
     queryKey: ['/api/user/profile-completion'],
     staleTime: 5 * 60 * 1000,
   });
@@ -245,7 +249,7 @@ export default function StudyDestinationSuggestions() {
 
               <div className="flex space-x-3 pt-4">
                 <Button 
-                  onClick={() => setLocation('/complete-profile')}
+                  onClick={() => setLocation('/profile')}
                   className="flex-1"
                 >
                   <Settings className="w-4 h-4 mr-2" />

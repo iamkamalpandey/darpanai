@@ -122,7 +122,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               </button>
               <div className="ml-2 flex items-center">
                 <Shield className="h-6 w-6 text-blue-600 mr-2" />
-                <span className="text-lg font-semibold text-gray-900">StudyAbroad Admin</span>
+                <span className="text-lg font-semibold text-gray-900">Darpan Intelligence Admin</span>
               </div>
             </div>
             <div className="flex items-center">
