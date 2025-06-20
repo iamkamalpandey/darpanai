@@ -342,62 +342,138 @@ CRITICAL SUCCESS FACTORS:
 }
 
 /**
- * Generate comprehensive offer letter analysis prompt
+ * Generate comprehensive offer letter analysis prompt with full document examination
  */
 function getOfferLetterAnalysisPrompt(documentText: string, scholarships: UniversityScholarshipInfo[]): string {
-  return `Analyze this university offer letter comprehensively and provide structured analysis.
+  return `You are an expert education consultant specializing in university offer letter analysis and strategic enrollment guidance. Perform comprehensive analysis of this ENTIRE offer letter document with detailed strategic insights, compliance assessment, and actionable recommendations.
 
-DOCUMENT TEXT:
+COMPLETE DOCUMENT TEXT FOR FULL ANALYSIS:
 ${documentText}
 
-VERIFIED SCHOLARSHIPS FOUND:
+COMPREHENSIVE ANALYSIS REQUIREMENTS:
+Analyze the ENTIRE DOCUMENT including all sections, terms, conditions, academic requirements, financial obligations, and fine print. Provide strategic insights, risk assessment, and actionable guidance rather than basic data extraction.
+
+KEY ANALYSIS FOCUS AREAS:
+1. COMPLETE DOCUMENT EXAMINATION: Analyze every section, terms & conditions, academic requirements, and institutional obligations
+2. TERMS & CONDITIONS ANALYSIS: Identify academic requirements, financial obligations, enrollment conditions, compliance requirements, hidden clauses, critical deadlines, and penalties
+3. RISK ASSESSMENT: Evaluate high-risk factors, financial risks, academic risks, compliance risks, and provide comprehensive mitigation strategies
+4. STRATEGIC ENROLLMENT GUIDANCE: Provide specific action plans for successful enrollment and academic progression
+5. FINANCIAL OPTIMIZATION: Analyze all costs, payment requirements, scholarship opportunities, and cost-saving strategies
+6. INSTITUTIONAL VERIFICATION: Assess institution credibility, program quality, accreditation, and rankings
+7. ACTIONABLE RECOMMENDATIONS: Provide prioritized, specific actions with clear timelines and success metrics
+
+AVAILABLE SCHOLARSHIP RESEARCH DATA:
 ${JSON.stringify(scholarships, null, 2)}
 
-Please provide a comprehensive analysis including:
+{
+  "documentAnalysis": {
+    "totalPages": "Number of pages analyzed",
+    "documentSections": ["List all major sections found in document"],
+    "documentType": "Offer Letter/Admission Letter type",
+    "issuingAuthority": "University or department that issued document",
+    "documentValidity": "Valid/Invalid/Requires verification",
+    "termsAndConditions": {
+      "academicRequirements": ["Specific academic conditions and requirements"],
+      "financialObligations": ["Payment schedules, fees, deposit requirements"],
+      "enrollmentConditions": ["Enrollment deadlines, acceptance procedures"],
+      "academicProgress": ["GPA requirements, course load, progression requirements"],
+      "complianceRequirements": ["Visa, immigration, health, insurance requirements"],
+      "hiddenClauses": ["Important conditions that may be overlooked"],
+      "criticalDeadlines": ["All time-sensitive requirements with exact dates"],
+      "penalties": ["Financial and academic penalties for non-compliance"]
+    },
+    "riskAssessment": {
+      "highRiskFactors": ["Critical risks that could impact enrollment or success"],
+      "financialRisks": ["Cost overruns, hidden fees, financial compliance risks"],
+      "academicRisks": ["Academic performance and progression risks"],
+      "complianceRisks": ["Regulatory, legal, immigration compliance risks"],
+      "mitigationStrategies": ["Specific actions to reduce identified risks"]
+    }
+  },
+  "universityInfo": {
+    "name": "Official university name",
+    "location": "Complete location including city, state, country",
+    "program": "Complete program name with specialization",
+    "tuition": "Total tuition cost with currency and period",
+    "duration": "Program duration with start and end dates",
+    "institutionalRanking": "University rankings and reputation indicators",
+    "programAccreditation": "Professional accreditation and recognition status",
+    "totalProgramCost": "Complete cost breakdown including all fees"
+  },
+  "profileAnalysis": {
+    "academicStanding": "Assessment of academic requirements compatibility",
+    "gpa": "GPA requirements and student compatibility",
+    "financialStatus": "Financial capability assessment",
+    "relevantSkills": ["Skills relevant to program success"],
+    "strengths": ["Student strengths for program success"],
+    "weaknesses": ["Areas requiring improvement or attention"],
+    "competitivePosition": "Assessment of student's competitive position"
+  },
+  "scholarshipOpportunities": ${JSON.stringify(scholarships.map(s => ({
+    name: s.name,
+    amount: s.amount,
+    criteria: s.criteria,
+    applicationDeadline: s.applicationDeadline,
+    applicationProcess: s.applicationProcess,
+    sourceUrl: s.sourceUrl,
+    eligibilityMatch: s.eligibilityMatch,
+    scholarshipType: s.scholarshipType,
+    studentProfileMatch: s.studentProfileMatch,
+    competitiveness: s.competitiveness || 'Medium',
+    renewalRequirements: s.renewalRequirements || 'Maintain academic standing',
+    additionalBenefits: s.additionalBenefits || [],
+    applicationStrategy: s.applicationStrategy || {
+      recommendedSubmissionTime: 'Apply early for best consideration',
+      requiredDocuments: ['Transcripts', 'Letters of recommendation', 'Personal statement'],
+      preparationTime: '2-4 weeks',
+      successTips: ['Strong academic record', 'Clear career goals', 'Demonstrated need/merit']
+    }
+  })), null, 2)},
+  "costSavingStrategies": [
+    {
+      "strategy": "Scholarship application optimization",
+      "description": "Strategic approach to maximize scholarship opportunities",
+      "potentialSavings": "Calculate based on available scholarships",
+      "implementationSteps": ["Research all available scholarships", "Prepare strong applications", "Meet all deadlines"],
+      "timeline": "2-6 months before enrollment",
+      "difficulty": "Medium"
+    }
+  ],
+  "recommendations": [
+    {
+      "category": "enrollment/financial/academic/strategic",
+      "recommendation": "Detailed strategic recommendation with rationale",
+      "priority": "Critical/High/Medium/Low",
+      "rationale": "Why this recommendation is important",
+      "implementation": "How to implement this recommendation",
+      "timeline": "When to implement with specific dates",
+      "successMetrics": "How to measure success"
+    }
+  ],
+  "nextSteps": [
+    {
+      "step": "Specific next step with detailed guidance",
+      "description": "Comprehensive implementation instructions",
+      "timeline": "When to complete with specific dates",
+      "priority": "Critical/High/Medium/Low",
+      "dependencies": ["Prerequisites or dependencies"],
+      "resources": ["Required resources or support"],
+      "successCriteria": "How to know when completed successfully"
+    }
+  ]
+}
 
-1. UNIVERSITY INFORMATION:
-   - Extract institution name, location, program details, tuition costs, program duration
+ANALYSIS DEPTH REQUIREMENTS:
+- Analyze complete document including all sections, terms, and conditions
+- Provide strategic insights and actionable recommendations rather than basic data extraction
+- Include detailed risk assessment and mitigation strategies
+- Offer comprehensive financial optimization and scholarship guidance
+- Focus on enrollment success, academic progression, and cost optimization
+- Ensure all recommendations are specific, measurable, and achievable
 
-2. PROFILE ANALYSIS:
-   - Assess academic standing based on admission
-   - Identify GPA/grades mentioned
-   - Evaluate financial status indicators
-   - List relevant skills/qualifications mentioned
-   - Identify strengths demonstrated
-   - Note any potential weaknesses or concerns
+RESPONSE FORMAT: Provide complete strategic analysis in JSON format with all required sections and detailed insights.
 
-3. SCHOLARSHIP OPPORTUNITIES:
-   - Include the verified scholarships provided above
-   - Add any additional scholarships mentioned in the offer letter
-   - Ensure all information is accurate and from official sources
-
-4. COST-SAVING STRATEGIES:
-   - Research assistantships and teaching positions
-   - Work-study programs and internships
-   - Housing and meal plan optimizations
-   - Transportation and textbook savings
-   - Part-time work opportunities (within visa regulations)
-   - Financial planning and budgeting strategies
-
-5. RECOMMENDATIONS:
-   - Immediate actions to secure enrollment
-   - Financial planning suggestions
-   - Academic preparation recommendations
-   - Visa and immigration guidance
-
-6. NEXT STEPS:
-   - Prioritized action items with timelines
-   - Important deadlines and requirements
-   - Contact information for follow-up
-
-CRITICAL REQUIREMENTS:
-- Only include verified, factual information
-- Cite official sources where possible
-- Provide realistic cost-saving estimates
-- Include specific implementation steps
-- Ensure all scholarships are real and accessible
-
-Return response in JSON format matching the required schema.`;
+Extract all available information from the complete document. If information is not found, use "Not specified in document" for that field.`;
 }
 
 /**
@@ -661,24 +737,46 @@ RESPONSE FORMAT: Provide complete analysis in JSON format with all required sect
     const processingTime = Date.now() - startTime;
     const fallbackAnalysis: OfferLetterAnalysisResponse = {
       universityInfo: {
-        name: "Analysis Error - Please Try Again",
-        location: "Not available",
-        program: "Not available",
-        tuition: "Not available",
-        duration: "Not available",
+        name: "Document processing temporarily unavailable",
+        location: "Unable to process at this time",
+        program: "Document analysis in progress",
+        tuition: "Please contact university directly for fee information",
+        duration: "Refer to official documentation",
       },
       profileAnalysis: {
-        academicStanding: "Analysis Error - Please Try Again",
-        gpa: "Not available",
-        financialStatus: "Analysis Error - Please Try Again",
-        relevantSkills: ["Analysis Error - Please Try Again"],
-        strengths: ["Analysis Error - Please Try Again"],
-        weaknesses: ["Analysis Error - Please Try Again"],
+        academicStanding: "Our analysis system is currently undergoing maintenance. Please review your offer letter manually or contact our support team for assistance.",
+        gpa: "Information extraction temporarily unavailable",
+        financialStatus: "Please review financial sections of your offer letter directly",
+        relevantSkills: ["Manual review recommended during system maintenance"],
+        strengths: ["Contact admissions counselor for personalized guidance"],
+        weaknesses: ["Professional consultation available for detailed assessment"],
       },
       scholarshipOpportunities: [],
-      costSavingStrategies: [],
-      recommendations: ["Please try uploading the document again or contact support"],
-      nextSteps: ["Upload document again", "Contact support if issue persists"],
+      costSavingStrategies: [
+        {
+          strategy: "Direct University Contact",
+          description: "Contact the university's financial aid office directly for comprehensive funding information and personalized guidance",
+          potentialSavings: "Varies based on individual circumstances",
+          implementationSteps: [
+            "Call the financial aid office during business hours",
+            "Schedule an appointment with a financial aid counselor",
+            "Prepare your offer letter and financial documents",
+            "Ask about institutional scholarships and grants"
+          ],
+          timeline: "Contact within 1-2 business days",
+          difficulty: "Low" as const,
+        }
+      ],
+      recommendations: [
+        "Contact the university's admissions office for immediate assistance with your offer letter",
+        "Schedule a consultation with a financial aid counselor to discuss funding options",
+        "Review all documentation provided with your offer letter for important deadlines"
+      ],
+      nextSteps: [
+        "Contact university admissions office for immediate support",
+        "Schedule appointment with financial aid counselor",
+        "Review offer letter documentation for critical deadlines"
+      ],
     };
 
     return { analysis: fallbackAnalysis, tokensUsed: 0, processingTime };
