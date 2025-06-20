@@ -70,33 +70,76 @@ function truncateText(text: string, maxTokens: number = MAX_INPUT_TOKENS): strin
 }
 
 /**
- * CoE-specific analysis prompt for detailed extraction
+ * Enhanced CoE-specific analysis prompt for comprehensive strategic analysis
  */
 function getCoEAnalysisPrompt(documentText: string): string {
-  return `You are analyzing a Confirmation of Enrollment (COE) document from any country. Extract the following specific information and return it in JSON format. If any information is not available in the document, use "Not specified in document" as the value:
+  return `You are an expert education consultant specializing in Confirmation of Enrollment (COE) document analysis and international student guidance. Perform comprehensive analysis of this entire COE document with strategic insights, compliance assessment, and actionable recommendations.
+
+COMPLETE DOCUMENT TEXT FOR FULL ANALYSIS:
+${documentText}
+
+COMPREHENSIVE ANALYSIS REQUIREMENTS:
+Analyze the ENTIRE DOCUMENT including all sections, terms, conditions, compliance requirements, and fine print. Provide strategic insights, risk assessment, and actionable guidance rather than basic data extraction.
+
+KEY ANALYSIS FOCUS AREAS:
+1. COMPLETE DOCUMENT EXAMINATION: Analyze every section, compliance requirements, and institutional obligations
+2. COMPLIANCE & RISK ASSESSMENT: Identify visa risks, academic compliance issues, and institutional requirements  
+3. STRATEGIC ENROLLMENT GUIDANCE: Provide specific action plans for successful enrollment and visa application
+4. FINANCIAL OPTIMIZATION: Analyze all costs, payment requirements, and potential savings opportunities
+5. TIMELINE OPTIMIZATION: Create detailed timeline with all critical deadlines and milestones
+6. INSTITUTIONAL VERIFICATION: Assess institution credibility, accreditation, and program quality
+7. ACTIONABLE RECOMMENDATIONS: Provide prioritized, specific actions with clear timelines
+
+Return comprehensive analysis in JSON format with detailed strategic insights:
 
 {
-  "documentStatus": {
-    "processed": true,
-    "coeNumber": "extracted COE/registration number",
-    "processedDate": "${new Date().toLocaleDateString()}"
-  },
-  "institutionDetails": {
-    "institutionName": "provider name",
-    "tradingName": "trading name if different",
-    "registrationCode": "CRICOS/registration number",
-    "country": "country",
-    "contactInfo": {
-      "phone": "phone number",
-      "email": "email address",
-      "fax": "fax number"
+  "documentAnalysis": {
+    "totalPages": "Number of pages analyzed",
+    "documentSections": ["List all major sections found in document"],
+    "documentType": "COE/Enrollment Confirmation type",
+    "issuingAuthority": "Institution or government body that issued document",
+    "documentValidity": "Valid/Invalid/Requires verification",
+    "termsAndConditions": {
+      "enrollmentRequirements": ["Specific enrollment conditions and requirements"],
+      "academicObligations": ["GPA requirements, attendance, academic progress requirements"],
+      "financialObligations": ["Payment schedules, fees, deposit requirements"],
+      "complianceRequirements": ["Visa, immigration, health, insurance requirements"],
+      "institutionalPolicies": ["Academic policies, conduct requirements, disciplinary procedures"],
+      "withdrawalPolicies": ["Refund policies, withdrawal procedures, penalties"],
+      "criticalDeadlines": ["All time-sensitive requirements with exact dates"],
+      "penalties": ["Financial and academic penalties for non-compliance"]
+    },
+    "riskAssessment": {
+      "visaRisks": ["Potential visa application and compliance risks"],
+      "academicRisks": ["Academic performance and progression risks"],
+      "financialRisks": ["Cost overruns, hidden fees, financial compliance risks"],
+      "institutionalRisks": ["Institution credibility, accreditation, quality risks"],
+      "complianceRisks": ["Regulatory, legal, immigration compliance risks"],
+      "mitigationStrategies": ["Specific actions to reduce identified risks"]
     }
   },
+  "institutionDetails": {
+    "institutionName": "Official institution name",
+    "tradingName": "Trading name if different",
+    "registrationCode": "CRICOS/registration number with verification status",
+    "accreditation": "Accreditation status and recognized qualifications",
+    "institutionRanking": "Rankings, reputation, and quality indicators",
+    "country": "Country and specific location",
+    "contactInfo": {
+      "phone": "Official contact phone number",
+      "email": "Official email address",
+      "website": "Official website URL",
+      "address": "Complete institutional address"
+    },
+    "credibilityAssessment": "Assessment of institution legitimacy and quality"
+  },
   "courseDetails": {
-    "courseTitle": "full course name",
-    "courseCode": "course registration number",
-    "level": "Bachelor/Master/Diploma/Certificate",
-    "fieldOfStudy": "subject area",
+    "courseTitle": "Complete official course name",
+    "courseCode": "Course registration number with verification",
+    "level": "Bachelor/Master/Diploma/Certificate/PhD",
+    "fieldOfStudy": "Specific field and specialization",
+    "accreditation": "Professional accreditation and recognition status",
+    "qualityAssessment": "Course quality, industry recognition, employment outcomes",
     "duration": {
       "startDate": "DD/MM/YYYY",
       "endDate": "DD/MM/YYYY",
@@ -157,37 +200,137 @@ function getCoEAnalysisPrompt(documentText: string): string {
     "governmentRegistration": "Verified",
     "importantNotes": ["key compliance requirements"]
   },
-  "summary": "comprehensive summary of the COE document",
+  "strategicAnalysis": {
+    "enrollmentViability": "Assessment of enrollment feasibility and success probability",
+    "visaApplicationStrength": "Analysis of visa application prospects based on COE",
+    "academicProgression": "Academic requirements and progression pathway analysis",
+    "financialFeasibility": "Complete financial assessment and sustainability analysis",
+    "complianceStatus": "Overall compliance assessment with recommendations",
+    "institutionalQuality": "Institution quality and program value assessment"
+  },
+  "actionPlan": {
+    "immediateActions": [
+      {
+        "action": "Specific immediate action required",
+        "deadline": "Exact deadline with date",
+        "priority": "Critical/High/Medium/Low",
+        "description": "Detailed action description",
+        "consequences": "What happens if not completed"
+      }
+    ],
+    "shortTermActions": [
+      {
+        "action": "Short-term strategic action",
+        "timeline": "1-4 weeks timeline",
+        "priority": "Critical/High/Medium/Low",
+        "description": "Detailed implementation plan",
+        "requirements": ["Prerequisites and requirements"]
+      }
+    ],
+    "longTermPlanning": [
+      {
+        "action": "Long-term strategic planning",
+        "timeline": "1-6 months timeline",
+        "priority": "High/Medium/Low",
+        "description": "Strategic planning and preparation",
+        "benefits": ["Expected benefits and outcomes"]
+      }
+    ]
+  },
+  "financialOptimization": {
+    "totalProgramCost": "Complete cost breakdown including all fees",
+    "paymentSchedule": "Detailed payment timeline and requirements",
+    "potentialSavings": [
+      {
+        "strategy": "Cost-saving strategy",
+        "amount": "Potential savings amount",
+        "implementation": "How to implement this strategy",
+        "feasibility": "High/Medium/Low feasibility"
+      }
+    ],
+    "fundingOpportunities": [
+      {
+        "type": "Scholarship/Grant/Financial Aid type",
+        "description": "Detailed funding opportunity description",
+        "eligibility": "Eligibility requirements",
+        "applicationProcess": "How to apply",
+        "deadline": "Application deadline"
+      }
+    ]
+  },
+  "complianceGuidance": {
+    "visaRequirements": [
+      {
+        "requirement": "Specific visa requirement",
+        "status": "Met/Requires Action/Unknown",
+        "action": "Required action to meet requirement",
+        "deadline": "Compliance deadline"
+      }
+    ],
+    "academicCompliance": [
+      {
+        "requirement": "Academic compliance requirement",
+        "status": "Met/Requires Action/Unknown",
+        "action": "Required action for compliance",
+        "monitoring": "How to maintain compliance"
+      }
+    ],
+    "institutionalCompliance": [
+      {
+        "requirement": "Institutional requirement",
+        "status": "Met/Requires Action/Unknown",
+        "action": "Required action",
+        "verification": "How to verify compliance"
+      }
+    ]
+  },
+  "summary": "Comprehensive strategic summary with key insights and recommendations",
   "keyFindings": [
     {
-      "category": "academic",
-      "finding": "specific finding",
-      "importance": "high",
-      "actionRequired": "specific action if needed",
-      "deadline": "deadline if applicable"
+      "category": "academic/financial/visa/compliance/institutional",
+      "finding": "Specific strategic finding with implications",
+      "importance": "Critical/High/Medium/Low",
+      "impact": "Impact on enrollment success and student outcomes",
+      "actionRequired": "Specific action needed",
+      "deadline": "Deadline if applicable",
+      "consequences": "Consequences of inaction"
     }
   ],
   "recommendations": [
     {
-      "category": "visa",
-      "recommendation": "specific recommendation",
-      "priority": "high"
+      "category": "visa/academic/financial/compliance/strategic",
+      "recommendation": "Detailed strategic recommendation",
+      "priority": "Critical/High/Medium/Low",
+      "rationale": "Why this recommendation is important",
+      "implementation": "How to implement this recommendation",
+      "timeline": "When to implement",
+      "successMetrics": "How to measure success"
     }
   ],
   "nextSteps": [
     {
-      "step": "specific action",
-      "description": "detailed description",
-      "timeline": "when to complete",
-      "priority": "high"
+      "step": "Specific next step",
+      "description": "Detailed description and implementation guidance",
+      "timeline": "When to complete with specific dates",
+      "priority": "Critical/High/Medium/Low",
+      "dependencies": ["Prerequisites or dependencies"],
+      "resources": ["Required resources or support"],
+      "successCriteria": "How to know when completed successfully"
     }
   ]
 }
 
-Document text to analyze:
-${documentText}
+ANALYSIS DEPTH REQUIREMENTS:
+- Analyze complete document including all sections, terms, and compliance requirements
+- Provide strategic insights and actionable recommendations rather than basic data extraction
+- Include detailed risk assessment and mitigation strategies
+- Offer comprehensive compliance guidance and timeline optimization
+- Focus on enrollment success, visa application strength, and academic progression
+- Ensure all recommendations are specific, measurable, and achievable
 
-Extract all available information. If information is not found in the document, use "Not specified in document" for that field.`;
+RESPONSE FORMAT: Provide complete strategic analysis in JSON format with all required sections and detailed insights.
+
+Extract all available information from the complete document. If information is not found, use "Not specified in document" for that field.`;
 }
 
 /**

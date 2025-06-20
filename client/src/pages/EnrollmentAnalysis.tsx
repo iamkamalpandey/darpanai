@@ -41,8 +41,8 @@ export default function EnrollmentAnalysis() {
                 <div className="flex-1">
                   <CardTitle className="text-xl text-blue-900 mb-2">COE Document Analysis</CardTitle>
                   <CardDescription className="text-blue-700">
-                    Specialized AI-powered analysis for Confirmation of Enrollment (COE) documents from universities worldwide. 
-                    Extract comprehensive institution details, financial breakdown, and compliance requirements.
+                    Comprehensive AI-powered strategic analysis for Confirmation of Enrollment (COE) documents. Get detailed 
+                    compliance assessment, risk analysis, financial optimization strategies, and actionable enrollment guidance.
                   </CardDescription>
                 </div>
               </div>
@@ -52,18 +52,18 @@ export default function EnrollmentAnalysis() {
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="text-center p-3 bg-white rounded-lg border border-blue-100">
                   <GraduationCap className="h-5 w-5 text-blue-600 mx-auto mb-2" />
-                  <h4 className="font-semibold text-sm text-blue-900 mb-1">Institution & Course Details</h4>
-                  <p className="text-xs text-blue-600">CRICOS codes, course structure, program duration, and academic requirements</p>
+                  <h4 className="font-semibold text-sm text-blue-900 mb-1">Strategic Analysis</h4>
+                  <p className="text-xs text-blue-600">Complete document analysis with risk assessment and enrollment viability</p>
                 </div>
                 <div className="text-center p-3 bg-white rounded-lg border border-blue-100">
                   <DollarSign className="h-5 w-5 text-green-600 mx-auto mb-2" />
-                  <h4 className="font-semibold text-sm text-blue-900 mb-1">Financial Breakdown</h4>
-                  <p className="text-xs text-blue-600">Tuition fees, OSHC, payment schedules, and scholarship information</p>
+                  <h4 className="font-semibold text-sm text-blue-900 mb-1">Financial Optimization</h4>
+                  <p className="text-xs text-blue-600">Cost analysis, funding opportunities, and payment strategy recommendations</p>
                 </div>
                 <div className="text-center p-3 bg-white rounded-lg border border-blue-100">
                   <Shield className="h-5 w-5 text-purple-600 mx-auto mb-2" />
-                  <h4 className="font-semibold text-sm text-blue-900 mb-1">Visa Compliance</h4>
-                  <p className="text-xs text-blue-600">Student visa obligations, work rights, and compliance requirements</p>
+                  <h4 className="font-semibold text-sm text-blue-900 mb-1">Compliance Guidance</h4>
+                  <p className="text-xs text-blue-600">Detailed visa requirements, academic obligations, and compliance monitoring</p>
                 </div>
               </div>
               
