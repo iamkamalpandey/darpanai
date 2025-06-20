@@ -1002,12 +1002,24 @@ export class DatabaseStorage implements IStorage {
   // Offer Letter Analysis methods
   async saveOfferLetterAnalysis(analysisData: Partial<OfferLetterAnalysis>, userId: number): Promise<OfferLetterAnalysis> {
     try {
+      // Ensure array fields are properly handled for JSONB
+      const processedData = {
+        ...analysisData,
+        userId,
+        // Convert arrays to proper JSONB format
+        relevantSkills: analysisData.relevantSkills || [],
+        strengths: analysisData.strengths || [],
+        weaknesses: analysisData.weaknesses || [],
+        scholarshipOpportunities: analysisData.scholarshipOpportunities || [],
+        costSavingStrategies: analysisData.costSavingStrategies || [],
+        recommendations: analysisData.recommendations || [],
+        nextSteps: analysisData.nextSteps || [],
+        analysisResults: analysisData.analysisResults || {}
+      };
+
       const [analysis] = await db
         .insert(offerLetterAnalyses)
-        .values({
-          ...analysisData,
-          userId,
-        } as any)
+        .values(processedData as any)
         .returning();
       return analysis;
     } catch (error) {

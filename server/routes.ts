@@ -2105,7 +2105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         academicStanding: analysis.executiveSummary?.overallAssessment || 'Not specified',
         gpa: 'Based on comprehensive analysis',
         financialStatus: analysis.executiveSummary?.riskLevel || 'Not specified',
-        relevantSkills: [],
+        relevantSkills: analysis.qualityAssurance?.strengths || [],
         strengths: analysis.qualityAssurance?.strengths || [],
         weaknesses: analysis.qualityAssurance?.areasOfConcern || [],
         scholarshipOpportunities: [],
