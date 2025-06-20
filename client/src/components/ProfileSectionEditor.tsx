@@ -142,9 +142,18 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
         ];
       case 'financial':
         return [
-          { field: 'fundingSource', message: 'Funding source is required', required: true },
-          { field: 'estimatedBudget', message: 'Estimated budget is required', required: true,
-            validator: (value: any) => (parseInt(value) > 0) || 'Budget must be greater than 0'
+          { field: 'fundingSource', message: 'Source of funds is required', required: true },
+          { field: 'estimatedBudget', message: 'Total budget is required', required: true,
+            validator: (value: any) => {
+              const budget = parseInt(value);
+              if (isNaN(budget) || budget <= 0) {
+                return 'Please enter a valid budget amount';
+              }
+              if (budget < 5000) {
+                return 'Budget should be at least $5,000 USD for international study';
+              }
+              return true;
+            }
           }
         ];
       case 'employment':
@@ -154,13 +163,40 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
       case 'language':
         return [
           // Language tests are optional, but if added, must have complete details
-          { field: 'englishProficiencyTests', message: '', required: false,
+          { field: 'englishProficiencyTests', message: 'English proficiency tests are optional but require complete details when added', required: false,
             validator: (value: any) => {
               if (!Array.isArray(value) || value.length === 0) return true; // Optional field
-              return value.every((test: any) => 
-                test.testType && test.overallScore && test.testDate && 
-                test.overallScore >= getMinimumScore(test.testType)
-              ) || 'Complete test details required: test type, overall score, and test date';
+              
+              // Validate each test has required fields and meets minimum scores
+              for (const test of value) {
+                if (!test.testType) {
+                  return 'Test type is required for all added tests';
+                }
+                if (!test.overallScore) {
+                  return 'Overall score is required for all added tests';
+                }
+                if (!test.testDate) {
+                  return 'Test date is required for all added tests';
+                }
+                
+                const score = parseFloat(test.overallScore);
+                const minScore = getMinimumScore(test.testType);
+                if (isNaN(score) || score < minScore) {
+                  return `${test.testType} score must be at least ${minScore} (current: ${test.overallScore})`;
+                }
+                
+                // Validate test date format
+                const testDate = new Date(test.testDate);
+                if (isNaN(testDate.getTime())) {
+                  return 'Please enter a valid test date';
+                }
+                
+                // Test date should not be in the future
+                if (testDate > new Date()) {
+                  return 'Test date cannot be in the future';
+                }
+              }
+              return true;
             }
           }
         ];
