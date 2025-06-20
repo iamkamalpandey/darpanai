@@ -122,14 +122,35 @@ const studyPreferencesSchema = z.object({
 });
 
 const financialInfoSchema = z.object({
-  fundingSource: z.enum(['Self-funded', 'Family-funded', 'Scholarship', 'Loan', 'Employer-sponsored', 'Other']),
-  estimatedBudget: z.enum(['under-10000', '10000-25000', '25000-50000', '50000-75000', '75000-100000', 'over-100000']),
+  fundingSource: z.enum(['Self-funded', 'Family-funded', 'Scholarship', 'Loan', 'Employer-sponsored', 'Other'])
+    .refine((source) => source !== undefined, 'Funding source is required'),
+  estimatedBudget: z.enum(['under-10000', '10000-25000', '25000-50000', '50000-75000', '75000-100000', 'over-100000'])
+    .refine((budget) => budget !== undefined, 'Estimated budget is required'),
   savingsAmount: z.enum(['under-5000', '5000-15000', '15000-30000', '30000-50000', 'over-50000']).optional().nullable(),
   loanApproval: z.boolean().optional().nullable(),
-  loanAmount: z.number().min(0, 'Loan amount cannot be negative').optional().nullable(),
-  sponsorDetails: z.string().optional().nullable(),
+  loanAmount: z.number()
+    .min(0, 'Loan amount cannot be negative')
+    .max(1000000, 'Loan amount too high')
+    .optional()
+    .nullable(),
+  sponsorDetails: z.string()
+    .optional()
+    .nullable()
+    .refine((details) => {
+      if (!details) return true;
+      return details.length >= 10 && details.length <= 500;
+    }, 'Sponsor details must be between 10-500 characters'),
   financialDocuments: z.boolean().optional().nullable(),
-});
+}).refine((data) => {
+  // Cross-field validation: Loan details consistency
+  if (data.loanApproval === true && (!data.loanAmount || data.loanAmount <= 0)) {
+    return false;
+  }
+  if (data.loanAmount && data.loanAmount > 0 && data.loanApproval !== true) {
+    return false;
+  }
+  return true;
+}, 'Loan approval and loan amount must be consistent');
 
 const employmentInfoSchema = z.object({
   currentEmploymentStatus: z.enum(['Employed', 'Self-employed', 'Student', 'Unemployed']),
