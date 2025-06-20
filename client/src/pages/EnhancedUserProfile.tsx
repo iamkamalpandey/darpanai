@@ -246,8 +246,8 @@ export default function EnhancedUserProfile() {
           </Card>
         )}
 
-        {/* Profile Sections Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        {/* Profile Sections - Clean Vertical Layout */}
+        <div className="space-y-4 mb-8">
           {PROFILE_SECTIONS.map((section) => {
             const status = getSectionStatus(section.id);
             const Icon = section.icon;
@@ -255,34 +255,62 @@ export default function EnhancedUserProfile() {
             return (
               <Card 
                 key={section.id} 
-                className={`cursor-pointer transition-all hover:shadow-md ${
+                className={`transition-all hover:shadow-md ${
                   status.completed ? 'border-green-200 bg-green-50' : 'border-gray-200'
                 }`}
-                onClick={() => setActiveTab(section.id)}
               >
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <Icon className={`h-5 w-5 ${status.completed ? 'text-green-600' : 'text-gray-500'}`} />
-                      <span className={`font-medium ${status.completed ? 'text-green-900' : 'text-gray-900'}`}>
-                        {section.label}
-                      </span>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4 flex-1">
+                      <div className={`p-3 rounded-lg ${
+                        status.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-1">
+                          <h3 className={`text-lg font-medium ${
+                            status.completed ? 'text-green-900' : 'text-gray-900'
+                          }`}>
+                            {section.label}
+                          </h3>
+                          {status.completed && (
+                            <CheckCircle className="h-5 w-5 text-green-600" />
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 mb-3">{section.description}</p>
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1">
+                            <Progress 
+                              value={status.progress} 
+                              className={`h-2 ${status.completed ? 'bg-green-100' : 'bg-gray-100'}`}
+                            />
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            {status.completedCount}/{status.totalCount} fields ({Math.round(status.progress)}%)
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    {status.completed ? (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-5 w-5 text-gray-400" />
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-600 mb-3">{section.description}</p>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Progress</span>
-                      <span className={status.completed ? 'text-green-600' : 'text-gray-600'}>
-                        {Math.round(status.progress)}%
-                      </span>
+                    <div className="flex gap-2 ml-4">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setActiveTab(section.id)}
+                        className="text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300"
+                      >
+                        Edit
+                      </Button>
+                      {!status.completed && (
+                        <Button 
+                          size="sm"
+                          onClick={() => setActiveTab(section.id)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          Complete
+                        </Button>
+                      )}
                     </div>
-                    <Progress value={status.progress} className="h-2" />
                   </div>
                 </CardContent>
               </Card>
