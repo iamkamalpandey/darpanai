@@ -121,7 +121,8 @@ export default function UserProfile() {
       let sectionComplete = true;
       fields.forEach(field => {
         totalFields++;
-        if (user[field as keyof typeof user] && user[field as keyof typeof user] !== '') {
+        const fieldValue = (user as any)?.[field];
+        if (fieldValue && fieldValue !== '') {
           completedFields++;
         } else {
           sectionComplete = false;
