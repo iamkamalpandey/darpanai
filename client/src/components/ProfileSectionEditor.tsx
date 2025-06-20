@@ -549,22 +549,6 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
           }
         }
         
-        // Handle specific type conversions for backend compatibility
-        if (field === 'workExperienceYears') {
-          if (typeof value === 'number') {
-            value = value.toString(); // Convert number to string for backend validation
-          } else if (value === null || value === undefined || value === '') {
-            value = null; // Allow clearing work experience
-          }
-        }
-        
-        // Handle numeric fields that can be cleared
-        if (['loanAmount', 'currentAcademicGap'].includes(field)) {
-          if (value === '' || value === null || value === undefined) {
-            value = null; // Allow clearing numeric fields
-          }
-        }
-        
         submitData[field] = value;
       }
     });
