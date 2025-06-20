@@ -58,11 +58,36 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
   });
 
   const handleInputChange = (field: string, value: any) => {
-    setFormData((prev: any) => ({ ...prev, [field]: value }));
+    setFormData((prev: any) => {
+      const newData = { ...prev, [field]: value };
+      
+      // Auto-calculate academic gap when graduation year changes
+      if (field === 'graduationYear' && value) {
+        const currentYear = new Date().getFullYear();
+        const gradYear = parseInt(value);
+        if (!isNaN(gradYear) && gradYear <= currentYear) {
+          const gap = currentYear - gradYear;
+          newData.currentAcademicGap = gap > 0 ? `${gap} years since graduation` : 'Recent graduate';
+        }
+      }
+      
+      return newData;
+    });
   };
 
   const handleSave = () => {
-    updateMutation.mutate(formData);
+    // Ensure graduationYear is converted to number for submission
+    const submitData = { ...formData };
+    if (submitData.graduationYear && typeof submitData.graduationYear === 'string') {
+      submitData.graduationYear = parseInt(submitData.graduationYear);
+    }
+    
+    // Ensure englishProficiencyTests array exists
+    if (!submitData.englishProficiencyTests) {
+      submitData.englishProficiencyTests = [];
+    }
+    
+    updateMutation.mutate(submitData);
   };
 
   const handleAddLanguageTest = () => {
@@ -253,7 +278,7 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
             id="graduationYear" 
             type="number" 
             value={formData.graduationYear || ''} 
-            onChange={(e) => handleInputChange('graduationYear', parseInt(e.target.value) || '')}
+            onChange={(e) => handleInputChange('graduationYear', e.target.value)}
             placeholder="e.g., 2023"
             min="1980"
             max="2030"
@@ -266,8 +291,14 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
             id="currentAcademicGap" 
             value={formData.currentAcademicGap || ''} 
             onChange={(e) => handleInputChange('currentAcademicGap', e.target.value)}
-            placeholder="e.g., 2 years working"
+            placeholder="Auto-calculated or enter custom reason"
+            disabled={formData.graduationYear && new Date().getFullYear() >= parseInt(formData.graduationYear)}
           />
+          {formData.graduationYear && (
+            <p className="text-xs text-gray-500">
+              Gap automatically calculated from graduation year
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -341,6 +372,54 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
               <SelectItem value="$100,000+">$100,000+</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label>Preferred Countries *</Label>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          {['USA', 'Canada', 'UK', 'Australia', 'Germany', 'Netherlands', 'France', 'Switzerland', 'New Zealand', 'Ireland'].map((country) => (
+            <div key={country} className="flex items-center space-x-2">
+              <Checkbox 
+                id={country}
+                checked={formData.preferredCountries?.includes(country) || false}
+                onCheckedChange={(checked) => {
+                  const currentCountries = formData.preferredCountries || [];
+                  if (checked) {
+                    handleInputChange('preferredCountries', [...currentCountries, country]);
+                  } else {
+                    handleInputChange('preferredCountries', currentCountries.filter((c: string) => c !== country));
+                  }
+                }}
+              />
+              <Label htmlFor={country} className="text-sm">{country}</Label>
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      <div className="space-y-3">
+        <div className="space-y-2">
+          <Label>Additional Services</Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {['Visa Assistance', 'Scholarship Guidance', 'Accommodation Help', 'Airport Pickup', 'Course Selection', 'University Application'].map((service) => (
+              <div key={service} className="flex items-center space-x-2">
+                <Checkbox 
+                  id={service}
+                  checked={formData.interestedServices?.includes(service) || false}
+                  onCheckedChange={(checked) => {
+                    const currentServices = formData.interestedServices || [];
+                    if (checked) {
+                      handleInputChange('interestedServices', [...currentServices, service]);
+                    } else {
+                      handleInputChange('interestedServices', currentServices.filter((s: string) => s !== service));
+                    }
+                  }}
+                />
+                <Label htmlFor={service} className="text-sm">{service}</Label>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       

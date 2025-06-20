@@ -26,8 +26,17 @@ export const academicInfoSchema = z.object({
   highestInstitution: z.string().min(1, "Institution name is required"),
   highestCountry: z.string().min(1, "Country is required"),
   highestGpa: z.string().min(1, "GPA is required"),
-  graduationYear: z.number().int().min(1950).max(new Date().getFullYear() + 10, "Invalid graduation year"),
-  currentAcademicGap: z.number().int().min(0).max(20, "Academic gap cannot exceed 20 years").optional(),
+  graduationYear: z.union([
+    z.string().regex(/^\d{4}$/, "Graduation year must be a 4-digit year"),
+    z.number().int().min(1950).max(new Date().getFullYear() + 10)
+  ]).transform((val) => typeof val === 'string' ? parseInt(val) : val),
+  currentAcademicGap: z.union([
+    z.string().optional(),
+    z.number().int().min(0).max(20).optional()
+  ]).transform((val) => {
+    if (typeof val === 'string' && val.trim() === '') return undefined;
+    return typeof val === 'string' ? parseInt(val) || undefined : val;
+  }).optional(),
   educationHistory: z.array(z.object({
     level: z.string().min(1, "Education level is required"),
     institution: z.string().min(1, "Institution name is required"),
