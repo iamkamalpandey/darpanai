@@ -2092,16 +2092,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         file.originalname
       );
 
-      // Save comprehensive analysis to database
+      // Save comprehensive analysis with core student information to database
       const savedAnalysis = await storage.saveOfferLetterAnalysis({
         filename: file.originalname,
         fileSize: file.size,
         originalText: extractedText,
-        universityName: analysis.coreOfferDetails?.studentInfo?.provider || 'Not specified',
-        universityLocation: analysis.coreOfferDetails?.programStructure?.studyMode || 'Not specified',
-        program: analysis.coreOfferDetails?.studentInfo?.program || 'Not specified',
-        tuition: analysis.coreOfferDetails?.financialOverview?.totalTuition || 'Not specified',
-        duration: analysis.coreOfferDetails?.programStructure?.duration || 'Not specified',
+        universityName: coreInfo.institutionName,
+        universityLocation: coreInfo.country,
+        program: coreInfo.program,
+        tuition: `${coreInfo.tuitionFee} ${coreInfo.currency}`,
+        duration: coreInfo.duration,
         academicStanding: analysis.executiveSummary?.overallAssessment || 'Not specified',
         gpa: 'Based on comprehensive analysis',
         financialStatus: analysis.executiveSummary?.riskLevel || 'Not specified',
@@ -2112,7 +2112,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         costSavingStrategies: [],
         recommendations: analysis.finalRecommendations || [],
         nextSteps: [],
-        analysisResults: analysis,
+        analysisResults: {
+          ...analysis,
+          coreStudentInfo: coreInfo // Add core student info to analysis results
+        },
         tokensUsed,
         processingTime,
         isPublic: false,
@@ -2194,22 +2197,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Analyze offer letter with comprehensive strategic analysis
+      // Step 1: Extract core student information from document
+      const coreInfo = extractCoreStudentInfo(extractedText, file.originalname);
+      console.log('Core student information extracted:', coreInfo);
+
+      // Step 2: Analyze offer letter with comprehensive strategic analysis
       const { analysis, tokensUsed, processingTime } = await analyzeOfferLetterComprehensive(
         extractedText,
         file.originalname
       );
 
-      // Save comprehensive analysis to database
+      // Save comprehensive analysis with core student information to database
       const savedAnalysis = await storage.saveOfferLetterAnalysis({
         filename: file.originalname,
         fileSize: file.size,
         originalText: extractedText,
-        universityName: analysis.coreOfferDetails?.studentInfo?.provider || 'Not specified',
-        universityLocation: analysis.coreOfferDetails?.programStructure?.studyMode || 'Not specified',
-        program: analysis.coreOfferDetails?.studentInfo?.program || 'Not specified',
-        tuition: analysis.coreOfferDetails?.financialOverview?.totalTuition || 'Not specified',
-        duration: analysis.coreOfferDetails?.programStructure?.duration || 'Not specified',
+        universityName: coreInfo.institutionName,
+        universityLocation: coreInfo.country,
+        program: coreInfo.program,
+        tuition: `${coreInfo.tuitionFee} ${coreInfo.currency}`,
+        duration: coreInfo.duration,
         academicStanding: analysis.executiveSummary?.overallAssessment || 'Not specified',
         gpa: 'Based on comprehensive analysis',
         financialStatus: analysis.executiveSummary?.riskLevel || 'Not specified',
