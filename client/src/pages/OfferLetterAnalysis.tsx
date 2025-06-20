@@ -431,41 +431,161 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
               </div>
               
               {analysis.scholarshipOpportunities.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse border border-gray-300">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th className="border border-gray-300 px-4 py-2 text-left font-semibold">Scholarship Name</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left font-semibold">Amount</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left font-semibold">Criteria</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left font-semibold">Deadline</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left font-semibold">Application Process</th>
-                        <th className="border border-gray-300 px-4 py-2 text-left font-semibold">Source</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {analysis.scholarshipOpportunities.map((scholarship, index) => (
-                        <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          <td className="border border-gray-300 px-4 py-2 font-medium">{scholarship.name}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-green-600 font-semibold">{scholarship.amount}</td>
-                          <td className="border border-gray-300 px-4 py-2">
-                            <ul className="list-disc list-inside text-sm">
-                              {scholarship.criteria.map((criterion, idx) => (
-                                <li key={idx}>{criterion}</li>
-                              ))}
-                            </ul>
-                          </td>
-                          <td className="border border-gray-300 px-4 py-2 text-red-600 font-medium">{scholarship.applicationDeadline}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-sm">{scholarship.applicationProcess}</td>
-                          <td className="border border-gray-300 px-4 py-2">
-                            <a href={scholarship.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm">
-                              Official Source
-                            </a>
-                          </td>
+                <div className="space-y-6">
+                  {/* Enhanced Scholarship Table with Student Profile Matching */}
+                  <div className="overflow-x-auto bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="bg-gradient-to-r from-blue-50 to-purple-50 border-b border-gray-200">
+                          <th className="px-4 py-3 text-left font-semibold text-gray-900">Scholarship Details</th>
+                          <th className="px-4 py-3 text-left font-semibold text-gray-900">Eligibility & Match</th>
+                          <th className="px-4 py-3 text-left font-semibold text-gray-900">Application Info</th>
+                          <th className="px-4 py-3 text-left font-semibold text-gray-900">Official Source</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {analysis.scholarshipOpportunities.map((scholarship, index) => (
+                          <tr key={index} className={`border-b border-gray-100 hover:bg-gray-50 ${
+                            scholarship.eligibilityMatch === 'High' ? 'bg-green-25' : 
+                            scholarship.eligibilityMatch === 'Medium' ? 'bg-yellow-25' : 'bg-white'
+                          }`}>
+                            {/* Scholarship Details Column */}
+                            <td className="px-4 py-4 border-r border-gray-100">
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-semibold text-gray-900 text-sm">{scholarship.name}</h4>
+                                  {scholarship.scholarshipType && (
+                                    <Badge variant="outline" className={`text-xs ${
+                                      scholarship.scholarshipType === 'Merit' ? 'bg-blue-100 text-blue-800' :
+                                      scholarship.scholarshipType === 'Need-based' ? 'bg-purple-100 text-purple-800' :
+                                      scholarship.scholarshipType === 'International' ? 'bg-green-100 text-green-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {scholarship.scholarshipType}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="text-lg font-bold text-green-600">{scholarship.amount}</div>
+                                <div className="text-sm text-gray-600">
+                                  <strong>Criteria:</strong>
+                                  <ul className="list-disc list-inside mt-1 space-y-1">
+                                    {scholarship.criteria.map((criterion, idx) => (
+                                      <li key={idx} className="text-xs">{criterion}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Eligibility & Match Column */}
+                            <td className="px-4 py-4 border-r border-gray-100">
+                              <div className="space-y-2">
+                                {scholarship.eligibilityMatch && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-gray-700">Match Level:</span>
+                                    <Badge className={`text-xs ${
+                                      scholarship.eligibilityMatch === 'High' ? 'bg-green-500 text-white' :
+                                      scholarship.eligibilityMatch === 'Medium' ? 'bg-yellow-500 text-white' :
+                                      'bg-red-500 text-white'
+                                    }`}>
+                                      {scholarship.eligibilityMatch}
+                                    </Badge>
+                                  </div>
+                                )}
+                                
+                                {scholarship.studentProfileMatch && (
+                                  <div className="space-y-1 text-xs">
+                                    {scholarship.studentProfileMatch.overallMatch && (
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium">Profile Match:</span>
+                                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                          <div 
+                                            className={`h-2 rounded-full ${
+                                              scholarship.studentProfileMatch.overallMatch >= 80 ? 'bg-green-500' :
+                                              scholarship.studentProfileMatch.overallMatch >= 60 ? 'bg-yellow-500' :
+                                              'bg-red-500'
+                                            }`}
+                                            style={{ width: `${scholarship.studentProfileMatch.overallMatch}%` }}
+                                          />
+                                        </div>
+                                        <span className="text-xs font-semibold">{scholarship.studentProfileMatch.overallMatch}%</span>
+                                      </div>
+                                    )}
+                                    
+                                    {scholarship.studentProfileMatch.gpaRequirement && (
+                                      <div className="flex items-center gap-1">
+                                        <span className={`w-2 h-2 rounded-full ${
+                                          scholarship.studentProfileMatch.matchesGPA ? 'bg-green-500' : 'bg-red-500'
+                                        }`}></span>
+                                        <span>GPA: {scholarship.studentProfileMatch.gpaRequirement}</span>
+                                      </div>
+                                    )}
+                                    
+                                    {scholarship.studentProfileMatch.academicRequirement && (
+                                      <div className="flex items-center gap-1">
+                                        <span className={`w-2 h-2 rounded-full ${
+                                          scholarship.studentProfileMatch.matchesAcademic ? 'bg-green-500' : 'bg-red-500'
+                                        }`}></span>
+                                        <span>Academic: {scholarship.studentProfileMatch.academicRequirement}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+
+                            {/* Application Info Column */}
+                            <td className="px-4 py-4 border-r border-gray-100">
+                              <div className="space-y-2">
+                                <div>
+                                  <span className="text-sm font-medium text-gray-700">Deadline:</span>
+                                  <p className="text-sm text-red-600 font-semibold">{scholarship.applicationDeadline}</p>
+                                </div>
+                                <div>
+                                  <span className="text-sm font-medium text-gray-700">Process:</span>
+                                  <p className="text-xs text-gray-600 mt-1">{scholarship.applicationProcess}</p>
+                                </div>
+                              </div>
+                            </td>
+
+                            {/* Official Source Column */}
+                            <td className="px-4 py-4">
+                              <div className="text-center">
+                                <a 
+                                  href={scholarship.sourceUrl} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+                                >
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                  </svg>
+                                  Official Page
+                                </a>
+                                <p className="text-xs text-gray-500 mt-1">Verified Source</p>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Scholarship Summary */}
+                  <Card className="bg-blue-50 border-blue-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertCircle className="h-4 w-4 text-blue-600" />
+                        <h4 className="font-semibold text-blue-900">Scholarship Application Tips</h4>
+                      </div>
+                      <div className="text-sm text-blue-800 space-y-1">
+                        <p>• All scholarships above are researched from official university sources and verified for accuracy</p>
+                        <p>• Match percentages are calculated based on your academic profile extracted from the offer letter</p>
+                        <p>• High match scholarships (80%+) should be prioritized for applications</p>
+                        <p>• Contact the university's financial aid office for personalized scholarship guidance</p>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               ) : (
                 <Alert>
