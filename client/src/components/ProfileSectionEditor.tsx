@@ -60,7 +60,7 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
       console.log('Backend success response:', result);
       return result;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log('Profile update success response:', data);
       console.log('Current form data:', formData);
       
@@ -200,15 +200,18 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
         console.log('=== END FINANCIAL DEBUG ===');
       }
 
-      console.log('Save successful, updating cache and form data');
+      console.log('Save successful, implementing aggressive cache refresh');
       console.log('Frontend-Backend Connection: SUCCESS');
 
-      // Immediately update cache with fresh data from server
-      queryClient.setQueryData(['/api/user'], data.user);
+      // Aggressive cache invalidation to force fresh data retrieval
+      queryClient.removeQueries({ queryKey: ['/api/user'] });
+      queryClient.removeQueries({ queryKey: ['/api/user/profile-completion'] });
       
-      // Force refresh to ensure UI synchronization  
-      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile-completion'] });
+      // Force immediate refetch with no cache
+      await queryClient.refetchQueries({ 
+        queryKey: ['/api/user'], 
+        type: 'active'
+      });
       
       // Update local form state with server response
       setFormData({ ...data.user });

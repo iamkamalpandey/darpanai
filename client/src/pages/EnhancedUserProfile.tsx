@@ -25,7 +25,13 @@ import {
   Trophy,
   Target,
   Clock,
-  Edit
+  Edit,
+  Sparkles,
+  TrendingUp,
+  Award,
+  BookOpen,
+  CreditCard,
+  Building
 } from 'lucide-react';
 import { Link } from 'wouter';
 import { ProfileSectionEditor } from '@/components/ProfileSectionEditor';
@@ -64,6 +70,20 @@ export default function EnhancedUserProfile() {
       '75000-100000': '$75,000 - $100,000',
       '100000-150000': '$100,000 - $150,000',
       'over-150000': 'Over $150,000',
+      'prefer-not-to-say': 'Prefer not to say'
+    };
+    return ranges[value as keyof typeof ranges] || value;
+  };
+
+  const formatSavingsRange = (value: string) => {
+    const ranges = {
+      'help-me-plan': 'Help me Plan (Need Guidance)',
+      'under-5000': 'Under $5,000',
+      '5000-15000': '$5,000 - $15,000',
+      '15000-30000': '$15,000 - $30,000',
+      '30000-50000': '$30,000 - $50,000',
+      '50000-100000': '$50,000 - $100,000',
+      'over-100000': 'Over $100,000',
       'prefer-not-to-say': 'Prefer not to say'
     };
     return ranges[value as keyof typeof ranges] || value;

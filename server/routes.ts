@@ -84,11 +84,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication
   const requireAuth = setupAuth(app);
   
-  // Get current user data - fetch fresh from database
+  // Get current user data - fetch fresh from database with cache prevention
   app.get('/api/user', requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = req.user!.id;
-      console.log('Fetching fresh user data from database for user ID:', userId);
+      console.log('=== FETCHING FRESH USER DATA ===');
+      console.log('User ID:', userId);
       
       // Get fresh user data from database instead of stale session data
       const freshUser = await storage.getUser(userId);
@@ -102,9 +103,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Financial data in response:', {
         fundingSource: freshUser.fundingSource,
         estimatedBudget: freshUser.estimatedBudget,
-        savingsAmount: freshUser.savingsAmount
+        savingsAmount: freshUser.savingsAmount,
+        loanApproval: freshUser.loanApproval,
+        sponsorDetails: freshUser.sponsorDetails
       });
       
+      // Prevent caching to ensure fresh data
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'ETag': `"${Date.now()}-${userId}"` // Dynamic ETag to prevent 304
+      });
+      
+      console.log('=== USER DATA RESPONSE SENT ===');
       res.json(freshUser);
     } catch (error) {
       console.error('Error fetching user data:', error);
