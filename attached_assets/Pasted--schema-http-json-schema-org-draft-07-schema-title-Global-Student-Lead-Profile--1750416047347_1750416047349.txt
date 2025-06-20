@@ -1,0 +1,212 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Global Student Lead Profile",
+  "type": "object",
+  "required": ["first_name", "last_name", "dob", "email", "phone_number", "gender", "country_of_residence", "nationality", "city", "address", "highest_qualification", "highest_gpa", "graduation_year", "interested_course", "field_of_study", "preferred_intake", "budget_range", "lead_type", "source", "profile_status"],
+  "properties": {
+    "first_name": {
+      "type": "string",
+      "maxLength": 50
+    },
+    "last_name": {
+      "type": "string",
+      "maxLength": 50
+    },
+    "dob": {
+      "type": "string",
+      "format": "date"
+    },
+    "gender": {
+      "type": "string",
+      "enum": ["Male", "Female", "Non-binary", "Prefer not to say", "Other"]
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "phone_number": {
+      "type": "string",
+      "pattern": "^\\+?[1-9]\\d{1,14}$"
+    },
+    "secondary_number": {
+      "type": "string",
+      "pattern": "^\\+?[1-9]\\d{1,14}$"
+    },
+    "country_of_residence": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string",
+      "maxLength": 50
+    },
+    "address": {
+      "type": "string",
+      "maxLength": 150
+    },
+    "nationality": {
+      "type": "string"
+    },
+    "passport_number": {
+      "type": "string"
+    },
+
+    "highest_qualification": {
+      "type": "string",
+      "enum": ["High School", "Bachelor", "Master", "PhD"]
+    },
+    "highest_institution": {
+      "type": "string"
+    },
+    "highest_country": {
+      "type": "string"
+    },
+    "highest_gpa": {
+      "type": "string"
+    },
+    "graduation_year": {
+      "type": "integer"
+    },
+    "current_academic_gap": {
+      "type": "integer"
+    },
+
+    "education_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "level": { "type": "string" },
+          "institution": { "type": "string" },
+          "country": { "type": "string" },
+          "grade": { "type": "string" },
+          "year_of_completion": { "type": "integer" }
+        }
+      }
+    },
+
+    "english_proficiency_tests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "test_type": { "type": "string" },
+          "test_date": { "type": "string", "format": "date" },
+          "overall_score": { "type": "number" },
+          "subscores": {
+            "type": "object",
+            "properties": {
+              "listening": { "type": "number" },
+              "reading": { "type": "number" },
+              "writing": { "type": "number" },
+              "speaking": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+
+    "standardized_tests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "test_type": { "type": "string" },
+          "test_date": { "type": "string", "format": "date" },
+          "overall_score": { "type": "integer" },
+          "subscores": {
+            "type": "object",
+            "properties": {
+              "math": { "type": "integer" },
+              "verbal": { "type": "integer" },
+              "writing": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+
+    "interested_course": {
+      "type": "string"
+    },
+    "field_of_study": {
+      "type": "string"
+    },
+    "preferred_intake": {
+      "type": "string"
+    },
+    "budget_range": {
+      "type": "string",
+      "enum": ["<10K", "10-20K", "20-30K", "30K+"]
+    },
+    "preferred_countries": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "interested_services": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "part_time_interest": {
+      "type": "boolean"
+    },
+    "accommodation_required": {
+      "type": "boolean"
+    },
+    "has_dependents": {
+      "type": "boolean"
+    },
+
+    "current_employment_status": {
+      "type": "string",
+      "enum": ["Employed", "Self-employed", "Studying", "Unemployed"]
+    },
+    "work_experience_years": {
+      "type": "integer"
+    },
+    "job_title": {
+      "type": "string"
+    },
+    "organization_name": {
+      "type": "string"
+    },
+    "field_of_work": {
+      "type": "string"
+    },
+    "gap_reason_if_any": {
+      "type": "string"
+    },
+
+    "lead_type": {
+      "type": "string",
+      "enum": ["Prospect", "Applicant", "Enrolled"]
+    },
+    "application_status": {
+      "type": "string",
+      "enum": ["New", "Contacted", "In Progress", "Applied", "Offer Received", "Rejected", "Enrolled"]
+    },
+    "profile_status": {
+      "type": "string",
+      "enum": ["Active", "Inactive", "Flagged"]
+    },
+    "source": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "is_archived": {
+      "type": "boolean"
+    },
+    "dropout": {
+      "type": "boolean"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

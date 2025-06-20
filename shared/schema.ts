@@ -40,23 +40,53 @@ export const users = pgTable("users", {
   // Other visa category fields (conditional)
   visaCategory: text("visa_category"),
   purposeOfTravel: text("purpose_of_travel"),
-  // Study preferences for destination suggestions
-  preferredStudyFields: text("preferred_study_fields").array(),
-  budgetRange: text("budget_range"), // low, medium, high
-  languagePreferences: text("language_preferences").array(),
-  climatePreference: text("climate_preference"),
-  universityRankingImportance: text("university_ranking_importance"), // not-important, somewhat, very-important
-  workPermitImportance: text("work_permit_importance"), // not-important, somewhat, very-important
-  culturalPreferences: text("cultural_preferences").array(),
-  careerGoals: text("career_goals"),
+  // Personal Information (Enhanced)
+  dateOfBirth: text("date_of_birth"),
+  gender: text("gender"), // Male, Female, Non-binary, Prefer not to say, Other
+  nationality: text("nationality"),
+  passportNumber: text("passport_number"),
+  secondaryNumber: text("secondary_number"),
+  address: text("address"),
   
-  // English Language Proficiency
-  englishProficiency: text("english_proficiency"), // none, basic, intermediate, advanced, native
-  englishTestType: text("english_test_type"), // ielts, toefl, pte, duolingo, cambridge, none
-  englishTestScore: text("english_test_score"),
-  englishTestDate: text("english_test_date"), // Using text for date to avoid import issues
-  englishTestExpiry: text("english_test_expiry"),
-  needsEnglishImprovement: boolean("needs_english_improvement").default(false),
+  // Academic Information (Enhanced)
+  highestQualification: text("highest_qualification"), // High School, Bachelor, Master, PhD
+  highestInstitution: text("highest_institution"),
+  highestCountry: text("highest_country"),
+  highestGpa: text("highest_gpa"),
+  graduationYear: integer("graduation_year"),
+  currentAcademicGap: integer("current_academic_gap"),
+  educationHistory: jsonb("education_history"), // Array of education records
+  
+  // Study Preferences (Enhanced)
+  interestedCourse: text("interested_course"),
+  fieldOfStudy: text("field_of_study"),
+  preferredIntake: text("preferred_intake"),
+  budgetRange: text("budget_range"), // <10K, 10-20K, 20-30K, 30K+
+  preferredCountries: text("preferred_countries").array(),
+  interestedServices: text("interested_services").array(),
+  partTimeInterest: boolean("part_time_interest").default(false),
+  accommodationRequired: boolean("accommodation_required").default(false),
+  hasDependents: boolean("has_dependents").default(false),
+  
+  // Employment Information
+  currentEmploymentStatus: text("current_employment_status"), // Employed, Self-employed, Studying, Unemployed
+  workExperienceYears: integer("work_experience_years"),
+  jobTitle: text("job_title"),
+  organizationName: text("organization_name"),
+  fieldOfWork: text("field_of_work"),
+  gapReasonIfAny: text("gap_reason_if_any"),
+  
+  // English Language Proficiency Tests (Enhanced)
+  englishProficiencyTests: jsonb("english_proficiency_tests"), // Array of test records with subscores
+  standardizedTests: jsonb("standardized_tests"), // Array of standardized test records (GRE, GMAT, SAT)
+  
+  // Application Status
+  leadType: text("lead_type").default("Prospect"), // Prospect, Applicant, Enrolled
+  applicationStatus: text("application_status").default("New"), // New, Contacted, In Progress, Applied, Offer Received, Rejected, Enrolled
+  source: text("source"),
+  campaignId: text("campaign_id"),
+  isArchived: boolean("is_archived").default(false),
+  dropout: boolean("dropout").default(false),
 });
 
 // Study Destination Suggestions

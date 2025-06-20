@@ -1527,19 +1527,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user!;
       
-      // Required fields for destination analysis
+      // Required fields for destination analysis based on comprehensive profile
       const requiredFields = {
-        'Study Level': user.studyLevel,
-        'Study Fields': user.preferredStudyFields?.length > 0 ? user.preferredStudyFields : null,
-        'Start Date': user.startDate,
+        'Personal Information': user.dateOfBirth && user.gender && user.nationality,
+        'Academic Qualification': user.highestQualification && user.highestInstitution && user.highestGpa,
+        'Study Preferences': user.interestedCourse && user.fieldOfStudy && user.preferredIntake,
         'Budget Range': user.budgetRange,
-        'Funding Source': user.fundingSource,
-        'Language Preferences': user.languagePreferences?.length > 0 ? user.languagePreferences : null,
-        'Climate Preference': user.climatePreference,
-        'University Ranking Importance': user.universityRankingImportance,
-        'Work Permit Importance': user.workPermitImportance,
-        'Career Goals': user.careerGoals && user.careerGoals.length >= 10 ? user.careerGoals : null,
-        'Counselling Mode': user.counsellingMode,
+        'Preferred Countries': user.preferredCountries?.length > 0 ? user.preferredCountries : null,
+        'Employment Status': user.currentEmploymentStatus,
+        'English Proficiency': user.englishProficiencyTests && Array.isArray(user.englishProficiencyTests) && user.englishProficiencyTests.length > 0,
       };
 
       const missingFields = Object.entries(requiredFields)
