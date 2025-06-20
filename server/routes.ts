@@ -1186,6 +1186,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!analysis) {
         return res.status(404).json({ error: 'Offer letter analysis not found' });
       }
+
+      // Check if this is a failed analysis
+      if (analysis.universityName === 'Analysis Error - Please Try Again') {
+        return res.status(404).json({ error: 'Analysis failed or corrupted' });
+      }
       
       return res.status(200).json(analysis);
       
@@ -1943,7 +1948,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req as any).user.id;
       const analyses = await storage.getOfferLetterAnalysesByUser(userId);
       
-      return res.status(200).json(analyses.map(analysis => ({
+      // Filter out failed analyses and map successful ones
+      const validAnalyses = analyses.filter(analysis => 
+        analysis.universityName !== 'Analysis Error - Please Try Again'
+      );
+      
+      return res.status(200).json(validAnalyses.map(analysis => ({
         id: analysis.id,
         fileName: analysis.filename,
         fileSize: analysis.fileSize,
@@ -1957,8 +1967,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           weaknesses: analysis.weaknesses || [],
         },
         universityInfo: {
-          name: analysis.university_name || analysis.universityName,
-          location: analysis.university_location || analysis.universityLocation,
+          name: analysis.universityName,
+          location: analysis.universityLocation,
           program: analysis.program,
           tuition: analysis.tuition,
           duration: analysis.duration,
@@ -2108,6 +2118,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Analysis not found' });
       }
 
+      // Check if this is a failed analysis
+      if (analysis.universityName === 'Analysis Error - Please Try Again') {
+        return res.status(404).json({ error: 'Analysis failed or corrupted' });
+      }
+
       return res.status(200).json({
         id: analysis.id,
         fileName: analysis.filename,
@@ -2122,8 +2137,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           weaknesses: analysis.weaknesses || [],
         },
         universityInfo: {
-          name: analysis.university_name || analysis.universityName,
-          location: analysis.university_location || analysis.universityLocation,
+          name: analysis.universityName,
+          location: analysis.universityLocation,
           program: analysis.program,
           tuition: analysis.tuition,
           duration: analysis.duration,
