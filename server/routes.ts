@@ -237,7 +237,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(200).json(analyses);
     } catch (error) {
       console.error('Error in /api/analyses:', error);
-      return res.status(500).json({ error: (error as Error).message || 'An error occurred while retrieving analyses' });
+      return res.status(500).json({ 
+        error: 'Analysis Retrieval Error', 
+        message: 'Unable to load your analysis history. Please refresh the page and try again.',
+        supportNote: 'If this continues, contact support for assistance',
+        technicalDetails: (error as Error).message
+      });
     }
   });
 

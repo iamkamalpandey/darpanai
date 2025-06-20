@@ -21,6 +21,7 @@ import {
 import { Link } from "wouter";
 import { ConsultationForm } from "@/components/ConsultationForm";
 
+
 interface UserStats {
   analysisCount: number;
   maxAnalyses: number;
@@ -168,7 +169,7 @@ export default function Home() {
             </div>
           </div>
 
-          <Footer />
+
         </div>
       </div>
     );
