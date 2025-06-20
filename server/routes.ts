@@ -6,7 +6,7 @@ import { storage } from "./storage";
 import { extractTextFromDocument } from "./fileProcessing";
 import { analyzeRejectionLetter } from "./openai";
 import { analyzeEnrollmentDocument } from "./enrollmentAnalysis";
-import { analyzeOfferLetterDocument } from "./offerLetterAnalysis";
+import { analyzeOfferLetterComprehensive } from "./offerLetterAnalysis_comprehensive";
 import { analysisResponseSchema, professionalApplicationSchema, insertDocumentTemplateSchema, insertEnrollmentAnalysisSchema, insertDocumentCategorySchema, insertDocumentTypeSchema, insertAnalysisFeedbackSchema } from "@shared/schema";
 import { z } from 'zod';
 import { setupAuth } from "./auth";
