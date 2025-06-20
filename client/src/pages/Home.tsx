@@ -1,8 +1,10 @@
+import { useState, useEffect } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { ProfileCompletionPrompt } from "@/components/ProfileCompletionPrompt";
 import { 
   Shield, 
   FileText, 
@@ -44,6 +46,8 @@ interface User {
 }
 
 export default function Home() {
+  const [showProfilePrompt, setShowProfilePrompt] = useState(false);
+
   const { data: user } = useQuery<User>({
     queryKey: ['/api/user'],
     staleTime: 15 * 60 * 1000,
@@ -57,6 +61,23 @@ export default function Home() {
     staleTime: 15 * 60 * 1000,
     refetchOnMount: false
   });
+
+  const { data: completionStatus } = useQuery({
+    queryKey: ['/api/user/profile-completion'],
+    enabled: !!user,
+    staleTime: 15 * 60 * 1000,
+    refetchOnMount: false
+  }) as { data: any };
+
+  // Show profile completion prompt if profile is incomplete (less than 70%)
+  useEffect(() => {
+    if (completionStatus && !completionStatus.isComplete && completionStatus.completionPercentage < 70) {
+      const timer = setTimeout(() => {
+        setShowProfilePrompt(true);
+      }, 2000); // Show after 2 seconds of dashboard load
+      return () => clearTimeout(timer);
+    }
+  }, [completionStatus]);
 
   // Removed non-existent /api/analyses/recent endpoint to fix "Invalid analysis ID" error
   const recentAnalyses: RecentAnalysis[] = [];
