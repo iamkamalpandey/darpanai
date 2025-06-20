@@ -126,7 +126,7 @@ const studyPreferencesSchema = z.object({
       // Prevent numeric-only course names like "123"
       return !/^\d+$/.test(course.trim());
     }, 'Course name cannot be only numbers'),
-  fieldOfStudy: z.enum(['Engineering', 'Business', 'Medicine', 'Arts', 'Science', 'Technology', 'Other'])
+  fieldOfStudy: z.enum(['Engineering', 'Business', 'Medicine', 'Arts', 'Science', 'Technology', 'Computer Science', 'Information Technology', 'Data Science', 'Finance', 'Marketing', 'Psychology', 'Other'])
     .refine((field) => field !== undefined, 'Field of study is required'),
   preferredIntake: z.enum(['Fall 2024', 'Spring 2025', 'Fall 2025', 'Spring 2026', 'Fall 2026'])
     .refine((intake) => intake !== undefined, 'Preferred intake is required'),
@@ -135,6 +135,9 @@ const studyPreferencesSchema = z.object({
   preferredCountries: z.array(z.string())
     .min(1, 'At least one country must be selected')
     .max(5, 'Maximum 5 countries allowed'),
+  partTimeInterest: z.boolean().optional().nullable(),
+  accommodationRequired: z.boolean().optional().nullable(),
+  hasDependents: z.boolean().optional().nullable(),
 });
 
 const financialInfoSchema = z.object({
@@ -504,6 +507,9 @@ const ProfilePageRedesign: React.FC = () => {
       preferredIntake: user?.preferredIntake || '',
       budgetRange: user?.budgetRange || '',
       preferredCountries: user?.preferredCountries || [],
+      partTimeInterest: user?.partTimeInterest || false,
+      accommodationRequired: user?.accommodationRequired || false,
+      hasDependents: user?.hasDependents || false,
     },
   });
 
@@ -516,6 +522,9 @@ const ProfilePageRedesign: React.FC = () => {
         preferredIntake: user.preferredIntake || '',
         budgetRange: user.budgetRange || '',
         preferredCountries: user.preferredCountries || [],
+        partTimeInterest: user.partTimeInterest || false,
+        accommodationRequired: user.accommodationRequired || false,
+        hasDependents: user.hasDependents || false,
       });
     }
   }, [user, editingSection, studyForm]);
@@ -1329,7 +1338,7 @@ const ProfilePageRedesign: React.FC = () => {
                               if (checked) {
                                 studyForm.setValue('preferredCountries', [...currentCountries, country]);
                               } else {
-                                studyForm.setValue('preferredCountries', currentCountries.filter(c => c !== country));
+                                studyForm.setValue('preferredCountries', currentCountries.filter((c: string) => c !== country));
                               }
                             }}
                           />
@@ -1340,68 +1349,62 @@ const ProfilePageRedesign: React.FC = () => {
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <FormField
-                      control={studyForm.control}
-                      name="partTimeInterest"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>Part-time Study Interest</FormLabel>
-                            <FormDescription>
-                              Interested in part-time study options
-                            </FormDescription>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="partTimeInterest"
+                        checked={user?.partTimeInterest || false}
+                        onCheckedChange={(checked) => {
+                          const updatedData = { ...studyForm.getValues(), partTimeInterest: checked as boolean };
+                          studyForm.reset(updatedData);
+                        }}
+                      />
+                      <div className="grid gap-1.5 leading-none">
+                        <Label htmlFor="partTimeInterest" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          Part-time Study Interest
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Interested in part-time study options
+                        </p>
+                      </div>
+                    </div>
                     
-                    <FormField
-                      control={studyForm.control}
-                      name="accommodationRequired"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>Accommodation Required</FormLabel>
-                            <FormDescription>
-                              Need assistance with accommodation
-                            </FormDescription>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="accommodationRequired"
+                        checked={user?.accommodationRequired || false}
+                        onCheckedChange={(checked) => {
+                          const updatedData = { ...studyForm.getValues(), accommodationRequired: checked as boolean };
+                          studyForm.reset(updatedData);
+                        }}
+                      />
+                      <div className="grid gap-1.5 leading-none">
+                        <Label htmlFor="accommodationRequired" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          Accommodation Required
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Need assistance with accommodation
+                        </p>
+                      </div>
+                    </div>
                     
-                    <FormField
-                      control={studyForm.control}
-                      name="hasDependents"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>Have Dependents</FormLabel>
-                            <FormDescription>
-                              Will be traveling with dependents
-                            </FormDescription>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="hasDependents"
+                        checked={user?.hasDependents || false}
+                        onCheckedChange={(checked) => {
+                          const updatedData = { ...studyForm.getValues(), hasDependents: checked as boolean };
+                          studyForm.reset(updatedData);
+                        }}
+                      />
+                      <div className="grid gap-1.5 leading-none">
+                        <Label htmlFor="hasDependents" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          Have Dependents
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Will be traveling with dependents
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <div className="flex justify-end space-x-2">
