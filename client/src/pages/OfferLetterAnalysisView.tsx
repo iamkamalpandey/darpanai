@@ -194,7 +194,8 @@ export default function OfferLetterAnalysisView() {
     );
   }
 
-  const analysisData = analysis.analysisResults || {
+  // Parse analysis data from the response with proper type safety
+  const analysisData = analysis?.analysisResults || {
     universityInfo: {
       name: 'University information being processed',
       location: 'Location details available',
@@ -274,6 +275,9 @@ export default function OfferLetterAnalysisView() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  // Extract analysis data with type safety and fallbacks
+  const analysisData = analysis?.analysisResults as any || {};
 
   return (
     <DashboardLayout>
