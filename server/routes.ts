@@ -1833,7 +1833,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: updatedUser.id,
         firstName: updatedUser.firstName,
         lastName: updatedUser.lastName,
-        country: updatedUser.country,
+        country: updatedUser.country || "",
         dateOfBirth: updatedUser.dateOfBirth || undefined,
         gender: updatedUser.gender || undefined,
         nationality: updatedUser.nationality || undefined,
