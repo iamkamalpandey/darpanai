@@ -108,14 +108,26 @@ export default function StudyDestinationSuggestions() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Get user's destination suggestions
+  // Get profile completion status
+  const { data: profileStatus, isLoading: profileLoading } = useQuery({
+    queryKey: ['/api/user/profile-completion'],
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Get user's destination suggestions (only if profile is complete)
   const { data: suggestions = [], isLoading } = useQuery<DestinationSuggestion[]>({
     queryKey: ['/api/destination-suggestions'],
     staleTime: 5 * 60 * 1000,
+    enabled: profileStatus?.isComplete === true,
   });
 
   const generateSuggestionsMutation = useMutation({
     mutationFn: async (requestData: any) => {
+      // Check profile completion before generating suggestions
+      if (!profileStatus?.isComplete) {
+        throw new Error('Please complete your profile before generating suggestions');
+      }
+
       const response = await fetch('/api/destination-suggestions/generate', {
         method: 'POST',
         headers: {
@@ -181,6 +193,119 @@ export default function StudyDestinationSuggestions() {
     if (score >= 60) return 'text-yellow-600 bg-yellow-100';
     return 'text-red-600 bg-red-100';
   };
+
+  // Show profile completion requirement if profile is incomplete
+  if (profileStatus && !profileStatus.isComplete) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          {/* Profile Completion Required Alert */}
+          <Alert className="border-orange-200 bg-orange-50">
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
+            <AlertDescription className="text-orange-800">
+              <strong>Profile Completion Required</strong>
+              <br />
+              Please complete your profile to get personalized AI study destination recommendations.
+              You have completed {profileStatus.completionPercentage || 0}% of your profile.
+            </AlertDescription>
+          </Alert>
+
+          {/* Profile Progress Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Settings className="w-5 h-5 mr-2" />
+                Complete Your Profile
+              </CardTitle>
+              <CardDescription>
+                We need some additional information to provide accurate recommendations
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Profile Completion</span>
+                  <span>{profileStatus.completionPercentage || 0}%</span>
+                </div>
+                <Progress value={profileStatus.completionPercentage || 0} className="w-full" />
+              </div>
+              
+              {profileStatus.missingFields && profileStatus.missingFields.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Missing Fields:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {profileStatus.missingFields.map((field: string, index: number) => (
+                      <Badge key={index} variant="outline" className="text-orange-700 border-orange-200">
+                        {field}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex space-x-3 pt-4">
+                <Button 
+                  onClick={() => setLocation('/complete-profile')}
+                  className="flex-1"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Complete Profile
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setLocation('/')}
+                >
+                  Go to Dashboard
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Benefits of Completing Profile */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Star className="w-5 h-5 mr-2" />
+                Why Complete Your Profile?
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex items-start space-x-3">
+                  <Target className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium">Personalized Recommendations</h4>
+                    <p className="text-sm text-muted-foreground">Get AI-powered suggestions tailored to your academic background and career goals</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <Brain className="w-5 h-5 text-purple-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium">Smart Matching</h4>
+                    <p className="text-sm text-muted-foreground">Advanced algorithms match you with the best study destinations based on your preferences</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <DollarSign className="w-5 h-5 text-green-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium">Budget Optimization</h4>
+                    <p className="text-sm text-muted-foreground">Find study options that fit your budget with detailed cost analysis</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <GraduationCap className="w-5 h-5 text-orange-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium">Academic Fit</h4>
+                    <p className="text-sm text-muted-foreground">Discover programs and universities aligned with your field of study</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
