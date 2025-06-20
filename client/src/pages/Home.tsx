@@ -30,6 +30,17 @@ interface UserStats {
   lastAnalysisDate?: string;
 }
 
+interface PlatformStats {
+  totalAnalyses: number;
+  totalUsers: number;
+  totalCountries: number;
+  documentsProcessed: number;
+  successfulAnalyses: number;
+  totalOfferLetterAnalyses: number;
+  totalEnrollmentAnalyses: number;
+  averageProcessingTime: string;
+}
+
 interface RecentAnalysis {
   id: number;
   fileName: string;
