@@ -318,15 +318,15 @@ const ProfilePageRedesign: React.FC = () => {
   const personalForm = useForm({
     resolver: zodResolver(personalInfoSchema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      phoneNumber: '',
-      dateOfBirth: '',
-      gender: '',
-      nationality: '',
-      passportNumber: '',
-      secondaryNumber: '',
-      address: '',
+      firstName: user?.firstName || '',
+      lastName: user?.lastName || '',
+      phoneNumber: user?.phoneNumber || '',
+      dateOfBirth: user?.dateOfBirth || '',
+      gender: user?.gender || '',
+      nationality: user?.nationality || '',
+      passportNumber: user?.passportNumber || '',
+      secondaryNumber: user?.secondaryNumber || '',
+      address: user?.address || '',
     },
   });
 
@@ -1001,7 +1001,7 @@ const ProfilePageRedesign: React.FC = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Preferred Intake *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || ''}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select intake" />
@@ -1025,7 +1025,7 @@ const ProfilePageRedesign: React.FC = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Budget Range *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || ''}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select budget" />
@@ -1367,10 +1367,198 @@ const ProfilePageRedesign: React.FC = () => {
           isEditing={editingSection === 'language'}
           onEdit={() => setEditingSection('language')}
         >
-          <div className="text-sm text-gray-600">
-            <p>English proficiency tests and standardized test scores can be added to strengthen your profile.</p>
-            <p className="mt-2">Current tests: {user?.englishProficiencyTests?.length || 0} English proficiency tests recorded</p>
-          </div>
+          {editingSection === 'language' ? (
+            <div className="space-y-6">
+              <div className="border rounded-lg p-4">
+                <h4 className="font-medium mb-4">English Proficiency Test</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Test Type</Label>
+                    <Select 
+                      value={user?.englishProficiencyTests?.[0]?.testType || ''} 
+                      onValueChange={(value) => {
+                        const currentTest = user?.englishProficiencyTests?.[0] || {};
+                        const updatedTest = { ...currentTest, testType: value };
+                        updateProfileMutation.mutate({
+                          englishProficiencyTests: [updatedTest]
+                        });
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select test type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="IELTS">IELTS</SelectItem>
+                        <SelectItem value="TOEFL">TOEFL</SelectItem>
+                        <SelectItem value="PTE">PTE Academic</SelectItem>
+                        <SelectItem value="Duolingo">Duolingo English Test</SelectItem>
+                        <SelectItem value="Cambridge">Cambridge English</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Overall Score</Label>
+                    <Input 
+                      value={user?.englishProficiencyTests?.[0]?.overallScore || ''} 
+                      onChange={(e) => {
+                        const currentTest = user?.englishProficiencyTests?.[0] || {};
+                        const updatedTest = { ...currentTest, overallScore: e.target.value };
+                        updateProfileMutation.mutate({
+                          englishProficiencyTests: [updatedTest]
+                        });
+                      }}
+                      placeholder="Overall score" 
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Test Date</Label>
+                    <Input 
+                      type="date" 
+                      value={user?.englishProficiencyTests?.[0]?.testDate || ''} 
+                      onChange={(e) => {
+                        const currentTest = user?.englishProficiencyTests?.[0] || {};
+                        const updatedTest = { ...currentTest, testDate: e.target.value };
+                        updateProfileMutation.mutate({
+                          englishProficiencyTests: [updatedTest]
+                        });
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Reading Score</Label>
+                    <Input 
+                      value={user?.englishProficiencyTests?.[0]?.reading || ''} 
+                      onChange={(e) => {
+                        const currentTest = user?.englishProficiencyTests?.[0] || {};
+                        const updatedTest = { ...currentTest, reading: e.target.value };
+                        updateProfileMutation.mutate({
+                          englishProficiencyTests: [updatedTest]
+                        });
+                      }}
+                      placeholder="Reading score" 
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Writing Score</Label>
+                    <Input 
+                      value={user?.englishProficiencyTests?.[0]?.writing || ''} 
+                      onChange={(e) => {
+                        const currentTest = user?.englishProficiencyTests?.[0] || {};
+                        const updatedTest = { ...currentTest, writing: e.target.value };
+                        updateProfileMutation.mutate({
+                          englishProficiencyTests: [updatedTest]
+                        });
+                      }}
+                      placeholder="Writing score" 
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Speaking Score</Label>
+                    <Input 
+                      value={user?.englishProficiencyTests?.[0]?.speaking || ''} 
+                      onChange={(e) => {
+                        const currentTest = user?.englishProficiencyTests?.[0] || {};
+                        const updatedTest = { ...currentTest, speaking: e.target.value };
+                        updateProfileMutation.mutate({
+                          englishProficiencyTests: [updatedTest]
+                        });
+                      }}
+                      placeholder="Speaking score" 
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Listening Score</Label>
+                    <Input 
+                      value={user?.englishProficiencyTests?.[0]?.listening || ''} 
+                      onChange={(e) => {
+                        const currentTest = user?.englishProficiencyTests?.[0] || {};
+                        const updatedTest = { ...currentTest, listening: e.target.value };
+                        updateProfileMutation.mutate({
+                          englishProficiencyTests: [updatedTest]
+                        });
+                      }}
+                      placeholder="Listening score" 
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Expiry Date</Label>
+                    <Input 
+                      type="date" 
+                      value={user?.englishProficiencyTests?.[0]?.expiryDate || ''} 
+                      onChange={(e) => {
+                        const currentTest = user?.englishProficiencyTests?.[0] || {};
+                        const updatedTest = { ...currentTest, expiryDate: e.target.value };
+                        updateProfileMutation.mutate({
+                          englishProficiencyTests: [updatedTest]
+                        });
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditingSection(null)}
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => setEditingSection(null)}
+                >
+                  <Save className="w-4 h-4 mr-1" />
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {user?.englishProficiencyTests?.[0] ? (
+                <>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Label className="text-sm font-medium text-gray-600">Test Type</Label>
+                    <p className="text-sm mt-1 font-medium">{user.englishProficiencyTests[0].testType || 'Not provided'}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Label className="text-sm font-medium text-gray-600">Overall Score</Label>
+                    <p className="text-sm mt-1 font-medium">{user.englishProficiencyTests[0].overallScore || 'Not provided'}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Label className="text-sm font-medium text-gray-600">Test Date</Label>
+                    <p className="text-sm mt-1 font-medium">{user.englishProficiencyTests[0].testDate || 'Not provided'}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Label className="text-sm font-medium text-gray-600">Expiry Date</Label>
+                    <p className="text-sm mt-1 font-medium">{user.englishProficiencyTests[0].expiryDate || 'Not provided'}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Label className="text-sm font-medium text-gray-600">Reading</Label>
+                    <p className="text-sm mt-1 font-medium">{user.englishProficiencyTests[0].reading || 'Not provided'}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Label className="text-sm font-medium text-gray-600">Writing</Label>
+                    <p className="text-sm mt-1 font-medium">{user.englishProficiencyTests[0].writing || 'Not provided'}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Label className="text-sm font-medium text-gray-600">Speaking</Label>
+                    <p className="text-sm mt-1 font-medium">{user.englishProficiencyTests[0].speaking || 'Not provided'}</p>
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <Label className="text-sm font-medium text-gray-600">Listening</Label>
+                    <p className="text-sm mt-1 font-medium">{user.englishProficiencyTests[0].listening || 'Not provided'}</p>
+                  </div>
+                </>
+              ) : (
+                <div className="col-span-full text-center text-gray-500 py-8">
+                  <Languages className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                  <p>No English proficiency test recorded</p>
+                  <p className="text-sm">Click "Edit" to add your test scores</p>
+                </div>
+              )}
+            </div>
+          )}
         </ProfileSectionCard>
         </div>
       </div>
