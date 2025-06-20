@@ -455,12 +455,12 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                       <div className="space-y-3">
                         <h4 className="font-semibold text-blue-800 border-b border-blue-200 pb-1">Academic Requirements</h4>
                         <ul className="space-y-1">
-                          {analysis.documentAnalysis.termsAndConditions.academicRequirements.map((req, index) => (
+                          {analysis.documentAnalysis?.termsAndConditions?.academicRequirements?.map((req, index) => (
                             <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
                               <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></span>
                               {req}
                             </li>
-                          ))}
+                          )) || [<li key="no-data" className="text-sm text-gray-500 italic">No academic requirements specified in document</li>]}
                         </ul>
                       </div>
 
@@ -468,12 +468,12 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                       <div className="space-y-3">
                         <h4 className="font-semibold text-green-800 border-b border-green-200 pb-1">Financial Obligations</h4>
                         <ul className="space-y-1">
-                          {analysis.documentAnalysis.termsAndConditions.financialObligations.map((obligation, index) => (
+                          {analysis.documentAnalysis?.termsAndConditions?.financialObligations?.map((obligation, index) => (
                             <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
                               <span className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></span>
                               {obligation}
                             </li>
-                          ))}
+                          )) || [<li key="no-data" className="text-sm text-gray-500 italic">No financial obligations specified in document</li>]}
                         </ul>
                       </div>
 
@@ -481,12 +481,12 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                       <div className="space-y-3">
                         <h4 className="font-semibold text-purple-800 border-b border-purple-200 pb-1">Enrollment Conditions</h4>
                         <ul className="space-y-1">
-                          {analysis.documentAnalysis.termsAndConditions.enrollmentConditions.map((condition, index) => (
+                          {analysis.documentAnalysis?.termsAndConditions?.enrollmentConditions?.map((condition, index) => (
                             <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
                               <span className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></span>
                               {condition}
                             </li>
-                          ))}
+                          )) || [<li key="no-data" className="text-sm text-gray-500 italic">No enrollment conditions specified in document</li>]}
                         </ul>
                       </div>
 
@@ -494,18 +494,18 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                       <div className="space-y-3">
                         <h4 className="font-semibold text-indigo-800 border-b border-indigo-200 pb-1">Compliance Requirements</h4>
                         <ul className="space-y-1">
-                          {analysis.documentAnalysis.termsAndConditions.complianceRequirements.map((req, index) => (
+                          {analysis.documentAnalysis?.termsAndConditions?.complianceRequirements?.map((req, index) => (
                             <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
                               <span className="w-2 h-2 bg-indigo-500 rounded-full mt-2 flex-shrink-0"></span>
                               {req}
                             </li>
-                          ))}
+                          )) || [<li key="no-data" className="text-sm text-gray-500 italic">No compliance requirements specified in document</li>]}
                         </ul>
                       </div>
                     </div>
 
                     {/* Critical Deadlines */}
-                    {analysis.documentAnalysis.termsAndConditions.criticalDeadlines.length > 0 && (
+                    {(analysis.documentAnalysis?.termsAndConditions?.criticalDeadlines?.length || 0) > 0 && (
                       <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                         <h4 className="font-semibold text-red-800 mb-3 flex items-center gap-2">
                           <Clock className="h-4 w-4" />
