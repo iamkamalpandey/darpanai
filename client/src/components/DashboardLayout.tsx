@@ -16,7 +16,8 @@ import {
   ChevronDown,
   ChevronRight,
   FolderOpen,
-  GraduationCap
+  GraduationCap,
+  Globe
 } from 'lucide-react';
 import { Footer } from '@/components/Footer';
 
