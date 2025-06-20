@@ -444,8 +444,38 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
     const submitData: any = {};
     
     sectionFields.forEach(field => {
-      if (formData[field] !== undefined) {
-        submitData[field] = formData[field];
+      // Include all fields, even if empty/null, to properly clear optional fields
+      if (formData.hasOwnProperty(field)) {
+        let value = formData[field];
+        
+        // Convert empty strings to null for optional fields
+        if (typeof value === 'string' && value.trim() === '') {
+          const rules = getValidationRules(section);
+          const rule = rules.find(r => r.field === field);
+          
+          // If field is not required, allow null/empty
+          if (!rule || !rule.required) {
+            value = null;
+          }
+        }
+        
+        // Handle specific type conversions for backend compatibility
+        if (field === 'workExperienceYears') {
+          if (typeof value === 'number') {
+            value = value.toString(); // Convert number to string for backend validation
+          } else if (value === null || value === undefined || value === '') {
+            value = null; // Allow clearing work experience
+          }
+        }
+        
+        // Handle numeric fields that can be cleared
+        if (['loanAmount', 'currentAcademicGap'].includes(field)) {
+          if (value === '' || value === null || value === undefined) {
+            value = null; // Allow clearing numeric fields
+          }
+        }
+        
+        submitData[field] = value;
       }
     });
     
@@ -471,6 +501,13 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
         submitData[key] = null;
       }
     });
+    
+    console.log('=== VALIDATION & DATA PROCESSING COMPLETE ===');
+    console.log('Section:', section);
+    console.log('Final submit data:', submitData);
+    console.log('Mandatory field validation passed');
+    console.log('Optional fields properly handle blank values');
+    console.log('=== SUBMITTING TO BACKEND ===');
     
     setIsValidating(false);
     updateMutation.mutate(submitData);
