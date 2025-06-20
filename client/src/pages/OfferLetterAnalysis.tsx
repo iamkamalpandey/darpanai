@@ -147,7 +147,12 @@ export default function OfferLetterAnalysis() {
       setUploadProgress(0);
       setAnalysisProgress(0);
       // Navigate to the detailed analysis view
-      setLocation(`/offer-letter-analysis/${data.id}`);
+      if (data.analysisId) {
+        setLocation(`/offer-letter-analysis/${data.analysisId}`);
+      } else {
+        // If no analysisId, refresh the analyses list to show the new analysis
+        queryClient.invalidateQueries({ queryKey: ['/api/offer-letter-analyses'] });
+      }
     },
     onError: (error: Error) => {
       toast({
