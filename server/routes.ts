@@ -84,11 +84,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication
   const requireAuth = setupAuth(app);
   
-  // Get current user data
+  // Get current user data - fetch fresh from database
   app.get('/api/user', requireAuth, async (req: Request, res: Response) => {
     try {
-      const user = req.user!;
-      res.json(user);
+      const userId = req.user!.id;
+      console.log('Fetching fresh user data from database for user ID:', userId);
+      
+      // Get fresh user data from database instead of stale session data
+      const freshUser = await storage.getUser(userId);
+      
+      if (!freshUser) {
+        console.error('User not found in database:', userId);
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      console.log('Fresh user data retrieved successfully');
+      console.log('Financial data in response:', {
+        fundingSource: freshUser.fundingSource,
+        estimatedBudget: freshUser.estimatedBudget,
+        savingsAmount: freshUser.savingsAmount
+      });
+      
+      res.json(freshUser);
     } catch (error) {
       console.error('Error fetching user data:', error);
       res.status(500).json({ error: 'Failed to fetch user data' });
