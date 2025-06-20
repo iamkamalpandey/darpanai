@@ -511,6 +511,46 @@ export class DatabaseStorage implements IStorage {
       .where(eq(analyses.isPublic, true))
       .orderBy(desc(analyses.id));
   }
+
+  async getLastAnalysisDate(userId: number): Promise<string | null> {
+    try {
+      // Get the most recent analysis from all analysis types
+      const recentAnalyses = await Promise.all([
+        // Visa/rejection analyses
+        db.select({ createdAt: analyses.createdAt })
+          .from(analyses)
+          .where(eq(analyses.userId, userId))
+          .orderBy(desc(analyses.createdAt))
+          .limit(1),
+        
+        // Enrollment analyses
+        db.select({ createdAt: enrollmentAnalyses.createdAt })
+          .from(enrollmentAnalyses)
+          .where(eq(enrollmentAnalyses.userId, userId))
+          .orderBy(desc(enrollmentAnalyses.createdAt))
+          .limit(1),
+        
+        // Offer letter analyses
+        db.select({ createdAt: offerLetterAnalyses.createdAt })
+          .from(offerLetterAnalyses)
+          .where(eq(offerLetterAnalyses.userId, userId))
+          .orderBy(desc(offerLetterAnalyses.createdAt))
+          .limit(1)
+      ]);
+
+      // Find the most recent date across all analysis types
+      const allDates = recentAnalyses
+        .flat()
+        .filter(result => result.createdAt)
+        .map(result => new Date(result.createdAt))
+        .sort((a, b) => b.getTime() - a.getTime());
+
+      return allDates.length > 0 ? allDates[0].toISOString() : null;
+    } catch (error) {
+      console.error('Error getting last analysis date:', error);
+      return null;
+    }
+  }
   
   // Appointment methods
   async createAppointment(appointmentData: any, userId: number): Promise<Appointment> {
