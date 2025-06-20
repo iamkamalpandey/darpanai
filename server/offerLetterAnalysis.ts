@@ -248,7 +248,7 @@ Conduct thorough research across multiple official sources:
    - Application priority recommendations based on match likelihood
    - Timeline optimization for multiple scholarship applications
 
-DETAILED RESPONSE FORMAT:
+Please provide comprehensive scholarship research results in JSON format as follows:
 {
   "totalScholarshipsFound": number,
   "estimatedTotalValue": "Combined potential scholarship value",
@@ -310,7 +310,9 @@ CRITICAL SUCCESS FACTORS:
 - All scholarships must be real and currently available
 - Provide comprehensive eligibility analysis for each opportunity
 - Include specific improvement recommendations for borderline matches
-- Deliver actionable scholarship application strategy`;
+- Deliver actionable scholarship application strategy
+
+Please respond with comprehensive scholarship research data in JSON format.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",

@@ -88,7 +88,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/analyze', upload.single('file'), async (req: FileRequest, res: Response) => {
     try {
       if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded' });
+        return res.status(400).json({ 
+          error: 'File Required', 
+          message: 'Please select a document to upload. We accept PDF, JPG, and PNG files up to 10MB.',
+          acceptedFormats: ['PDF', 'JPG', 'PNG'],
+          maxSize: '10MB'
+        });
       }
       
       // Check usage limits FIRST - before any processing
@@ -121,7 +126,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!extractedText || extractedText.trim().length < 10) {
           console.error('Text extraction returned insufficient content');
           return res.status(400).json({ 
-            error: 'Failed to extract meaningful text from the document. Please ensure your document contains readable text.'
+            error: 'Document Content Issue',
+            message: 'We could not extract readable text from your document. Please ensure your document contains clear, visible text and is not corrupted.',
+            suggestions: [
+              'Check that your document is not password protected',
+              'Ensure the document contains readable text (not just images)',
+              'Try uploading a higher quality scan or PDF',
+              'Verify the document is not corrupted'
+            ]
           });
         }
         
@@ -140,8 +152,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error('Schema validation failed:', validationResult.error);
           console.error('Invalid analysis result structure:', analysisResult);
           return res.status(500).json({ 
-            error: 'Analysis completed but response format is invalid',
-            details: validationResult.error.issues 
+            error: 'Analysis Processing Error',
+            message: 'Our analysis system completed processing your document but encountered a formatting issue. Our technical team has been notified.',
+            supportInfo: 'Please try uploading your document again. If the issue persists, contact our support team with your document details.'
           });
         }
         
@@ -190,7 +203,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (extractionError) {
         console.error('Text extraction error:', extractionError);
         return res.status(400).json({ 
-          error: `Text extraction failed: ${(extractionError as Error).message}. Please ensure your document is not corrupted and contains readable text.`
+          error: 'Document Processing Failed',
+          message: 'We encountered an issue extracting text from your document. Please ensure your document is clear and readable.',
+          technicalNote: 'File may be corrupted, password protected, or contain only images',
+          suggestions: [
+            'Try uploading a different version of the document',
+            'Ensure the document is not password protected',
+            'Check that the document contains readable text'
+          ]
         });
       }
       
