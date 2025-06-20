@@ -24,7 +24,7 @@ const EnrollmentAnalysis = lazy(() => import("@/pages/EnrollmentAnalysis"));
 const CoEAnalysis = lazy(() => import("@/pages/CoEAnalysis"));
 const COEAnalysisView = lazy(() => import("@/pages/COEAnalysisView"));
 const OfferLetterAnalysis = lazy(() => import("@/pages/OfferLetterAnalysis"));
-const OfferLetterAnalysisView = lazy(() => import("@/pages/OfferLetterAnalysisView"));
+const OfferLetterAnalysisView = lazy(() => import("@/pages/OfferLetterAnalysisView_comprehensive"));
 const VisaAnalysisView = lazy(() => import("@/pages/VisaAnalysisView"));
 const UserVisaAnalysisView = lazy(() => import("@/pages/UserVisaAnalysisView"));
 const EnrollmentAnalysisResults = lazy(() => import("@/pages/EnrollmentAnalysisResults"));
