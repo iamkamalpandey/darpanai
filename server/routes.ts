@@ -1658,8 +1658,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       invalidateCache(`user:${userId}`);
       
       res.json({
+        success: true,
         message: 'Profile updated successfully',
-        user: updatedUser
+        user: updatedUser,
+        updatedFields: Object.keys(validatedData).filter(key => (validatedData as any)[key] !== undefined)
       });
     } catch (error: any) {
       console.error('Error updating user profile:', error);

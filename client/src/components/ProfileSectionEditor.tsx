@@ -51,17 +51,91 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
       return response.json();
     },
     onSuccess: (data) => {
-      // Force refresh user data instead of just invalidating
-      queryClient.setQueryData(['/api/user'], data.user || data);
+      // Verify that the data was actually saved by checking the response
+      if (!data.success || !data.user) {
+        toast({
+          title: 'Save Warning',
+          description: 'Profile may not have been fully saved. Please verify your changes.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Get section fields helper function
+      const getSectionFields = (section: string): string[] => {
+        switch (section) {
+          case 'personal':
+            return ['firstName', 'lastName', 'dateOfBirth', 'gender', 'nationality', 'phoneNumber', 'secondaryNumber', 'passportNumber', 'address'];
+          case 'academic':
+            return ['highestQualification', 'highestInstitution', 'highestCountry', 'highestGpa', 'graduationYear', 'currentAcademicGap', 'educationHistory'];
+          case 'study':
+            return ['interestedCourse', 'fieldOfStudy', 'preferredIntake', 'budgetRange', 'preferredCountries', 'interestedServices', 'partTimeInterest', 'accommodationRequired', 'hasDependents'];
+          case 'financial':
+            return ['fundingSource', 'estimatedBudget', 'savingsAmount', 'loanApproval', 'loanAmount', 'sponsorDetails', 'financialDocuments'];
+          case 'employment':
+            return ['currentEmploymentStatus', 'workExperienceYears', 'jobTitle', 'organizationName', 'fieldOfWork', 'gapReasonIfAny'];
+          case 'language':
+            return ['englishProficiencyTests', 'standardizedTests'];
+          default:
+            return [];
+        }
+      };
+
+      const getSectionName = (section: string): string => {
+        switch (section) {
+          case 'personal': return 'Personal Information';
+          case 'academic': return 'Academic Qualification';
+          case 'study': return 'Study Preferences';
+          case 'financial': return 'Financial Information';
+          case 'employment': return 'Employment Status';
+          case 'language': return 'Language Proficiency';
+          default: return 'Profile';
+        }
+      };
+
+      // Validate that the submitted fields are actually present in the returned user data
+      const sectionFields = getSectionFields(section);
+      const missingFields = sectionFields.filter(field => {
+        const submittedValue = formData[field];
+        const savedValue = data.user[field];
+        
+        // Check if required field was submitted but not saved
+        // Special handling for different field types
+        if (submittedValue !== undefined && submittedValue !== null && submittedValue !== '') {
+          // For boolean fields, check if they were properly saved
+          if (typeof submittedValue === 'boolean') {
+            return savedValue !== submittedValue;
+          }
+          // For string/number fields, check if they exist in saved data
+          return savedValue === null || savedValue === undefined;
+        }
+        return false;
+      });
+
+      // Only show error if there are actual missing required fields
+      const requiredFields = getValidationRules(section).filter(rule => rule.required).map(rule => rule.field);
+      const missingRequiredFields = missingFields.filter(field => requiredFields.includes(field));
+
+      if (missingRequiredFields.length > 0) {
+        toast({
+          title: 'Save Error',
+          description: `Required fields not saved: ${missingRequiredFields.join(', ')}. Please try again.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Force refresh user data
+      queryClient.setQueryData(['/api/user'], data.user);
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile-completion'] });
       
-      // Update form data to reflect saved changes
-      setFormData({ ...data.user || data });
+      // Update form data to reflect actual saved changes
+      setFormData({ ...data.user });
       
       toast({
         title: 'Profile Updated',
-        description: 'Your profile section has been successfully updated.',
+        description: `${getSectionName(section)} information has been successfully saved.`,
       });
       onClose();
     },
