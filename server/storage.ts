@@ -75,6 +75,7 @@ export interface IStorage {
   getAllAnalyses(): Promise<Analysis[]>;
   getAllAnalysesWithUsers(): Promise<any[]>;
   getPublicAnalyses(): Promise<Analysis[]>;
+  getLastAnalysisDate(userId: number): Promise<string | null>;
   
   // Appointment methods
   createAppointment(appointment: any, userId: number): Promise<Appointment>;

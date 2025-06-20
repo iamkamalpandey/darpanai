@@ -1605,10 +1605,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user!;
       
+      // Get the most recent analysis date across all analysis types
+      const lastAnalysisDate = await storage.getLastAnalysisDate(user.id);
+      
       const stats = {
         analysisCount: user.analysisCount,
         maxAnalyses: user.maxAnalyses,
-        remainingAnalyses: user.maxAnalyses - user.analysisCount
+        remainingAnalyses: user.maxAnalyses - user.analysisCount,
+        lastAnalysisDate: lastAnalysisDate
       };
       
       return res.status(200).json(stats);
