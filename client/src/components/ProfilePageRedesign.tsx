@@ -1116,14 +1116,30 @@ const ProfilePageRedesign: React.FC = () => {
               </form>
             </Form>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">Funding Source</Label>
-                <p className="text-sm">{user?.fundingSource || 'Not provided'}</p>
+                <p className="text-sm mt-1 font-medium">{user?.fundingSource || 'Not provided'}</p>
               </div>
-              <div>
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">Estimated Budget</Label>
-                <p className="text-sm">{user?.estimatedBudget || 'Not provided'}</p>
+                <p className="text-sm mt-1 font-medium">${user?.estimatedBudget?.replace('-', ' - ') || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Savings Amount</Label>
+                <p className="text-sm mt-1 font-medium">${user?.savingsAmount?.replace('-', ' - ') || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Loan Approval</Label>
+                <p className="text-sm mt-1 font-medium">{user?.loanApproval || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Loan Amount</Label>
+                <p className="text-sm mt-1 font-medium">${user?.loanAmount || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg lg:col-span-3">
+                <Label className="text-sm font-medium text-gray-600">Sponsor Details</Label>
+                <p className="text-sm mt-1 font-medium">{user?.sponsorDetails || 'Not provided'}</p>
               </div>
             </div>
           )}
@@ -1259,14 +1275,26 @@ const ProfilePageRedesign: React.FC = () => {
               </form>
             </Form>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">Employment Status</Label>
-                <p className="text-sm">{user?.currentEmploymentStatus || 'Not provided'}</p>
+                <p className="text-sm mt-1 font-medium">{user?.currentEmploymentStatus || 'Not provided'}</p>
               </div>
-              <div>
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">Work Experience</Label>
-                <p className="text-sm">{user?.workExperienceYears ? `${user.workExperienceYears} years` : 'Not provided'}</p>
+                <p className="text-sm mt-1 font-medium">{user?.workExperienceYears ? `${user.workExperienceYears} years` : 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Job Title</Label>
+                <p className="text-sm mt-1 font-medium">{user?.jobTitle || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Organization</Label>
+                <p className="text-sm mt-1 font-medium">{user?.organizationName || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Field of Work</Label>
+                <p className="text-sm mt-1 font-medium">{user?.fieldOfWork || 'Not provided'}</p>
               </div>
             </div>
           )}
