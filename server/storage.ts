@@ -62,6 +62,7 @@ export interface IStorage {
   updateUserRole(userId: number, role: string): Promise<User | undefined>;
   updateUserStatus(userId: number, status: string): Promise<User | undefined>;
   incrementUserAnalysisCount(userId: number): Promise<User | undefined>;
+  updateUserProfile(userId: number, profileData: any): Promise<User | undefined>;
   
   // Email verification methods
   getUserByVerificationToken(token: string): Promise<User | undefined>;
@@ -276,6 +277,29 @@ export class DatabaseStorage implements IStorage {
     const [updatedUser] = await db
       .update(users)
       .set({ analysisCount: currentUser.analysisCount + 1 })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser || undefined;
+  }
+
+  async updateUserProfile(userId: number, profileData: any): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        studyLevel: profileData.studyLevel,
+        preferredStudyFields: profileData.preferredStudyFields,
+        startDate: profileData.startDate,
+        budgetRange: profileData.budgetRange,
+        fundingSource: profileData.fundingSource,
+        studyDestination: profileData.studyDestination,
+        languagePreferences: profileData.languagePreferences,
+        climatePreference: profileData.climatePreference,
+        universityRankingImportance: profileData.universityRankingImportance,
+        workPermitImportance: profileData.workPermitImportance,
+        culturalPreferences: profileData.culturalPreferences,
+        careerGoals: profileData.careerGoals,
+        counsellingMode: profileData.counsellingMode,
+      })
       .where(eq(users.id, userId))
       .returning();
     return updatedUser || undefined;

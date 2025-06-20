@@ -1522,6 +1522,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get profile completion status
+  app.get('/api/user/profile-completion', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+      
+      // Required fields for destination analysis
+      const requiredFields = {
+        'Study Level': user.studyLevel,
+        'Study Fields': user.preferredStudyFields?.length > 0 ? user.preferredStudyFields : null,
+        'Start Date': user.startDate,
+        'Budget Range': user.budgetRange,
+        'Funding Source': user.fundingSource,
+        'Language Preferences': user.languagePreferences?.length > 0 ? user.languagePreferences : null,
+        'Climate Preference': user.climatePreference,
+        'University Ranking Importance': user.universityRankingImportance,
+        'Work Permit Importance': user.workPermitImportance,
+        'Career Goals': user.careerGoals && user.careerGoals.length >= 10 ? user.careerGoals : null,
+        'Counselling Mode': user.counsellingMode,
+      };
+
+      const missingFields = Object.entries(requiredFields)
+        .filter(([, value]) => !value)
+        .map(([key]) => key);
+
+      const completedFields = Object.keys(requiredFields).length - missingFields.length;
+      const completionPercentage = Math.round((completedFields / Object.keys(requiredFields).length) * 100);
+      const isComplete = missingFields.length === 0;
+
+      res.json({
+        isComplete,
+        completionPercentage,
+        missingFields,
+        completedSections: Object.entries(requiredFields)
+          .filter(([, value]) => value)
+          .map(([key]) => key),
+        totalFields: Object.keys(requiredFields).length,
+        completedFields
+      });
+    } catch (error) {
+      console.error('Error checking profile completion:', error);
+      res.status(500).json({ error: 'Failed to check profile completion' });
+    }
+  });
+
+  // Complete user profile
+  app.patch('/api/user/complete-profile', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      
+      // Validation schema for profile completion
+      const profileSchema = z.object({
+        studyLevel: z.string().min(1),
+        preferredStudyFields: z.array(z.string()).min(1),
+        startDate: z.string().min(1),
+        budgetRange: z.string().min(1),
+        fundingSource: z.string().min(1),
+        studyDestination: z.string().optional(),
+        languagePreferences: z.array(z.string()).min(1),
+        climatePreference: z.string().min(1),
+        universityRankingImportance: z.string().min(1),
+        workPermitImportance: z.string().min(1),
+        culturalPreferences: z.array(z.string()).optional().default([]),
+        careerGoals: z.string().min(10),
+        counsellingMode: z.string().min(1),
+      });
+
+      const validatedData = profileSchema.parse(req.body);
+      
+      // Update user profile
+      const updatedUser = await storage.updateUserProfile(userId, validatedData);
+      
+      // Invalidate cache
+      invalidateCache(`user:${userId}`);
+      
+      res.json({
+        message: 'Profile updated successfully',
+        user: updatedUser
+      });
+    } catch (error: any) {
+      console.error('Error updating user profile:', error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: error.errors
+        });
+      }
+      
+      res.status(500).json({ error: 'Failed to update profile' });
+    }
+  });
+
   // Study Destination Suggestion API Routes
 
   // Generate personalized study destination suggestions
