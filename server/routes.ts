@@ -1504,6 +1504,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User Stats API Route
+  app.get('/api/user/stats', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+      
+      const stats = {
+        analysisCount: user.analysisCount,
+        maxAnalyses: user.maxAnalyses,
+        remainingAnalyses: user.maxAnalyses - user.analysisCount
+      };
+      
+      return res.status(200).json(stats);
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+      return res.status(500).json({ error: 'Failed to fetch user statistics' });
+    }
+  });
+
   // Updates/Notifications API Routes
 
   // Get updates for current user (only show updates created after user signup)

@@ -19,12 +19,17 @@ import {
   University,
   Target,
   AlertTriangle,
-  Info
+  Info,
+  Star,
+  Shield,
+  GraduationCap,
+  ArrowRight
 } from 'lucide-react';
 
 interface UserStats {
   analysisCount: number;
   maxAnalyses: number;
+  remainingAnalyses: number;
 }
 
 interface AnalysisItem {
@@ -34,6 +39,9 @@ interface AnalysisItem {
   universityInfo?: {
     name?: string;
   };
+  universityName?: string;
+  program?: string;
+  createdAt: string;
 }
 
 export default function OfferLetterAnalysis() {
@@ -179,7 +187,7 @@ export default function OfferLetterAnalysis() {
     }
   };
 
-  const canAnalyze = userStats && userStats.analysisCount < userStats.maxAnalyses;
+  const canAnalyze = userStats && userStats.remainingAnalyses > 0;
   const isProcessing = mutation.isPending || uploadStatus === 'uploading' || uploadStatus === 'processing';
 
   const getStatusMessage = () => {
@@ -213,160 +221,157 @@ export default function OfferLetterAnalysis() {
 
   return (
     <DashboardLayout>
-      <div className="p-6 max-w-6xl mx-auto space-y-8">
-        {/* Enhanced Header */}
+      <div className="space-y-8">
+        {/* Header - Match COE Analysis Style */}
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center gap-3 px-4 py-2 bg-blue-50 rounded-full">
-            <University className="h-5 w-5 text-blue-600" />
-            <span className="text-sm font-medium text-blue-800">AI-Powered Document Analysis</span>
+          <div className="flex items-center justify-center gap-3">
+            <div className="p-3 bg-blue-100 rounded-full">
+              <Star className="h-8 w-8 text-blue-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900">Offer Letter Analysis</h1>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900">
-            Offer Letter Analysis
-          </h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Upload your university offer letter and get comprehensive strategic analysis including 
-            institution verification, financial breakdown, risk assessment, and actionable recommendations.
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Upload your university offer letter for comprehensive AI-powered analysis. Get detailed 
+            strategic insights, financial assessment, and actionable enrollment recommendations.
           </p>
         </div>
 
-        {/* Enhanced Features Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100">
-            <CardContent className="pt-6 text-center">
-              <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <University className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Institution Analysis</h3>
-              <p className="text-sm text-gray-700">Verify accreditation, program quality, and institutional standing</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100">
-            <CardContent className="pt-6 text-center">
-              <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <DollarSign className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Financial Assessment</h3>
-              <p className="text-sm text-gray-700">Detailed cost analysis, ROI calculations, and funding strategies</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100">
-            <CardContent className="pt-6 text-center">
-              <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Target className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Strategic Guidance</h3>
-              <p className="text-sm text-gray-700">Actionable insights for enrollment decisions and career planning</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Enhanced Upload Section */}
-          <div className="lg:col-span-2">
-            <Card className="shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
-                <CardTitle className="flex items-center gap-3">
-                  <Upload className="h-6 w-6" />
-                  Upload Your Offer Letter
-                </CardTitle>
-                <CardDescription className="text-blue-100">
-                  Supported formats: PDF, JPG, PNG • Maximum size: 10MB
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-6 space-y-6">
-                {/* Quota Warning */}
-                {!canAnalyze && (
-                  <Alert className="border-red-200 bg-red-50">
-                    <AlertTriangle className="h-4 w-4 text-red-600" />
-                    <AlertDescription className="text-red-800">
-                      <strong>Analysis Quota Reached:</strong> You have used all available analyses. 
-                      Contact support to increase your quota.
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {/* Status Display */}
-                <div className="text-center space-y-2">
-                  <p className={`text-sm font-medium ${getStatusColor()}`}>
-                    {getStatusMessage()}
-                  </p>
-                  {uploadStatus === 'success' && (
-                    <div className="flex items-center justify-center gap-2 text-green-600">
-                      <CheckCircle className="h-4 w-4" />
-                      <span className="text-sm">Redirecting to your analysis...</span>
-                    </div>
-                  )}
+        {/* Analysis Card - Match COE Analysis Style */}
+        <div className="max-w-4xl mx-auto">
+          <Card className="relative overflow-hidden border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+            <div className="absolute top-4 right-4">
+              <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
+                Available
+              </Badge>
+            </div>
+            <CardHeader className="pb-4">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-blue-100 rounded-lg">
+                  <Star className="h-8 w-8 text-blue-600" />
                 </div>
-
-                {/* File Upload Area */}
-                <div className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all ${
-                  uploadStatus === 'success' 
-                    ? 'border-green-300 bg-green-50' 
-                    : uploadStatus === 'error'
-                    ? 'border-red-300 bg-red-50'
-                    : canAnalyze 
-                    ? 'border-blue-300 bg-blue-50 hover:border-blue-400' 
-                    : 'border-gray-200 bg-gray-50'
-                }`}>
-                  {uploadStatus === 'success' ? (
-                    <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-600" />
-                  ) : uploadStatus === 'error' ? (
-                    <AlertCircle className="h-16 w-16 mx-auto mb-4 text-red-600" />
-                  ) : (
-                    <Upload className={`h-16 w-16 mx-auto mb-4 ${canAnalyze ? 'text-blue-400' : 'text-gray-300'}`} />
-                  )}
-                  
-                  {selectedFile ? (
-                    <div className="space-y-2">
-                      <p className="text-lg font-semibold text-gray-900">{selectedFile.name}</p>
-                      <p className="text-sm text-gray-600">
-                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB • {selectedFile.type}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <p className="text-lg font-semibold text-gray-900">
-                        Select Your Offer Letter
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        Choose a PDF, JPG, or PNG file to analyze
-                      </p>
-                    </div>
-                  )}
-                  
-                  <input
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={handleFileChange}
-                    disabled={!canAnalyze || isProcessing}
-                    className="mt-6 block w-full text-sm text-gray-500
-                      file:mr-4 file:py-3 file:px-6
-                      file:rounded-full file:border-0
-                      file:text-sm file:font-semibold
-                      file:bg-blue-600 file:text-white
-                      hover:file:bg-blue-700 file:transition-colors
-                      disabled:file:bg-gray-400 disabled:file:cursor-not-allowed"
-                  />
+                <div className="flex-1">
+                  <CardTitle className="text-xl text-blue-900 mb-2">Offer Letter Analysis</CardTitle>
+                  <CardDescription className="text-blue-700">
+                    Comprehensive AI-powered strategic analysis for university offer letters including 
+                    institution verification, financial breakdown, risk assessment, and actionable recommendations.
+                  </CardDescription>
                 </div>
+              </div>
+            </CardHeader>
+            
+            <CardContent className="space-y-6">
+              {/* Feature Highlights */}
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="text-center p-3 bg-white rounded-lg border border-blue-100">
+                  <University className="h-5 w-5 text-blue-600 mx-auto mb-2" />
+                  <h4 className="font-semibold text-sm text-blue-900 mb-1">Institution Analysis</h4>
+                  <p className="text-xs text-blue-600">Verify accreditation, program quality, and institutional standing</p>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg border border-blue-100">
+                  <DollarSign className="h-5 w-5 text-green-600 mx-auto mb-2" />
+                  <h4 className="font-semibold text-sm text-blue-900 mb-1">Financial Assessment</h4>
+                  <p className="text-xs text-blue-600">Cost analysis, ROI calculations, and funding strategies</p>
+                </div>
+                <div className="text-center p-3 bg-white rounded-lg border border-blue-100">
+                  <Target className="h-5 w-5 text-purple-600 mx-auto mb-2" />
+                  <h4 className="font-semibold text-sm text-blue-900 mb-1">Strategic Guidance</h4>
+                  <p className="text-xs text-blue-600">Actionable insights for enrollment decisions and career planning</p>
+                </div>
+              </div>
 
-                {/* Progress Bar */}
-                {isProcessing && (
-                  <div className="space-y-3">
-                    <Progress value={uploadProgress} className="w-full h-3" />
-                    <div className="flex items-center justify-center gap-2 text-blue-600">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm font-medium">Processing your document...</span>
-                    </div>
+              {/* Quota Warning */}
+              {!canAnalyze && userStats && (
+                <Alert className="border-red-200 bg-red-50">
+                  <AlertTriangle className="h-4 w-4 text-red-600" />
+                  <AlertDescription className="text-red-800">
+                    <strong>Analysis Quota Reached:</strong> You have used all {userStats.maxAnalyses} available analyses. 
+                    Contact support to increase your quota.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Status Display */}
+              <div className="text-center space-y-2">
+                <p className={`text-sm font-medium ${getStatusColor()}`}>
+                  {getStatusMessage()}
+                </p>
+                {uploadStatus === 'success' && (
+                  <div className="flex items-center justify-center gap-2 text-green-600">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="text-sm">Redirecting to your analysis...</span>
                   </div>
                 )}
+              </div>
 
-                {/* Action Button */}
+              {/* File Upload Area */}
+              <div className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all ${
+                uploadStatus === 'success' 
+                  ? 'border-green-300 bg-green-50' 
+                  : uploadStatus === 'error'
+                  ? 'border-red-300 bg-red-50'
+                  : canAnalyze 
+                  ? 'border-blue-300 bg-blue-50 hover:border-blue-400' 
+                  : 'border-gray-200 bg-gray-50'
+              }`}>
+                {uploadStatus === 'success' ? (
+                  <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-600" />
+                ) : uploadStatus === 'error' ? (
+                  <AlertCircle className="h-16 w-16 mx-auto mb-4 text-red-600" />
+                ) : (
+                  <Upload className={`h-16 w-16 mx-auto mb-4 ${canAnalyze ? 'text-blue-400' : 'text-gray-300'}`} />
+                )}
+                
+                {selectedFile ? (
+                  <div className="space-y-2">
+                    <p className="text-lg font-semibold text-gray-900">{selectedFile.name}</p>
+                    <p className="text-sm text-gray-600">
+                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB • {selectedFile.type}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-lg font-semibold text-gray-900">
+                      Select Your Offer Letter
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Choose a PDF, JPG, or PNG file to analyze
+                    </p>
+                  </div>
+                )}
+                
+                <input
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={handleFileChange}
+                  disabled={!canAnalyze || isProcessing}
+                  className="mt-6 block w-full text-sm text-gray-500
+                    file:mr-4 file:py-3 file:px-6
+                    file:rounded-full file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-blue-600 file:text-white
+                    hover:file:bg-blue-700 file:transition-colors
+                    disabled:file:bg-gray-400 disabled:file:cursor-not-allowed"
+                />
+              </div>
+
+              {/* Progress Bar */}
+              {isProcessing && (
+                <div className="space-y-3">
+                  <Progress value={uploadProgress} className="w-full h-3" />
+                  <div className="flex items-center justify-center gap-2 text-blue-600">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm font-medium">Processing your document...</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Button */}
+              <div className="pt-2">
                 <Button
                   onClick={() => mutation.mutate()}
                   disabled={!selectedFile || isProcessing || !canAnalyze}
-                  className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  size="lg"
                 >
                   {isProcessing ? (
                     <>
@@ -375,86 +380,86 @@ export default function OfferLetterAnalysis() {
                     </>
                   ) : (
                     <>
-                      <FileText className="h-5 w-5 mr-2" />
-                      Start Analysis
+                      <span>Analyze Offer Letter</span>
+                      <ArrowRight className="h-4 w-4 ml-2" />
                     </>
                   )}
                 </Button>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-          {/* Enhanced Sidebar */}
-          <div className="space-y-6">
-            {/* Usage Stats */}
-            <Card className="shadow-lg">
-              <CardHeader className="bg-gray-50 rounded-t-lg">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Info className="h-5 w-5" />
-                  Usage Statistics
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                {userStats ? (
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-600">Analyses Used</span>
-                      <span className="text-2xl font-bold text-blue-600">{userStats.analysisCount}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-600">Total Limit</span>
-                      <span className="text-2xl font-bold text-gray-900">{userStats.maxAnalyses}</span>
-                    </div>
-                    <Progress 
-                      value={(userStats.analysisCount / userStats.maxAnalyses) * 100} 
-                      className="w-full h-3"
-                    />
-                    <div className="text-center">
-                      <Badge variant={userStats.analysisCount >= userStats.maxAnalyses ? "destructive" : "secondary"}>
-                        {userStats.maxAnalyses - userStats.analysisCount} remaining
-                      </Badge>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="animate-pulse space-y-4">
-                    <div className="h-6 bg-gray-200 rounded"></div>
-                    <div className="h-6 bg-gray-200 rounded"></div>
-                    <div className="h-3 bg-gray-200 rounded"></div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Analysis Features */}
-            <Card className="shadow-lg">
-              <CardHeader className="bg-gray-50 rounded-t-lg">
-                <CardTitle className="text-lg">What You'll Get</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
+        {/* Usage Stats & Recent Analyses Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+          {/* Usage Stats */}
+          <Card className="shadow-lg">
+            <CardHeader className="bg-gray-50 rounded-t-lg">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Info className="h-5 w-5" />
+                Usage Statistics
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {userStats ? (
                 <div className="space-y-4">
-                  {[
-                    { icon: CheckCircle, text: "Institution verification & accreditation" },
-                    { icon: DollarSign, text: "Complete financial breakdown" },
-                    { icon: Target, text: "Risk assessment matrix" },
-                    { icon: University, text: "Program quality evaluation" },
-                    { icon: FileText, text: "Strategic recommendations" }
-                  ].map((feature, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                        <feature.icon className="h-4 w-4 text-green-600" />
-                      </div>
-                      <span className="text-sm font-medium text-gray-700">{feature.text}</span>
-                    </div>
-                  ))}
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-600">Analyses Used</span>
+                    <span className="text-2xl font-bold text-blue-600">{userStats.analysisCount}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-600">Total Limit</span>
+                    <span className="text-2xl font-bold text-gray-900">{userStats.maxAnalyses}</span>
+                  </div>
+                  <Progress 
+                    value={(userStats.analysisCount / userStats.maxAnalyses) * 100} 
+                    className="w-full h-3"
+                  />
+                  <div className="text-center">
+                    <Badge variant={userStats.remainingAnalyses <= 0 ? "destructive" : "secondary"}>
+                      {userStats.remainingAnalyses} remaining
+                    </Badge>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              ) : (
+                <div className="animate-pulse space-y-4">
+                  <div className="h-6 bg-gray-200 rounded"></div>
+                  <div className="h-6 bg-gray-200 rounded"></div>
+                  <div className="h-3 bg-gray-200 rounded"></div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Analysis Features */}
+          <Card className="shadow-lg">
+            <CardHeader className="bg-gray-50 rounded-t-lg">
+              <CardTitle className="text-lg">What You'll Get</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {[
+                  { icon: CheckCircle, text: "Institution verification & accreditation" },
+                  { icon: DollarSign, text: "Complete financial breakdown" },
+                  { icon: Target, text: "Risk assessment matrix" },
+                  { icon: University, text: "Program quality evaluation" },
+                  { icon: FileText, text: "Strategic recommendations" }
+                ].map((feature, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <feature.icon className="h-4 w-4 text-green-600" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">{feature.text}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Recent Analyses */}
         {analyses.length > 0 && (
-          <Card className="shadow-lg">
+          <Card className="shadow-lg max-w-6xl mx-auto">
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2">
                 <Clock className="h-5 w-5" />
@@ -486,13 +491,16 @@ export default function OfferLetterAnalysis() {
                         <div>
                           <p className="font-semibold text-gray-900">{analysis.fileName}</p>
                           <p className="text-sm text-gray-600">
-                            {analysis.universityInfo?.name || 'Processing completed'}
+                            {analysis.universityName || analysis.universityInfo?.name || 'Analysis completed'}
                           </p>
+                          {analysis.program && (
+                            <p className="text-xs text-gray-500">{analysis.program}</p>
+                          )}
                         </div>
                       </div>
                       <div className="text-right">
                         <Badge variant="outline" className="bg-white">
-                          {new Date(analysis.analysisDate).toLocaleDateString()}
+                          {new Date(analysis.createdAt || analysis.analysisDate).toLocaleDateString()}
                         </Badge>
                       </div>
                     </div>
