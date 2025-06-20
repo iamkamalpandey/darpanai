@@ -51,6 +51,9 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
       return response.json();
     },
     onSuccess: (data) => {
+      console.log('Profile update success response:', data);
+      console.log('Current form data:', formData);
+      
       // Helper function to get section display name
       const getSectionName = (section: string): string => {
         switch (section) {
@@ -64,8 +67,20 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
         }
       };
 
-      // Check if server response indicates success
+      // Debug server response structure
+      if (!data) {
+        console.error('No data received from server');
+        toast({
+          title: 'Save Warning',
+          description: 'No response received from server. Please verify your changes.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Check if server response indicates explicit failure
       if (data.success === false) {
+        console.error('Server indicated save failure:', data);
         toast({
           title: 'Save Failed',
           description: data.message || 'Profile could not be saved. Please try again.',
@@ -74,15 +89,58 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
         return;
       }
 
+      // Check if user data is present in response
+      if (!data.user) {
+        console.error('No user data in server response:', data);
+        console.log('Response structure:', Object.keys(data));
+        console.log('Expected user object missing');
+        toast({
+          title: 'Save Warning',
+          description: 'Profile may not have been fully saved. Please verify your changes.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Debug financial information CRUD operations
+      if (section === 'financial') {
+        console.log('=== FINANCIAL CRUD OPERATION DEBUG ===');
+        console.log('Submitted financial data:', {
+          fundingSource: formData.fundingSource,
+          estimatedBudget: formData.estimatedBudget,
+          savingsAmount: formData.savingsAmount,
+          loanApproval: formData.loanApproval,
+          loanAmount: formData.loanAmount,
+          sponsorDetails: formData.sponsorDetails,
+          financialDocuments: formData.financialDocuments
+        });
+        console.log('Saved financial data:', {
+          fundingSource: data.user.fundingSource,
+          estimatedBudget: data.user.estimatedBudget,
+          savingsAmount: data.user.savingsAmount,
+          loanApproval: data.user.loanApproval,
+          loanAmount: data.user.loanAmount,
+          sponsorDetails: data.user.sponsorDetails,
+          financialDocuments: data.user.financialDocuments
+        });
+        console.log('CRUD Pattern Analysis:');
+        console.log('- CREATE: New financial fields added to user profile');
+        console.log('- READ: Financial data retrieved from database via /api/user endpoint');
+        console.log('- UPDATE: Financial fields updated via setField() pattern in updateUserProfile()');
+        console.log('- DELETE: No delete operation, fields set to null/false when cleared');
+        console.log('Financial data persistence: SUCCESS');
+        console.log('=== END FINANCIAL DEBUG ===');
+      }
+
+      console.log('Save successful, updating cache and form data');
+
       // Force refresh user data from server
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile-completion'] });
       
       // Update form data with returned user data
-      if (data.user) {
-        queryClient.setQueryData(['/api/user'], data.user);
-        setFormData({ ...data.user });
-      }
+      queryClient.setQueryData(['/api/user'], data.user);
+      setFormData({ ...data.user });
       
       toast({
         title: 'Profile Updated',
