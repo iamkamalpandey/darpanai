@@ -14,7 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
-import { AlertCircle, Check, Edit, User, GraduationCap, Globe, DollarSign, Briefcase, Languages, Save, X, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, Check, Edit, User, GraduationCap, Globe, DollarSign, Briefcase, Languages, Save, X, TrendingUp, CheckCircle2, CheckCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -737,7 +737,7 @@ const ProfilePageRedesign: React.FC = () => {
         <Card className="mb-8 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
           <CardHeader>
             <CardTitle className="text-green-900 flex items-center">
-              <CheckCircle className="w-5 h-5 mr-2" />
+              <CheckCircle2 className="w-5 h-5 mr-2" />
               Save Function Testing
             </CardTitle>
             <CardDescription className="text-green-700">
@@ -785,7 +785,7 @@ const ProfilePageRedesign: React.FC = () => {
               }}
               className="bg-green-600 hover:bg-green-700"
             >
-              <CheckCircle className="w-4 h-4 mr-2" />
+              <CheckCircle2 className="w-4 h-4 mr-2" />
               Test Save Functions & Data Validation
             </Button>
           </CardContent>
@@ -1078,6 +1078,19 @@ const ProfilePageRedesign: React.FC = () => {
                   />
                   <FormField
                     control={academicForm.control}
+                    name="highestGpa"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>GPA/Grade *</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="e.g., 3.8 or 85%" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={academicForm.control}
                     name="highestCountry"
                     render={({ field }) => (
                       <FormItem>
@@ -1299,6 +1312,98 @@ const ProfilePageRedesign: React.FC = () => {
                     )}
                   />
                 </div>
+                
+                {/* Additional Study Preferences Fields */}
+                <div className="space-y-6">
+                  <div>
+                    <FormLabel className="text-base font-semibold">Preferred Countries *</FormLabel>
+                    <FormDescription>Select countries where you'd like to study (multiple selections allowed)</FormDescription>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-3">
+                      {['USA', 'Canada', 'UK', 'Australia', 'Germany', 'Netherlands', 'France', 'New Zealand', 'Ireland', 'Sweden', 'Norway', 'Denmark'].map((country) => (
+                        <div key={country} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={country}
+                            checked={studyForm.watch('preferredCountries')?.includes(country) || false}
+                            onCheckedChange={(checked) => {
+                              const currentCountries = studyForm.getValues('preferredCountries') || [];
+                              if (checked) {
+                                studyForm.setValue('preferredCountries', [...currentCountries, country]);
+                              } else {
+                                studyForm.setValue('preferredCountries', currentCountries.filter(c => c !== country));
+                              }
+                            }}
+                          />
+                          <Label htmlFor={country} className="text-sm font-medium">{country}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <FormField
+                      control={studyForm.control}
+                      name="partTimeInterest"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>Part-time Study Interest</FormLabel>
+                            <FormDescription>
+                              Interested in part-time study options
+                            </FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={studyForm.control}
+                      name="accommodationRequired"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>Accommodation Required</FormLabel>
+                            <FormDescription>
+                              Need assistance with accommodation
+                            </FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={studyForm.control}
+                      name="hasDependents"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel>Have Dependents</FormLabel>
+                            <FormDescription>
+                              Will be traveling with dependents
+                            </FormDescription>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
                 <div className="flex justify-end space-x-2">
                   <Button
                     type="button"
@@ -1388,7 +1493,7 @@ const ProfilePageRedesign: React.FC = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Estimated Budget *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || ''}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select budget range" />
@@ -1404,6 +1509,109 @@ const ProfilePageRedesign: React.FC = () => {
                           </SelectContent>
                         </Select>
                         <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={financialForm.control}
+                    name="savingsAmount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Current Savings</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ''}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select savings range" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="under-5000">Under $5,000</SelectItem>
+                            <SelectItem value="5000-15000">$5,000 - $15,000</SelectItem>
+                            <SelectItem value="15000-30000">$15,000 - $30,000</SelectItem>
+                            <SelectItem value="30000-50000">$30,000 - $50,000</SelectItem>
+                            <SelectItem value="over-50000">Over $50,000</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={financialForm.control}
+                    name="loanApproval"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Education Loan Pre-approval</FormLabel>
+                          <FormDescription>
+                            Have you received pre-approval for an education loan?
+                          </FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={financialForm.control}
+                    name="loanAmount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Loan Amount (USD)</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Enter loan amount if applicable
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={financialForm.control}
+                    name="sponsorDetails"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sponsor Details</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            placeholder="Provide details about sponsors (if any)"
+                            className="min-h-[80px]"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={financialForm.control}
+                    name="financialDocuments"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Financial Documents Ready</FormLabel>
+                          <FormDescription>
+                            Are your financial documents prepared for visa application?
+                          </FormDescription>
+                        </div>
                       </FormItem>
                     )}
                   />
