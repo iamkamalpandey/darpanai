@@ -1172,6 +1172,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get specific offer letter analysis by ID for admin (admin only)
+  app.get('/api/admin/offer-letter-analyses/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const analysisId = parseInt(req.params.id);
+      
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+      
+      const analysis = await storage.getOfferLetterAnalysisById(analysisId);
+      
+      if (!analysis) {
+        return res.status(404).json({ error: 'Offer letter analysis not found' });
+      }
+      
+      return res.status(200).json(analysis);
+      
+    } catch (error) {
+      console.error('Error fetching admin offer letter analysis:', error);
+      return res.status(500).json({ error: 'Failed to fetch offer letter analysis' });
+    }
+  });
+
   // Get all analyses for admin (admin only)
   app.get('/api/admin/analyses', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {

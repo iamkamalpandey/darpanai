@@ -43,6 +43,7 @@ const AdminSettings = lazy(() => import("@/pages/admin-settings"));
 const AdminDocumentTemplates = lazy(() => import("@/pages/admin-document-templates"));
 const AdminDocumentChecklists = lazy(() => import("@/pages/admin-document-checklists"));
 const AdminFeedback = lazy(() => import("@/pages/admin-feedback"));
+const AdminOfferLetterAnalysisView = lazy(() => import("@/pages/AdminOfferLetterAnalysisView"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -295,6 +296,13 @@ function Router() {
         <AdminProtectedRoute path="/admin/visa-analysis/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <VisaAnalysisView />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/offer-letter-analysis/:id">
+        <AdminProtectedRoute path="/admin/offer-letter-analysis/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminOfferLetterAnalysisView />
           </Suspense>
         )} />
       </Route>

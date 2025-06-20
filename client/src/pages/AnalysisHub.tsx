@@ -74,6 +74,21 @@ export default function AnalysisHub() {
   });
 
   // Fetch offer letter analyses with optimized caching
+  const { data: offerLetterAnalyses = [], isLoading: offerLetterLoading } = useQuery<Analysis[]>({
+    queryKey: ['/api/offer-letter-analyses'],
+    select: (data) => data.map(item => ({ 
+      ...item, 
+      type: 'offer_letter' as const,
+      filename: item.fileName,
+      createdAt: item.analysisDate,
+      universityName: item.universityInfo?.name,
+      program: item.universityInfo?.program,
+      visaType: 'Student'
+    })),
+    staleTime: 20 * 60 * 1000, // 20 minutes
+  });
+
+  // Fetch offer letter analyses with optimized caching
   const { data: offerLetterAnalyses = [], isLoading: offerLetterLoading } = useQuery({
     queryKey: ['/api/offer-letter-analyses'],
     select: (data: any[]) => data.map((item: any) => ({ 

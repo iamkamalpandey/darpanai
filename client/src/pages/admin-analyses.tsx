@@ -15,7 +15,7 @@ interface AnalysisData {
   id: number;
   userId: number;
   fileName: string;
-  analysisType?: 'visa_analysis' | 'enrollment_analysis';
+  analysisType?: 'visa_analysis' | 'enrollment_analysis' | 'offer_letter_analysis';
   analysisResults: {
     summary?: string;
     rejectionReasons?: Array<{
