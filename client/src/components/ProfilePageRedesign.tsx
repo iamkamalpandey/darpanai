@@ -14,7 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
-import { AlertCircle, Check, Edit, User, GraduationCap, Globe, DollarSign, Briefcase, Languages, Save, X, TrendingUp, CheckCircle2, CheckCircle } from 'lucide-react';
+import { AlertCircle, Check, Edit, User, GraduationCap, Globe, DollarSign, Briefcase, Languages, Save, X, TrendingUp, CheckCircle2, CheckCircle, FileText } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -210,7 +210,7 @@ const languageProficiencySchema = z.object({
   })).optional().nullable(),
 });
 
-type ProfileSection = 'personal' | 'academic' | 'study' | 'financial' | 'employment' | 'language';
+type ProfileSection = 'personal' | 'academic' | 'study' | 'financial' | 'employment' | 'language' | 'additional';
 
 // Profile completion calculation
 const calculateProfileCompletion = (user: any) => {
@@ -2091,7 +2091,7 @@ const ProfilePageRedesign: React.FC = () => {
         <ProfileSectionCard
           title="Additional Information"
           description="Study preferences and profile metadata"
-          icon={<FileText className="w-5 h-5 text-gray-600" />}
+          icon={<User className="w-5 h-5 text-gray-600" />}
           isComplete={true}
           isEditing={editingSection === 'additional'}
           onEdit={() => setEditingSection('additional')}
