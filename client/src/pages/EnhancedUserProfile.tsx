@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,27 +31,35 @@ import {
   Clock
 } from 'lucide-react';
 
+// Compulsory fields for profile completion
+const COMPULSORY_FIELDS = [
+  'firstName', 'lastName', 'dateOfBirth', 'gender', 'nationality', 'phoneNumber',
+  'highestQualification', 'highestInstitution', 'highestGpa', 'graduationYear',
+  'interestedCourse', 'fieldOfStudy', 'preferredIntake', 'budgetRange',
+  'preferredCountries', 'currentEmploymentStatus', 'englishProficiencyTests'
+];
+
 const PROFILE_SECTIONS = [
   { 
     id: 'personal', 
     label: 'Personal Information', 
     icon: User, 
     description: 'Basic details for accurate analysis',
-    fields: ['firstName', 'lastName', 'dateOfBirth', 'gender', 'nationality', 'passportNumber', 'address']
+    fields: ['firstName', 'lastName', 'dateOfBirth', 'gender', 'nationality', 'passportNumber', 'phoneNumber', 'secondaryNumber', 'address']
   },
   { 
     id: 'academic', 
     label: 'Academic Qualification', 
     icon: GraduationCap, 
     description: 'Education history for program matching',
-    fields: ['highestQualification', 'highestInstitution', 'highestCountry', 'highestGpa', 'graduationYear']
+    fields: ['highestQualification', 'highestInstitution', 'highestCountry', 'highestGpa', 'graduationYear', 'currentAcademicGap']
   },
   { 
     id: 'study', 
     label: 'Study Preferences', 
     icon: Globe, 
     description: 'Course and country preferences',
-    fields: ['interestedCourse', 'fieldOfStudy', 'preferredIntake']
+    fields: ['interestedCourse', 'fieldOfStudy', 'preferredIntake', 'partTimeInterest', 'accommodationRequired', 'hasDependents']
   },
   { 
     id: 'budget', 
@@ -72,14 +80,14 @@ const PROFILE_SECTIONS = [
     label: 'Employment Status', 
     icon: Briefcase, 
     description: 'Work experience for visa applications',
-    fields: ['currentEmploymentStatus', 'workExperienceYears', 'jobTitle', 'organizationName']
+    fields: ['currentEmploymentStatus', 'workExperienceYears', 'jobTitle', 'organizationName', 'fieldOfWork']
   },
   { 
     id: 'tests', 
     label: 'Tests & English Proficiency', 
     icon: Languages, 
     description: 'Language scores for admission requirements',
-    fields: ['englishProficiencyTests']
+    fields: ['englishProficiencyTests', 'standardizedTests']
   }
 ];
 
@@ -92,23 +100,46 @@ export default function EnhancedUserProfile() {
     queryKey: ['/api/user'],
   }) as { data: any };
 
-  const { data: completionStatus } = useQuery({
-    queryKey: ['/api/user/profile-completion'],
-  }) as { data: any };
-
-  const completionPercentage = completionStatus?.completionPercentage || 0;
-  const missingFields = completionStatus?.missingFields || [];
+  // Calculate completion based on actual user data
+  const calculateCompletion = useMemo(() => {
+    if (!user) return { percentage: 0, completedFields: 0, totalFields: COMPULSORY_FIELDS.length };
+    
+    const completedFields = COMPULSORY_FIELDS.filter(field => {
+      const value = user[field];
+      if (Array.isArray(value)) return value.length > 0;
+      return value !== null && value !== undefined && value !== '';
+    });
+    
+    const percentage = Math.round((completedFields.length / COMPULSORY_FIELDS.length) * 100);
+    
+    return {
+      percentage,
+      completedFields: completedFields.length,
+      totalFields: COMPULSORY_FIELDS.length
+    };
+  }, [user]);
 
   const getSectionStatus = (sectionId: string) => {
+    if (!user) return { completed: false, progress: 0, completedCount: 0, totalCount: 0 };
+    
     const section = PROFILE_SECTIONS.find(s => s.id === sectionId);
-    if (!section) return { completed: false, progress: 0 };
+    if (!section) return { completed: false, progress: 0, completedCount: 0, totalCount: 0 };
     
-    const sectionFields = section.fields;
-    const missingSectionFields = sectionFields.filter(field => missingFields.includes(field));
-    const completed = missingSectionFields.length === 0;
-    const progress = ((sectionFields.length - missingSectionFields.length) / sectionFields.length) * 100;
+    const completedSectionFields = section.fields.filter(field => {
+      const value = user[field];
+      if (Array.isArray(value)) return value.length > 0;
+      return value !== null && value !== undefined && value !== '';
+    });
     
-    return { completed, progress };
+    const progress = Math.round((completedSectionFields.length / section.fields.length) * 100);
+    const completed = progress === 100;
+    
+    return { 
+      completed, 
+      progress, 
+      completedCount: completedSectionFields.length, 
+      totalCount: section.fields.length 
+    };
   };
 
   const updateMutation = useMutation({
@@ -156,7 +187,7 @@ export default function EnhancedUserProfile() {
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         {/* Profile Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-white">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-6 lg:space-y-0">
             <div className="flex items-center space-x-6">
               <div className="relative">
                 <div className="h-20 w-20 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
@@ -164,17 +195,17 @@ export default function EnhancedUserProfile() {
                 </div>
                 <div className="absolute -bottom-2 -right-2 h-8 w-8 bg-white rounded-full flex items-center justify-center shadow-lg">
                   <div className={`h-6 w-6 rounded-full flex items-center justify-center ${
-                    completionPercentage >= 80 ? 'bg-green-500' : 
-                    completionPercentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                    calculateCompletion.percentage >= 80 ? 'bg-green-500' : 
+                    calculateCompletion.percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
                   }`}>
-                    <span className="text-xs font-bold text-white">{Math.round(completionPercentage)}</span>
+                    <span className="text-xs font-bold text-white">{calculateCompletion.percentage}</span>
                   </div>
                 </div>
               </div>
               <div>
                 <h1 className="text-3xl font-bold">{user.firstName} {user.lastName}</h1>
                 <p className="text-blue-100 text-lg">{user.email}</p>
-                <div className="flex items-center mt-2 space-x-4">
+                <div className="flex flex-wrap items-center mt-2 gap-3">
                   <Badge variant="secondary" className="bg-white/20 text-white">
                     {user.role === 'admin' ? 'Administrator' : 'Student'}
                   </Badge>
@@ -184,18 +215,20 @@ export default function EnhancedUserProfile() {
                 </div>
               </div>
             </div>
-            <div className="text-right">
+            <div className="lg:text-right">
               <div className="text-sm text-blue-100 mb-2">Profile Completion</div>
-              <div className="w-32">
-                <Progress value={completionPercentage} className="bg-white/20" />
+              <div className="w-full lg:w-32">
+                <Progress value={calculateCompletion.percentage} className="bg-white/20" />
               </div>
-              <div className="text-sm text-blue-100 mt-1">{Math.round(completionPercentage)}% Complete</div>
+              <div className="text-sm text-blue-100 mt-1">
+                {calculateCompletion.completedFields}/{calculateCompletion.totalFields} fields completed ({calculateCompletion.percentage}%)
+              </div>
             </div>
           </div>
         </div>
 
         {/* Profile Completion Alert */}
-        {completionPercentage < 80 && (
+        {calculateCompletion.percentage < 80 && (
           <Card className="border-yellow-200 bg-yellow-50">
             <CardContent className="p-4">
               <div className="flex items-center space-x-3">
@@ -205,7 +238,7 @@ export default function EnhancedUserProfile() {
                     Complete your profile to unlock AI-powered features
                   </p>
                   <p className="text-sm text-yellow-700">
-                    A complete profile helps our AI provide more accurate study destination recommendations and document analysis.
+                    Complete {calculateCompletion.totalFields - calculateCompletion.completedFields} more required fields to reach the 80% threshold for AI analysis.
                   </p>
                 </div>
               </div>
