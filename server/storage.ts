@@ -1,7 +1,7 @@
 import { 
   users, analyses, appointments, professionalApplications, updates, userUpdateViews,
   documentTemplates, documentChecklists, enrollmentAnalyses, documentCategories, documentTypes,
-  analysisFeedback,
+  analysisFeedback, offerLetterAnalyses,
   type User, type InsertUser, type Analysis, type InsertAnalysis, 
   type Appointment, type InsertAppointment, type LoginUser,
   type ProfessionalApplication, type InsertProfessionalApplication,
@@ -11,7 +11,8 @@ import {
   type EnrollmentAnalysis, type InsertEnrollmentAnalysis,
   type DocumentCategory, type InsertDocumentCategory,
   type DocumentType, type InsertDocumentType,
-  type AnalysisFeedback, type InsertAnalysisFeedback
+  type AnalysisFeedback, type InsertAnalysisFeedback,
+  type OfferLetterAnalysis, type InsertOfferLetterAnalysis
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, isNotNull, sql, or, gt } from "drizzle-orm";
@@ -994,6 +995,103 @@ export class DatabaseStorage implements IStorage {
       return analyses;
     } catch (error) {
       console.error("Error fetching public enrollment analyses:", error);
+      return [];
+    }
+  }
+
+  // Offer Letter Analysis methods
+  async saveOfferLetterAnalysis(analysisData: Partial<OfferLetterAnalysis>, userId: number): Promise<OfferLetterAnalysis> {
+    try {
+      const [analysis] = await db
+        .insert(offerLetterAnalyses)
+        .values({
+          ...analysisData,
+          userId,
+        } as any)
+        .returning();
+      return analysis;
+    } catch (error) {
+      console.error("Error saving offer letter analysis:", error);
+      throw error;
+    }
+  }
+
+  async getOfferLetterAnalysesByUser(userId: number): Promise<OfferLetterAnalysis[]> {
+    try {
+      const analyses = await db
+        .select()
+        .from(offerLetterAnalyses)
+        .where(eq(offerLetterAnalyses.userId, userId))
+        .orderBy(desc(offerLetterAnalyses.createdAt));
+      return analyses;
+    } catch (error) {
+      console.error("Error fetching offer letter analyses by user:", error);
+      return [];
+    }
+  }
+
+  async getOfferLetterAnalysisById(id: number, userId?: number): Promise<OfferLetterAnalysis | null> {
+    try {
+      let whereCondition = eq(offerLetterAnalyses.id, id);
+      
+      // If userId is provided, ensure user owns the analysis (unless admin)
+      if (userId) {
+        const user = await this.getUser(userId);
+        if (user?.role !== 'admin') {
+          whereCondition = and(eq(offerLetterAnalyses.id, id), eq(offerLetterAnalyses.userId, userId));
+        }
+      }
+      
+      const [analysis] = await db
+        .select()
+        .from(offerLetterAnalyses)
+        .where(whereCondition);
+      
+      return analysis || null;
+    } catch (error) {
+      console.error("Error fetching offer letter analysis by ID:", error);
+      return null;
+    }
+  }
+
+  async getAllOfferLetterAnalyses(): Promise<OfferLetterAnalysis[]> {
+    try {
+      const analyses = await db
+        .select()
+        .from(offerLetterAnalyses)
+        .orderBy(desc(offerLetterAnalyses.createdAt));
+      return analyses;
+    } catch (error) {
+      console.error("Error fetching all offer letter analyses:", error);
+      return [];
+    }
+  }
+
+  async getAllOfferLetterAnalysesWithUsers(): Promise<any[]> {
+    try {
+      const analyses = await db
+        .select({
+          id: offerLetterAnalyses.id,
+          filename: offerLetterAnalyses.filename,
+          universityName: offerLetterAnalyses.universityName,
+          program: offerLetterAnalyses.program,
+          tuition: offerLetterAnalyses.tuition,
+          tokensUsed: offerLetterAnalyses.tokensUsed,
+          processingTime: offerLetterAnalyses.processingTime,
+          createdAt: offerLetterAnalyses.createdAt,
+          isPublic: offerLetterAnalyses.isPublic,
+          userId: offerLetterAnalyses.userId,
+          username: users.username,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+        })
+        .from(offerLetterAnalyses)
+        .leftJoin(users, eq(offerLetterAnalyses.userId, users.id))
+        .orderBy(desc(offerLetterAnalyses.createdAt));
+      return analyses;
+    } catch (error) {
+      console.error("Error fetching all offer letter analyses with users:", error);
       return [];
     }
   }

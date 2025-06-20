@@ -6,6 +6,7 @@ import { storage } from "./storage";
 import { extractTextFromDocument } from "./fileProcessing";
 import { analyzeRejectionLetter } from "./openai";
 import { analyzeEnrollmentDocument } from "./enrollmentAnalysis";
+import { analyzeOfferLetterDocument } from "./offerLetterAnalysis";
 import { analysisResponseSchema, professionalApplicationSchema, insertDocumentTemplateSchema, insertEnrollmentAnalysisSchema, insertDocumentCategorySchema, insertDocumentTypeSchema, insertAnalysisFeedbackSchema } from "@shared/schema";
 import { z } from 'zod';
 import { setupAuth } from "./auth";
@@ -1883,6 +1884,229 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching dropdown options:', error);
       return res.status(500).json({ error: 'Failed to fetch dropdown options' });
+    }
+  });
+
+  // Offer Letter Analysis API Routes
+  
+  // Get user's offer letter analyses
+  app.get('/api/offer-letter-analyses', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user.id;
+      const analyses = await storage.getOfferLetterAnalysesByUser(userId);
+      
+      return res.status(200).json(analyses.map(analysis => ({
+        id: analysis.id,
+        fileName: analysis.filename,
+        fileSize: analysis.fileSize,
+        analysisDate: analysis.createdAt,
+        profileAnalysis: {
+          academicStanding: analysis.academicStanding,
+          gpa: analysis.gpa,
+          financialStatus: analysis.financialStatus,
+          relevantSkills: analysis.relevantSkills || [],
+          strengths: analysis.strengths || [],
+          weaknesses: analysis.weaknesses || [],
+        },
+        universityInfo: {
+          name: analysis.universityName,
+          location: analysis.universityLocation,
+          program: analysis.program,
+          tuition: analysis.tuition,
+          duration: analysis.duration,
+        },
+        scholarshipOpportunities: analysis.scholarshipOpportunities || [],
+        costSavingStrategies: analysis.costSavingStrategies || [],
+        recommendations: analysis.recommendations || [],
+        nextSteps: analysis.nextSteps || [],
+      })));
+    } catch (error) {
+      console.error('Error fetching offer letter analyses:', error);
+      return res.status(500).json({ error: 'Failed to fetch analyses' });
+    }
+  });
+
+  // Create new offer letter analysis
+  app.post('/api/offer-letter-analyses', requireAuth, upload.single('document'), async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Check analysis quota
+      if (user.analysisCount >= user.maxAnalyses) {
+        return res.status(403).json({ 
+          error: 'Analysis quota exceeded',
+          details: `You have used ${user.analysisCount} out of ${user.maxAnalyses} allowed analyses`
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const file = req.file;
+      const fileExtension = path.extname(file.originalname).toLowerCase();
+      
+      // Validate file type
+      const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png'];
+      if (!allowedTypes.includes(fileExtension)) {
+        return res.status(400).json({ 
+          error: 'Invalid file type. Please upload PDF, JPG, or PNG files only.' 
+        });
+      }
+
+      // Validate file size (10MB limit)
+      const maxSize = 10 * 1024 * 1024;
+      if (file.size > maxSize) {
+        return res.status(400).json({ 
+          error: 'File too large. Please upload files smaller than 10MB.' 
+        });
+      }
+
+      // Extract text from document
+      const extractedText = await extractTextFromDocument(file.buffer, fileExtension);
+      
+      if (!extractedText || extractedText.trim().length < 50) {
+        return res.status(400).json({ 
+          error: 'Could not extract sufficient text from the document. Please ensure the document is clear and readable.' 
+        });
+      }
+
+      // Analyze offer letter with OpenAI
+      const { analysis, tokensUsed, processingTime } = await analyzeOfferLetterDocument(
+        extractedText,
+        file.originalname
+      );
+
+      // Save analysis to database
+      const savedAnalysis = await storage.saveOfferLetterAnalysis({
+        filename: file.originalname,
+        fileSize: file.size,
+        originalText: extractedText,
+        universityName: analysis.universityInfo.name,
+        universityLocation: analysis.universityInfo.location,
+        program: analysis.universityInfo.program,
+        tuition: analysis.universityInfo.tuition,
+        duration: analysis.universityInfo.duration,
+        academicStanding: analysis.profileAnalysis.academicStanding,
+        gpa: analysis.profileAnalysis.gpa,
+        financialStatus: analysis.profileAnalysis.financialStatus,
+        relevantSkills: analysis.profileAnalysis.relevantSkills,
+        strengths: analysis.profileAnalysis.strengths,
+        weaknesses: analysis.profileAnalysis.weaknesses,
+        scholarshipOpportunities: analysis.scholarshipOpportunities,
+        costSavingStrategies: analysis.costSavingStrategies,
+        recommendations: analysis.recommendations,
+        nextSteps: analysis.nextSteps,
+        analysisResults: analysis,
+        tokensUsed,
+        processingTime,
+        isPublic: false,
+      }, userId);
+
+      // Update user's analysis count
+      await storage.updateUser(userId, { 
+        analysisCount: user.analysisCount + 1 
+      });
+
+      // Invalidate relevant caches
+      invalidateCache(`user:${userId}:stats`);
+      invalidateCache(`user:${userId}:analyses`);
+
+      return res.status(201).json({
+        message: 'Offer letter analysis completed successfully',
+        analysis: {
+          id: savedAnalysis.id,
+          fileName: savedAnalysis.filename,
+          fileSize: savedAnalysis.fileSize,
+          analysisDate: savedAnalysis.createdAt,
+          profileAnalysis: analysis.profileAnalysis,
+          universityInfo: analysis.universityInfo,
+          scholarshipOpportunities: analysis.scholarshipOpportunities,
+          costSavingStrategies: analysis.costSavingStrategies,
+          recommendations: analysis.recommendations,
+          nextSteps: analysis.nextSteps,
+        },
+        tokensUsed,
+        processingTime,
+      });
+
+    } catch (error) {
+      console.error('Error analyzing offer letter:', error);
+      return res.status(500).json({ 
+        error: 'Analysis failed',
+        details: error instanceof Error ? error.message : 'Unknown error occurred'
+      });
+    }
+  });
+
+  // Get specific offer letter analysis by ID
+  app.get('/api/offer-letter-analyses/:id', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user.id;
+      const analysisId = parseInt(req.params.id);
+      
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+
+      const analysis = await storage.getOfferLetterAnalysisById(analysisId, userId);
+      
+      if (!analysis) {
+        return res.status(404).json({ error: 'Analysis not found' });
+      }
+
+      return res.status(200).json({
+        id: analysis.id,
+        fileName: analysis.filename,
+        fileSize: analysis.fileSize,
+        analysisDate: analysis.createdAt,
+        profileAnalysis: {
+          academicStanding: analysis.academicStanding,
+          gpa: analysis.gpa,
+          financialStatus: analysis.financialStatus,
+          relevantSkills: analysis.relevantSkills || [],
+          strengths: analysis.strengths || [],
+          weaknesses: analysis.weaknesses || [],
+        },
+        universityInfo: {
+          name: analysis.universityName,
+          location: analysis.universityLocation,
+          program: analysis.program,
+          tuition: analysis.tuition,
+          duration: analysis.duration,
+        },
+        scholarshipOpportunities: analysis.scholarshipOpportunities || [],
+        costSavingStrategies: analysis.costSavingStrategies || [],
+        recommendations: analysis.recommendations || [],
+        nextSteps: analysis.nextSteps || [],
+      });
+    } catch (error) {
+      console.error('Error fetching offer letter analysis:', error);
+      return res.status(500).json({ error: 'Failed to fetch analysis' });
+    }
+  });
+
+  // Admin routes for offer letter analyses
+  app.get('/api/admin/offer-letter-analyses', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const cacheKey = 'admin:offer-letter-analyses';
+      const cached = getCachedData(cacheKey);
+      
+      if (cached) {
+        return res.status(200).json(cached);
+      }
+      
+      const analyses = await storage.getAllOfferLetterAnalysesWithUsers();
+      setCacheData(cacheKey, analyses, 2);
+      return res.status(200).json(analyses);
+    } catch (error) {
+      console.error('Error fetching offer letter analyses:', error);
+      return res.status(500).json({ error: 'Failed to fetch analyses' });
     }
   });
 
