@@ -45,9 +45,9 @@ export default function OfferLetterAnalysis() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  // Fetch user stats for analysis quota
-  const { data: userStats } = useQuery({
-    queryKey: ['/api/user/stats'],
+  // Fetch current user for quota checking (following COE analysis pattern)
+  const { data: user } = useQuery({
+    queryKey: ['/api/user'],
   });
 
   // Fetch previous analyses
@@ -81,7 +81,7 @@ export default function OfferLetterAnalysis() {
         description: "Your offer letter has been analyzed successfully.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/offer-letter-analyses'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       setUploadedFile(null);
       // Navigate to the detailed analysis view
       setLocation(`/offer-letter-analysis/${data.id}`);
@@ -139,7 +139,7 @@ export default function OfferLetterAnalysis() {
     if (!uploadedFile) return;
 
     // Check if user has analyses remaining
-    if (userStats && userStats.analysisCount >= userStats.maxAnalyses) {
+    if (user && user.analysisCount >= user.maxAnalyses) {
       toast({
         title: "Analysis Limit Reached",
         description: "You have reached your analysis limit. Please contact support to upgrade your plan.",
@@ -162,7 +162,7 @@ export default function OfferLetterAnalysis() {
     setLocation(`/offer-letter-analysis/${analysis.id}`);
   };
 
-  const canUpload = userStats && userStats.analysisCount < userStats.maxAnalyses;
+  const canUpload = user && user.analysisCount < user.maxAnalyses;
 
   return (
     <DashboardLayout>
