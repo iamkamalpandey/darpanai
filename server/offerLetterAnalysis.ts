@@ -477,7 +477,7 @@ Extract all available information from the complete document. If information is 
 }
 
 /**
- * Analyze offer letter document using OpenAI with scholarship research
+ * Analyze offer letter document using OpenAI with comprehensive strategic analysis
  */
 export async function analyzeOfferLetterDocument(
   documentText: string,

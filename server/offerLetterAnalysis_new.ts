@@ -387,7 +387,7 @@ export async function analyzeOfferLetterDocument(
       scholarships = await Promise.race([scholarshipPromise, timeoutPromise]);
       console.log('Found scholarships with profile matching:', scholarships.length);
     } catch (error) {
-      console.log('Scholarship research completed, continuing with analysis:', error.message);
+      console.log('Scholarship research completed, continuing with analysis:', error instanceof Error ? error.message : 'Unknown error');
     }
     
     // Generate comprehensive analysis prompt
