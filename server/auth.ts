@@ -170,8 +170,8 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
           gapReasonIfAny: user.gapReasonIfAny,
           
           // Language Proficiency
-          englishProficiencyTests: user.englishProficiencyTests,
-          standardizedTests: user.standardizedTests,
+          englishProficiencyTests: user.englishProficiencyTests as any[] | null,
+          standardizedTests: user.standardizedTests as any[] | null,
           
           // Legacy fields
           studyDestination: user.studyDestination || "",
