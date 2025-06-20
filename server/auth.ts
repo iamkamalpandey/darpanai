@@ -147,7 +147,7 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
           highestCountry: user.highestCountry,
           highestGpa: user.highestGpa,
           graduationYear: user.graduationYear?.toString() || null,
-          currentAcademicGap: user.currentAcademicGap,
+          currentAcademicGap: user.currentAcademicGap?.toString() || undefined,
           educationHistory: user.educationHistory as any[] | null,
           
           // Study Preferences
@@ -163,7 +163,7 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
           
           // Employment Information
           currentEmploymentStatus: user.currentEmploymentStatus,
-          workExperienceYears: user.workExperienceYears,
+          workExperienceYears: user.workExperienceYears?.toString() || null,
           jobTitle: user.jobTitle,
           organizationName: user.organizationName,
           fieldOfWork: user.fieldOfWork,
@@ -232,9 +232,9 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
         highestInstitution: user.highestInstitution,
         highestCountry: user.highestCountry,
         highestGpa: user.highestGpa,
-        graduationYear: user.graduationYear,
-        currentAcademicGap: user.currentAcademicGap,
-        educationHistory: user.educationHistory,
+        graduationYear: user.graduationYear?.toString() || null,
+        currentAcademicGap: user.currentAcademicGap?.toString() || undefined,
+        educationHistory: user.educationHistory as any[] | null,
         
         // Study Preferences
         interestedCourse: user.interestedCourse,
@@ -249,15 +249,15 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
         
         // Employment Information
         currentEmploymentStatus: user.currentEmploymentStatus,
-        workExperienceYears: user.workExperienceYears,
+        workExperienceYears: user.workExperienceYears?.toString() || null,
         jobTitle: user.jobTitle,
         organizationName: user.organizationName,
         fieldOfWork: user.fieldOfWork,
         gapReasonIfAny: user.gapReasonIfAny,
         
         // Language Proficiency
-        englishProficiencyTests: user.englishProficiencyTests,
-        standardizedTests: user.standardizedTests,
+        englishProficiencyTests: user.englishProficiencyTests as any[] | null,
+        standardizedTests: user.standardizedTests as any[] | null,
         studyDestination: user.studyDestination ?? undefined,
         startDate: user.startDate ?? undefined,
         city: user.city,
