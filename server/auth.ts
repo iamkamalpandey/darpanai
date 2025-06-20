@@ -8,7 +8,7 @@ import type { User as SchemaUser } from "@shared/schema";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
 
-// Extend Express.User interface to match database schema
+// Extend Express.User interface to match database schema with comprehensive profile fields
 declare global {
   namespace Express {
     interface User {
@@ -18,6 +18,48 @@ declare global {
       firstName: string;
       lastName: string;
       phoneNumber: string;
+      
+      // Personal Information
+      dateOfBirth?: string | null;
+      gender?: string | null;
+      nationality?: string | null;
+      passportNumber?: string | null;
+      secondaryNumber?: string | null;
+      address?: string | null;
+      
+      // Academic Information
+      highestQualification?: string | null;
+      highestInstitution?: string | null;
+      highestCountry?: string | null;
+      highestGpa?: string | null;
+      graduationYear?: number | string | null;
+      currentAcademicGap?: string | null;
+      educationHistory?: any[] | null;
+      
+      // Study Preferences
+      interestedCourse?: string | null;
+      fieldOfStudy?: string | null;
+      preferredIntake?: string | null;
+      budgetRange?: string | null;
+      preferredCountries?: string[] | null;
+      interestedServices?: string[] | null;
+      partTimeInterest?: boolean | null;
+      accommodationRequired?: boolean | null;
+      hasDependents?: boolean | null;
+      
+      // Employment Information
+      currentEmploymentStatus?: string | null;
+      workExperienceYears?: string | null;
+      jobTitle?: string | null;
+      organizationName?: string | null;
+      fieldOfWork?: string | null;
+      gapReasonIfAny?: string | null;
+      
+      // Language Proficiency
+      englishProficiencyTests?: any[] | null;
+      standardizedTests?: any[] | null;
+      
+      // Legacy fields
       studyDestination?: string;
       startDate?: string;
       city: string;
@@ -82,7 +124,7 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
           return done(null, false, { message: 'Invalid username or password' });
         }
         
-        // Transform user data to match Express.User interface
+        // Transform user data to match Express.User interface with all comprehensive profile fields
         const expressUser: Express.User = {
           id: user.id,
           username: user.username,
@@ -90,6 +132,48 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
           firstName: user.firstName,
           lastName: user.lastName,
           phoneNumber: user.phoneNumber,
+          
+          // Personal Information
+          dateOfBirth: user.dateOfBirth,
+          gender: user.gender,
+          nationality: user.nationality,
+          passportNumber: user.passportNumber,
+          secondaryNumber: user.secondaryNumber,
+          address: user.address,
+          
+          // Academic Information
+          highestQualification: user.highestQualification,
+          highestInstitution: user.highestInstitution,
+          highestCountry: user.highestCountry,
+          highestGpa: user.highestGpa,
+          graduationYear: user.graduationYear,
+          currentAcademicGap: user.currentAcademicGap,
+          educationHistory: user.educationHistory as any[] | null,
+          
+          // Study Preferences
+          interestedCourse: user.interestedCourse,
+          fieldOfStudy: user.fieldOfStudy,
+          preferredIntake: user.preferredIntake,
+          budgetRange: user.budgetRange,
+          preferredCountries: user.preferredCountries,
+          interestedServices: user.interestedServices,
+          partTimeInterest: user.partTimeInterest,
+          accommodationRequired: user.accommodationRequired,
+          hasDependents: user.hasDependents,
+          
+          // Employment Information
+          currentEmploymentStatus: user.currentEmploymentStatus,
+          workExperienceYears: user.workExperienceYears,
+          jobTitle: user.jobTitle,
+          organizationName: user.organizationName,
+          fieldOfWork: user.fieldOfWork,
+          gapReasonIfAny: user.gapReasonIfAny,
+          
+          // Language Proficiency
+          englishProficiencyTests: user.englishProficiencyTests,
+          standardizedTests: user.standardizedTests,
+          
+          // Legacy fields
           studyDestination: user.studyDestination || "",
           startDate: user.startDate || "",
           city: user.city,
@@ -126,7 +210,7 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
         return done(null, null);
       }
       
-      // Transform user data to match Express.User interface
+      // Transform user data to match Express.User interface with all comprehensive profile fields
       const expressUser: Express.User = {
         id: user.id,
         username: user.username,
@@ -134,6 +218,46 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
         firstName: user.firstName,
         lastName: user.lastName,
         phoneNumber: user.phoneNumber,
+        
+        // Personal Information
+        dateOfBirth: user.dateOfBirth,
+        gender: user.gender,
+        nationality: user.nationality,
+        passportNumber: user.passportNumber,
+        secondaryNumber: user.secondaryNumber,
+        address: user.address,
+        
+        // Academic Information
+        highestQualification: user.highestQualification,
+        highestInstitution: user.highestInstitution,
+        highestCountry: user.highestCountry,
+        highestGpa: user.highestGpa,
+        graduationYear: user.graduationYear,
+        currentAcademicGap: user.currentAcademicGap,
+        educationHistory: user.educationHistory,
+        
+        // Study Preferences
+        interestedCourse: user.interestedCourse,
+        fieldOfStudy: user.fieldOfStudy,
+        preferredIntake: user.preferredIntake,
+        budgetRange: user.budgetRange,
+        preferredCountries: user.preferredCountries,
+        interestedServices: user.interestedServices,
+        partTimeInterest: user.partTimeInterest,
+        accommodationRequired: user.accommodationRequired,
+        hasDependents: user.hasDependents,
+        
+        // Employment Information
+        currentEmploymentStatus: user.currentEmploymentStatus,
+        workExperienceYears: user.workExperienceYears,
+        jobTitle: user.jobTitle,
+        organizationName: user.organizationName,
+        fieldOfWork: user.fieldOfWork,
+        gapReasonIfAny: user.gapReasonIfAny,
+        
+        // Language Proficiency
+        englishProficiencyTests: user.englishProficiencyTests,
+        standardizedTests: user.standardizedTests,
         studyDestination: user.studyDestination ?? undefined,
         startDate: user.startDate ?? undefined,
         city: user.city,

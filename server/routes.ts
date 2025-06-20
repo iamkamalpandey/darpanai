@@ -84,6 +84,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication
   const requireAuth = setupAuth(app);
   
+  // Get current user data
+  app.get('/api/user', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+      res.json(user);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      res.status(500).json({ error: 'Failed to fetch user data' });
+    }
+  });
+  
   // ANALYZE API
   // Analyze rejection letter
   app.post('/api/analyze', upload.single('file'), async (req: FileRequest, res: Response) => {
