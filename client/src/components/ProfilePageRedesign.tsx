@@ -351,12 +351,12 @@ const ProfilePageRedesign: React.FC = () => {
   const academicForm = useForm({
     resolver: zodResolver(academicInfoSchema),
     defaultValues: {
-      highestQualification: '',
-      highestInstitution: '',
-      highestCountry: '',
-      highestGpa: '',
-      graduationYear: undefined,
-      currentAcademicGap: undefined,
+      highestQualification: user?.highestQualification || '',
+      highestInstitution: user?.highestInstitution || '',
+      highestCountry: user?.highestCountry || '',
+      highestGpa: user?.highestGpa || '',
+      graduationYear: user?.graduationYear || undefined,
+      currentAcademicGap: user?.currentAcademicGap || undefined,
     },
   });
 
@@ -378,11 +378,11 @@ const ProfilePageRedesign: React.FC = () => {
   const studyForm = useForm({
     resolver: zodResolver(studyPreferencesSchema),
     defaultValues: {
-      interestedCourse: '',
-      fieldOfStudy: '',
-      preferredIntake: '',
-      budgetRange: '',
-      preferredCountries: [],
+      interestedCourse: user?.interestedCourse || '',
+      fieldOfStudy: user?.fieldOfStudy || '',
+      preferredIntake: user?.preferredIntake || '',
+      budgetRange: user?.budgetRange || '',
+      preferredCountries: user?.preferredCountries || [],
     },
   });
 
@@ -772,7 +772,7 @@ const ProfilePageRedesign: React.FC = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Highest Qualification *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || ''}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select qualification" />
@@ -824,12 +824,64 @@ const ProfilePageRedesign: React.FC = () => {
                   />
                   <FormField
                     control={academicForm.control}
+                    name="highestCountry"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Country of Education</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ''}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select country" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Nepal">Nepal</SelectItem>
+                            <SelectItem value="India">India</SelectItem>
+                            <SelectItem value="Bangladesh">Bangladesh</SelectItem>
+                            <SelectItem value="Pakistan">Pakistan</SelectItem>
+                            <SelectItem value="Sri Lanka">Sri Lanka</SelectItem>
+                            <SelectItem value="China">China</SelectItem>
+                            <SelectItem value="USA">USA</SelectItem>
+                            <SelectItem value="UK">UK</SelectItem>
+                            <SelectItem value="Canada">Canada</SelectItem>
+                            <SelectItem value="Australia">Australia</SelectItem>
+                            <SelectItem value="Germany">Germany</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={academicForm.control}
                     name="highestGpa"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>GPA/Grade</FormLabel>
                         <FormControl>
                           <Input {...field} placeholder="3.8 or 85%" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={academicForm.control}
+                    name="currentAcademicGap"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Academic Gap (Years)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            type="number" 
+                            min="0" 
+                            max="20" 
+                            placeholder="0"
+                            value={field.value || ''}
+                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -917,7 +969,7 @@ const ProfilePageRedesign: React.FC = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Field of Study *</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || ''}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select field" />
@@ -930,6 +982,12 @@ const ProfilePageRedesign: React.FC = () => {
                             <SelectItem value="Arts">Arts</SelectItem>
                             <SelectItem value="Science">Science</SelectItem>
                             <SelectItem value="Technology">Technology</SelectItem>
+                            <SelectItem value="Computer Science">Computer Science</SelectItem>
+                            <SelectItem value="Information Technology">Information Technology</SelectItem>
+                            <SelectItem value="Data Science">Data Science</SelectItem>
+                            <SelectItem value="Finance">Finance</SelectItem>
+                            <SelectItem value="Marketing">Marketing</SelectItem>
+                            <SelectItem value="Psychology">Psychology</SelectItem>
                             <SelectItem value="Other">Other</SelectItem>
                           </SelectContent>
                         </Select>
