@@ -143,7 +143,7 @@ export default function OfferLetterAnalysis() {
     if (!uploadedFile) return;
 
     // Check if user has analyses remaining
-    if (user && user.analysisCount >= user.maxAnalyses) {
+    if (!user || user.analysisCount >= user.maxAnalyses) {
       toast({
         title: "Analysis Limit Reached",
         description: "You have reached your analysis limit. Please contact support to upgrade your plan.",
@@ -166,7 +166,7 @@ export default function OfferLetterAnalysis() {
     setLocation(`/offer-letter-analysis/${analysis.id}`);
   };
 
-  const canUpload = user && user.analysisCount < user.maxAnalyses;
+  const canUpload = user ? user.analysisCount < user.maxAnalyses : false;
 
   return (
     <DashboardLayout>
