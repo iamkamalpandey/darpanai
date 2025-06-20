@@ -2086,6 +2086,156 @@ const ProfilePageRedesign: React.FC = () => {
             </div>
           )}
         </ProfileSectionCard>
+
+        {/* Additional Profile Information */}
+        <ProfileSectionCard
+          title="Additional Information"
+          description="Study preferences and profile metadata"
+          icon={<FileText className="w-5 h-5 text-gray-600" />}
+          isComplete={true}
+          isEditing={editingSection === 'additional'}
+          onEdit={() => setEditingSection('additional')}
+        >
+          {editingSection === 'additional' ? (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div>
+                  <Label htmlFor="studyDestination">Study Destination</Label>
+                  <Input
+                    id="studyDestination"
+                    placeholder="Enter study destination"
+                    value={user?.studyDestination || ''}
+                    onChange={(e) => updateProfileMutation.mutate({ studyDestination: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="startDate">Start Date</Label>
+                  <Input
+                    id="startDate"
+                    type="date"
+                    value={user?.startDate || ''}
+                    onChange={(e) => updateProfileMutation.mutate({ startDate: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    placeholder="Enter city"
+                    value={user?.city || ''}
+                    onChange={(e) => updateProfileMutation.mutate({ city: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="country">Country</Label>
+                  <Input
+                    id="country"
+                    placeholder="Enter country"
+                    value={user?.country || ''}
+                    onChange={(e) => updateProfileMutation.mutate({ country: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="counsellingMode">Counselling Mode</Label>
+                  <Select 
+                    value={user?.counsellingMode || ''} 
+                    onValueChange={(value) => updateProfileMutation.mutate({ counsellingMode: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select mode" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Online">Online</SelectItem>
+                      <SelectItem value="In-person">In-person</SelectItem>
+                      <SelectItem value="Hybrid">Hybrid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="studyLevel">Study Level</Label>
+                  <Select 
+                    value={user?.studyLevel || ''} 
+                    onValueChange={(value) => updateProfileMutation.mutate({ studyLevel: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Certificate">Certificate</SelectItem>
+                      <SelectItem value="Diploma">Diploma</SelectItem>
+                      <SelectItem value="Bachelor">Bachelor</SelectItem>
+                      <SelectItem value="Master">Master</SelectItem>
+                      <SelectItem value="PhD">PhD</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="source">Source</Label>
+                  <Input
+                    id="source"
+                    placeholder="How did you find us?"
+                    value={user?.source || ''}
+                    onChange={(e) => updateProfileMutation.mutate({ source: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="campaignId">Campaign ID</Label>
+                  <Input
+                    id="campaignId"
+                    placeholder="Campaign identifier"
+                    value={user?.campaignId || ''}
+                    onChange={(e) => updateProfileMutation.mutate({ campaignId: e.target.value })}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditingSection(null)}
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => setEditingSection(null)}
+                >
+                  <Save className="w-4 h-4 mr-1" />
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Study Destination</Label>
+                <p className="text-sm mt-1 font-medium">{user?.studyDestination || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Start Date</Label>
+                <p className="text-sm mt-1 font-medium">{user?.startDate || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">City</Label>
+                <p className="text-sm mt-1 font-medium">{user?.city || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Country</Label>
+                <p className="text-sm mt-1 font-medium">{user?.country || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Source</Label>
+                <p className="text-sm mt-1 font-medium">{user?.source || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Campaign ID</Label>
+                <p className="text-sm mt-1 font-medium">{user?.campaignId || 'Not provided'}</p>
+              </div>
+            </div>
+          )}
+        </ProfileSectionCard>
         </div>
       </div>
     </DashboardLayout>
