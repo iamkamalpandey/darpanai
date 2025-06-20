@@ -130,6 +130,21 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 20, 2025 - Enhanced Comprehensive COE Analysis System with Strategic Insights & Compliance Assessment:**
+- Completely revamped COE Analysis system with comprehensive strategic analysis capabilities matching offer letter analysis depth
+- Enhanced analysis prompt to process entire COE documents with detailed strategic insights rather than basic data extraction
+- Added comprehensive document analysis structure including terms & conditions examination, risk assessment, and compliance guidance
+- Implemented strategic analysis components: enrollment viability, visa application strength, academic progression, financial feasibility assessment
+- Created detailed action plan system with immediate actions, short-term strategies, and long-term planning with specific timelines
+- Added financial optimization analysis with cost breakdowns, payment schedules, potential savings strategies, and funding opportunities
+- Built comprehensive compliance guidance system covering visa requirements, academic compliance, and institutional compliance monitoring
+- Enhanced key findings structure with impact assessment, consequences analysis, and detailed action requirements
+- Improved recommendations system with strategic rationale, implementation guidance, timeline specifications, and success metrics
+- Updated next steps structure with dependencies, required resources, and success criteria for comprehensive enrollment guidance
+- Enhanced frontend display descriptions to reflect strategic analysis capabilities and comprehensive compliance assessment
+- Fixed icon import issues in Offer Letter Analysis page ensuring proper component functionality
+- Applied strategic focus on actionable recommendations, risk mitigation, and enrollment success optimization
+
 **June 20, 2025 - Enhanced Comprehensive Offer Letter Analysis with Full Document Examination & Strategic Scholarship Research:**
 - Implemented complete document analysis processing entire offer letters (not just first page) with comprehensive terms & conditions examination
 - Enhanced scholarship research system with deep university website analysis requiring minimum 8-12 scholarships per institution
