@@ -13,8 +13,10 @@ import { Link, useLocation } from 'wouter';
 interface Analysis {
   id: number;
   filename: string;
-  type: 'visa_rejection' | 'enrollment';
+  fileName?: string;
+  type: 'visa_rejection' | 'coe' | 'offer_letter';
   createdAt: string;
+  analysisDate?: string;
   // Visa rejection fields
   rejectionReasons?: Array<{
     title: string;
@@ -22,11 +24,13 @@ interface Analysis {
     category?: string;
     severity?: string;
   }>;
-  // Enrollment analysis fields
+  // COE and Offer Letter analysis fields
   institutionCountry?: string;
   studentCountry?: string;
   visaType?: string;
   summary?: string;
+  universityName?: string;
+  program?: string;
 }
 
 export default function AnalysisHub() {
@@ -62,17 +66,34 @@ export default function AnalysisHub() {
     staleTime: 20 * 60 * 1000, // 20 minutes
   });
 
-  // Fetch enrollment analyses with optimized caching
-  const { data: enrollmentAnalyses = [], isLoading: enrollmentLoading } = useQuery<Analysis[]>({
-    queryKey: ['/api/enrollment-analyses'],
-    select: (data) => data.map(item => ({ ...item, type: 'enrollment' as const })),
+  // Fetch COE analyses with optimized caching
+  const { data: coeAnalyses = [], isLoading: coeLoading } = useQuery<Analysis[]>({
+    queryKey: ['/api/coe-analyses'],
+    select: (data) => data.map(item => ({ ...item, type: 'coe' as const })),
+    staleTime: 20 * 60 * 1000, // 20 minutes
+  });
+
+  // Fetch offer letter analyses with optimized caching
+  const { data: offerLetterAnalyses = [], isLoading: offerLetterLoading } = useQuery({
+    queryKey: ['/api/offer-letter-analyses'],
+    select: (data: any[]) => data.map((item: any) => ({ 
+      id: item.id,
+      filename: item.fileName || 'Untitled Document',
+      type: 'offer_letter' as const,
+      createdAt: item.analysisDate || item.createdAt || new Date().toISOString(),
+      universityName: item.universityInfo?.name,
+      program: item.universityInfo?.program,
+      visaType: 'Student Visa'
+    })),
     staleTime: 20 * 60 * 1000, // 20 minutes
   });
 
   // Navigate to specific analysis detail pages
-  const viewAnalysis = (id: number, type: 'visa_rejection' | 'enrollment') => {
-    if (type === 'enrollment') {
+  const viewAnalysis = (id: number, type: 'visa_rejection' | 'coe' | 'offer_letter') => {
+    if (type === 'coe') {
       setLocation(`/coe-analysis/${id}`);
+    } else if (type === 'offer_letter') {
+      setLocation(`/offer-letter-analysis/${id}`);
     } else {
       setLocation(`/visa-analysis/${id}`);
     }
@@ -80,10 +101,10 @@ export default function AnalysisHub() {
 
   // Combine all analyses with optimized sorting
   const allAnalyses = useMemo(() => {
-    return [...visaAnalyses, ...enrollmentAnalyses].sort(
+    return [...visaAnalyses, ...coeAnalyses, ...offerLetterAnalyses].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-  }, [visaAnalyses, enrollmentAnalyses]);
+  }, [visaAnalyses, coeAnalyses, offerLetterAnalyses]);
 
   // Memoized filtered and sorted analyses for performance
   const filteredAnalyses = useMemo(() => {
@@ -106,7 +127,7 @@ export default function AnalysisHub() {
       if (filters.analysisType === 'visa_analysis') {
         filtered = filtered.filter(analysis => analysis.type === 'visa_rejection');
       } else if (filters.analysisType === 'enrollment_analysis') {
-        filtered = filtered.filter(analysis => analysis.type === 'enrollment');
+        filtered = filtered.filter(analysis => analysis.type === 'coe' || analysis.type === 'offer_letter');
       }
     }
 
