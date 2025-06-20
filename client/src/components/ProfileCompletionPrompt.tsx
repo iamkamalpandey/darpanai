@@ -23,14 +23,49 @@ interface ProfileCompletionPromptProps {
 }
 
 export function ProfileCompletionPrompt({ open, onClose }: ProfileCompletionPromptProps) {
-  const { data: completionStatus } = useQuery({
-    queryKey: ['/api/user/profile-completion'],
+  const { data: user } = useQuery({
+    queryKey: ['/api/user'],
   }) as { data: any };
 
-  const completionPercentage = completionStatus?.completionPercentage || 0;
-  const missingFields = completionStatus?.missingFields || [];
+  // Calculate completion based on actual user data
+  const COMPULSORY_FIELDS = [
+    'firstName', 'lastName', 'dateOfBirth', 'gender', 'nationality', 'phoneNumber',
+    'highestQualification', 'highestInstitution', 'highestGpa', 'graduationYear',
+    'interestedCourse', 'fieldOfStudy', 'preferredIntake', 'budgetRange',
+    'preferredCountries', 'currentEmploymentStatus', 'englishProficiencyTests'
+  ];
+
+  const calculateCompletion = () => {
+    if (!user) return { percentage: 0, completedFields: 0, totalFields: COMPULSORY_FIELDS.length, missingFields: COMPULSORY_FIELDS };
+    
+    const completedFields = COMPULSORY_FIELDS.filter(field => {
+      const value = user[field];
+      if (Array.isArray(value)) return value.length > 0;
+      return value !== null && value !== undefined && value !== '';
+    });
+    
+    const missingFields = COMPULSORY_FIELDS.filter(field => {
+      const value = user[field];
+      if (Array.isArray(value)) return value.length === 0;
+      return value === null || value === undefined || value === '';
+    });
+    
+    const percentage = Math.round((completedFields.length / COMPULSORY_FIELDS.length) * 100);
+    
+    return {
+      percentage,
+      completedFields: completedFields.length,
+      totalFields: COMPULSORY_FIELDS.length,
+      missingFields
+    };
+  };
+
+  const completion = calculateCompletion();
+  const completionPercentage = completion.percentage;
 
   const getSectionStatus = (sectionId: string) => {
+    if (!user) return false;
+    
     const sectionFieldMap: { [key: string]: string[] } = {
       personal: ['dateOfBirth', 'gender', 'nationality', 'passportNumber'],
       academic: ['highestQualification', 'highestInstitution', 'highestGpa', 'graduationYear'],
@@ -42,8 +77,13 @@ export function ProfileCompletionPrompt({ open, onClose }: ProfileCompletionProm
     };
 
     const sectionFields = sectionFieldMap[sectionId] || [];
-    const missingSectionFields = sectionFields.filter(field => missingFields.includes(field));
-    return missingSectionFields.length === 0;
+    const completedSectionFields = sectionFields.filter(field => {
+      const value = user[field];
+      if (Array.isArray(value)) return value.length > 0;
+      return value !== null && value !== undefined && value !== '';
+    });
+    
+    return completedSectionFields.length === sectionFields.length;
   };
 
   return (

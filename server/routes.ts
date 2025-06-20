@@ -1562,31 +1562,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Complete user profile
+  // Complete user profile - flexible endpoint for any profile field updates
   app.patch('/api/user/complete-profile', requireAuth, async (req: Request, res: Response) => {
     try {
       const userId = req.user!.id;
       
-      // Validation schema for profile completion
+      // Flexible validation schema that accepts any profile field
       const profileSchema = z.object({
-        studyLevel: z.string().min(1),
-        preferredStudyFields: z.array(z.string()).min(1),
-        startDate: z.string().min(1),
-        budgetRange: z.string().min(1),
-        fundingSource: z.string().min(1),
+        // Personal Information
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        dateOfBirth: z.string().optional(),
+        gender: z.string().optional(),
+        nationality: z.string().optional(),
+        passportNumber: z.string().optional(),
+        phoneNumber: z.string().optional(),
+        secondaryNumber: z.string().optional(),
+        address: z.string().optional(),
+        
+        // Academic Information
+        highestQualification: z.string().optional(),
+        highestInstitution: z.string().optional(),
+        highestCountry: z.string().optional(),
+        highestGpa: z.string().optional(),
+        graduationYear: z.string().optional(),
+        currentAcademicGap: z.string().optional(),
+        educationHistory: z.array(z.any()).optional(),
+        
+        // Study Preferences
+        interestedCourse: z.string().optional(),
+        fieldOfStudy: z.string().optional(),
+        preferredIntake: z.string().optional(),
+        budgetRange: z.string().optional(),
+        preferredCountries: z.array(z.string()).optional(),
+        interestedServices: z.array(z.string()).optional(),
+        partTimeInterest: z.boolean().optional(),
+        accommodationRequired: z.boolean().optional(),
+        hasDependents: z.boolean().optional(),
+        
+        // Employment Information
+        currentEmploymentStatus: z.string().optional(),
+        workExperienceYears: z.string().optional(),
+        jobTitle: z.string().optional(),
+        organizationName: z.string().optional(),
+        fieldOfWork: z.string().optional(),
+        gapReasonIfAny: z.string().optional(),
+        
+        // Language Proficiency
+        englishProficiencyTests: z.array(z.any()).optional(),
+        standardizedTests: z.array(z.any()).optional(),
+        
+        // Legacy fields for compatibility
+        studyLevel: z.string().optional(),
+        preferredStudyFields: z.array(z.string()).optional(),
+        startDate: z.string().optional(),
+        fundingSource: z.string().optional(),
         studyDestination: z.string().optional(),
-        languagePreferences: z.array(z.string()).min(1),
-        climatePreference: z.string().min(1),
-        universityRankingImportance: z.string().min(1),
-        workPermitImportance: z.string().min(1),
-        culturalPreferences: z.array(z.string()).optional().default([]),
-        careerGoals: z.string().min(10),
-        counsellingMode: z.string().min(1),
+        languagePreferences: z.array(z.string()).optional(),
+        climatePreference: z.string().optional(),
+        universityRankingImportance: z.string().optional(),
+        workPermitImportance: z.string().optional(),
+        culturalPreferences: z.array(z.string()).optional(),
+        careerGoals: z.string().optional(),
+        counsellingMode: z.string().optional(),
       });
 
       const validatedData = profileSchema.parse(req.body);
       
-      // Update user profile
+      // Update user profile with validated data
       const updatedUser = await storage.updateUserProfile(userId, validatedData);
       
       // Invalidate cache
