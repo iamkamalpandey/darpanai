@@ -290,7 +290,7 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
           { field: 'gender', message: 'Gender is required', required: true },
           { field: 'nationality', message: 'Nationality is required', required: true },
           { field: 'phoneNumber', message: 'Phone number is required', required: true, 
-            validator: (value: string) => /^\+?[1-9]\d{1,14}$/.test(value) || 'Invalid phone number format' }
+            validator: (value: string, formData: any) => /^\+?[1-9]\d{1,14}$/.test(value) || 'Invalid phone number format' }
         ];
       case 'academic':
         return [
@@ -298,7 +298,7 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
           { field: 'highestInstitution', message: 'Institution name is required', required: true },
           { field: 'highestGpa', message: 'GPA/Grade is required', required: true },
           { field: 'graduationYear', message: 'Graduation year is required', required: true,
-            validator: (value: any) => {
+            validator: (value: any, formData: any) => {
               const year = parseInt(value);
               const currentYear = new Date().getFullYear();
               return (year >= 1980 && year <= currentYear + 10) || 'Invalid graduation year';
@@ -312,14 +312,14 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
           { field: 'preferredIntake', message: 'Preferred intake is required', required: true },
           { field: 'budgetRange', message: 'Budget range is required', required: true },
           { field: 'preferredCountries', message: 'At least one preferred country is required', required: true,
-            validator: (value: any) => (Array.isArray(value) && value.length > 0) || 'Select at least one country'
+            validator: (value: any, formData: any) => (Array.isArray(value) && value.length > 0) || 'Select at least one country'
           }
         ];
       case 'financial':
         return [
           { field: 'fundingSource', message: 'Source of funds is required', required: true },
           { field: 'estimatedBudget', message: 'Total budget range is required', required: true,
-            validator: (value: any) => {
+            validator: (value: any, formData: any) => {
               if (!value || value === '') {
                 return 'Please select your budget range';
               }
@@ -329,7 +329,51 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
         ];
       case 'employment':
         return [
-          { field: 'currentEmploymentStatus', message: 'Employment status is required', required: true }
+          { field: 'currentEmploymentStatus', message: 'Employment status is required', required: true },
+          { field: 'workExperienceYears', message: 'Work experience is required for employed status', required: false,
+            validator: (value: any, formData: any) => {
+              const status = formData?.currentEmploymentStatus;
+              if (status === 'Employed Full-time' || status === 'Employed Part-time' || status === 'Self-employed') {
+                if (!value || value === '' || value === '0') {
+                  return 'Work experience is required when employed';
+                }
+              }
+              return true;
+            }
+          },
+          { field: 'jobTitle', message: 'Job title is required for employed status', required: false,
+            validator: (value: any, formData: any) => {
+              const status = formData?.currentEmploymentStatus;
+              if (status === 'Employed Full-time' || status === 'Employed Part-time' || status === 'Self-employed') {
+                if (!value || value.trim() === '') {
+                  return 'Job title is required when employed';
+                }
+              }
+              return true;
+            }
+          },
+          { field: 'organizationName', message: 'Organization name is required for employed status', required: false,
+            validator: (value: any, formData: any) => {
+              const status = formData?.currentEmploymentStatus;
+              if (status === 'Employed Full-time' || status === 'Employed Part-time') {
+                if (!value || value.trim() === '') {
+                  return 'Organization name is required when employed';
+                }
+              }
+              return true;
+            }
+          },
+          { field: 'gapReasonIfAny', message: 'Gap reason is required for unemployed status', required: false,
+            validator: (value: any, formData: any) => {
+              const status = formData?.currentEmploymentStatus;
+              if (status === 'Unemployed' || status === 'Career Break') {
+                if (!value || value.trim() === '') {
+                  return 'Please explain the reason for employment gap';
+                }
+              }
+              return true;
+            }
+          }
         ];
       case 'language':
         return [
@@ -389,9 +433,9 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
         return;
       }
 
-      // Check custom validators
-      if (rule.validator && value) {
-        const validationResult = rule.validator(value);
+      // Check custom validators - pass both value and formData for context-aware validation
+      if (rule.validator) {
+        const validationResult = rule.validator(value, data);
         if (validationResult !== true) {
           errors.push({ field: rule.field, message: validationResult });
         }
@@ -921,85 +965,169 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
     </div>
   );
 
-  const renderEmploymentStatus = () => (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="currentEmploymentStatus">Employment Status *</Label>
-          <Select 
-            value={formData.currentEmploymentStatus || ''} 
-            onValueChange={(value) => handleInputChange('currentEmploymentStatus', value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Student">Student</SelectItem>
-              <SelectItem value="Employed Full-time">Employed Full-time</SelectItem>
-              <SelectItem value="Employed Part-time">Employed Part-time</SelectItem>
-              <SelectItem value="Self-employed">Self-employed</SelectItem>
-              <SelectItem value="Unemployed">Unemployed</SelectItem>
-              <SelectItem value="Gap Year">Gap Year</SelectItem>
-            </SelectContent>
-          </Select>
+  const renderEmploymentStatus = () => {
+    const isEmployed = ['Employed Full-time', 'Employed Part-time', 'Self-employed'].includes(formData.currentEmploymentStatus);
+    const isUnemployed = ['Unemployed', 'Career Break'].includes(formData.currentEmploymentStatus);
+    
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="currentEmploymentStatus" className={hasFieldError('currentEmploymentStatus') ? 'text-red-600' : ''}>
+              Employment Status *
+            </Label>
+            <Select 
+              value={formData.currentEmploymentStatus || ''} 
+              onValueChange={(value) => handleInputChange('currentEmploymentStatus', value)}
+            >
+              <SelectTrigger className={hasFieldError('currentEmploymentStatus') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Student">Student</SelectItem>
+                <SelectItem value="Employed Full-time">Employed Full-time</SelectItem>
+                <SelectItem value="Employed Part-time">Employed Part-time</SelectItem>
+                <SelectItem value="Self-employed">Self-employed</SelectItem>
+                <SelectItem value="Unemployed">Unemployed</SelectItem>
+                <SelectItem value="Career Break">Career Break</SelectItem>
+                <SelectItem value="Gap Year">Gap Year</SelectItem>
+              </SelectContent>
+            </Select>
+            {getFieldError('currentEmploymentStatus') && (
+              <p className="text-sm text-red-600 mt-1">{getFieldError('currentEmploymentStatus')}</p>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="workExperienceYears" className={hasFieldError('workExperienceYears') ? 'text-red-600' : ''}>
+              Work Experience (Years) {isEmployed ? '*' : ''}
+            </Label>
+            <Select 
+              value={formData.workExperienceYears || ''} 
+              onValueChange={(value) => handleInputChange('workExperienceYears', value)}
+            >
+              <SelectTrigger className={hasFieldError('workExperienceYears') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}>
+                <SelectValue placeholder="Select experience" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">No experience</SelectItem>
+                <SelectItem value="1">1 year</SelectItem>
+                <SelectItem value="2">2 years</SelectItem>
+                <SelectItem value="3-5">3-5 years</SelectItem>
+                <SelectItem value="5+">5+ years</SelectItem>
+              </SelectContent>
+            </Select>
+            {getFieldError('workExperienceYears') && (
+              <p className="text-sm text-red-600 mt-1">{getFieldError('workExperienceYears')}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="jobTitle" className={hasFieldError('jobTitle') ? 'text-red-600' : ''}>
+              Job Title {isEmployed ? '*' : ''}
+            </Label>
+            <Input 
+              id="jobTitle" 
+              value={formData.jobTitle || ''} 
+              onChange={(e) => handleInputChange('jobTitle', e.target.value)}
+              placeholder="Enter job title"
+              className={hasFieldError('jobTitle') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+            />
+            {getFieldError('jobTitle') && (
+              <p className="text-sm text-red-600 mt-1">{getFieldError('jobTitle')}</p>
+            )}
+            {isEmployed && (
+              <p className="text-xs text-gray-500">Required for employed status</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="organizationName" className={hasFieldError('organizationName') ? 'text-red-600' : ''}>
+              Organization Name {['Employed Full-time', 'Employed Part-time'].includes(formData.currentEmploymentStatus) ? '*' : ''}
+            </Label>
+            <Input 
+              id="organizationName" 
+              value={formData.organizationName || ''} 
+              onChange={(e) => handleInputChange('organizationName', e.target.value)}
+              placeholder="Enter organization name"
+              className={hasFieldError('organizationName') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+            />
+            {getFieldError('organizationName') && (
+              <p className="text-sm text-red-600 mt-1">{getFieldError('organizationName')}</p>
+            )}
+            {['Employed Full-time', 'Employed Part-time'].includes(formData.currentEmploymentStatus) && (
+              <p className="text-xs text-gray-500">Required for employed status</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fieldOfWork">Field of Work</Label>
+            <Input 
+              id="fieldOfWork" 
+              value={formData.fieldOfWork || ''} 
+              onChange={(e) => handleInputChange('fieldOfWork', e.target.value)}
+              placeholder="e.g., IT, Finance, Healthcare"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="gapReasonIfAny" className={hasFieldError('gapReasonIfAny') ? 'text-red-600' : ''}>
+              Gap Reason {isUnemployed ? '*' : '(if any)'}
+            </Label>
+            <Input 
+              id="gapReasonIfAny" 
+              value={formData.gapReasonIfAny || ''} 
+              onChange={(e) => handleInputChange('gapReasonIfAny', e.target.value)}
+              placeholder="Reason for employment gap"
+              className={hasFieldError('gapReasonIfAny') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+            />
+            {getFieldError('gapReasonIfAny') && (
+              <p className="text-sm text-red-600 mt-1">{getFieldError('gapReasonIfAny')}</p>
+            )}
+            {isUnemployed && (
+              <p className="text-xs text-gray-500">Required explanation for unemployment/career break</p>
+            )}
+          </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="workExperienceYears">Work Experience (Years)</Label>
-          <Select 
-            value={formData.workExperienceYears || ''} 
-            onValueChange={(value) => handleInputChange('workExperienceYears', value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select experience" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="0">No experience</SelectItem>
-              <SelectItem value="1">1 year</SelectItem>
-              <SelectItem value="2">2 years</SelectItem>
-              <SelectItem value="3-5">3-5 years</SelectItem>
-              <SelectItem value="5+">5+ years</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="jobTitle">Job Title</Label>
-          <Input 
-            id="jobTitle" 
-            value={formData.jobTitle || ''} 
-            onChange={(e) => handleInputChange('jobTitle', e.target.value)}
-            placeholder="Enter job title"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="organizationName">Organization Name</Label>
-          <Input 
-            id="organizationName" 
-            value={formData.organizationName || ''} 
-            onChange={(e) => handleInputChange('organizationName', e.target.value)}
-            placeholder="Enter organization name"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="fieldOfWork">Field of Work</Label>
-          <Input 
-            id="fieldOfWork" 
-            value={formData.fieldOfWork || ''} 
-            onChange={(e) => handleInputChange('fieldOfWork', e.target.value)}
-            placeholder="e.g., IT, Finance, Healthcare"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="gapReasonIfAny">Gap Reason (if any)</Label>
-          <Input 
-            id="gapReasonIfAny" 
-            value={formData.gapReasonIfAny || ''} 
-            onChange={(e) => handleInputChange('gapReasonIfAny', e.target.value)}
-            placeholder="Reason for employment gap"
-          />
-        </div>
+        
+        {isEmployed && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-blue-800">Employment Information Required</p>
+                <p className="text-sm text-blue-700 mt-1">
+                  Since you're employed, please provide your job title, work experience, and organization details for accurate visa analysis.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {isUnemployed && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-amber-800">Gap Explanation Required</p>
+                <p className="text-sm text-amber-700 mt-1">
+                  Please explain the reason for your employment gap. This information helps with visa applications and financial assessments.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderLanguageProficiency = () => (
     <div className="space-y-4">
