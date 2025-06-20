@@ -17,8 +17,8 @@ export const users = pgTable("users", {
   status: text("status").default("pending").notNull(), // pending until email verified
   analysisCount: integer("analysis_count").default(0).notNull(),
   maxAnalyses: integer("max_analyses").default(3).notNull(),
-  city: text("city").notNull(),
-  country: text("country").notNull(),
+  city: text("city"), // Allow null for optional field
+  country: text("country"), // Allow null for optional field
   agreeToTerms: boolean("agree_to_terms").default(false).notNull(),
   allowContact: boolean("allow_contact").default(false).notNull(),
   receiveUpdates: boolean("receive_updates").default(false).notNull(),
@@ -58,15 +58,15 @@ export const users = pgTable("users", {
   educationHistory: jsonb("education_history"), // Array of education records
   
   // Study Preferences (Enhanced)
-  interestedCourse: text("interested_course"),
-  fieldOfStudy: text("field_of_study"),
-  preferredIntake: text("preferred_intake"),
-  budgetRange: text("budget_range"), // <10K, 10-20K, 20-30K, 30K+
-  preferredCountries: text("preferred_countries").array(),
-  interestedServices: text("interested_services").array(),
-  partTimeInterest: boolean("part_time_interest").default(false),
-  accommodationRequired: boolean("accommodation_required").default(false),
-  hasDependents: boolean("has_dependents").default(false),
+  interestedCourse: text("interested_course"), // Required field - notNull will be handled in validation
+  fieldOfStudy: text("field_of_study"), // Required field
+  preferredIntake: text("preferred_intake"), // Required field
+  budgetRange: text("budget_range"), // Required field
+  preferredCountries: text("preferred_countries").array(), // Required field
+  interestedServices: text("interested_services").array(), // Optional - can be null
+  partTimeInterest: boolean("part_time_interest"), // Optional - can be null
+  accommodationRequired: boolean("accommodation_required"), // Optional - can be null
+  hasDependents: boolean("has_dependents"), // Optional - can be null
   
   // Enhanced Financial Information
   estimatedBudget: text("estimated_budget"), // Total budget range

@@ -62,8 +62,8 @@ declare global {
       // Legacy fields
       studyDestination?: string;
       startDate?: string;
-      city: string;
-      country: string;
+      city: string | null;
+      country: string | null;
       counsellingMode?: string;
       fundingSource?: string;
       studyLevel?: string;
@@ -176,8 +176,8 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
           // Legacy fields
           studyDestination: user.studyDestination || "",
           startDate: user.startDate || "",
-          city: user.city,
-          country: user.country,
+          city: user.city || "",
+          country: user.country || "",
           counsellingMode: user.counsellingMode || "",
           fundingSource: user.fundingSource || "",
           studyLevel: user.studyLevel || "",
