@@ -192,25 +192,7 @@ const employmentInfoSchema = z.object({
   path: ["currentEmploymentStatus"]
 });
 
-// Additional Information Schema
-const additionalInfoSchema = z.object({
-  source: z.string()
-    .min(5, 'Please provide at least 5 characters')
-    .max(500, 'Response too long')
-    .optional()
-    .nullable(),
-  studyDestination: z.string().optional().nullable(),
-  startDate: z.string().optional().nullable(),
-  city: z.string().optional().nullable(),
-  country: z.string().optional().nullable(),
-  counsellingMode: z.string().optional().nullable(),
-  studyLevel: z.string().optional().nullable(),
-  leadType: z.string().optional().nullable(),
-  applicationStatus: z.string().optional().nullable(),
-  campaignId: z.string().optional().nullable(),
-  isArchived: z.boolean().optional().nullable(),
-  dropout: z.boolean().optional().nullable(),
-});
+
 
 const languageProficiencySchema = z.object({
   englishProficiencyTests: z.array(z.object({
@@ -230,7 +212,7 @@ const languageProficiencySchema = z.object({
   })).optional().nullable(),
 });
 
-type ProfileSection = 'personal' | 'academic' | 'study' | 'financial' | 'employment' | 'language' | 'additional';
+type ProfileSection = 'personal' | 'academic' | 'study' | 'financial' | 'employment' | 'language';
 
 // Profile completion calculation
 const calculateProfileCompletion = (user: any) => {
@@ -605,24 +587,7 @@ const ProfilePageRedesign: React.FC = () => {
     }
   }, [user, editingSection, employmentForm]);
 
-  // Additional Information Form
-  const additionalForm = useForm({
-    resolver: zodResolver(additionalInfoSchema),
-    defaultValues: {
-      source: user?.source || '',
-      studyDestination: user?.studyDestination || '',
-      startDate: user?.startDate || '',
-      city: user?.city || '',
-      country: user?.country || '',
-      counsellingMode: user?.counsellingMode || '',
-      studyLevel: user?.studyLevel || '',
-      leadType: user?.leadType || '',
-      applicationStatus: user?.applicationStatus || '',
-      campaignId: user?.campaignId || '',
-      isArchived: user?.isArchived || false,
-      dropout: user?.dropout || false,
-    },
-  });
+
 
   // Update additional form when entering edit mode
   React.useEffect(() => {
