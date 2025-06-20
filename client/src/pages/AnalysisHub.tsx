@@ -74,21 +74,6 @@ export default function AnalysisHub() {
   });
 
   // Fetch offer letter analyses with optimized caching
-  const { data: offerLetterAnalyses = [], isLoading: offerLetterLoading } = useQuery<Analysis[]>({
-    queryKey: ['/api/offer-letter-analyses'],
-    select: (data) => data.map(item => ({ 
-      ...item, 
-      type: 'offer_letter' as const,
-      filename: item.fileName,
-      createdAt: item.analysisDate,
-      universityName: item.universityInfo?.name,
-      program: item.universityInfo?.program,
-      visaType: 'Student'
-    })),
-    staleTime: 20 * 60 * 1000, // 20 minutes
-  });
-
-  // Fetch offer letter analyses with optimized caching
   const { data: offerLetterAnalyses = [], isLoading: offerLetterLoading } = useQuery({
     queryKey: ['/api/offer-letter-analyses'],
     select: (data: any[]) => data.map((item: any) => ({ 
@@ -96,9 +81,12 @@ export default function AnalysisHub() {
       filename: item.fileName || 'Untitled Document',
       type: 'offer_letter' as const,
       createdAt: item.analysisDate || item.createdAt || new Date().toISOString(),
-      universityName: item.universityInfo?.name,
-      program: item.universityInfo?.program,
-      visaType: 'Student Visa'
+      universityName: item.universityInfo?.name || 'Unknown University',
+      program: item.universityInfo?.program || 'Unknown Program',
+      visaType: 'Student Visa',
+      summary: `Offer Letter Analysis for ${item.universityInfo?.name || 'University'}`,
+      institutionCountry: item.universityInfo?.location || 'Unknown',
+      studentCountry: 'Not specified'
     })),
     staleTime: 20 * 60 * 1000, // 20 minutes
   });
@@ -204,30 +192,49 @@ export default function AnalysisHub() {
 
   // Separate filtered analyses by type for tabs
   const filteredVisaAnalyses = filteredAnalyses.filter(a => a.type === 'visa_rejection');
-  const filteredEnrollmentAnalyses = filteredAnalyses.filter(a => a.type === 'enrollment');
+  const filteredEnrollmentAnalyses = filteredAnalyses.filter(a => a.type === 'coe' || a.type === 'offer_letter');
 
   // Pagination for individual tabs
   const paginatedVisaAnalyses = filteredVisaAnalyses.slice(startIndex, endIndex);
   const paginatedEnrollmentAnalyses = filteredEnrollmentAnalyses.slice(startIndex, endIndex);
 
   const getAnalysisIcon = useMemo(() => (type: string) => {
-    return type === 'visa_rejection' ? (
-      <AlertTriangle className="h-5 w-5 text-red-600" />
-    ) : (
-      <GraduationCap className="h-5 w-5 text-blue-600" />
-    );
+    switch (type) {
+      case 'visa_rejection':
+        return <AlertTriangle className="h-5 w-5 text-red-600" />;
+      case 'offer_letter':
+        return <FileText className="h-5 w-5 text-green-600" />;
+      case 'coe':
+        return <GraduationCap className="h-5 w-5 text-blue-600" />;
+      default:
+        return <FileText className="h-5 w-5 text-gray-600" />;
+    }
   }, []);
 
   const getAnalysisTypeLabel = useMemo(() => (type: string) => {
-    return type === 'visa_rejection' ? 'Visa Analysis' : 'Enrollment Analysis';
+    switch (type) {
+      case 'visa_rejection':
+        return 'Visa Analysis';
+      case 'offer_letter':
+        return 'Offer Letter Analysis';
+      case 'coe':
+        return 'COE Analysis';
+      default:
+        return 'Document Analysis';
+    }
   }, []);
 
   const getAnalysisTypeBadge = useMemo(() => (type: string) => {
-    return type === 'visa_rejection' ? (
-      <Badge className="bg-blue-100 text-blue-800 border-blue-200">Visa Analysis</Badge>
-    ) : (
-      <Badge className="bg-blue-100 text-blue-800 border-blue-200">Enrollment Analysis</Badge>
-    );
+    switch (type) {
+      case 'visa_rejection':
+        return <Badge className="bg-red-100 text-red-800 border-red-200">Visa Analysis</Badge>;
+      case 'offer_letter':
+        return <Badge className="bg-green-100 text-green-800 border-green-200">Offer Letter</Badge>;
+      case 'coe':
+        return <Badge className="bg-blue-100 text-blue-800 border-blue-200">COE Analysis</Badge>;
+      default:
+        return <Badge className="bg-gray-100 text-gray-800 border-gray-200">Document</Badge>;
+    }
   }, []);
 
   const totalPages = Math.ceil(filteredAnalyses.length / itemsPerPage);
