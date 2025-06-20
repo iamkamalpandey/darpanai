@@ -154,7 +154,8 @@ export default function OfferLetterAnalysisView() {
   const [, setLocation] = useLocation();
 
   const { data: analysis, isLoading, error } = useQuery<OfferLetterAnalysis>({
-    queryKey: ['/api/offer-letter-analyses', id],
+    queryKey: [`/api/offer-letter-analyses/${id}`],
+    enabled: !!id,
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
@@ -499,7 +500,7 @@ export default function OfferLetterAnalysisView() {
                   <div>
                     <p className="font-medium text-gray-900 mb-2">Financial Obligations</p>
                     <ul className="space-y-1">
-                      {analysisData.documentAnalysis.termsAndConditions.financialObligations.map((obligation, index) => (
+                      {(analysisData.documentAnalysis?.termsAndConditions?.financialObligations || []).map((obligation, index) => (
                         <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
                           <DollarSign className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                           {obligation}
