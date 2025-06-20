@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,10 +11,12 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { User, Calendar, GraduationCap, Globe, Briefcase, Languages } from 'lucide-react';
+import { User, Calendar, GraduationCap, Globe, Briefcase, Languages, CheckCircle, AlertTriangle, Plus, Trash2, Info, TestTube2 } from 'lucide-react';
 
 // Comprehensive form schemas based on global student lead profile
 const personalInfoSchema = z.object({
@@ -98,6 +100,47 @@ export default function UserProfile() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Calculate profile completeness
+  const profileCompleteness = useMemo(() => {
+    if (!user) return { percentage: 0, missingFields: [], completedSections: 0, totalSections: 5 };
+
+    const requiredFields = {
+      personal: ['firstName', 'lastName', 'dateOfBirth', 'gender', 'nationality', 'phoneNumber'],
+      academic: ['highestQualification', 'highestInstitution', 'highestCountry', 'highestGpa', 'graduationYear'],
+      study: ['interestedCourse', 'fieldOfStudy', 'preferredIntake', 'budgetRange'],
+      employment: ['currentEmploymentStatus'],
+      tests: [] // Optional section for now
+    };
+
+    let completedFields = 0;
+    let totalFields = 0;
+    let completedSections = 0;
+    const missingFields: string[] = [];
+
+    Object.entries(requiredFields).forEach(([section, fields]) => {
+      let sectionComplete = true;
+      fields.forEach(field => {
+        totalFields++;
+        if (user[field as keyof typeof user] && user[field as keyof typeof user] !== '') {
+          completedFields++;
+        } else {
+          sectionComplete = false;
+          missingFields.push(field);
+        }
+      });
+      if (sectionComplete && fields.length > 0) completedSections++;
+    });
+
+    const percentage = totalFields > 0 ? Math.round((completedFields / totalFields) * 100) : 0;
+    
+    return {
+      percentage,
+      missingFields,
+      completedSections,
+      totalSections: Object.keys(requiredFields).length - 1 // Excluding tests for now
+    };
+  }, [user]);
+
   // Personal Info Form
   const personalForm = useForm({
     resolver: zodResolver(personalInfoSchema),
@@ -155,6 +198,33 @@ export default function UserProfile() {
     },
   });
 
+  // Tests Form (English Proficiency and Academic Standardized Tests)
+  const testsForm = useForm({
+    resolver: zodResolver(languageProficiencySchema),
+    defaultValues: {
+      englishProficiencyTests: user?.englishProficiencyTests || [],
+      standardizedTests: user?.standardizedTests || [],
+    },
+  });
+
+  const { 
+    fields: englishTestFields, 
+    append: appendEnglishTest, 
+    remove: removeEnglishTest 
+  } = useFieldArray({
+    control: testsForm.control,
+    name: "englishProficiencyTests"
+  });
+
+  const { 
+    fields: academicTestFields, 
+    append: appendAcademicTest, 
+    remove: removeAcademicTest 
+  } = useFieldArray({
+    control: testsForm.control,
+    name: "standardizedTests"
+  });
+
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -202,6 +272,26 @@ export default function UserProfile() {
     updateProfileMutation.mutate(data);
   };
 
+  const onSubmitTests = (data: z.infer<typeof languageProficiencySchema>) => {
+    updateProfileMutation.mutate(data);
+  };
+
+  // Helper functions for test score validation
+  const getScoreRange = (testType: string) => {
+    const ranges = {
+      IELTS: { min: 0, max: 9, step: 0.5 },
+      TOEFL: { min: 0, max: 120, step: 1 },
+      PTE: { min: 10, max: 90, step: 1 },
+      Duolingo: { min: 10, max: 160, step: 5 },
+      Cambridge: { min: 0, max: 230, step: 1 },
+      GRE: { min: 260, max: 340, step: 1 },
+      GMAT: { min: 200, max: 800, step: 10 },
+      SAT: { min: 400, max: 1600, step: 10 },
+      ACT: { min: 1, max: 36, step: 1 }
+    };
+    return ranges[testType as keyof typeof ranges] || { min: 0, max: 100, step: 1 };
+  };
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -222,6 +312,62 @@ export default function UserProfile() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">My Profile</h1>
           <p className="text-gray-600">Manage your comprehensive student profile information</p>
         </div>
+
+        {/* Profile Completeness Card */}
+        <Card className="mb-6 border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-full">
+                  <Info className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Profile Completeness</CardTitle>
+                  <CardDescription>
+                    Complete your profile to get more accurate AI recommendations
+                  </CardDescription>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-blue-600">
+                  {profileCompleteness.percentage}%
+                </div>
+                <div className="text-sm text-gray-500">
+                  {profileCompleteness.completedSections}/{profileCompleteness.totalSections} sections
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-3">
+              <Progress 
+                value={profileCompleteness.percentage} 
+                className="h-2"
+              />
+              {profileCompleteness.percentage < 100 && (
+                <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
+                  <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm">
+                    <p className="font-medium text-amber-800 mb-1">
+                      Complete your profile for better recommendations
+                    </p>
+                    <p className="text-amber-700">
+                      Missing information may affect the accuracy of AI-generated study destination suggestions and document analysis.
+                    </p>
+                  </div>
+                </div>
+              )}
+              {profileCompleteness.percentage === 100 && (
+                <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-800">
+                    Profile complete! You can now access all AI features.
+                  </span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-6 bg-gray-50 rounded-lg p-1">
@@ -829,6 +975,413 @@ export default function UserProfile() {
                       className="w-full"
                     >
                       {updateProfileMutation.isPending ? "Updating..." : "Update Employment Information"}
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="tests" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Language & Academic Tests</CardTitle>
+                <CardDescription>
+                  Manage your English proficiency and academic standardized test scores
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Form {...testsForm}>
+                  <form onSubmit={testsForm.handleSubmit(onSubmitTests)} className="space-y-6">
+                    
+                    {/* English Language Proficiency Tests */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">English Language Proficiency Tests</h3>
+                          <p className="text-sm text-gray-600">IELTS, TOEFL, PTE, Duolingo, Cambridge</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => appendEnglishTest({ 
+                            testType: "IELTS", 
+                            testDate: "", 
+                            overallScore: 0,
+                            subscores: {}
+                          })}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add English Test
+                        </Button>
+                      </div>
+
+                      {englishTestFields.length === 0 && (
+                        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                          <Languages className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                          <p>No English proficiency tests added yet</p>
+                          <p className="text-sm">Add your IELTS, TOEFL, PTE, or other test scores</p>
+                        </div>
+                      )}
+
+                      {englishTestFields.map((field, index) => (
+                        <Card key={field.id} className="border-blue-100 bg-blue-50/30">
+                          <CardContent className="pt-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                                English Proficiency Test #{index + 1}
+                              </Badge>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeEnglishTest(index)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <FormField
+                                control={testsForm.control}
+                                name={`englishProficiencyTests.${index}.testType`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Test Type</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select test" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="IELTS">IELTS (0-9)</SelectItem>
+                                        <SelectItem value="TOEFL">TOEFL (0-120)</SelectItem>
+                                        <SelectItem value="PTE">PTE (10-90)</SelectItem>
+                                        <SelectItem value="Duolingo">Duolingo (10-160)</SelectItem>
+                                        <SelectItem value="Cambridge">Cambridge (0-230)</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={testsForm.control}
+                                name={`englishProficiencyTests.${index}.testDate`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Test Date</FormLabel>
+                                    <FormControl>
+                                      <Input type="date" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={testsForm.control}
+                                name={`englishProficiencyTests.${index}.overallScore`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Overall Score</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        type="number" 
+                                        step={getScoreRange(testsForm.watch(`englishProficiencyTests.${index}.testType`)).step}
+                                        min={getScoreRange(testsForm.watch(`englishProficiencyTests.${index}.testType`)).min}
+                                        max={getScoreRange(testsForm.watch(`englishProficiencyTests.${index}.testType`)).max}
+                                        {...field} 
+                                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
+                            {/* Subscores for English tests */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                              <FormField
+                                control={testsForm.control}
+                                name={`englishProficiencyTests.${index}.subscores.listening`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Listening</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        type="number" 
+                                        step={getScoreRange(testsForm.watch(`englishProficiencyTests.${index}.testType`)).step}
+                                        min={getScoreRange(testsForm.watch(`englishProficiencyTests.${index}.testType`)).min}
+                                        max={getScoreRange(testsForm.watch(`englishProficiencyTests.${index}.testType`)).max}
+                                        placeholder="Optional"
+                                        {...field} 
+                                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={testsForm.control}
+                                name={`englishProficiencyTests.${index}.subscores.reading`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Reading</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        type="number" 
+                                        step={getScoreRange(testsForm.watch(`englishProficiencyTests.${index}.testType`)).step}
+                                        min={getScoreRange(testsForm.watch(`englishProficiencyTests.${index}.testType`)).min}
+                                        max={getScoreRange(testsForm.watch(`englishProficiencyTests.${index}.testType`)).max}
+                                        placeholder="Optional"
+                                        {...field} 
+                                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={testsForm.control}
+                                name={`englishProficiencyTests.${index}.subscores.writing`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Writing</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        type="number" 
+                                        step={getScoreRange(testsForm.watch(`englishProficiencyTests.${index}.testType`)).step}
+                                        min={getScoreRange(testsForm.watch(`englishProficiencyTests.${index}.testType`)).min}
+                                        max={getScoreRange(testsForm.watch(`englishProficiencyTests.${index}.testType`)).max}
+                                        placeholder="Optional"
+                                        {...field} 
+                                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={testsForm.control}
+                                name={`englishProficiencyTests.${index}.subscores.speaking`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Speaking</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        type="number" 
+                                        step={getScoreRange(testsForm.watch(`englishProficiencyTests.${index}.testType`)).step}
+                                        min={getScoreRange(testsForm.watch(`englishProficiencyTests.${index}.testType`)).min}
+                                        max={getScoreRange(testsForm.watch(`englishProficiencyTests.${index}.testType`)).max}
+                                        placeholder="Optional"
+                                        {...field} 
+                                        onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+
+                    <Separator />
+
+                    {/* Academic Standardized Tests */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900">Academic Standardized Tests</h3>
+                          <p className="text-sm text-gray-600">GRE, GMAT, SAT, ACT</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => appendAcademicTest({ 
+                            testType: "GRE", 
+                            testDate: "", 
+                            overallScore: 0,
+                            subscores: {}
+                          })}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Academic Test
+                        </Button>
+                      </div>
+
+                      {academicTestFields.length === 0 && (
+                        <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                          <GraduationCap className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                          <p>No academic tests added yet</p>
+                          <p className="text-sm">Add your GRE, GMAT, SAT, or ACT scores</p>
+                        </div>
+                      )}
+
+                      {academicTestFields.map((field, index) => (
+                        <Card key={field.id} className="border-green-100 bg-green-50/30">
+                          <CardContent className="pt-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <Badge variant="secondary" className="bg-green-100 text-green-800">
+                                Academic Test #{index + 1}
+                              </Badge>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeAcademicTest(index)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <FormField
+                                control={testsForm.control}
+                                name={`standardizedTests.${index}.testType`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Test Type</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select test" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="GRE">GRE (260-340)</SelectItem>
+                                        <SelectItem value="GMAT">GMAT (200-800)</SelectItem>
+                                        <SelectItem value="SAT">SAT (400-1600)</SelectItem>
+                                        <SelectItem value="ACT">ACT (1-36)</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={testsForm.control}
+                                name={`standardizedTests.${index}.testDate`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Test Date</FormLabel>
+                                    <FormControl>
+                                      <Input type="date" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={testsForm.control}
+                                name={`standardizedTests.${index}.overallScore`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Overall Score</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        type="number" 
+                                        step={getScoreRange(testsForm.watch(`standardizedTests.${index}.testType`)).step}
+                                        min={getScoreRange(testsForm.watch(`standardizedTests.${index}.testType`)).min}
+                                        max={getScoreRange(testsForm.watch(`standardizedTests.${index}.testType`)).max}
+                                        {...field} 
+                                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
+                            {/* Subscores for Academic tests */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                              <FormField
+                                control={testsForm.control}
+                                name={`standardizedTests.${index}.subscores.math`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Math/Quantitative</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        type="number" 
+                                        placeholder="Optional"
+                                        {...field} 
+                                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={testsForm.control}
+                                name={`standardizedTests.${index}.subscores.verbal`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Verbal/Reading</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        type="number" 
+                                        placeholder="Optional"
+                                        {...field} 
+                                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={testsForm.control}
+                                name={`standardizedTests.${index}.subscores.writing`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Writing</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        type="number" 
+                                        placeholder="Optional"
+                                        {...field} 
+                                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      disabled={updateProfileMutation.isPending}
+                      className="w-full"
+                    >
+                      {updateProfileMutation.isPending ? "Updating..." : "Update Test Scores"}
                     </Button>
                   </form>
                 </Form>
