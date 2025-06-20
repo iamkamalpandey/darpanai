@@ -52,6 +52,37 @@ export default function EnhancedUserProfile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [editingSection, setEditingSection] = useState<string | null>(null);
+
+  // Helper functions for formatting ranges
+  const formatBudgetRange = (value: string) => {
+    const ranges = {
+      'help-me-plan': 'Help me Plan (Need Guidance)',
+      'under-10000': 'Under $10,000',
+      '10000-25000': '$10,000 - $25,000',
+      '25000-50000': '$25,000 - $50,000',
+      '50000-75000': '$50,000 - $75,000',
+      '75000-100000': '$75,000 - $100,000',
+      '100000-150000': '$100,000 - $150,000',
+      'over-150000': 'Over $150,000',
+      'prefer-not-to-say': 'Prefer not to say'
+    };
+    return ranges[value as keyof typeof ranges] || value;
+  };
+
+  const formatSavingsRange = (value: string) => {
+    const ranges = {
+      'no-savings': 'No Current Savings',
+      'under-5000': 'Under $5,000',
+      '5000-15000': '$5,000 - $15,000',
+      '15000-30000': '$15,000 - $30,000',
+      '30000-50000': '$30,000 - $50,000',
+      '50000-75000': '$50,000 - $75,000',
+      '75000-100000': '$75,000 - $100,000',
+      'over-100000': 'Over $100,000',
+      'prefer-not-to-say': 'Prefer not to say'
+    };
+    return ranges[value as keyof typeof ranges] || value;
+  };
   
   const { data: user, isLoading } = useQuery({
     queryKey: ['/api/user'],
@@ -376,11 +407,11 @@ export default function EnhancedUserProfile() {
                 </div>
                 <div>
                   <div className="text-sm font-medium text-gray-500">Total Budget</div>
-                  <div className="text-gray-900">{user.estimatedBudget ? `$${user.estimatedBudget.toLocaleString()} USD` : 'Not specified'}</div>
+                  <div className="text-gray-900">{user.estimatedBudget ? formatBudgetRange(user.estimatedBudget) : 'Not specified'}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-gray-500">Current Savings</div>
-                  <div className="text-gray-900">{user.savingsAmount ? `$${user.savingsAmount.toLocaleString()} USD` : 'Not specified'}</div>
+                  <div className="text-gray-900">{user.savingsAmount ? formatSavingsRange(user.savingsAmount) : 'Not specified'}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-gray-500">Loan Amount</div>

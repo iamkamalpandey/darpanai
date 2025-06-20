@@ -1613,8 +1613,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Financial Information
         fundingSource: z.string().nullable().optional().transform(val => val === null ? undefined : val),
-        estimatedBudget: z.union([z.string(), z.number()]).nullable().optional().transform(val => val === null ? undefined : (typeof val === 'string' ? parseInt(val) || undefined : val)),
-        savingsAmount: z.union([z.string(), z.number()]).nullable().optional().transform(val => val === null ? undefined : (typeof val === 'string' ? parseInt(val) || undefined : val)),
+        estimatedBudget: z.string().nullable().optional().transform(val => val === null ? undefined : val),
+        savingsAmount: z.string().nullable().optional().transform(val => val === null ? undefined : val),
         loanApproval: z.boolean().nullable().optional().transform(val => val === null ? undefined : val),
         loanAmount: z.union([z.string(), z.number()]).nullable().optional().transform(val => val === null ? undefined : (typeof val === 'string' ? parseInt(val) || undefined : val)),
         sponsorDetails: z.string().nullable().optional().transform(val => val === null ? undefined : val),

@@ -143,14 +143,10 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
       case 'financial':
         return [
           { field: 'fundingSource', message: 'Source of funds is required', required: true },
-          { field: 'estimatedBudget', message: 'Total budget is required', required: true,
+          { field: 'estimatedBudget', message: 'Total budget range is required', required: true,
             validator: (value: any) => {
-              const budget = parseInt(value);
-              if (isNaN(budget) || budget <= 0) {
-                return 'Please enter a valid budget amount';
-              }
-              if (budget < 5000) {
-                return 'Budget should be at least $5,000 USD for international study';
+              if (!value || value === '') {
+                return 'Please select your budget range';
               }
               return true;
             }
@@ -911,28 +907,50 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
           <Label htmlFor="estimatedBudget" className={hasFieldError('estimatedBudget') ? 'text-red-600' : ''}>
             Total Budget (USD) *
           </Label>
-          <Input 
-            id="estimatedBudget" 
-            type="number"
+          <Select 
             value={formData.estimatedBudget || ''} 
-            onChange={(e) => handleInputChange('estimatedBudget', e.target.value)}
-            placeholder="e.g., 50000"
-            required
-            className={hasFieldError('estimatedBudget') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
-          />
+            onValueChange={(value) => handleInputChange('estimatedBudget', value)}
+          >
+            <SelectTrigger className={hasFieldError('estimatedBudget') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}>
+              <SelectValue placeholder="Select your total budget range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="help-me-plan">Help me Plan (Need Guidance)</SelectItem>
+              <SelectItem value="under-10000">Under $10,000</SelectItem>
+              <SelectItem value="10000-25000">$10,000 - $25,000</SelectItem>
+              <SelectItem value="25000-50000">$25,000 - $50,000</SelectItem>
+              <SelectItem value="50000-75000">$50,000 - $75,000</SelectItem>
+              <SelectItem value="75000-100000">$75,000 - $100,000</SelectItem>
+              <SelectItem value="100000-150000">$100,000 - $150,000</SelectItem>
+              <SelectItem value="over-150000">Over $150,000</SelectItem>
+              <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+            </SelectContent>
+          </Select>
           {getFieldError('estimatedBudget') && (
             <p className="text-sm text-red-600 mt-1">{getFieldError('estimatedBudget')}</p>
           )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="savingsAmount">Current Savings (USD)</Label>
-          <Input 
-            id="savingsAmount" 
-            type="number"
+          <Select 
             value={formData.savingsAmount || ''} 
-            onChange={(e) => handleInputChange('savingsAmount', e.target.value)}
-            placeholder="e.g., 25000"
-          />
+            onValueChange={(value) => handleInputChange('savingsAmount', value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select your current savings range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="no-savings">No Current Savings</SelectItem>
+              <SelectItem value="under-5000">Under $5,000</SelectItem>
+              <SelectItem value="5000-15000">$5,000 - $15,000</SelectItem>
+              <SelectItem value="15000-30000">$15,000 - $30,000</SelectItem>
+              <SelectItem value="30000-50000">$30,000 - $50,000</SelectItem>
+              <SelectItem value="50000-75000">$50,000 - $75,000</SelectItem>
+              <SelectItem value="75000-100000">$75,000 - $100,000</SelectItem>
+              <SelectItem value="over-100000">Over $100,000</SelectItem>
+              <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="loanAmount">Loan Amount (USD)</Label>
