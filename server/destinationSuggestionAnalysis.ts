@@ -7,15 +7,15 @@ interface UserProfile {
   firstName: string;
   lastName: string;
   country: string;
-  studyLevel?: string;
-  preferredStudyFields?: string[];
-  budgetRange?: string;
-  languagePreferences?: string[];
-  climatePreference?: string;
-  universityRankingImportance?: string;
-  workPermitImportance?: string;
-  culturalPreferences?: string[];
-  careerGoals?: string;
+  studyLevel?: string | null;
+  preferredStudyFields?: string[] | null;
+  budgetRange?: string | null;
+  languagePreferences?: string[] | null;
+  climatePreference?: string | null;
+  universityRankingImportance?: string | null;
+  workPermitImportance?: string | null;
+  culturalPreferences?: string[] | null;
+  careerGoals?: string | null;
 }
 
 interface DestinationSuggestionRequest {

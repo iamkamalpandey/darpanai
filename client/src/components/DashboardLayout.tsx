@@ -82,6 +82,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         { icon: <GraduationCap size={18} />, label: 'Offer Letter Analysis', href: '/offer-letter-analysis' },
       ]
     },
+    { icon: <Globe size={20} />, label: 'AI Destination Suggestions', href: '/destination-suggestions' },
     { icon: <Calendar size={20} />, label: 'Appointments', href: '/consultations' },
     { 
       icon: <FolderOpen size={20} />, 

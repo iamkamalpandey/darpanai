@@ -1522,6 +1522,187 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Study Destination Suggestion API Routes
+
+  // Generate personalized study destination suggestions
+  app.post('/api/destination-suggestions/generate', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+      
+      // Check if user has remaining analysis quota
+      if (user.analysisCount >= user.maxAnalyses) {
+        return res.status(403).json({ 
+          error: 'Analysis quota exceeded',
+          message: 'You have reached your maximum number of analyses. Please contact support to increase your quota.'
+        });
+      }
+
+      const { destinationSuggestionRequestSchema } = await import('@shared/schema');
+      const requestData = destinationSuggestionRequestSchema.parse(req.body);
+      
+      // Update user preferences if provided
+      if (requestData.userPreferences && Object.keys(requestData.userPreferences).length > 0) {
+        await storage.updateUserStudyPreferences(user.id, requestData.userPreferences);
+      }
+
+      // Get updated user profile with preferences
+      const updatedUser = await storage.getUser(user.id);
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Generate AI-powered destination suggestions
+      const { generateDestinationSuggestions } = await import('./destinationSuggestionAnalysis');
+      
+      // Transform user data to match UserProfile interface
+      const userProfile = {
+        id: updatedUser.id,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        country: updatedUser.country,
+        studyLevel: updatedUser.studyLevel || undefined,
+        preferredStudyFields: updatedUser.preferredStudyFields || undefined,
+        budgetRange: updatedUser.budgetRange || undefined,
+        languagePreferences: updatedUser.languagePreferences || undefined,
+        climatePreference: updatedUser.climatePreference || undefined,
+        universityRankingImportance: updatedUser.universityRankingImportance || undefined,
+        workPermitImportance: updatedUser.workPermitImportance || undefined,
+        culturalPreferences: updatedUser.culturalPreferences || undefined,
+        careerGoals: updatedUser.careerGoals || undefined,
+      };
+      
+      const { analysis, tokensUsed, processingTime } = await generateDestinationSuggestions(
+        userProfile,
+        requestData
+      );
+
+      // Save suggestion to database
+      const suggestion = await storage.createStudyDestinationSuggestion({
+        userId: user.id,
+        suggestedCountries: analysis.topRecommendations,
+        matchScore: analysis.overallMatchScore,
+        reasoning: analysis.executiveSummary,
+        keyFactors: analysis.keyFactors,
+        recommendations: {
+          personalizedInsights: analysis.personalizedInsights,
+          nextSteps: analysis.nextSteps,
+          budgetOptimization: analysis.budgetOptimization,
+          timeline: analysis.timeline
+        },
+        isActive: true
+      });
+
+      // Update user analysis count
+      await storage.updateUser(user.id, {
+        analysisCount: user.analysisCount + 1
+      });
+
+      return res.status(201).json({
+        message: 'Destination suggestions generated successfully',
+        suggestionId: suggestion.id,
+        analysis,
+        tokensUsed,
+        processingTime
+      });
+      
+    } catch (error) {
+      console.error('Error generating destination suggestions:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: 'Invalid request data', 
+          details: error.errors 
+        });
+      }
+      return res.status(500).json({ error: 'Failed to generate destination suggestions' });
+    }
+  });
+
+  // Get user's destination suggestions
+  app.get('/api/destination-suggestions', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+      const suggestions = await storage.getUserStudyDestinationSuggestions(user.id);
+      
+      return res.status(200).json(suggestions);
+    } catch (error) {
+      console.error('Error fetching destination suggestions:', error);
+      return res.status(500).json({ error: 'Failed to fetch destination suggestions' });
+    }
+  });
+
+  // Get specific destination suggestion
+  app.get('/api/destination-suggestions/:id', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+      const suggestionId = parseInt(req.params.id);
+      
+      const suggestion = await storage.getStudyDestinationSuggestion(suggestionId);
+      
+      if (!suggestion) {
+        return res.status(404).json({ error: 'Destination suggestion not found' });
+      }
+      
+      // Check if user owns this suggestion or is admin
+      if (suggestion.userId !== user.id && user.role !== 'admin') {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      return res.status(200).json(suggestion);
+    } catch (error) {
+      console.error('Error fetching destination suggestion:', error);
+      return res.status(500).json({ error: 'Failed to fetch destination suggestion' });
+    }
+  });
+
+  // Update user study preferences
+  app.patch('/api/user/study-preferences', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+      const { studyPreferencesSchema } = await import('@shared/schema');
+      const preferences = studyPreferencesSchema.parse(req.body);
+      
+      const updatedUser = await storage.updateUserStudyPreferences(user.id, preferences);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      return res.status(200).json({
+        message: 'Study preferences updated successfully',
+        preferences: {
+          preferredStudyFields: updatedUser.preferredStudyFields,
+          budgetRange: updatedUser.budgetRange,
+          languagePreferences: updatedUser.languagePreferences,
+          climatePreference: updatedUser.climatePreference,
+          universityRankingImportance: updatedUser.universityRankingImportance,
+          workPermitImportance: updatedUser.workPermitImportance,
+          culturalPreferences: updatedUser.culturalPreferences,
+          careerGoals: updatedUser.careerGoals,
+        }
+      });
+    } catch (error) {
+      console.error('Error updating study preferences:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: 'Invalid preferences data', 
+          details: error.errors 
+        });
+      }
+      return res.status(500).json({ error: 'Failed to update study preferences' });
+    }
+  });
+
+  // Admin: Get all destination suggestions
+  app.get('/api/admin/destination-suggestions', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const suggestions = await storage.getUserStudyDestinationSuggestions(0); // Get all suggestions
+      return res.status(200).json(suggestions);
+    } catch (error) {
+      console.error('Error fetching admin destination suggestions:', error);
+      return res.status(500).json({ error: 'Failed to fetch destination suggestions' });
+    }
+  });
+
   // Updates/Notifications API Routes
 
   // Get updates for current user (only show updates created after user signup)
