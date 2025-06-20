@@ -49,6 +49,14 @@ export const users = pgTable("users", {
   workPermitImportance: text("work_permit_importance"), // not-important, somewhat, very-important
   culturalPreferences: text("cultural_preferences").array(),
   careerGoals: text("career_goals"),
+  
+  // English Language Proficiency
+  englishProficiency: text("english_proficiency"), // none, basic, intermediate, advanced, native
+  englishTestType: text("english_test_type"), // ielts, toefl, pte, duolingo, cambridge, none
+  englishTestScore: text("english_test_score"),
+  englishTestDate: text("english_test_date"), // Using text for date to avoid import issues
+  englishTestExpiry: text("english_test_expiry"),
+  needsEnglishImprovement: boolean("needs_english_improvement").default(false),
 });
 
 // Study Destination Suggestions
