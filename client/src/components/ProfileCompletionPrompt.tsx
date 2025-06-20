@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Circle, User, GraduationCap, Globe, DollarSign, MapPin, Briefcase, Languages, X } from 'lucide-react';
+import { CheckCircle, Circle, User, GraduationCap, Globe, DollarSign, MapPin, Briefcase, Languages, X, Trophy, Target, FileText, Clock } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'wouter';
 
@@ -90,14 +90,9 @@ export function ProfileCompletionPrompt({ open, onClose }: ProfileCompletionProm
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-bold text-gray-900">
-              Complete Your Profile for Better AI Analysis
-            </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X size={16} />
-            </Button>
-          </div>
+          <DialogTitle className="text-xl font-bold text-gray-900">
+            Complete Your Profile for Better AI Analysis
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -115,16 +110,51 @@ export function ProfileCompletionPrompt({ open, onClose }: ProfileCompletionProm
             </p>
           </div>
 
-          {/* Benefits Section */}
-          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-            <h4 className="font-semibold text-green-800 mb-2">Why Complete Your Profile?</h4>
-            <ul className="text-sm text-green-700 space-y-1">
-              <li>• Get personalized AI study destination recommendations</li>
-              <li>• Receive more accurate document analysis results</li>
-              <li>• Access scholarship matching based on your profile</li>
-              <li>• Get country-specific visa guidance tailored to you</li>
-              <li>• Unlock advanced features and priority support</li>
-            </ul>
+          {/* Enhanced Benefits Section */}
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border border-green-200">
+            <h4 className="font-bold text-green-800 mb-4 text-lg">🎯 Unlock Premium AI Analysis Features</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <div className="flex items-start">
+                  <div className="bg-green-100 p-2 rounded-full mr-3 mt-1">
+                    <Trophy className="h-4 w-4 text-green-600" />
+                  </div>
+                  <div>
+                    <h5 className="font-semibold text-green-800">Personalized Study Destinations</h5>
+                    <p className="text-sm text-green-700">AI matches 50+ countries based on your academic profile, budget, and preferences</p>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <div className="bg-blue-100 p-2 rounded-full mr-3 mt-1">
+                    <Target className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <h5 className="font-semibold text-blue-800">Smart Scholarship Matching</h5>
+                    <p className="text-sm text-blue-700">Find scholarships worth $10K-$100K+ tailored to your nationality and field</p>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-start">
+                  <div className="bg-purple-100 p-2 rounded-full mr-3 mt-1">
+                    <FileText className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <h5 className="font-semibold text-purple-800">Enhanced Document Analysis</h5>
+                    <p className="text-sm text-purple-700">90% more accurate visa analysis with your complete academic history</p>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <div className="bg-orange-100 p-2 rounded-full mr-3 mt-1">
+                    <Clock className="h-4 w-4 text-orange-600" />
+                  </div>
+                  <div>
+                    <h5 className="font-semibold text-orange-800">Priority Support</h5>
+                    <p className="text-sm text-orange-700">Get faster consultation booking and premium expert guidance</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Profile Sections */}

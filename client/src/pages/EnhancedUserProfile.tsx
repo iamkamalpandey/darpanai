@@ -28,6 +28,7 @@ import {
   Edit
 } from 'lucide-react';
 import { Link } from 'wouter';
+import { ProfileSectionEditor } from '@/components/ProfileSectionEditor';
 
 // Compulsory fields for profile completion
 const COMPULSORY_FIELDS = [
@@ -49,6 +50,7 @@ const SECTION_FIELDS = {
 export default function EnhancedUserProfile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [editingSection, setEditingSection] = useState<string | null>(null);
   
   const { data: user, isLoading } = useQuery({
     queryKey: ['/api/user'],
