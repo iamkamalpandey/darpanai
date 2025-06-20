@@ -18,6 +18,7 @@ import AuthPage from "@/pages/auth-page";
 const VisaAnalyzer = lazy(() => import("@/pages/VisaAnalyzer"));
 const AnalysisHistory = lazy(() => import("@/pages/AnalysisHistory"));
 const AnalysisHub = lazy(() => import("@/pages/AnalysisHub"));
+const MyAnalysis = lazy(() => import("@/pages/MyAnalysis"));
 const VisaRejectionAnalysis = lazy(() => import("@/pages/VisaRejectionAnalysis"));
 const EnrollmentAnalysis = lazy(() => import("@/pages/EnrollmentAnalysis"));
 const CoEAnalysis = lazy(() => import("@/pages/CoEAnalysis"));
