@@ -159,6 +159,10 @@ export default function OfferLetterAnalysisView() {
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
+  // Debug logging
+  console.log('Raw analysis data:', analysis);
+  console.log('Analysis results:', analysis?.analysisResults);
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -844,7 +848,7 @@ export default function OfferLetterAnalysisView() {
                         <div>
                           <p className="font-medium text-gray-900">Dependencies</p>
                           <ul className="text-gray-700">
-                            {step.dependencies.map((dep, depIndex) => (
+                            {(step.dependencies || []).map((dep, depIndex) => (
                               <li key={depIndex}>• {dep}</li>
                             ))}
                           </ul>
@@ -854,7 +858,7 @@ export default function OfferLetterAnalysisView() {
                       <div>
                         <p className="font-medium text-gray-900 mb-1">Required Resources</p>
                         <div className="flex flex-wrap gap-2">
-                          {step.requiredResources.map((resource, resourceIndex) => (
+                          {(step.requiredResources || []).map((resource, resourceIndex) => (
                             <Badge key={resourceIndex} variant="outline" className="text-xs">
                               {resource}
                             </Badge>
@@ -865,7 +869,7 @@ export default function OfferLetterAnalysisView() {
                       <div>
                         <p className="font-medium text-gray-900 mb-1">Success Criteria</p>
                         <ul className="space-y-1">
-                          {step.successCriteria.map((criteria, criteriaIndex) => (
+                          {(step.successCriteria || []).map((criteria, criteriaIndex) => (
                             <li key={criteriaIndex} className="text-sm text-gray-700 flex items-start gap-2">
                               <Star className="h-3 w-3 text-yellow-600 mt-1 flex-shrink-0" />
                               {criteria}
