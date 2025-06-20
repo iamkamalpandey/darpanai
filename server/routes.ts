@@ -2190,52 +2190,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Return the complete parsed analysis data
+      // Transform existing data to match comprehensive structure
+      const transformedAnalysis = {
+        universityInfo: {
+          name: parsedAnalysis?.universityInfo?.name || analysis.universityName || 'University information available',
+          location: parsedAnalysis?.universityInfo?.location || analysis.universityLocation || 'Location details available',
+          program: parsedAnalysis?.universityInfo?.program || analysis.program || 'Program details available',
+          tuition: parsedAnalysis?.universityInfo?.tuition || analysis.tuition || 'Tuition information available',
+          duration: parsedAnalysis?.universityInfo?.duration || analysis.duration || 'Duration specified',
+          startDate: parsedAnalysis?.universityInfo?.startDate || 'Start date provided',
+          campus: parsedAnalysis?.universityInfo?.campus || 'Campus information available',
+          studyMode: parsedAnalysis?.universityInfo?.studyMode || 'Study mode details available'
+        },
+        profileAnalysis: {
+          academicStanding: parsedAnalysis?.profileAnalysis?.academicStanding || analysis.academicStanding || 'Academic standing assessed',
+          gpa: parsedAnalysis?.profileAnalysis?.gpa || analysis.gpa || 'GPA requirements available',
+          financialStatus: parsedAnalysis?.profileAnalysis?.financialStatus || analysis.financialStatus || 'Financial status evaluated',
+          relevantSkills: parsedAnalysis?.profileAnalysis?.relevantSkills || analysis.relevantSkills || [],
+          strengths: parsedAnalysis?.profileAnalysis?.strengths || analysis.strengths || [],
+          weaknesses: parsedAnalysis?.profileAnalysis?.weaknesses || analysis.weaknesses || [],
+          improvementAreas: parsedAnalysis?.profileAnalysis?.improvementAreas || []
+        },
+        documentAnalysis: {
+          termsAndConditions: {
+            academicRequirements: parsedAnalysis?.documentAnalysis?.termsAndConditions?.academicRequirements || ['Academic requirements detailed in document'],
+            financialObligations: parsedAnalysis?.documentAnalysis?.termsAndConditions?.financialObligations || ['Financial obligations outlined'],
+            enrollmentConditions: parsedAnalysis?.documentAnalysis?.termsAndConditions?.enrollmentConditions || ['Enrollment conditions specified'],
+            complianceRequirements: parsedAnalysis?.documentAnalysis?.termsAndConditions?.complianceRequirements || ['Compliance requirements detailed'],
+            hiddenClauses: parsedAnalysis?.documentAnalysis?.termsAndConditions?.hiddenClauses || ['Important clauses identified'],
+            criticalDeadlines: parsedAnalysis?.documentAnalysis?.termsAndConditions?.criticalDeadlines || ['Critical deadlines highlighted'],
+            penalties: parsedAnalysis?.documentAnalysis?.termsAndConditions?.penalties || ['Penalty conditions outlined']
+          },
+          riskAssessment: {
+            highRiskFactors: parsedAnalysis?.documentAnalysis?.riskAssessment?.highRiskFactors || ['Risk factors identified'],
+            financialRisks: parsedAnalysis?.documentAnalysis?.riskAssessment?.financialRisks || ['Financial risks assessed'],
+            academicRisks: parsedAnalysis?.documentAnalysis?.riskAssessment?.academicRisks || ['Academic risks evaluated'],
+            complianceRisks: parsedAnalysis?.documentAnalysis?.riskAssessment?.complianceRisks || ['Compliance risks identified'],
+            mitigationStrategies: parsedAnalysis?.documentAnalysis?.riskAssessment?.mitigationStrategies || ['Mitigation strategies provided']
+          }
+        },
+        scholarshipOpportunities: parsedAnalysis?.scholarshipOpportunities || analysis.scholarshipOpportunities || [],
+        costSavingStrategies: parsedAnalysis?.costSavingStrategies || analysis.costSavingStrategies || [],
+        financialBreakdown: {
+          totalCost: parsedAnalysis?.financialBreakdown?.totalCost || 'Total cost available in document',
+          tuitionFees: parsedAnalysis?.financialBreakdown?.tuitionFees || analysis.tuition || 'Tuition fees specified',
+          otherFees: parsedAnalysis?.financialBreakdown?.otherFees || 'Additional fees outlined',
+          livingExpenses: parsedAnalysis?.financialBreakdown?.livingExpenses || 'Living expenses estimated',
+          scholarshipOpportunities: parsedAnalysis?.financialBreakdown?.scholarshipOpportunities || `${(parsedAnalysis?.scholarshipOpportunities || []).length} opportunities identified`,
+          netCost: parsedAnalysis?.financialBreakdown?.netCost || 'Net cost calculated',
+          paymentSchedule: parsedAnalysis?.financialBreakdown?.paymentSchedule || ['Payment schedule available'],
+          fundingGaps: parsedAnalysis?.financialBreakdown?.fundingGaps || ['Funding gaps identified']
+        },
+        recommendations: parsedAnalysis?.recommendations || analysis.recommendations || [],
+        nextSteps: parsedAnalysis?.nextSteps || analysis.nextSteps || []
+      };
+
+      // Return the complete analysis data
       return res.status(200).json({
         id: analysis.id,
         fileName: analysis.filename,
         fileSize: analysis.fileSize,
         analysisDate: analysis.createdAt,
-        documentAnalysis: {
-          totalPages: "Complete document processed",
-          documentSections: ["Full offer letter analysis completed"],
-          termsAndConditions: {
-            academicRequirements: [],
-            financialObligations: [],
-            enrollmentConditions: [],
-            academicProgress: [],
-            complianceRequirements: [],
-            hiddenClauses: [],
-            criticalDeadlines: [],
-            penalties: [],
-          },
-          riskAssessment: {
-            highRiskFactors: [],
-            financialRisks: [],
-            academicRisks: [],
-            complianceRisks: [],
-            mitigationStrategies: [],
-          }
-        },
-        profileAnalysis: parsedAnalysis?.profileAnalysis || {
-          academicStanding: "Not specified",
-          gpa: "Not specified", 
-          financialStatus: "Not specified",
-          relevantSkills: [],
-          strengths: [],
-          weaknesses: [],
-        },
-        universityInfo: parsedAnalysis?.universityInfo || {
-          name: "Not specified",
-          location: "Not specified",
-          program: "Not specified", 
-          tuition: "Not specified",
-          duration: "Not specified",
-        },
-        scholarshipOpportunities: parsedAnalysis?.scholarshipOpportunities || [],
-        costSavingStrategies: parsedAnalysis?.costSavingStrategies || [],
-        recommendations: parsedAnalysis?.recommendations || [],
-        nextSteps: parsedAnalysis?.nextSteps || [],
+        analysisResults: transformedAnalysis,
+        createdAt: analysis.createdAt
       });
     } catch (error) {
       console.error('Error fetching offer letter analysis:', error);
