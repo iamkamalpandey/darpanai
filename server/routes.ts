@@ -1008,6 +1008,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get platform statistics for public/user display
+  app.get('/api/platform-stats', async (req: Request, res: Response) => {
+    try {
+      const cacheKey = 'platform:stats';
+      const cached = getCachedData(cacheKey);
+      
+      if (cached) {
+        return res.status(200).json(cached);
+      }
+      
+      // Get authentic platform statistics from database
+      const stats = await storage.getPlatformStatistics();
+      setCacheData(cacheKey, stats, 30); // Cache for 30 minutes
+      return res.status(200).json(stats);
+    } catch (error) {
+      console.error('Error fetching platform statistics:', error);
+      return res.status(500).json({ error: 'Failed to fetch platform statistics' });
+    }
+  });
+
   // Get all professional applications (admin only)
   app.get('/api/admin/professional-applications', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {

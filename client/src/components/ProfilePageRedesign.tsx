@@ -653,6 +653,31 @@ const ProfilePageRedesign: React.FC = () => {
     },
   });
 
+  // Additional Information Form
+  const additionalForm = useForm({
+    resolver: zodResolver(additionalInfoSchema),
+    defaultValues: {
+      source: user?.source || '',
+      studyDestination: user?.studyDestination || '',
+      startDate: user?.startDate || '',
+      city: user?.city || '',
+      counsellingMode: user?.counsellingMode || '',
+    },
+  });
+
+  // Update additional form when entering edit mode
+  React.useEffect(() => {
+    if (user && editingSection === 'additional') {
+      additionalForm.reset({
+        source: user.source || '',
+        studyDestination: user.studyDestination || '',
+        startDate: user.startDate || '',
+        city: user.city || '',
+        counsellingMode: user.counsellingMode || '',
+      });
+    }
+  }, [user, editingSection, additionalForm]);
+
   // Check section completion
   const isSectionComplete = (section: ProfileSection): boolean => {
     switch (section) {
