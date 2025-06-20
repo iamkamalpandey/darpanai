@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CustomCTA } from "@/components/CustomCTA";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
+import { users } from "@shared/schema";
 import { 
   Upload, 
   FileText, 
@@ -26,6 +27,8 @@ import {
   Plus,
   Shield
 } from "lucide-react";
+
+type User = typeof users.$inferSelect;
 
 interface OfferLetterAnalysisItem {
   id: number;
@@ -46,8 +49,9 @@ export default function OfferLetterAnalysis() {
   const [, setLocation] = useLocation();
 
   // Fetch current user for quota checking (following COE analysis pattern)
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<User>({
     queryKey: ['/api/user'],
+    staleTime: 15 * 60 * 1000, // 15 minutes
   });
 
   // Fetch previous analyses
@@ -182,10 +186,10 @@ export default function OfferLetterAnalysis() {
           </div>
 
           {/* Usage Stats */}
-          {userStats && (
+          {user && (
             <div className="flex items-center gap-4 text-sm">
               <Badge variant={canUpload ? "default" : "destructive"}>
-                {userStats.analysisCount} / {userStats.maxAnalyses} analyses used
+                {user.analysisCount} / {user.maxAnalyses} analyses used
               </Badge>
               <span className="text-gray-600">
                 {canUpload ? "You can upload more documents" : "Analysis limit reached"}
