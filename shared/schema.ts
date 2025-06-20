@@ -69,8 +69,8 @@ export const users = pgTable("users", {
   hasDependents: boolean("has_dependents").default(false),
   
   // Enhanced Financial Information
-  estimatedBudget: integer("estimated_budget"), // Total budget in USD
-  savingsAmount: integer("savings_amount"), // Current savings in USD
+  estimatedBudget: text("estimated_budget"), // Total budget range
+  savingsAmount: text("savings_amount"), // Current savings range
   loanApproval: boolean("loan_approval"), // Whether loan is approved
   loanAmount: integer("loan_amount"), // Approved loan amount
   sponsorDetails: text("sponsor_details"), // Sponsor information
