@@ -2039,6 +2039,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analyze offer letter document (new endpoint)
+  app.post('/api/offer-letter-analyses/analyze', requireAuth, upload.single('document'), async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Check analysis quota
+      if (user.analysisCount >= user.maxAnalyses) {
+        return res.status(403).json({ 
+          error: 'Analysis quota exceeded',
+          message: `You have used all ${user.maxAnalyses} of your analyses. Please upgrade your plan or contact support.`
+        });
+      }
+
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const fileExtension = file.originalname.toLowerCase().split('.').pop();
+      const allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
+      
+      if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
+        return res.status(400).json({ 
+          error: 'Invalid file type',
+          message: 'Please upload a PDF, JPG, or PNG file.'
+        });
+      }
+
+      // Extract text from document
+      const extractedText = await extractTextFromDocument(file.buffer, fileExtension);
+      
+      if (!extractedText || extractedText.trim().length < 50) {
+        return res.status(400).json({ 
+          error: 'Could not extract sufficient text from the document. Please ensure the document is clear and readable.' 
+        });
+      }
+
+      // Analyze offer letter with OpenAI
+      const { analysis, tokensUsed, processingTime } = await analyzeOfferLetterDocument(
+        extractedText,
+        file.originalname
+      );
+
+      // Save analysis to database
+      const savedAnalysis = await storage.saveOfferLetterAnalysis({
+        filename: file.originalname,
+        fileSize: file.size,
+        originalText: extractedText,
+        universityName: analysis.universityInfo.name,
+        universityLocation: analysis.universityInfo.location,
+        program: analysis.universityInfo.program,
+        tuition: analysis.universityInfo.tuition,
+        duration: analysis.universityInfo.duration,
+        academicStanding: analysis.profileAnalysis.academicStanding,
+        gpa: analysis.profileAnalysis.gpa,
+        financialStatus: analysis.profileAnalysis.financialStatus,
+        relevantSkills: analysis.profileAnalysis.relevantSkills,
+        strengths: analysis.profileAnalysis.strengths,
+        weaknesses: analysis.profileAnalysis.weaknesses,
+        scholarshipOpportunities: analysis.scholarshipOpportunities,
+        costSavingStrategies: analysis.costSavingStrategies,
+        recommendations: analysis.recommendations,
+        nextSteps: analysis.nextSteps,
+        analysisResults: analysis,
+        tokensUsed,
+        processingTime,
+        isPublic: false,
+      }, userId);
+
+      // Update user's analysis count
+      await storage.updateUser(userId, { 
+        analysisCount: user.analysisCount + 1 
+      });
+
+      // Invalidate relevant caches
+      invalidateCache(`user:${userId}:stats`);
+      invalidateCache(`user:${userId}:offer-letter-analyses`);
+      invalidateCache('admin:offer-letter-analyses');
+
+      return res.status(201).json({
+        message: 'Offer letter analysis completed successfully',
+        analysisId: savedAnalysis.id,
+        tokensUsed,
+        processingTime
+      });
+
+    } catch (error) {
+      console.error('Error analyzing offer letter:', error);
+      return res.status(500).json({ 
+        error: 'Analysis failed',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred during analysis'
+      });
+    }
+  });
+
   // Create new offer letter analysis
   app.post('/api/offer-letter-analyses', requireAuth, upload.single('document'), async (req: Request, res: Response) => {
     try {
