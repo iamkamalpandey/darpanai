@@ -589,25 +589,7 @@ const ProfilePageRedesign: React.FC = () => {
 
 
 
-  // Update additional form when entering edit mode
-  React.useEffect(() => {
-    if (user && editingSection === 'additional') {
-      additionalForm.reset({
-        source: user.source || '',
-        studyDestination: user.studyDestination || '',
-        startDate: user.startDate || '',
-        city: user.city || '',
-        country: user.country || '',
-        counsellingMode: user.counsellingMode || '',
-        studyLevel: user.studyLevel || '',
-        leadType: user.leadType || '',
-        applicationStatus: user.applicationStatus || '',
-        campaignId: user.campaignId || '',
-        isArchived: user.isArchived || false,
-        dropout: user.dropout || false,
-      });
-    }
-  }, [user, editingSection, additionalForm]);
+
 
   // Language Proficiency Form
   const languageForm = useForm({
@@ -617,26 +599,6 @@ const ProfilePageRedesign: React.FC = () => {
       standardizedTests: user?.standardizedTests || [],
     },
   });
-
-  // Update additional form when entering edit mode
-  React.useEffect(() => {
-    if (user && editingSection === 'additional') {
-      additionalForm.reset({
-        source: user.source || '',
-        studyDestination: user.studyDestination || '',
-        startDate: user.startDate || '',
-        city: user.city || '',
-        country: user.country || '',
-        counsellingMode: user.counsellingMode || '',
-        studyLevel: user.studyLevel || '',
-        leadType: user.leadType || '',
-        applicationStatus: user.applicationStatus || '',
-        campaignId: user.campaignId || '',
-        isArchived: user.isArchived || false,
-        dropout: user.dropout || false,
-      });
-    }
-  }, [user, editingSection, additionalForm]);
 
 
   // Check section completion
@@ -740,30 +702,7 @@ const ProfilePageRedesign: React.FC = () => {
     });
   };
 
-  const submitAdditionalInfo = (data: any) => {
-    console.log('=== ADDITIONAL INFO SAVE TEST ===');
-    console.log('Data being saved:', JSON.stringify(data, null, 2));
-    console.log('Field count:', Object.keys(data).length);
-    updateProfileMutation.mutate(data, {
-      onSuccess: (response) => {
-        console.log('✓ Additional info saved successfully:', response);
-        console.log('✓ Save verification: Additional section complete');
-        setEditingSection(null);
-        toast({
-          title: "Additional Information Saved",
-          description: "Your additional information has been updated successfully.",
-        });
-      },
-      onError: (error) => {
-        console.error('✗ Additional info save failed:', error);
-        toast({
-          title: "Save Failed",
-          description: "Failed to save additional information. Please try again.",
-          variant: "destructive",
-        });
-      }
-    });
-  };
+
 
   const submitLanguageProficiency = (data: any) => {
     console.log('=== LANGUAGE PROFICIENCY SAVE TEST ===');
@@ -2190,128 +2129,7 @@ const ProfilePageRedesign: React.FC = () => {
           )}
         </ProfileSectionCard>
 
-        {/* Additional Information */}
-        <ProfileSectionCard
-          title="Additional Information"
-          description="How did you find us?"
-          icon={<User className="w-5 h-5 text-gray-600" />}
-          isComplete={!!user?.source}
-          isEditing={editingSection === 'additional'}
-          onEdit={() => setEditingSection('additional')}
-        >
-          {editingSection === 'additional' ? (
-            <Form {...additionalForm}>
-              <form onSubmit={additionalForm.handleSubmit(submitAdditionalInfo)} className="space-y-6">
-                <FormField
-                  control={additionalForm.control}
-                  name="source"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>How did you find us?</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Please tell us how you discovered our platform (e.g., Google search, social media, friend referral, etc.)"
-                          className="min-h-[80px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={additionalForm.control}
-                    name="studyDestination"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Study Destination (Legacy)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Study destination" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={additionalForm.control}
-                    name="startDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Start Date (Legacy)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Start date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={additionalForm.control}
-                    name="city"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>City (Legacy)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="City" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={additionalForm.control}
-                    name="counsellingMode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Counselling Mode (Legacy)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || ''}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select counselling mode" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="online">Online</SelectItem>
-                            <SelectItem value="offline">Offline</SelectItem>
-                            <SelectItem value="hybrid">Hybrid</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <div className="flex justify-end space-x-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setEditingSection(null)}
-                  >
-                    <X className="w-4 h-4 mr-1" />
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={updateProfileMutation.isPending}>
-                    <Save className="w-4 h-4 mr-1" />
-                    {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          ) : (
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <Label className="text-sm font-medium text-gray-600">How did you find us?</Label>
-              <p className="text-sm mt-1 font-medium">{user?.source || 'Not provided'}</p>
-            </div>
-          )}
-        </ProfileSectionCard>
+
         </div>
       </div>
     </DashboardLayout>
