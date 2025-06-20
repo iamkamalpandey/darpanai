@@ -46,6 +46,7 @@ const AdminFeedback = lazy(() => import("@/pages/admin-feedback"));
 const AdminOfferLetterAnalysisView = lazy(() => import("@/pages/AdminOfferLetterAnalysisView"));
 const StudyDestinationSuggestions = lazy(() => import("@/pages/StudyDestinationSuggestions"));
 const EnhancedUserProfile = lazy(() => import("@/pages/EnhancedUserProfile"));
+const ProfileEdit = lazy(() => import("@/pages/ProfileEdit"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -136,6 +137,13 @@ function Router() {
         <UserProtectedRoute path="/profile" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <EnhancedUserProfile />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/profile/edit">
+        <UserProtectedRoute path="/profile/edit" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <ProfileEdit />
           </Suspense>
         )} />
       </Route>

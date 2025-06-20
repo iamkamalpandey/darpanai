@@ -30,6 +30,7 @@ import {
   Target,
   Clock
 } from 'lucide-react';
+import { Link } from 'wouter';
 
 // Compulsory fields for profile completion
 const COMPULSORY_FIELDS = [
