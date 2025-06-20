@@ -1597,7 +1597,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         highestCountry: z.string().nullable().optional().transform(val => val === null ? undefined : val),
         highestGpa: z.string().nullable().optional().transform(val => val === null ? undefined : val),
         graduationYear: z.union([z.string(), z.number()]).nullable().optional().transform(val => val === null ? undefined : val),
-        currentAcademicGap: z.string().nullable().optional().transform(val => val === null ? undefined : val),
+        currentAcademicGap: z.union([z.string(), z.number()]).nullable().optional().transform(val => val === null ? undefined : (typeof val === 'string' ? parseInt(val) || undefined : val)),
         educationHistory: z.array(z.any()).nullable().optional().transform(val => val === null ? undefined : val),
         
         // Study Preferences

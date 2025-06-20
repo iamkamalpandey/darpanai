@@ -85,7 +85,7 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
         const gradYear = parseInt(value);
         if (!isNaN(gradYear) && gradYear <= currentYear) {
           const gap = currentYear - gradYear;
-          newData.currentAcademicGap = gap > 0 ? `${gap} years since graduation` : 'Recent graduate';
+          newData.currentAcademicGap = gap;
         }
       }
       
@@ -406,17 +406,25 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="highestGpa">GPA/Grade *</Label>
+          <Label htmlFor="highestGpa" className={hasFieldError('highestGpa') ? 'text-red-600' : ''}>
+            GPA/Grade *
+          </Label>
           <Input 
             id="highestGpa" 
             value={formData.highestGpa || ''} 
             onChange={(e) => handleInputChange('highestGpa', e.target.value)}
             placeholder="e.g., 3.8, 85%, First Class"
             required
+            className={hasFieldError('highestGpa') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
           />
+          {getFieldError('highestGpa') && (
+            <p className="text-sm text-red-600 mt-1">{getFieldError('highestGpa')}</p>
+          )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="graduationYear">Graduation Year *</Label>
+          <Label htmlFor="graduationYear" className={hasFieldError('graduationYear') ? 'text-red-600' : ''}>
+            Graduation Year *
+          </Label>
           <Input 
             id="graduationYear" 
             type="number" 
@@ -426,7 +434,11 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
             min="1980"
             max="2030"
             required
+            className={hasFieldError('graduationYear') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
           />
+          {getFieldError('graduationYear') && (
+            <p className="text-sm text-red-600 mt-1">{getFieldError('graduationYear')}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="currentAcademicGap">Academic Gap (if any)</Label>
@@ -451,22 +463,30 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="interestedCourse">Interested Course *</Label>
+          <Label htmlFor="interestedCourse" className={hasFieldError('interestedCourse') ? 'text-red-600' : ''}>
+            Interested Course *
+          </Label>
           <Input 
             id="interestedCourse" 
             value={formData.interestedCourse || ''} 
             onChange={(e) => handleInputChange('interestedCourse', e.target.value)}
             placeholder="e.g., Computer Science, MBA"
             required
+            className={hasFieldError('interestedCourse') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
           />
+          {getFieldError('interestedCourse') && (
+            <p className="text-sm text-red-600 mt-1">{getFieldError('interestedCourse')}</p>
+          )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="fieldOfStudy">Field of Study *</Label>
+          <Label htmlFor="fieldOfStudy" className={hasFieldError('fieldOfStudy') ? 'text-red-600' : ''}>
+            Field of Study *
+          </Label>
           <Select 
             value={formData.fieldOfStudy || ''} 
             onValueChange={(value) => handleInputChange('fieldOfStudy', value)}
           >
-            <SelectTrigger>
+            <SelectTrigger className={hasFieldError('fieldOfStudy') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}>
               <SelectValue placeholder="Select field" />
             </SelectTrigger>
             <SelectContent>
@@ -480,6 +500,9 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
               <SelectItem value="Other">Other</SelectItem>
             </SelectContent>
           </Select>
+          {getFieldError('fieldOfStudy') && (
+            <p className="text-sm text-red-600 mt-1">{getFieldError('fieldOfStudy')}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="preferredIntake">Preferred Intake *</Label>
