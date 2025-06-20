@@ -2,14 +2,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { 
@@ -28,7 +24,8 @@ import {
   FileText,
   Trophy,
   Target,
-  Clock
+  Clock,
+  Edit
 } from 'lucide-react';
 import { Link } from 'wouter';
 
@@ -40,70 +37,26 @@ const COMPULSORY_FIELDS = [
   'preferredCountries', 'currentEmploymentStatus', 'englishProficiencyTests'
 ];
 
-const PROFILE_SECTIONS = [
-  { 
-    id: 'personal', 
-    label: 'Personal Information', 
-    icon: User, 
-    description: 'Basic details for accurate analysis',
-    fields: ['firstName', 'lastName', 'dateOfBirth', 'gender', 'nationality', 'passportNumber', 'phoneNumber', 'secondaryNumber', 'address']
-  },
-  { 
-    id: 'academic', 
-    label: 'Academic Qualification', 
-    icon: GraduationCap, 
-    description: 'Education history for program matching',
-    fields: ['highestQualification', 'highestInstitution', 'highestCountry', 'highestGpa', 'graduationYear', 'currentAcademicGap']
-  },
-  { 
-    id: 'study', 
-    label: 'Study Preferences', 
-    icon: Globe, 
-    description: 'Course and country preferences',
-    fields: ['interestedCourse', 'fieldOfStudy', 'preferredIntake', 'partTimeInterest', 'accommodationRequired', 'hasDependents']
-  },
-  { 
-    id: 'budget', 
-    label: 'Budget Range', 
-    icon: DollarSign, 
-    description: 'Financial planning for accurate recommendations',
-    fields: ['budgetRange']
-  },
-  { 
-    id: 'countries', 
-    label: 'Preferred Countries', 
-    icon: MapPin, 
-    description: 'Target destinations for personalized analysis',
-    fields: ['preferredCountries']
-  },
-  { 
-    id: 'employment', 
-    label: 'Employment Status', 
-    icon: Briefcase, 
-    description: 'Work experience for visa applications',
-    fields: ['currentEmploymentStatus', 'workExperienceYears', 'jobTitle', 'organizationName', 'fieldOfWork']
-  },
-  { 
-    id: 'tests', 
-    label: 'Tests & English Proficiency', 
-    icon: Languages, 
-    description: 'Language scores for admission requirements',
-    fields: ['englishProficiencyTests', 'standardizedTests']
-  }
-];
+// Section field mappings
+const SECTION_FIELDS = {
+  personal: ['firstName', 'lastName', 'dateOfBirth', 'gender', 'nationality', 'phoneNumber', 'passportNumber', 'address'],
+  academic: ['highestQualification', 'highestInstitution', 'highestCountry', 'highestGpa', 'graduationYear', 'currentAcademicGap'],
+  studyPreferences: ['interestedCourse', 'fieldOfStudy', 'preferredIntake', 'budgetRange', 'preferredCountries'],
+  employment: ['currentEmploymentStatus', 'workExperienceYears', 'jobTitle', 'organizationName', 'fieldOfWork'],
+  language: ['englishProficiencyTests', 'standardizedTests']
+};
 
 export default function EnhancedUserProfile() {
-  const [activeTab, setActiveTab] = useState('overview');
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  const { data: user } = useQuery({
+  
+  const { data: user, isLoading } = useQuery({
     queryKey: ['/api/user'],
-  }) as { data: any };
+  }) as { data: any, isLoading: boolean };
 
-  // Calculate completion based on actual user data
-  const calculateCompletion = useMemo(() => {
-    if (!user) return { percentage: 0, completedFields: 0, totalFields: COMPULSORY_FIELDS.length };
+  // Calculate completion percentage based on actual user data
+  const completionPercentage = useMemo(() => {
+    if (!user) return 0;
     
     const completedFields = COMPULSORY_FIELDS.filter(field => {
       const value = user[field];
@@ -111,66 +64,27 @@ export default function EnhancedUserProfile() {
       return value !== null && value !== undefined && value !== '';
     });
     
-    const percentage = Math.round((completedFields.length / COMPULSORY_FIELDS.length) * 100);
-    
-    return {
-      percentage,
-      completedFields: completedFields.length,
-      totalFields: COMPULSORY_FIELDS.length
-    };
+    return Math.round((completedFields.length / COMPULSORY_FIELDS.length) * 100);
   }, [user]);
 
-  const getSectionStatus = (sectionId: string) => {
-    if (!user) return { completed: false, progress: 0, completedCount: 0, totalCount: 0 };
-    
-    const section = PROFILE_SECTIONS.find(s => s.id === sectionId);
-    if (!section) return { completed: false, progress: 0, completedCount: 0, totalCount: 0 };
-    
-    const completedSectionFields = section.fields.filter(field => {
+  // Section completion checker
+  const getSectionCompletion = (sectionFields: string[]) => {
+    if (!user) return 0;
+    const completedFields = sectionFields.filter(field => {
       const value = user[field];
       if (Array.isArray(value)) return value.length > 0;
       return value !== null && value !== undefined && value !== '';
     });
-    
-    const progress = Math.round((completedSectionFields.length / section.fields.length) * 100);
-    const completed = progress === 100;
-    
-    return { 
-      completed, 
-      progress, 
-      completedCount: completedSectionFields.length, 
-      totalCount: section.fields.length 
-    };
+    return Math.round((completedFields.length / sectionFields.length) * 100);
   };
 
-  const updateMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const response = await fetch('/api/user/complete-profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error('Failed to update profile');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile-completion'] });
-      toast({
-        title: 'Profile Updated',
-        description: 'Your profile has been successfully updated.',
-      });
-    },
-    onError: () => {
-      toast({
-        title: 'Update Failed',
-        description: 'Failed to update profile. Please try again.',
-        variant: 'destructive',
-      });
-    },
-  });
+  const getCompletionBadge = (percentage: number) => {
+    if (percentage >= 80) return <Badge className="bg-green-100 text-green-800">Complete</Badge>;
+    if (percentage >= 50) return <Badge variant="secondary">Partial</Badge>;
+    return <Badge variant="destructive">Incomplete</Badge>;
+  };
 
-  if (!user) {
+  if (isLoading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen">
@@ -183,384 +97,337 @@ export default function EnhancedUserProfile() {
     );
   }
 
+  if (!user) {
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12">
+          <p className="text-gray-600">Unable to load profile data.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto p-6 space-y-6">
-        {/* Profile Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-white">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-6 lg:space-y-0">
-            <div className="flex items-center space-x-6">
-              <div className="relative">
-                <div className="h-20 w-20 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold">
-                  {user.firstName?.[0]}{user.lastName?.[0]}
-                </div>
-                <div className="absolute -bottom-2 -right-2 h-8 w-8 bg-white rounded-full flex items-center justify-center shadow-lg">
-                  <div className={`h-6 w-6 rounded-full flex items-center justify-center ${
-                    calculateCompletion.percentage >= 80 ? 'bg-green-500' : 
-                    calculateCompletion.percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
-                  }`}>
-                    <span className="text-xs font-bold text-white">{calculateCompletion.percentage}</span>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold">{user.firstName} {user.lastName}</h1>
-                <p className="text-blue-100 text-lg">{user.email}</p>
-                <div className="flex flex-wrap items-center mt-2 gap-3">
-                  <Badge variant="secondary" className="bg-white/20 text-white">
-                    {user.role === 'admin' ? 'Administrator' : 'Student'}
-                  </Badge>
-                  <span className="text-blue-100 text-sm">
-                    {user.analysisCount || 0}/{user.maxAnalyses || 3} analyses used
-                  </span>
-                </div>
-              </div>
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              <div className="text-sm text-gray-600">Profile Completion:</div>
+              <Badge variant={completionPercentage >= 80 ? 'default' : completionPercentage >= 50 ? 'secondary' : 'destructive'}>
+                {Math.round(completionPercentage)}%
+              </Badge>
             </div>
-            <div className="lg:text-right">
-              <div className="text-sm text-blue-100 mb-2">Profile Completion</div>
-              <div className="w-full lg:w-32">
-                <Progress value={calculateCompletion.percentage} className="bg-white/20" />
-              </div>
-              <div className="text-sm text-blue-100 mt-1">
-                {calculateCompletion.completedFields}/{calculateCompletion.totalFields} fields completed ({calculateCompletion.percentage}%)
-              </div>
-            </div>
+            <Progress value={completionPercentage} className="w-32" />
+            <Link href="/profile/edit">
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Profile
+              </Button>
+            </Link>
           </div>
         </div>
 
-        {/* Profile Completion Alert */}
-        {calculateCompletion.percentage < 80 && (
-          <Card className="border-yellow-200 bg-yellow-50">
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <AlertCircle className="h-5 w-5 text-yellow-600" />
+        {/* Profile Overview Card */}
+        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+          <CardHeader>
+            <div className="flex items-center space-x-4">
+              <Avatar className="h-16 w-16">
+                <AvatarFallback className="bg-blue-600 text-white text-xl">
+                  {user.firstName?.[0]}{user.lastName?.[0]}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <CardTitle className="text-2xl text-gray-900">
+                  {user.firstName} {user.lastName}
+                </CardTitle>
+                <CardDescription className="text-gray-600 flex items-center mt-1">
+                  <Mail className="h-4 w-4 mr-2" />
+                  {user.email}
+                </CardDescription>
+                <CardDescription className="text-gray-600 flex items-center mt-1">
+                  <Phone className="h-4 w-4 mr-2" />
+                  {user.phoneNumber || 'Not provided'}
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Profile Sections */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Personal Information */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <User className="h-5 w-5 text-blue-600" />
+                <CardTitle>Personal Information</CardTitle>
+              </div>
+              <div className="flex items-center space-x-2">
+                {getCompletionBadge(getSectionCompletion(SECTION_FIELDS.personal))}
+                <Link href="/profile/edit">
+                  <Button variant="outline" size="sm">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="font-medium text-yellow-800">
-                    Complete your profile to unlock AI-powered features
-                  </p>
-                  <p className="text-sm text-yellow-700">
-                    Complete {calculateCompletion.totalFields - calculateCompletion.completedFields} more required fields to reach the 80% threshold for AI analysis.
-                  </p>
+                  <div className="text-sm font-medium text-gray-500">Date of Birth</div>
+                  <div className="text-gray-900">{user.dateOfBirth || 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Gender</div>
+                  <div className="text-gray-900">{user.gender || 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Nationality</div>
+                  <div className="text-gray-900">{user.nationality || 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Passport Number</div>
+                  <div className="text-gray-900">{user.passportNumber || 'Not specified'}</div>
+                </div>
+              </div>
+              {user.address && (
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Address</div>
+                  <div className="text-gray-900">{user.address}</div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Academic Information */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <GraduationCap className="h-5 w-5 text-green-600" />
+                <CardTitle>Academic Qualification</CardTitle>
+              </div>
+              <div className="flex items-center space-x-2">
+                {getCompletionBadge(getSectionCompletion(SECTION_FIELDS.academic))}
+                <Link href="/profile/edit">
+                  <Button variant="outline" size="sm">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Highest Qualification</div>
+                  <div className="text-gray-900">{user.highestQualification || 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Institution</div>
+                  <div className="text-gray-900">{user.highestInstitution || 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Country</div>
+                  <div className="text-gray-900">{user.highestCountry || 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">GPA/Grade</div>
+                  <div className="text-gray-900">{user.highestGpa || 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Graduation Year</div>
+                  <div className="text-gray-900">{user.graduationYear || 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Academic Gap</div>
+                  <div className="text-gray-900">{user.currentAcademicGap || 'None'}</div>
                 </div>
               </div>
             </CardContent>
           </Card>
-        )}
 
-        {/* Profile Sections - Clean Vertical Layout */}
-        <div className="space-y-4 mb-8">
-          {PROFILE_SECTIONS.map((section) => {
-            const status = getSectionStatus(section.id);
-            const Icon = section.icon;
-            
-            return (
-              <Card 
-                key={section.id} 
-                className={`transition-all hover:shadow-md ${
-                  status.completed ? 'border-green-200 bg-green-50' : 'border-gray-200'
-                }`}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 flex-1">
-                      <div className={`p-3 rounded-lg ${
-                        status.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
-                      }`}>
-                        <Icon className="h-6 w-6" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-1">
-                          <h3 className={`text-lg font-medium ${
-                            status.completed ? 'text-green-900' : 'text-gray-900'
-                          }`}>
-                            {section.label}
-                          </h3>
-                          {status.completed && (
-                            <CheckCircle className="h-5 w-5 text-green-600" />
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 mb-3">{section.description}</p>
-                        <div className="flex items-center gap-4">
-                          <div className="flex-1">
-                            <Progress 
-                              value={status.progress} 
-                              className={`h-2 ${status.completed ? 'bg-green-100' : 'bg-gray-100'}`}
-                            />
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {status.completedCount}/{status.totalCount} fields ({Math.round(status.progress)}%)
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 ml-4">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setActiveTab(section.id)}
-                        className="text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300"
-                      >
-                        Edit
-                      </Button>
-                      {!status.completed && (
-                        <Button 
-                          size="sm"
-                          onClick={() => setActiveTab(section.id)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white"
-                        >
-                          Complete
-                        </Button>
-                      )}
-                    </div>
+          {/* Study Preferences */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Globe className="h-5 w-5 text-purple-600" />
+                <CardTitle>Study Preferences</CardTitle>
+              </div>
+              <div className="flex items-center space-x-2">
+                {getCompletionBadge(getSectionCompletion(SECTION_FIELDS.studyPreferences))}
+                <Link href="/profile/edit">
+                  <Button variant="outline" size="sm">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Interested Course</div>
+                  <div className="text-gray-900">{user.interestedCourse || 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Field of Study</div>
+                  <div className="text-gray-900">{user.fieldOfStudy || 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Preferred Intake</div>
+                  <div className="text-gray-900">{user.preferredIntake || 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Budget Range</div>
+                  <div className="text-gray-900">{user.budgetRange || 'Not specified'}</div>
+                </div>
+              </div>
+              {user.preferredCountries && user.preferredCountries.length > 0 && (
+                <div>
+                  <div className="text-sm font-medium text-gray-500 mb-2">Preferred Countries</div>
+                  <div className="flex flex-wrap gap-2">
+                    {user.preferredCountries.map((country: string, index: number) => (
+                      <Badge key={index} variant="secondary">{country}</Badge>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Employment Status */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Briefcase className="h-5 w-5 text-orange-600" />
+                <CardTitle>Employment Status</CardTitle>
+              </div>
+              <div className="flex items-center space-x-2">
+                {getCompletionBadge(getSectionCompletion(SECTION_FIELDS.employment))}
+                <Link href="/profile/edit">
+                  <Button variant="outline" size="sm">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Employment Status</div>
+                  <div className="text-gray-900">{user.currentEmploymentStatus || 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Work Experience</div>
+                  <div className="text-gray-900">{user.workExperienceYears || 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Job Title</div>
+                  <div className="text-gray-900">{user.jobTitle || 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Organization</div>
+                  <div className="text-gray-900">{user.organizationName || 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Field of Work</div>
+                  <div className="text-gray-900">{user.fieldOfWork || 'Not specified'}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Language Proficiency */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Languages className="h-5 w-5 text-indigo-600" />
+                <CardTitle>Tests & English Proficiency</CardTitle>
+              </div>
+              <div className="flex items-center space-x-2">
+                {getCompletionBadge(getSectionCompletion(SECTION_FIELDS.language))}
+                <Link href="/profile/edit">
+                  <Button variant="outline" size="sm">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {user.englishProficiencyTests && user.englishProficiencyTests.length > 0 ? (
+                <div className="space-y-4">
+                  {user.englishProficiencyTests.map((test: any, index: number) => (
+                    <Card key={index} className="bg-gray-50">
+                      <CardContent className="p-4">
+                        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                          <div>
+                            <div className="text-sm font-medium text-gray-500">Test Type</div>
+                            <div className="text-gray-900 font-medium">{test.testType || 'Not specified'}</div>
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-gray-500">Overall Score</div>
+                            <div className="text-gray-900 font-medium">{test.overallScore || 'Not specified'}</div>
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-gray-500">Listening</div>
+                            <div className="text-gray-900">{test.listening || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-gray-500">Reading</div>
+                            <div className="text-gray-900">{test.reading || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-gray-500">Writing</div>
+                            <div className="text-gray-900">{test.writing || 'N/A'}</div>
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-gray-500">Speaking</div>
+                            <div className="text-gray-900">{test.speaking || 'N/A'}</div>
+                          </div>
+                        </div>
+                        {test.testDate && (
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <div className="text-sm font-medium text-gray-500">Test Date</div>
+                            <div className="text-gray-900">{test.testDate}</div>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Languages className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                  <p>No language test scores added yet</p>
+                  <p className="text-sm">Add your English proficiency test scores to improve your profile</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Profile Details Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="personal">Personal</TabsTrigger>
-            <TabsTrigger value="academic">Academic</TabsTrigger>
-            <TabsTrigger value="study">Study Preferences</TabsTrigger>
-            <TabsTrigger value="budget">Budget</TabsTrigger>
-            <TabsTrigger value="countries">Countries</TabsTrigger>
-            <TabsTrigger value="employment">Employment</TabsTrigger>
-            <TabsTrigger value="tests">Tests</TabsTrigger>
-          </TabsList>
-
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center">
-                    <User className="h-5 w-5 mr-2 text-blue-600" />
-                    Contact Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex items-center text-sm">
-                    <Mail className="h-4 w-4 mr-2 text-gray-500" />
-                    {user.email}
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                    {user.phoneNumber || 'Not provided'}
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <MapPin className="h-4 w-4 mr-2 text-gray-500" />
-                    {user.nationality || 'Not provided'}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center">
-                    <GraduationCap className="h-5 w-5 mr-2 text-green-600" />
-                    Academic Background
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="text-sm">
-                    <span className="font-medium">Qualification:</span>
-                    <p className="text-gray-600">{user.highestQualification || 'Not provided'}</p>
-                  </div>
-                  <div className="text-sm">
-                    <span className="font-medium">Institution:</span>
-                    <p className="text-gray-600">{user.highestInstitution || 'Not provided'}</p>
-                  </div>
-                  <div className="text-sm">
-                    <span className="font-medium">GPA:</span>
-                    <p className="text-gray-600">{user.highestGpa || 'Not provided'}</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center">
-                    <Target className="h-5 w-5 mr-2 text-purple-600" />
-                    Study Goals
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="text-sm">
-                    <span className="font-medium">Interested Course:</span>
-                    <p className="text-gray-600">{user.interestedCourse || 'Not provided'}</p>
-                  </div>
-                  <div className="text-sm">
-                    <span className="font-medium">Field of Study:</span>
-                    <p className="text-gray-600">{user.fieldOfStudy || 'Not provided'}</p>
-                  </div>
-                  <div className="text-sm">
-                    <span className="font-medium">Budget Range:</span>
-                    <p className="text-gray-600">{user.budgetRange || 'Not provided'}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Personal Information Tab */}
-          <TabsContent value="personal" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
-                <CardDescription>
-                  Update your personal details for accurate document analysis and recommendations
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input id="firstName" value={user.firstName || ''} readOnly />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input id="lastName" value={user.lastName || ''} readOnly />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                    <Input 
-                      id="dateOfBirth" 
-                      type="date" 
-                      value={user.dateOfBirth || ''} 
-                      onChange={(e) => updateMutation.mutate({ dateOfBirth: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="gender">Gender</Label>
-                    <Select 
-                      value={user.gender || ''} 
-                      onValueChange={(value) => updateMutation.mutate({ gender: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select gender" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Male">Male</SelectItem>
-                        <SelectItem value="Female">Female</SelectItem>
-                        <SelectItem value="Non-binary">Non-binary</SelectItem>
-                        <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="nationality">Nationality</Label>
-                    <Input 
-                      id="nationality" 
-                      value={user.nationality || ''} 
-                      onChange={(e) => updateMutation.mutate({ nationality: e.target.value })}
-                      placeholder="e.g., Indian, Nepali, Pakistani"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="passportNumber">Passport Number</Label>
-                    <Input 
-                      id="passportNumber" 
-                      value={user.passportNumber || ''} 
-                      onChange={(e) => updateMutation.mutate({ passportNumber: e.target.value })}
-                      placeholder="Enter passport number"
-                    />
-                  </div>
+        {/* Profile Completion Call-to-Action */}
+        {completionPercentage < 80 && (
+          <Card className="bg-yellow-50 border-yellow-200">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-4">
+                <AlertCircle className="h-8 w-8 text-yellow-600" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-yellow-800">Complete Your Profile</h3>
+                  <p className="text-yellow-700 mt-1">
+                    Your profile is {completionPercentage}% complete. Complete all sections to get more accurate AI analysis and study destination recommendations.
+                  </p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Textarea 
-                    id="address" 
-                    value={user.address || ''} 
-                    onChange={(e) => updateMutation.mutate({ address: e.target.value })}
-                    placeholder="Enter your complete address"
-                    rows={3}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Academic Qualification Tab */}
-          <TabsContent value="academic" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Academic Qualification</CardTitle>
-                <CardDescription>
-                  Provide your educational background for accurate program matching
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="highestQualification">Highest Qualification</Label>
-                    <Select 
-                      value={user.highestQualification || ''} 
-                      onValueChange={(value) => updateMutation.mutate({ highestQualification: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select qualification" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="High School">High School</SelectItem>
-                        <SelectItem value="Bachelor's Degree">Bachelor's Degree</SelectItem>
-                        <SelectItem value="Master's Degree">Master's Degree</SelectItem>
-                        <SelectItem value="PhD">PhD</SelectItem>
-                        <SelectItem value="Diploma">Diploma</SelectItem>
-                        <SelectItem value="Certificate">Certificate</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="highestInstitution">Institution Name</Label>
-                    <Input 
-                      id="highestInstitution" 
-                      value={user.highestInstitution || ''} 
-                      onChange={(e) => updateMutation.mutate({ highestInstitution: e.target.value })}
-                      placeholder="Enter institution name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="highestCountry">Country of Education</Label>
-                    <Input 
-                      id="highestCountry" 
-                      value={user.highestCountry || ''} 
-                      onChange={(e) => updateMutation.mutate({ highestCountry: e.target.value })}
-                      placeholder="Enter country"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="highestGpa">GPA/Grade</Label>
-                    <Input 
-                      id="highestGpa" 
-                      value={user.highestGpa || ''} 
-                      onChange={(e) => updateMutation.mutate({ highestGpa: e.target.value })}
-                      placeholder="e.g., 3.8, 85%, First Class"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="graduationYear">Graduation Year</Label>
-                    <Input 
-                      id="graduationYear" 
-                      type="number" 
-                      value={user.graduationYear || ''} 
-                      onChange={(e) => updateMutation.mutate({ graduationYear: parseInt(e.target.value) })}
-                      placeholder="e.g., 2023"
-                      min="1980"
-                      max="2030"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Other tabs would follow similar patterns... */}
-        </Tabs>
+                <Link href="/profile/edit">
+                  <Button className="bg-yellow-600 hover:bg-yellow-700 text-white">
+                    Complete Profile
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   );
