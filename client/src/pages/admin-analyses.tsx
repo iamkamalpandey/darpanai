@@ -96,6 +96,8 @@ function AdminAnalyses() {
       setLocation(`/admin/coe-analysis/${analysis.id}`);
     } else if (analysis.analysisType === 'visa_analysis') {
       setLocation(`/admin/visa-analysis/${analysis.id}`);
+    } else if (analysis.analysisType === 'offer_letter_analysis') {
+      setLocation(`/admin/offer-letter-analysis/${analysis.id}`);
     } else {
       // Fallback for legacy analyses without type
       setSelectedAnalysis(analysis);
