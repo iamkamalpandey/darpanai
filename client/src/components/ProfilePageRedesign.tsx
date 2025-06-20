@@ -25,11 +25,11 @@ const personalInfoSchema = z.object({
   firstName: z.string()
     .min(1, 'First name is required')
     .max(50, 'First name too long')
-    .regex(/^[a-zA-Z\s]+$/, 'First name can only contain letters and spaces'),
+    .regex(/^[a-zA-Z\s\-'\.]+$/, 'First name can only contain letters, spaces, hyphens, apostrophes, and periods'),
   lastName: z.string()
     .min(1, 'Last name is required')
     .max(50, 'Last name too long')
-    .regex(/^[a-zA-Z\s]+$/, 'Last name can only contain letters and spaces'),
+    .regex(/^[a-zA-Z\s\-'\.]+$/, 'Last name can only contain letters, spaces, hyphens, apostrophes, and periods'),
   phoneNumber: z.string()
     .min(10, 'Phone number must be at least 10 digits')
     .max(20, 'Phone number too long')
@@ -1145,24 +1145,59 @@ const ProfilePageRedesign: React.FC = () => {
                   <FormField
                     control={academicForm.control}
                     name="currentAcademicGap"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Academic Gap (Years)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            type="number" 
-                            min="0" 
-                            max="20" 
-                            placeholder="0"
-                            value={field.value || ''}
-                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      // Calculate automatic gap based on graduation year
+                      const graduationYear = academicForm.watch('graduationYear');
+                      const currentYear = new Date().getFullYear();
+                      const calculatedGap = graduationYear ? Math.max(0, currentYear - graduationYear) : 0;
+                      
+                      return (
+                        <FormItem>
+                          <FormLabel>Academic Gap (Years)</FormLabel>
+                          <FormControl>
+                            <div className="space-y-2">
+                              <Input 
+                                {...field} 
+                                type="number" 
+                                min="0" 
+                                max="20" 
+                                placeholder={calculatedGap.toString()}
+                                value={field.value || calculatedGap || ''}
+                                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : calculatedGap)}
+                              />
+                              {graduationYear && (
+                                <p className="text-xs text-muted-foreground">
+                                  Auto-calculated: {calculatedGap} years (from {graduationYear} to {currentYear})
+                                </p>
+                              )}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
+                </div>
+                
+                {/* Education History Section */}
+                <div className="space-y-4">
+                  <FormLabel className="text-base font-semibold">Education History</FormLabel>
+                  <div className="space-y-3">
+                    <FormLabel className="text-sm font-medium">Previous Education Details</FormLabel>
+                    <Textarea
+                      placeholder="List your previous educational qualifications, institutions, and years (e.g., High School: ABC School (2018-2020), Bachelor's: XYZ University (2020-2024))"
+                      value={user?.educationHistory ? JSON.stringify(user.educationHistory).replace(/["\[\]{}]/g, '').replace(/,/g, '\n') : ''}
+                      onChange={(e) => {
+                        const historyText = e.target.value;
+                        const historyArray = historyText.split('\n').filter(line => line.trim());
+                        updateProfileMutation.mutate({ educationHistory: historyArray });
+                      }}
+                      className="min-h-[80px]"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Enter each education qualification on a new line
+                    </p>
+                  </div>
                 </div>
                 <div className="flex justify-end space-x-2">
                   <Button
@@ -1403,6 +1438,32 @@ const ProfilePageRedesign: React.FC = () => {
                         <p className="text-xs text-muted-foreground">
                           Will be traveling with dependents
                         </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Additional Study Services and Options */}
+                  <div className="space-y-4">
+                    <FormLabel className="text-base font-semibold">Additional Services & Preferences</FormLabel>
+                    <div>
+                      <FormLabel className="text-sm font-medium mb-3 block">Interested Services (Select all that apply)</FormLabel>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {['Visa Assistance', 'Accommodation Help', 'Airport Pickup', 'Document Translation', 'Bank Account Setup', 'Insurance Guidance', 'Career Counseling', 'Part-time Job Assistance'].map((service) => (
+                          <div key={service} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={service}
+                              checked={user?.interestedServices?.includes(service) || false}
+                              onCheckedChange={(checked) => {
+                                const currentServices = user?.interestedServices || [];
+                                const updatedServices = checked 
+                                  ? [...currentServices, service]
+                                  : currentServices.filter((s: string) => s !== service);
+                                updateProfileMutation.mutate({ interestedServices: updatedServices });
+                              }}
+                            />
+                            <Label htmlFor={service} className="text-sm">{service}</Label>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
