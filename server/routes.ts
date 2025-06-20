@@ -1611,6 +1611,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         accommodationRequired: z.boolean().nullable().optional().transform(val => val === null ? undefined : val),
         hasDependents: z.boolean().nullable().optional().transform(val => val === null ? undefined : val),
         
+        // Financial Information
+        estimatedBudget: z.union([z.string(), z.number()]).nullable().optional().transform(val => val === null ? undefined : (typeof val === 'string' ? parseInt(val) || undefined : val)),
+        savingsAmount: z.union([z.string(), z.number()]).nullable().optional().transform(val => val === null ? undefined : (typeof val === 'string' ? parseInt(val) || undefined : val)),
+        loanApproval: z.boolean().nullable().optional().transform(val => val === null ? undefined : val),
+        loanAmount: z.union([z.string(), z.number()]).nullable().optional().transform(val => val === null ? undefined : (typeof val === 'string' ? parseInt(val) || undefined : val)),
+        sponsorDetails: z.string().nullable().optional().transform(val => val === null ? undefined : val),
+        financialDocuments: z.boolean().nullable().optional().transform(val => val === null ? undefined : val),
+        
         // Employment Information
         currentEmploymentStatus: z.string().nullable().optional().transform(val => val === null ? undefined : val),
         workExperienceYears: z.string().nullable().optional().transform(val => val === null ? undefined : val),

@@ -832,11 +832,109 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
     </div>
   );
 
+  const renderFinancialInformation = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="fundingSource" className={hasFieldError('fundingSource') ? 'text-red-600' : ''}>
+            Source of Funds *
+          </Label>
+          <Select 
+            value={formData.fundingSource || ''} 
+            onValueChange={(value) => handleInputChange('fundingSource', value)}
+          >
+            <SelectTrigger className={hasFieldError('fundingSource') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}>
+              <SelectValue placeholder="Select funding source" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Self-funded">Self-funded</SelectItem>
+              <SelectItem value="Family Support">Family Support</SelectItem>
+              <SelectItem value="Education Loan">Education Loan</SelectItem>
+              <SelectItem value="Scholarship">Scholarship</SelectItem>
+              <SelectItem value="Employer Sponsored">Employer Sponsored</SelectItem>
+              <SelectItem value="Government Grant">Government Grant</SelectItem>
+              <SelectItem value="Mixed Sources">Mixed Sources</SelectItem>
+            </SelectContent>
+          </Select>
+          {getFieldError('fundingSource') && (
+            <p className="text-sm text-red-600 mt-1">{getFieldError('fundingSource')}</p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="estimatedBudget" className={hasFieldError('estimatedBudget') ? 'text-red-600' : ''}>
+            Total Budget (USD) *
+          </Label>
+          <Input 
+            id="estimatedBudget" 
+            type="number"
+            value={formData.estimatedBudget || ''} 
+            onChange={(e) => handleInputChange('estimatedBudget', e.target.value)}
+            placeholder="e.g., 50000"
+            required
+            className={hasFieldError('estimatedBudget') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+          />
+          {getFieldError('estimatedBudget') && (
+            <p className="text-sm text-red-600 mt-1">{getFieldError('estimatedBudget')}</p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="savingsAmount">Current Savings (USD)</Label>
+          <Input 
+            id="savingsAmount" 
+            type="number"
+            value={formData.savingsAmount || ''} 
+            onChange={(e) => handleInputChange('savingsAmount', e.target.value)}
+            placeholder="e.g., 25000"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="loanAmount">Loan Amount (USD)</Label>
+          <Input 
+            id="loanAmount" 
+            type="number"
+            value={formData.loanAmount || ''} 
+            onChange={(e) => handleInputChange('loanAmount', e.target.value)}
+            placeholder="e.g., 30000"
+          />
+        </div>
+      </div>
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <Checkbox 
+            id="loanApproval" 
+            checked={formData.loanApproval || false}
+            onCheckedChange={(checked) => handleInputChange('loanApproval', checked)}
+          />
+          <Label htmlFor="loanApproval">Education loan pre-approved</Label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Checkbox 
+            id="financialDocuments" 
+            checked={formData.financialDocuments || false}
+            onCheckedChange={(checked) => handleInputChange('financialDocuments', checked)}
+          />
+          <Label htmlFor="financialDocuments">Financial documents ready for visa application</Label>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="sponsorDetails">Sponsor Details (if applicable)</Label>
+          <Textarea 
+            id="sponsorDetails" 
+            value={formData.sponsorDetails || ''} 
+            onChange={(e) => handleInputChange('sponsorDetails', e.target.value)}
+            placeholder="Name, relationship, occupation, and income details of sponsor"
+            rows={3}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
   const getSectionTitle = () => {
     switch (section) {
       case 'personal': return 'Personal Information';
       case 'academic': return 'Academic Qualification';
       case 'studyPreferences': return 'Study Preferences';
+      case 'financial': return 'Financial Information';
       case 'employment': return 'Employment Status';
       case 'language': return 'Tests & English Proficiency';
       default: return 'Edit Profile Section';
@@ -857,6 +955,7 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
       case 'personal': return renderPersonalInformation();
       case 'academic': return renderAcademicInformation();
       case 'studyPreferences': return renderStudyPreferences();
+      case 'financial': return renderFinancialInformation();
       case 'employment': return renderEmploymentStatus();
       case 'language': return renderLanguageProficiency();
       default: return <div>Section not found</div>;
