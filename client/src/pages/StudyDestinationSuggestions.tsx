@@ -210,7 +210,7 @@ export default function StudyDestinationSuggestions() {
               <strong>Profile Completion Required</strong>
               <br />
               Please complete your profile to get personalized AI study destination recommendations.
-              You have completed {profileStatus.completionPercentage || 0}% of your profile.
+              You have completed {profileStatus?.completionPercentage || 0}% of your profile.
             </AlertDescription>
           </Alert>
 
@@ -229,16 +229,16 @@ export default function StudyDestinationSuggestions() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Profile Completion</span>
-                  <span>{profileStatus.completionPercentage || 0}%</span>
+                  <span>{profileStatus?.completionPercentage || 0}%</span>
                 </div>
-                <Progress value={profileStatus.completionPercentage || 0} className="w-full" />
+                <Progress value={profileStatus?.completionPercentage || 0} className="w-full" />
               </div>
               
-              {profileStatus.missingFields && profileStatus.missingFields.length > 0 && (
+              {profileStatus?.missingFields && profileStatus.missingFields.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Missing Fields:</p>
                   <div className="flex flex-wrap gap-2">
-                    {profileStatus.missingFields.map((field: string, index: number) => (
+                    {profileStatus?.missingFields?.map((field: string, index: number) => (
                       <Badge key={index} variant="outline" className="text-orange-700 border-orange-200">
                         {field}
                       </Badge>
