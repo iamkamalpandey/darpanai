@@ -7,6 +7,7 @@ import { extractTextFromDocument } from "./fileProcessing";
 import { analyzeRejectionLetter } from "./openai";
 import { analyzeEnrollmentDocument } from "./enrollmentAnalysis";
 import { analyzeOfferLetterComprehensive } from "./offerLetterAnalysis_comprehensive";
+import { extractCoreStudentInfo, type CoreStudentInfo } from "./documentParser";
 import { analysisResponseSchema, professionalApplicationSchema, insertDocumentTemplateSchema, insertEnrollmentAnalysisSchema, insertDocumentCategorySchema, insertDocumentTypeSchema, insertAnalysisFeedbackSchema } from "@shared/schema";
 import { z } from 'zod';
 import { setupAuth } from "./auth";
@@ -2081,7 +2082,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Analyze offer letter with comprehensive strategic analysis
+      // Step 1: Extract core student information from document
+      const coreInfo = extractCoreStudentInfo(extractedText, file.originalname);
+      console.log('Core student information extracted:', coreInfo);
+
+      // Step 2: Analyze offer letter with comprehensive strategic analysis
       const { analysis, tokensUsed, processingTime } = await analyzeOfferLetterComprehensive(
         extractedText,
         file.originalname

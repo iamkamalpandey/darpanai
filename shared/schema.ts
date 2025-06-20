@@ -268,9 +268,9 @@ export const offerLetterAnalyses = pgTable("offer_letter_analyses", {
   academicStanding: text("academic_standing"),
   gpa: text("gpa"),
   financialStatus: text("financial_status"),
-  relevantSkills: text("relevant_skills").array(),
-  strengths: text("strengths").array(),
-  weaknesses: text("weaknesses").array(),
+  relevantSkills: jsonb("relevant_skills"),
+  strengths: jsonb("strengths"),
+  weaknesses: jsonb("weaknesses"),
   
   // Scholarship Opportunities (JSONB for structured data)
   scholarshipOpportunities: jsonb("scholarship_opportunities"),
