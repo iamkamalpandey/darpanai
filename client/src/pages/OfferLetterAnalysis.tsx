@@ -430,7 +430,7 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                       <div>
                         <span className="font-medium text-gray-700">Document Sections:</span>
                         <div className="flex flex-wrap gap-2 mt-1">
-                          {analysis.documentAnalysis.documentSections.map((section, index) => (
+                          {analysis.documentAnalysis?.documentSections?.map((section, index) => (
                             <Badge key={index} variant="outline" className="bg-purple-50 text-purple-700">
                               {section}
                             </Badge>
@@ -709,7 +709,7 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                   <div>
                     <span className="font-medium text-gray-700">Relevant Skills:</span>
                     <div className="flex flex-wrap gap-2 mt-1">
-                      {analysis.profileAnalysis.relevantSkills.map((skill, index) => (
+                      {analysis.profileAnalysis?.relevantSkills?.map((skill, index) => (
                         <Badge key={index} variant="outline" className="bg-blue-50 text-blue-700">
                           {skill}
                         </Badge>
@@ -742,7 +742,7 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                         </tr>
                       </thead>
                       <tbody>
-                        {analysis.scholarshipOpportunities.map((scholarship, index) => (
+                        {analysis.scholarshipOpportunities?.map((scholarship, index) => (
                           <tr key={index} className={`border-b border-gray-100 hover:bg-gray-50 ${
                             scholarship.eligibilityMatch === 'High' ? 'bg-green-25' : 
                             scholarship.eligibilityMatch === 'Medium' ? 'bg-yellow-25' : 'bg-white'
@@ -767,9 +767,9 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                                 <div className="text-sm text-gray-600">
                                   <strong>Criteria:</strong>
                                   <ul className="list-disc list-inside mt-1 space-y-1">
-                                    {scholarship.criteria.map((criterion, idx) => (
+                                    {scholarship.criteria?.map((criterion, idx) => (
                                       <li key={idx} className="text-xs">{criterion}</li>
-                                    ))}
+                                    )) || [<li key="no-criteria" className="text-xs text-gray-400 italic">No criteria specified</li>]}
                                   </ul>
                                 </div>
                               </div>
@@ -846,17 +846,17 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                                       </div>
                                     )}
                                     
-                                    {scholarship.studentProfileMatch.matchReasoning && (
+                                    {scholarship.studentProfileMatch?.matchReasoning && (
                                       <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
                                         <strong>Match Analysis:</strong> {scholarship.studentProfileMatch.matchReasoning}
                                       </div>
                                     )}
                                     
-                                    {scholarship.studentProfileMatch.improvementSuggestions && scholarship.studentProfileMatch.improvementSuggestions.length > 0 && (
+                                    {scholarship.studentProfileMatch?.improvementSuggestions && scholarship.studentProfileMatch.improvementSuggestions.length > 0 && (
                                       <div className="mt-2">
                                         <strong className="text-xs">Improvement Tips:</strong>
                                         <ul className="list-disc list-inside text-xs mt-1 space-y-1">
-                                          {scholarship.studentProfileMatch.improvementSuggestions.map((tip, tipIdx) => (
+                                          {scholarship.studentProfileMatch?.improvementSuggestions?.map((tip, tipIdx) => (
                                             <li key={tipIdx} className="text-orange-600">{tip}</li>
                                           ))}
                                         </ul>
