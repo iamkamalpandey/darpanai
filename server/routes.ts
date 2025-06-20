@@ -1544,7 +1544,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Academic Qualification': user.highestQualification && user.highestInstitution && user.highestGpa,
         'Study Preferences': user.interestedCourse && user.fieldOfStudy && user.preferredIntake,
         'Budget Range': user.budgetRange,
-        'Preferred Countries': user.preferredCountries?.length > 0 ? user.preferredCountries : null,
+        'Preferred Countries': (user.preferredCountries && Array.isArray(user.preferredCountries) && user.preferredCountries.length > 0) ? user.preferredCountries : null,
         'Employment Status': user.currentEmploymentStatus,
         'English Proficiency': user.englishProficiencyTests && Array.isArray(user.englishProficiencyTests) && user.englishProficiencyTests.length > 0,
       };
@@ -1874,14 +1874,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(200).json({
         message: 'Study preferences updated successfully',
         preferences: {
-          preferredStudyFields: updatedUser.preferredStudyFields,
+          fieldOfStudy: updatedUser.fieldOfStudy,
           budgetRange: updatedUser.budgetRange,
-          languagePreferences: updatedUser.languagePreferences,
-          climatePreference: updatedUser.climatePreference,
-          universityRankingImportance: updatedUser.universityRankingImportance,
-          workPermitImportance: updatedUser.workPermitImportance,
-          culturalPreferences: updatedUser.culturalPreferences,
-          careerGoals: updatedUser.careerGoals,
+          preferredCountries: updatedUser.preferredCountries,
+          interestedCourse: updatedUser.interestedCourse,
+          preferredIntake: updatedUser.preferredIntake,
+          partTimeInterest: updatedUser.partTimeInterest,
+          accommodationRequired: updatedUser.accommodationRequired,
+          hasDependents: updatedUser.hasDependents,
         }
       });
     } catch (error) {

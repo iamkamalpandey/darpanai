@@ -1587,14 +1587,14 @@ export class DatabaseStorage implements IStorage {
       const [updatedUser] = await db
         .update(users)
         .set({
-          preferredStudyFields: preferences.preferredStudyFields,
+          fieldOfStudy: preferences.fieldOfStudy,
           budgetRange: preferences.budgetRange,
-          languagePreferences: preferences.languagePreferences,
-          climatePreference: preferences.climatePreference,
-          universityRankingImportance: preferences.universityRankingImportance,
-          workPermitImportance: preferences.workPermitImportance,
-          culturalPreferences: preferences.culturalPreferences,
-          careerGoals: preferences.careerGoals,
+          preferredCountries: preferences.preferredCountries,
+          interestedCourse: preferences.interestedCourse,
+          preferredIntake: preferences.preferredIntake,
+          partTimeInterest: preferences.partTimeInterest,
+          accommodationRequired: preferences.accommodationRequired,
+          hasDependents: preferences.hasDependents,
         })
         .where(eq(users.id, userId))
         .returning();

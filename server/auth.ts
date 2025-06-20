@@ -146,7 +146,7 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
           highestInstitution: user.highestInstitution,
           highestCountry: user.highestCountry,
           highestGpa: user.highestGpa,
-          graduationYear: user.graduationYear,
+          graduationYear: user.graduationYear?.toString() || null,
           currentAcademicGap: user.currentAcademicGap,
           educationHistory: user.educationHistory as any[] | null,
           
