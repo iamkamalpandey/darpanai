@@ -161,7 +161,7 @@ export default function OfferLetterAnalysis() {
     setDragOver(false);
   };
 
-  const canAnalyze = userStats && userStats.analysisCount < userStats.maxAnalyses;
+  const canAnalyze = userStats ? userStats.analysisCount < userStats.maxAnalyses : true;
 
   return (
     <DashboardLayout>
