@@ -278,9 +278,9 @@ export const offerLetterAnalyses = pgTable("offer_letter_analyses", {
   // Cost Saving Strategies (JSONB for structured data)
   costSavingStrategies: jsonb("cost_saving_strategies"),
   
-  // Recommendations and Next Steps
-  recommendations: text("recommendations").array(),
-  nextSteps: text("next_steps").array(),
+  // Recommendations and Next Steps (JSONB for complex structures)
+  recommendations: jsonb("recommendations"),
+  nextSteps: jsonb("next_steps"),
   
   // Analysis metadata
   analysisResults: jsonb("analysis_results"), // Complete OpenAI response
