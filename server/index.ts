@@ -73,27 +73,40 @@ function validateEnvironmentVariables() {
   logWithLevel('Environment variables validated successfully');
 }
 
-// Test database connection with timeout
+// Test database connection with timeout and retry logic
 async function testDatabaseConnection() {
-  try {
-    // Set a shorter timeout for the connection test
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Database connection timeout')), 5000);
-    });
-    
-    const connectionPromise = (async () => {
-      const client = await pool.connect();
-      await client.query('SELECT 1');
-      client.release();
-      return true;
-    })();
-    
-    await Promise.race([connectionPromise, timeoutPromise]);
-    logWithLevel('Database connection test successful');
-  } catch (error) {
-    logWithLevel(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
-    // Don't throw error, just log it and continue
-    logWithLevel('Continuing application startup despite database connection issue', 'info');
+  const maxRetries = 3;
+  let retryCount = 0;
+  
+  while (retryCount < maxRetries) {
+    try {
+      // Set a reasonable timeout for the connection test
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database connection timeout')), 8000);
+      });
+      
+      const connectionPromise = (async () => {
+        const client = await pool.connect();
+        await client.query('SELECT 1');
+        client.release();
+        return true;
+      })();
+      
+      await Promise.race([connectionPromise, timeoutPromise]);
+      logWithLevel('Database connection test successful');
+      return;
+    } catch (error) {
+      retryCount++;
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      logWithLevel(`Database connection attempt ${retryCount}/${maxRetries} failed: ${errorMsg}`, 'error');
+      
+      if (retryCount < maxRetries) {
+        logWithLevel(`Retrying database connection in 2 seconds...`, 'info');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } else {
+        logWithLevel('Max database connection retries reached. Continuing startup...', 'error');
+      }
+    }
   }
 }
 
