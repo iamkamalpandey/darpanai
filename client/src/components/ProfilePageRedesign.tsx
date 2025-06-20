@@ -18,6 +18,7 @@ import { AlertCircle, Check, Edit, User, GraduationCap, Globe, DollarSign, Brief
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import DashboardLayout from '@/components/DashboardLayout';
 
 // Comprehensive validation schemas with null value handling
 const personalInfoSchema = z.object({
@@ -382,17 +383,18 @@ const ProfilePageRedesign: React.FC = () => {
   const profileCompletion = calculateProfileCompletion(user);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Profile Management</h1>
-        <p className="text-gray-600 mt-2">
-          Complete your profile to unlock personalized AI analysis and study destination recommendations.
-        </p>
-      </div>
+    <DashboardLayout>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Profile Management</h1>
+          <p className="text-gray-600 mt-2">
+            Complete your profile to unlock personalized AI analysis and study destination recommendations.
+          </p>
+        </div>
 
-      {/* Profile Completion Card */}
-      <Card className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-        <CardHeader>
+        {/* Profile Completion Card */}
+        <Card className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <TrendingUp className="w-6 h-6 text-blue-600" />
@@ -1038,6 +1040,7 @@ const ProfilePageRedesign: React.FC = () => {
         </ProfileSectionCard>
       </div>
     </div>
+    </DashboardLayout>
   );
 };
 
