@@ -68,6 +68,15 @@ export const users = pgTable("users", {
   accommodationRequired: boolean("accommodation_required").default(false),
   hasDependents: boolean("has_dependents").default(false),
   
+  // Financial Information
+  fundingSource: text("funding_source"), // Self-funded, Family Support, Scholarship, Education Loan, Employer Sponsored
+  estimatedBudget: integer("estimated_budget"), // Total budget in USD
+  savingsAmount: integer("savings_amount"), // Current savings in USD
+  loanApproval: boolean("loan_approval"), // Whether loan is approved
+  loanAmount: integer("loan_amount"), // Approved loan amount
+  sponsorDetails: text("sponsor_details"), // Sponsor information
+  financialDocuments: boolean("financial_documents"), // Whether financial docs are ready
+  
   // Employment Information
   currentEmploymentStatus: text("current_employment_status"), // Employed, Self-employed, Studying, Unemployed
   workExperienceYears: integer("work_experience_years"),

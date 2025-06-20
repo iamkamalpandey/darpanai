@@ -93,6 +93,17 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
     });
   };
 
+  const getMinimumScore = (testType: string): number => {
+    switch (testType) {
+      case 'IELTS': return 4.0;
+      case 'TOEFL': return 60;
+      case 'PTE': return 30;
+      case 'Duolingo': return 85;
+      case 'SAT': return 400;
+      default: return 0;
+    }
+  };
+
   // Validation rules for each section
   const getValidationRules = (section: string) => {
     switch (section) {
@@ -129,14 +140,28 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
             validator: (value: any) => (Array.isArray(value) && value.length > 0) || 'Select at least one country'
           }
         ];
+      case 'financial':
+        return [
+          { field: 'fundingSource', message: 'Funding source is required', required: true },
+          { field: 'estimatedBudget', message: 'Estimated budget is required', required: true,
+            validator: (value: any) => (parseInt(value) > 0) || 'Budget must be greater than 0'
+          }
+        ];
       case 'employment':
         return [
           { field: 'currentEmploymentStatus', message: 'Employment status is required', required: true }
         ];
       case 'language':
         return [
-          { field: 'englishProficiencyTests', message: 'At least one English proficiency test is required', required: true,
-            validator: (value: any) => (Array.isArray(value) && value.length > 0 && value.some((test: any) => test.testType && test.overallScore)) || 'Add at least one complete English test record'
+          // Language tests are optional, but if added, must have complete details
+          { field: 'englishProficiencyTests', message: '', required: false,
+            validator: (value: any) => {
+              if (!Array.isArray(value) || value.length === 0) return true; // Optional field
+              return value.every((test: any) => 
+                test.testType && test.overallScore && test.testDate && 
+                test.overallScore >= getMinimumScore(test.testType)
+              ) || 'Complete test details required: test type, overall score, and test date';
+            }
           }
         ];
       default:
