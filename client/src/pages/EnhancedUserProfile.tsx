@@ -170,11 +170,13 @@ export default function EnhancedUserProfile() {
               </div>
               <div className="flex items-center space-x-2">
                 {getCompletionBadge(getSectionCompletion(SECTION_FIELDS.personal))}
-                <Link href="/profile/edit">
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setEditingSection('personal')}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">

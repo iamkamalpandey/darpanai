@@ -1585,7 +1585,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         highestInstitution: z.string().optional(),
         highestCountry: z.string().optional(),
         highestGpa: z.string().optional(),
-        graduationYear: z.string().optional(),
+        graduationYear: z.union([z.string(), z.number()]).optional(),
         currentAcademicGap: z.string().optional(),
         educationHistory: z.array(z.any()).optional(),
         
