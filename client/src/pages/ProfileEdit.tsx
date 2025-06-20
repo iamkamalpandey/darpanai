@@ -119,7 +119,7 @@ export default function ProfileEdit() {
       testDate: '',
       expiryDate: ''
     };
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       englishProficiencyTests: [...(prev.englishProficiencyTests || []), newTest]
     }));
@@ -128,12 +128,12 @@ export default function ProfileEdit() {
   const handleLanguageTestChange = (index: number, field: string, value: string) => {
     const updatedTests = [...(formData.englishProficiencyTests || [])];
     updatedTests[index] = { ...updatedTests[index], [field]: value };
-    setFormData(prev => ({ ...prev, englishProficiencyTests: updatedTests }));
+    setFormData((prev: any) => ({ ...prev, englishProficiencyTests: updatedTests }));
   };
 
   const handleRemoveLanguageTest = (index: number) => {
-    const updatedTests = formData.englishProficiencyTests.filter((_, i) => i !== index);
-    setFormData(prev => ({ ...prev, englishProficiencyTests: updatedTests }));
+    const updatedTests = formData.englishProficiencyTests.filter((_: any, i: number) => i !== index);
+    setFormData((prev: any) => ({ ...prev, englishProficiencyTests: updatedTests }));
   };
 
   if (!user) {

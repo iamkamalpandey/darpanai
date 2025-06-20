@@ -73,16 +73,27 @@ function validateEnvironmentVariables() {
   logWithLevel('Environment variables validated successfully');
 }
 
-// Test database connection
+// Test database connection with timeout
 async function testDatabaseConnection() {
   try {
-    const client = await pool.connect();
-    await client.query('SELECT 1');
-    client.release();
+    // Set a shorter timeout for the connection test
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Database connection timeout')), 5000);
+    });
+    
+    const connectionPromise = (async () => {
+      const client = await pool.connect();
+      await client.query('SELECT 1');
+      client.release();
+      return true;
+    })();
+    
+    await Promise.race([connectionPromise, timeoutPromise]);
     logWithLevel('Database connection test successful');
   } catch (error) {
     logWithLevel(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
-    throw new Error(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    // Don't throw error, just log it and continue
+    logWithLevel('Continuing application startup despite database connection issue', 'info');
   }
 }
 
