@@ -2081,8 +2081,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Analyze offer letter with OpenAI
-      const { analysis, tokensUsed, processingTime } = await analyzeOfferLetterDocument(
+      // Analyze offer letter with comprehensive strategic analysis
+      const { analysis, tokensUsed, processingTime } = await analyzeOfferLetterComprehensive(
         extractedText,
         file.originalname
       );
@@ -2189,8 +2189,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Analyze offer letter with OpenAI
-      const { analysis, tokensUsed, processingTime } = await analyzeOfferLetterDocument(
+      // Analyze offer letter with comprehensive strategic analysis
+      const { analysis, tokensUsed, processingTime } = await analyzeOfferLetterComprehensive(
         extractedText,
         file.originalname
       );
