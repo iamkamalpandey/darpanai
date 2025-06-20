@@ -247,12 +247,12 @@ const ProfilePageRedesign: React.FC = () => {
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         phoneNumber: user.phoneNumber || '',
-        dateOfBirth: user.dateOfBirth || '',
-        gender: user.gender || '',
+        dateOfBirth: user.dateOfBirth || null,
+        gender: user.gender || null,
         nationality: user.nationality || '',
-        passportNumber: user.passportNumber || '',
-        secondaryNumber: user.secondaryNumber || '',
-        address: user.address || '',
+        passportNumber: user.passportNumber || null,
+        secondaryNumber: user.secondaryNumber || null,
+        address: user.address || null,
       });
     }
   }, [user, personalForm]);
