@@ -101,17 +101,23 @@ export default function SimplifiedAuth() {
 
   const onRegisterSubmit = async (data: RegistrationData) => {
     try {
-      // Prepare registration data with user type as student by default
+      // Prepare registration data to match InsertUser schema requirements
       const registrationData = {
-        ...data,
-        userType: "student" as const,
+        username: data.username,
+        password: data.password,
+        confirmPassword: data.confirmPassword,
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phoneNumber: data.phoneNumber,
         city: "", // Will be collected during profile completion
-        studyDestination: "", // Will be collected during profile completion
-        startDate: "", // Will be collected during profile completion
-        counsellingMode: "", // Will be collected during profile completion
-        fundingSource: "", // Will be collected during profile completion
-        studyLevel: "", // Will be collected during profile completion
-        agreeToTerms: true,
+        country: data.country,
+        studyDestination: "Not specified", // Will be collected during profile completion
+        startDate: "Not specified", // Will be collected during profile completion
+        counsellingMode: "Not specified", // Will be collected during profile completion
+        fundingSource: "Not specified", // Will be collected during profile completion
+        studyLevel: "Not specified", // Will be collected during profile completion
+        agreeToTerms: data.agreeToTerms,
         allowContact: data.allowContact || false,
         receiveUpdates: data.receiveUpdates || false,
       };
