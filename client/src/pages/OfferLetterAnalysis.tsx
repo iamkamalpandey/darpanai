@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useDropzone } from 'react-dropzone';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -15,15 +14,25 @@ import {
   CheckCircle, 
   Clock, 
   DollarSign, 
-  Users, 
-  Calendar,
-  Shield,
-  TrendingUp,
   AlertCircle,
   Loader2,
   University,
   Target
 } from 'lucide-react';
+
+interface UserStats {
+  analysisCount: number;
+  maxAnalyses: number;
+}
+
+interface AnalysisItem {
+  id: number;
+  fileName: string;
+  analysisDate: string;
+  universityInfo?: {
+    name?: string;
+  };
+}
 
 export default function OfferLetterAnalysis() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -33,33 +42,15 @@ export default function OfferLetterAnalysis() {
   const queryClient = useQueryClient();
 
   // Get user stats for quota checking
-  const { data: userStats } = useQuery({
+  const { data: userStats } = useQuery<UserStats>({
     queryKey: ['/api/user/stats'],
     staleTime: 5 * 60 * 1000,
   });
 
   // Get user's analyses
-  const { data: analyses = [], isLoading } = useQuery({
+  const { data: analyses = [], isLoading } = useQuery<AnalysisItem[]>({
     queryKey: ['/api/offer-letter-analyses'],
     staleTime: 5 * 60 * 1000,
-  });
-
-  const onDrop = (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      setSelectedFile(file);
-    }
-  };
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'application/pdf': ['.pdf'],
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png']
-    },
-    maxFiles: 1,
-    disabled: mutation.isPending
   });
 
   const mutation = useMutation({
@@ -126,6 +117,13 @@ export default function OfferLetterAnalysis() {
     }
   });
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
   const canAnalyze = userStats && userStats.analysisCount < userStats.maxAnalyses;
 
   return (
@@ -190,65 +188,70 @@ export default function OfferLetterAnalysis() {
                   </Alert>
                 )}
 
-                <div
-                  {...getRootProps()}
-                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                    isDragActive
-                      ? 'border-blue-400 bg-blue-50'
-                      : canAnalyze
-                      ? 'border-gray-300 hover:border-gray-400 cursor-pointer'
-                      : 'border-gray-200 bg-gray-50 cursor-not-allowed'
-                  }`}
-                >
-                  <input {...getInputProps()} disabled={!canAnalyze} />
-                  <Upload className={`h-12 w-12 mx-auto mb-4 ${canAnalyze ? 'text-gray-400' : 'text-gray-300'}`} />
-                  
-                  {selectedFile ? (
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                    </div>
-                  ) : (
-                    <div>
-                      <p className={`text-sm font-medium ${canAnalyze ? 'text-gray-900' : 'text-gray-500'}`}>
-                        {isDragActive ? 'Drop your file here' : 'Drop your offer letter here or click to browse'}
-                      </p>
-                      <p className={`text-xs ${canAnalyze ? 'text-gray-500' : 'text-gray-400'}`}>
-                        PDF, JPG, PNG up to 10MB
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {mutation.isPending && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Analyzing document...</span>
-                      <span>{uploadProgress}%</span>
-                    </div>
-                    <Progress value={uploadProgress} className="w-full" />
+                <div className="space-y-4">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    
+                    {selectedFile ? (
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          Select your offer letter document
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          PDF, JPG, PNG up to 10MB
+                        </p>
+                      </div>
+                    )}
+                    
+                    <input
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={handleFileChange}
+                      disabled={!canAnalyze}
+                      className="mt-4 block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-blue-50 file:text-blue-700
+                        hover:file:bg-blue-100"
+                    />
                   </div>
-                )}
 
-                <Button
-                  onClick={() => mutation.mutate()}
-                  disabled={!selectedFile || mutation.isPending || !canAnalyze}
-                  className="w-full"
-                >
-                  {mutation.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="h-4 w-4 mr-2" />
-                      Analyze Offer Letter
-                    </>
+                  {mutation.isPending && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span>Analyzing document...</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <Progress value={uploadProgress} className="w-full" />
+                    </div>
                   )}
-                </Button>
+
+                  <Button
+                    onClick={() => mutation.mutate()}
+                    disabled={!selectedFile || mutation.isPending || !canAnalyze}
+                    className="w-full"
+                  >
+                    {mutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Analyze Offer Letter
+                      </>
+                    )}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -338,7 +341,7 @@ export default function OfferLetterAnalysis() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {analyses.slice(0, 5).map((analysis: any) => (
+                  {analyses.slice(0, 5).map((analysis) => (
                     <div
                       key={analysis.id}
                       className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
