@@ -72,6 +72,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const sidebarItems = [
     { icon: <Home size={20} />, label: 'Dashboard', href: '/' },
+    { icon: <User size={20} />, label: 'Profile', href: '/profile' },
     { icon: <FileText size={20} />, label: 'My Analysis', href: '/my-analysis' },
     { icon: <Shield size={20} />, label: 'Visa Analysis', href: '/visa-analysis' },
     { 

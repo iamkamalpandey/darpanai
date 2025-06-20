@@ -167,11 +167,22 @@ export default function ProfileCompletion() {
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
-    mutationFn: (data: ProfileCompletionData) =>
-      apiRequest('/api/user/complete-profile', {
+    mutationFn: async (data: ProfileCompletionData) => {
+      const response = await fetch('/api/user/complete-profile', {
         method: 'PATCH',
-        body: data,
-      }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || errorData.error || 'Failed to update profile');
+      }
+
+      return response.json();
+    },
     onSuccess: () => {
       toast({
         title: "Profile Updated",

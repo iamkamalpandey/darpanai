@@ -1614,6 +1614,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user profile (comprehensive including English proficiency)
+  app.patch('/api/user/profile', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      
+      // Comprehensive validation schema for full profile updates
+      const fullProfileSchema = z.object({
+        studyLevel: z.string().optional(),
+        preferredStudyFields: z.array(z.string()).optional(),
+        startDate: z.string().optional(),
+        budgetRange: z.string().optional(),
+        fundingSource: z.string().optional(),
+        studyDestination: z.string().optional(),
+        languagePreferences: z.array(z.string()).optional(),
+        climatePreference: z.string().optional(),
+        universityRankingImportance: z.string().optional(),
+        workPermitImportance: z.string().optional(),
+        culturalPreferences: z.array(z.string()).optional(),
+        careerGoals: z.string().optional(),
+        counsellingMode: z.string().optional(),
+        
+        // English Language Proficiency
+        englishProficiency: z.string().optional(),
+        englishTestType: z.string().optional(),
+        englishTestScore: z.string().optional(),
+        englishTestDate: z.string().optional(),
+        englishTestExpiry: z.string().optional(),
+        needsEnglishImprovement: z.boolean().optional(),
+      });
+      
+      const validatedData = fullProfileSchema.parse(req.body);
+      
+      // Update user profile with English proficiency fields
+      const updatedUser = await storage.updateUserProfile(userId, validatedData);
+      
+      // Invalidate cache
+      invalidateCache(`user:${userId}`);
+      
+      res.json({
+        message: 'Profile updated successfully',
+        user: updatedUser
+      });
+    } catch (error: any) {
+      console.error('Error updating user profile:', error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          error: 'Validation failed',
+          details: error.errors
+        });
+      }
+      
+      res.status(500).json({ error: 'Failed to update profile' });
+    }
+  });
+
   // Study Destination Suggestion API Routes
 
   // Generate personalized study destination suggestions
