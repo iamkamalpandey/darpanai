@@ -35,7 +35,7 @@ const COMPULSORY_FIELDS = [
   'firstName', 'lastName', 'dateOfBirth', 'gender', 'nationality', 'phoneNumber',
   'highestQualification', 'highestInstitution', 'highestGpa', 'graduationYear',
   'interestedCourse', 'fieldOfStudy', 'preferredIntake', 'budgetRange',
-  'preferredCountries', 'currentEmploymentStatus', 'englishProficiencyTests'
+  'preferredCountries', 'currentEmploymentStatus', 'fundingSource', 'estimatedBudget'
 ];
 
 // Section field mappings
@@ -43,6 +43,7 @@ const SECTION_FIELDS = {
   personal: ['firstName', 'lastName', 'dateOfBirth', 'gender', 'nationality', 'phoneNumber', 'passportNumber', 'address'],
   academic: ['highestQualification', 'highestInstitution', 'highestCountry', 'highestGpa', 'graduationYear', 'currentAcademicGap'],
   studyPreferences: ['interestedCourse', 'fieldOfStudy', 'preferredIntake', 'budgetRange', 'preferredCountries'],
+  financial: ['fundingSource', 'estimatedBudget', 'savingsAmount', 'loanAmount'],
   employment: ['currentEmploymentStatus', 'workExperienceYears', 'jobTitle', 'organizationName', 'fieldOfWork'],
   language: ['englishProficiencyTests', 'standardizedTests']
 };
@@ -345,6 +346,64 @@ export default function EnhancedUserProfile() {
                   <div className="text-sm font-medium text-gray-500">Field of Work</div>
                   <div className="text-gray-900">{user.fieldOfWork || 'Not specified'}</div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Financial Information */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Target className="h-5 w-5 text-purple-600" />
+                <CardTitle>Financial Information</CardTitle>
+              </div>
+              <div className="flex items-center space-x-2">
+                {getCompletionBadge(getSectionCompletion(SECTION_FIELDS.financial))}
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setEditingSection('financial')}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Funding Source</div>
+                  <div className="text-gray-900">{user.fundingSource || 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Total Budget</div>
+                  <div className="text-gray-900">{user.estimatedBudget ? `$${user.estimatedBudget.toLocaleString()} USD` : 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Current Savings</div>
+                  <div className="text-gray-900">{user.savingsAmount ? `$${user.savingsAmount.toLocaleString()} USD` : 'Not specified'}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Loan Amount</div>
+                  <div className="text-gray-900">{user.loanAmount ? `$${user.loanAmount.toLocaleString()} USD` : 'Not specified'}</div>
+                </div>
+              </div>
+              {user.sponsorDetails && (
+                <div>
+                  <div className="text-sm font-medium text-gray-500">Sponsor Details</div>
+                  <div className="text-gray-900 whitespace-pre-wrap">{user.sponsorDetails}</div>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {user.loanApproval && (
+                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    Loan Pre-approved
+                  </Badge>
+                )}
+                {user.financialDocuments && (
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    Documents Ready
+                  </Badge>
+                )}
               </div>
             </CardContent>
           </Card>
