@@ -192,6 +192,26 @@ const employmentInfoSchema = z.object({
   path: ["currentEmploymentStatus"]
 });
 
+// Additional Information Schema
+const additionalInfoSchema = z.object({
+  source: z.string()
+    .min(5, 'Please provide at least 5 characters')
+    .max(500, 'Response too long')
+    .optional()
+    .nullable(),
+  studyDestination: z.string().optional().nullable(),
+  startDate: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
+  country: z.string().optional().nullable(),
+  counsellingMode: z.string().optional().nullable(),
+  studyLevel: z.string().optional().nullable(),
+  leadType: z.string().optional().nullable(),
+  applicationStatus: z.string().optional().nullable(),
+  campaignId: z.string().optional().nullable(),
+  isArchived: z.boolean().optional().nullable(),
+  dropout: z.boolean().optional().nullable(),
+});
+
 const languageProficiencySchema = z.object({
   englishProficiencyTests: z.array(z.object({
     testType: z.enum(['IELTS', 'TOEFL', 'PTE', 'Duolingo']),
@@ -585,6 +605,45 @@ const ProfilePageRedesign: React.FC = () => {
     }
   }, [user, editingSection, employmentForm]);
 
+  // Additional Information Form
+  const additionalForm = useForm({
+    resolver: zodResolver(additionalInfoSchema),
+    defaultValues: {
+      source: user?.source || '',
+      studyDestination: user?.studyDestination || '',
+      startDate: user?.startDate || '',
+      city: user?.city || '',
+      country: user?.country || '',
+      counsellingMode: user?.counsellingMode || '',
+      studyLevel: user?.studyLevel || '',
+      leadType: user?.leadType || '',
+      applicationStatus: user?.applicationStatus || '',
+      campaignId: user?.campaignId || '',
+      isArchived: user?.isArchived || false,
+      dropout: user?.dropout || false,
+    },
+  });
+
+  // Update additional form when entering edit mode
+  React.useEffect(() => {
+    if (user && editingSection === 'additional') {
+      additionalForm.reset({
+        source: user.source || '',
+        studyDestination: user.studyDestination || '',
+        startDate: user.startDate || '',
+        city: user.city || '',
+        country: user.country || '',
+        counsellingMode: user.counsellingMode || '',
+        studyLevel: user.studyLevel || '',
+        leadType: user.leadType || '',
+        applicationStatus: user.applicationStatus || '',
+        campaignId: user.campaignId || '',
+        isArchived: user.isArchived || false,
+        dropout: user.dropout || false,
+      });
+    }
+  }, [user, editingSection, additionalForm]);
+
   // Language Proficiency Form
   const languageForm = useForm({
     resolver: zodResolver(languageProficiencySchema),
@@ -691,6 +750,31 @@ const ProfilePageRedesign: React.FC = () => {
       },
       onError: (error) => {
         console.error('✗ Employment info save failed:', error);
+      }
+    });
+  };
+
+  const submitAdditionalInfo = (data: any) => {
+    console.log('=== ADDITIONAL INFO SAVE TEST ===');
+    console.log('Data being saved:', JSON.stringify(data, null, 2));
+    console.log('Field count:', Object.keys(data).length);
+    updateProfileMutation.mutate(data, {
+      onSuccess: (response) => {
+        console.log('✓ Additional info saved successfully:', response);
+        console.log('✓ Save verification: Additional section complete');
+        setEditingSection(null);
+        toast({
+          title: "Additional Information Saved",
+          description: "Your additional information has been updated successfully.",
+        });
+      },
+      onError: (error) => {
+        console.error('✗ Additional info save failed:', error);
+        toast({
+          title: "Save Failed",
+          description: "Failed to save additional information. Please try again.",
+          variant: "destructive",
+        });
       }
     });
   };
@@ -2130,36 +2214,111 @@ const ProfilePageRedesign: React.FC = () => {
           onEdit={() => setEditingSection('additional')}
         >
           {editingSection === 'additional' ? (
-            <div className="space-y-6">
-              <div>
-                <Label htmlFor="source">How did you find us?</Label>
-                <Textarea
-                  id="source"
-                  placeholder="Please tell us how you discovered our platform (e.g., Google search, social media, friend referral, etc.)"
-                  value={user?.source || ''}
-                  onChange={(e) => updateProfileMutation.mutate({ source: e.target.value })}
-                  className="min-h-[80px]"
+            <Form {...additionalForm}>
+              <form onSubmit={additionalForm.handleSubmit(submitAdditionalInfo)} className="space-y-6">
+                <FormField
+                  control={additionalForm.control}
+                  name="source"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>How did you find us?</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Please tell us how you discovered our platform (e.g., Google search, social media, friend referral, etc.)"
+                          className="min-h-[80px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              
-              <div className="flex justify-end space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setEditingSection(null)}
-                >
-                  <X className="w-4 h-4 mr-1" />
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => setEditingSection(null)}
-                >
-                  <Save className="w-4 h-4 mr-1" />
-                  Save Changes
-                </Button>
-              </div>
-            </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={additionalForm.control}
+                    name="studyDestination"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Study Destination (Legacy)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Study destination" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={additionalForm.control}
+                    name="startDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Date (Legacy)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Start date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={additionalForm.control}
+                    name="city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>City (Legacy)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="City" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={additionalForm.control}
+                    name="counsellingMode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Counselling Mode (Legacy)</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ''}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select counselling mode" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="online">Online</SelectItem>
+                            <SelectItem value="offline">Offline</SelectItem>
+                            <SelectItem value="hybrid">Hybrid</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditingSection(null)}
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={updateProfileMutation.isPending}>
+                    <Save className="w-4 h-4 mr-1" />
+                    {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
+              </form>
+            </Form>
           ) : (
             <div className="bg-gray-50 p-4 rounded-lg">
               <Label className="text-sm font-medium text-gray-600">How did you find us?</Label>
