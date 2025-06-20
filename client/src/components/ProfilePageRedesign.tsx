@@ -856,22 +856,30 @@ const ProfilePageRedesign: React.FC = () => {
               </form>
             </Form>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">Qualification</Label>
-                <p className="text-sm">{user?.highestQualification || 'Not provided'}</p>
+                <p className="text-sm mt-1 font-medium">{user?.highestQualification || 'Not provided'}</p>
               </div>
-              <div>
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">Institution</Label>
-                <p className="text-sm">{user?.highestInstitution || 'Not provided'}</p>
+                <p className="text-sm mt-1 font-medium">{user?.highestInstitution || 'Not provided'}</p>
               </div>
-              <div>
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">Graduation Year</Label>
-                <p className="text-sm">{user?.graduationYear || 'Not provided'}</p>
+                <p className="text-sm mt-1 font-medium">{user?.graduationYear || 'Not provided'}</p>
               </div>
-              <div>
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">GPA/Grade</Label>
-                <p className="text-sm">{user?.highestGpa || 'Not provided'}</p>
+                <p className="text-sm mt-1 font-medium">{user?.highestGpa || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Country</Label>
+                <p className="text-sm mt-1 font-medium">{user?.highestCountry || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Academic Gap</Label>
+                <p className="text-sm mt-1 font-medium">{user?.currentAcademicGap ? `${user.currentAcademicGap} years` : 'Not provided'}</p>
               </div>
             </div>
           )}
@@ -888,8 +896,8 @@ const ProfilePageRedesign: React.FC = () => {
         >
           {editingSection === 'study' ? (
             <Form {...studyForm}>
-              <form onSubmit={studyForm.handleSubmit(submitStudyPreferences)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form onSubmit={studyForm.handleSubmit(submitStudyPreferences)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <FormField
                     control={studyForm.control}
                     name="interestedCourse"
@@ -999,22 +1007,26 @@ const ProfilePageRedesign: React.FC = () => {
               </form>
             </Form>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">Interested Course</Label>
-                <p className="text-sm">{user?.interestedCourse || 'Not provided'}</p>
+                <p className="text-sm mt-1 font-medium">{user?.interestedCourse || 'Not provided'}</p>
               </div>
-              <div>
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">Field of Study</Label>
-                <p className="text-sm">{user?.fieldOfStudy || 'Not provided'}</p>
+                <p className="text-sm mt-1 font-medium">{user?.fieldOfStudy || 'Not provided'}</p>
               </div>
-              <div>
-                <Label className="text-sm font-medium text-gray-600">Preferred Countries</Label>
-                <p className="text-sm">{user?.preferredCountries?.join(', ') || 'Not provided'}</p>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Preferred Intake</Label>
+                <p className="text-sm mt-1 font-medium">{user?.preferredIntake || 'Not provided'}</p>
               </div>
-              <div>
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">Budget Range</Label>
-                <p className="text-sm">{user?.budgetRange || 'Not provided'}</p>
+                <p className="text-sm mt-1 font-medium">${user?.budgetRange?.replace('-', ' - ') || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg lg:col-span-2">
+                <Label className="text-sm font-medium text-gray-600">Preferred Countries</Label>
+                <p className="text-sm mt-1 font-medium">{user?.preferredCountries?.join(', ') || 'Not provided'}</p>
               </div>
             </div>
           )}
@@ -1031,8 +1043,8 @@ const ProfilePageRedesign: React.FC = () => {
         >
           {editingSection === 'financial' ? (
             <Form {...financialForm}>
-              <form onSubmit={financialForm.handleSubmit(submitFinancialInfo)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form onSubmit={financialForm.handleSubmit(submitFinancialInfo)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <FormField
                     control={financialForm.control}
                     name="fundingSource"
@@ -1128,30 +1140,105 @@ const ProfilePageRedesign: React.FC = () => {
         >
           {editingSection === 'employment' ? (
             <Form {...employmentForm}>
-              <form onSubmit={employmentForm.handleSubmit(submitEmploymentInfo)} className="space-y-4">
-                <FormField
-                  control={employmentForm.control}
-                  name="currentEmploymentStatus"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Current Employment Status *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <form onSubmit={employmentForm.handleSubmit(submitEmploymentInfo)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <FormField
+                    control={employmentForm.control}
+                    name="currentEmploymentStatus"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Current Employment Status *</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select employment status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Employed">Employed</SelectItem>
+                            <SelectItem value="Self-employed">Self-employed</SelectItem>
+                            <SelectItem value="Student">Student</SelectItem>
+                            <SelectItem value="Unemployed">Unemployed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={employmentForm.control}
+                    name="workExperienceYears"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Work Experience (Years)</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select employment status" />
-                          </SelectTrigger>
+                          <Input 
+                            {...field} 
+                            type="number" 
+                            min="0" 
+                            max="50" 
+                            placeholder="Years of experience"
+                            value={field.value || ''}
+                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                          />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Employed">Employed</SelectItem>
-                          <SelectItem value="Self-employed">Self-employed</SelectItem>
-                          <SelectItem value="Student">Student</SelectItem>
-                          <SelectItem value="Unemployed">Unemployed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={employmentForm.control}
+                    name="jobTitle"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Job Title</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter job title" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={employmentForm.control}
+                    name="organizationName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Organization Name</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter organization name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={employmentForm.control}
+                    name="fieldOfWork"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Field of Work</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="e.g., Information Technology" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={employmentForm.control}
+                    name="gapReasonIfAny"
+                    render={({ field }) => (
+                      <FormItem className="lg:col-span-3">
+                        <FormLabel>Gap Reason (if any)</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} placeholder="Explain any employment gaps" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <div className="flex justify-end space-x-2">
                   <Button
                     type="button"
