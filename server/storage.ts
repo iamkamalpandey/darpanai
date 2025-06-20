@@ -1,7 +1,7 @@
 import { 
   users, analyses, appointments, professionalApplications, updates, userUpdateViews,
   documentTemplates, documentChecklists, enrollmentAnalyses, documentCategories, documentTypes,
-  analysisFeedback, offerLetterAnalyses,
+  analysisFeedback, offerLetterAnalyses, studyDestinationSuggestions, countries,
   type User, type InsertUser, type Analysis, type InsertAnalysis, 
   type Appointment, type InsertAppointment, type LoginUser,
   type ProfessionalApplication, type InsertProfessionalApplication,
@@ -12,7 +12,9 @@ import {
   type DocumentCategory, type InsertDocumentCategory,
   type DocumentType, type InsertDocumentType,
   type AnalysisFeedback, type InsertAnalysisFeedback,
-  type OfferLetterAnalysis, type InsertOfferLetterAnalysis
+  type OfferLetterAnalysis, type InsertOfferLetterAnalysis,
+  type StudyDestinationSuggestion, type InsertStudyDestinationSuggestion,
+  type Country, type InsertCountry
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, isNotNull, sql, or, gt } from "drizzle-orm";
@@ -140,6 +142,22 @@ export interface IStorage {
   getAnalysisFeedback(analysisId: number, userId: number): Promise<AnalysisFeedback | undefined>;
   updateAnalysisFeedback(analysisId: number, userId: number, updates: Partial<AnalysisFeedback>): Promise<AnalysisFeedback | undefined>;
   getFeedbackAnalytics(): Promise<any>;
+  
+  // Study Destination Suggestion methods
+  createStudyDestinationSuggestion(suggestion: InsertStudyDestinationSuggestion): Promise<StudyDestinationSuggestion>;
+  getStudyDestinationSuggestion(id: number): Promise<StudyDestinationSuggestion | undefined>;
+  getUserStudyDestinationSuggestions(userId: number): Promise<StudyDestinationSuggestion[]>;
+  getLatestStudyDestinationSuggestion(userId: number): Promise<StudyDestinationSuggestion | undefined>;
+  updateStudyDestinationSuggestion(id: number, updates: Partial<StudyDestinationSuggestion>): Promise<StudyDestinationSuggestion | undefined>;
+  
+  // Country methods
+  createCountry(country: InsertCountry): Promise<Country>;
+  getAllCountries(): Promise<Country[]>;
+  getActiveCountries(): Promise<Country[]>;
+  getCountry(id: number): Promise<Country | undefined>;
+  getCountryByCode(code: string): Promise<Country | undefined>;
+  updateCountry(id: number, updates: Partial<Country>): Promise<Country | undefined>;
+  updateUserStudyPreferences(userId: number, preferences: any): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1357,6 +1375,160 @@ export class DatabaseStorage implements IStorage {
       return analytics;
     } catch (error) {
       console.error("Error fetching feedback analytics:", error);
+      throw error;
+    }
+  }
+
+  // Study Destination Suggestion methods
+  async createStudyDestinationSuggestion(suggestion: InsertStudyDestinationSuggestion): Promise<StudyDestinationSuggestion> {
+    try {
+      const [newSuggestion] = await db
+        .insert(studyDestinationSuggestions)
+        .values({
+          ...suggestion,
+          createdAt: new Date(),
+        })
+        .returning();
+      return newSuggestion;
+    } catch (error) {
+      console.error("Error creating study destination suggestion:", error);
+      throw error;
+    }
+  }
+
+  async getStudyDestinationSuggestion(id: number): Promise<StudyDestinationSuggestion | undefined> {
+    try {
+      const [suggestion] = await db
+        .select()
+        .from(studyDestinationSuggestions)
+        .where(eq(studyDestinationSuggestions.id, id));
+      return suggestion || undefined;
+    } catch (error) {
+      console.error("Error fetching study destination suggestion:", error);
+      throw error;
+    }
+  }
+
+  async getUserStudyDestinationSuggestions(userId: number): Promise<StudyDestinationSuggestion[]> {
+    try {
+      return await db
+        .select()
+        .from(studyDestinationSuggestions)
+        .where(and(
+          eq(studyDestinationSuggestions.userId, userId),
+          eq(studyDestinationSuggestions.isActive, true)
+        ))
+        .orderBy(desc(studyDestinationSuggestions.createdAt));
+    } catch (error) {
+      console.error("Error fetching user study destination suggestions:", error);
+      throw error;
+    }
+  }
+
+  async getLatestStudyDestinationSuggestion(userId: number): Promise<StudyDestinationSuggestion | undefined> {
+    try {
+      const [suggestion] = await db
+        .select()
+        .from(studyDestinationSuggestions)
+        .where(and(
+          eq(studyDestinationSuggestions.userId, userId),
+          eq(studyDestinationSuggestions.isActive, true)
+        ))
+        .orderBy(desc(studyDestinationSuggestions.createdAt))
+        .limit(1);
+      return suggestion || undefined;
+    } catch (error) {
+      console.error("Error fetching latest study destination suggestion:", error);
+      throw error;
+    }
+  }
+
+  async updateStudyDestinationSuggestion(id: number, updates: Partial<StudyDestinationSuggestion>): Promise<StudyDestinationSuggestion | undefined> {
+    try {
+      const [updatedSuggestion] = await db
+        .update(studyDestinationSuggestions)
+        .set(updates)
+        .where(eq(studyDestinationSuggestions.id, id))
+        .returning();
+      return updatedSuggestion || undefined;
+    } catch (error) {
+      console.error("Error updating study destination suggestion:", error);
+      throw error;
+    }
+  }
+
+  // Country methods
+  async createCountry(country: InsertCountry): Promise<Country> {
+    try {
+      const [newCountry] = await db
+        .insert(countries)
+        .values({
+          ...country,
+          createdAt: new Date(),
+        })
+        .returning();
+      return newCountry;
+    } catch (error) {
+      console.error("Error creating country:", error);
+      throw error;
+    }
+  }
+
+  async getAllCountries(): Promise<Country[]> {
+    return await db.select().from(countries).orderBy(countries.name);
+  }
+
+  async getActiveCountries(): Promise<Country[]> {
+    return await db
+      .select()
+      .from(countries)
+      .where(eq(countries.isActive, true))
+      .orderBy(countries.name);
+  }
+
+  async getCountry(id: number): Promise<Country | undefined> {
+    const [country] = await db.select().from(countries).where(eq(countries.id, id));
+    return country || undefined;
+  }
+
+  async getCountryByCode(code: string): Promise<Country | undefined> {
+    const [country] = await db.select().from(countries).where(eq(countries.code, code));
+    return country || undefined;
+  }
+
+  async updateCountry(id: number, updates: Partial<Country>): Promise<Country | undefined> {
+    try {
+      const [updatedCountry] = await db
+        .update(countries)
+        .set(updates)
+        .where(eq(countries.id, id))
+        .returning();
+      return updatedCountry || undefined;
+    } catch (error) {
+      console.error("Error updating country:", error);
+      throw error;
+    }
+  }
+
+  async updateUserStudyPreferences(userId: number, preferences: any): Promise<User | undefined> {
+    try {
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          preferredStudyFields: preferences.preferredStudyFields,
+          budgetRange: preferences.budgetRange,
+          languagePreferences: preferences.languagePreferences,
+          climatePreference: preferences.climatePreference,
+          universityRankingImportance: preferences.universityRankingImportance,
+          workPermitImportance: preferences.workPermitImportance,
+          culturalPreferences: preferences.culturalPreferences,
+          careerGoals: preferences.careerGoals,
+        })
+        .where(eq(users.id, userId))
+        .returning();
+      return updatedUser || undefined;
+    } catch (error) {
+      console.error("Error updating user study preferences:", error);
       throw error;
     }
   }

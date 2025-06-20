@@ -40,6 +40,53 @@ export const users = pgTable("users", {
   // Other visa category fields (conditional)
   visaCategory: text("visa_category"),
   purposeOfTravel: text("purpose_of_travel"),
+  // Study preferences for destination suggestions
+  preferredStudyFields: text("preferred_study_fields").array(),
+  budgetRange: text("budget_range"), // low, medium, high
+  languagePreferences: text("language_preferences").array(),
+  climatePreference: text("climate_preference"),
+  universityRankingImportance: text("university_ranking_importance"), // not-important, somewhat, very-important
+  workPermitImportance: text("work_permit_importance"), // not-important, somewhat, very-important
+  culturalPreferences: text("cultural_preferences").array(),
+  careerGoals: text("career_goals"),
+});
+
+// Study Destination Suggestions
+export const studyDestinationSuggestions = pgTable("study_destination_suggestions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  suggestedCountries: jsonb("suggested_countries").notNull(), // Array of country objects with details
+  matchScore: integer("match_score").notNull(), // 0-100 percentage match
+  reasoning: text("reasoning").notNull(),
+  keyFactors: text("key_factors").array().notNull(),
+  recommendations: jsonb("recommendations").notNull(), // Detailed recommendations per country
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+});
+
+// Country Database for Suggestions
+export const countries = pgTable("countries", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  code: text("code").notNull().unique(), // ISO country code
+  region: text("region").notNull(),
+  continent: text("continent").notNull(),
+  primaryLanguage: text("primary_language").notNull(),
+  officialLanguages: text("official_languages").array().notNull(),
+  currency: text("currency").notNull(),
+  averageTuitionFee: integer("average_tuition_fee"), // in USD
+  averageLivingCost: integer("average_living_cost"), // in USD per year
+  climate: text("climate").notNull(), // tropical, temperate, cold, arid
+  safetyRating: integer("safety_rating"), // 1-10 scale
+  educationRanking: integer("education_ranking"), // Global ranking
+  workPermitPolicy: text("work_permit_policy").notNull(), // generous, moderate, restrictive
+  visaProcessingTime: text("visa_processing_time").notNull(),
+  scholarshipAvailability: text("scholarship_availability").notNull(), // high, medium, low
+  topUniversities: text("top_universities").array().notNull(),
+  popularFields: text("popular_fields").array().notNull(),
+  culturalFactors: text("cultural_factors").array().notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Analysis schema
@@ -451,6 +498,44 @@ export type AppointmentFormData = Omit<InsertAppointment, 'requestedDate'> & {
 
 export type ProfessionalApplication = typeof professionalApplications.$inferSelect;
 export type InsertProfessionalApplication = z.infer<typeof professionalApplicationSchema>;
+
+export type StudyDestinationSuggestion = typeof studyDestinationSuggestions.$inferSelect;
+export type InsertStudyDestinationSuggestion = typeof studyDestinationSuggestions.$inferInsert;
+
+export type Country = typeof countries.$inferSelect;
+export type InsertCountry = typeof countries.$inferInsert;
+
+// Study destination suggestion schemas
+export const insertStudyDestinationSuggestionSchema = createInsertSchema(studyDestinationSuggestions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCountrySchema = createInsertSchema(countries).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Study preferences schema for user profile updates
+export const studyPreferencesSchema = z.object({
+  preferredStudyFields: z.array(z.string()).optional(),
+  budgetRange: z.enum(['low', 'medium', 'high']).optional(),
+  languagePreferences: z.array(z.string()).optional(),
+  climatePreference: z.enum(['tropical', 'temperate', 'cold', 'arid']).optional(),
+  universityRankingImportance: z.enum(['not-important', 'somewhat', 'very-important']).optional(),
+  workPermitImportance: z.enum(['not-important', 'somewhat', 'very-important']).optional(),
+  culturalPreferences: z.array(z.string()).optional(),
+  careerGoals: z.string().optional(),
+});
+
+// AI-powered destination suggestion request schema
+export const destinationSuggestionRequestSchema = z.object({
+  userPreferences: studyPreferencesSchema,
+  currentEducation: z.string().optional(),
+  academicPerformance: z.string().optional(),
+  workExperience: z.string().optional(),
+  additionalContext: z.string().optional(),
+});
 
 export type FileUpload = z.infer<typeof fileUploadSchema>;
 export type AnalysisResponse = z.infer<typeof analysisResponseSchema>;
