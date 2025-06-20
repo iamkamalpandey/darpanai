@@ -1032,20 +1032,22 @@ export class DatabaseStorage implements IStorage {
 
   async getOfferLetterAnalysisById(id: number, userId?: number): Promise<OfferLetterAnalysis | null> {
     try {
-      let whereCondition = eq(offerLetterAnalyses.id, id);
-      
       // If userId is provided, ensure user owns the analysis (unless admin)
       if (userId) {
         const user = await this.getUser(userId);
         if (user?.role !== 'admin') {
-          whereCondition = and(eq(offerLetterAnalyses.id, id), eq(offerLetterAnalyses.userId, userId));
+          const [analysis] = await db
+            .select()
+            .from(offerLetterAnalyses)
+            .where(and(eq(offerLetterAnalyses.id, id), eq(offerLetterAnalyses.userId, userId)));
+          return analysis || null;
         }
       }
       
       const [analysis] = await db
         .select()
         .from(offerLetterAnalyses)
-        .where(whereCondition);
+        .where(eq(offerLetterAnalyses.id, id));
       
       return analysis || null;
     } catch (error) {
