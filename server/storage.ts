@@ -319,6 +319,15 @@ export class DatabaseStorage implements IStorage {
     if (profileData.accommodationRequired !== undefined) updateData.accommodationRequired = profileData.accommodationRequired;
     if (profileData.hasDependents !== undefined) updateData.hasDependents = profileData.hasDependents;
     
+    // Financial Information
+    if (profileData.fundingSource !== undefined) updateData.fundingSource = profileData.fundingSource;
+    if (profileData.estimatedBudget !== undefined) updateData.estimatedBudget = profileData.estimatedBudget;
+    if (profileData.savingsAmount !== undefined) updateData.savingsAmount = profileData.savingsAmount;
+    if (profileData.loanApproval !== undefined) updateData.loanApproval = profileData.loanApproval;
+    if (profileData.loanAmount !== undefined) updateData.loanAmount = profileData.loanAmount;
+    if (profileData.sponsorDetails !== undefined) updateData.sponsorDetails = profileData.sponsorDetails;
+    if (profileData.financialDocuments !== undefined) updateData.financialDocuments = profileData.financialDocuments;
+    
     // Employment Information
     if (profileData.currentEmploymentStatus !== undefined) updateData.currentEmploymentStatus = profileData.currentEmploymentStatus;
     if (profileData.workExperienceYears !== undefined) updateData.workExperienceYears = profileData.workExperienceYears;
@@ -335,7 +344,6 @@ export class DatabaseStorage implements IStorage {
     if (profileData.studyLevel !== undefined) updateData.studyLevel = profileData.studyLevel;
     if (profileData.preferredStudyFields !== undefined) updateData.preferredStudyFields = profileData.preferredStudyFields;
     if (profileData.startDate !== undefined) updateData.startDate = profileData.startDate;
-    if (profileData.fundingSource !== undefined) updateData.fundingSource = profileData.fundingSource;
     if (profileData.studyDestination !== undefined) updateData.studyDestination = profileData.studyDestination;
     if (profileData.languagePreferences !== undefined) updateData.languagePreferences = profileData.languagePreferences;
     if (profileData.climatePreference !== undefined) updateData.climatePreference = profileData.climatePreference;

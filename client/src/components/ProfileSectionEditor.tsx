@@ -234,16 +234,12 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
     setIsValidating(true);
     setValidationErrors([]);
 
-    console.log('Saving section:', section);
-    console.log('Form data before validation:', formData);
-
     // Validate form data
     const errors = validateForm(formData, section);
     
     if (errors.length > 0) {
       setValidationErrors(errors);
       setIsValidating(false);
-      console.log('Validation errors:', errors);
       toast({
         title: 'Validation Failed',
         description: `Please fix ${errors.length} error${errors.length > 1 ? 's' : ''} before saving.`,
@@ -282,7 +278,6 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
       }
     });
     
-    console.log('Submit data after transformation:', submitData);
     setIsValidating(false);
     updateMutation.mutate(submitData);
   };
