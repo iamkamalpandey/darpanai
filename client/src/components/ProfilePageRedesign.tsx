@@ -20,37 +20,105 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import DashboardLayout from '@/components/DashboardLayout';
 
-// Comprehensive validation schemas with null value handling
+// Enhanced validation schemas with comprehensive data validity checks
 const personalInfoSchema = z.object({
-  firstName: z.string().min(1, 'First name is required').max(50, 'First name too long'),
-  lastName: z.string().min(1, 'Last name is required').max(50, 'Last name too long'),
-  phoneNumber: z.string().min(10, 'Valid phone number required').max(20, 'Phone number too long'),
-  dateOfBirth: z.string().optional().nullable(),
+  firstName: z.string()
+    .min(1, 'First name is required')
+    .max(50, 'First name too long')
+    .regex(/^[a-zA-Z\s]+$/, 'First name can only contain letters and spaces'),
+  lastName: z.string()
+    .min(1, 'Last name is required')
+    .max(50, 'Last name too long')
+    .regex(/^[a-zA-Z\s]+$/, 'Last name can only contain letters and spaces'),
+  phoneNumber: z.string()
+    .min(10, 'Phone number must be at least 10 digits')
+    .max(20, 'Phone number too long')
+    .regex(/^[\+]?[1-9][\d]{9,19}$/, 'Invalid phone number format'),
+  dateOfBirth: z.string()
+    .optional()
+    .nullable()
+    .refine((date) => {
+      if (!date) return true;
+      const birthDate = new Date(date);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      return age >= 16 && age <= 100;
+    }, 'Age must be between 16 and 100 years'),
   gender: z.enum(['Male', 'Female', 'Non-binary', 'Prefer not to say', 'Other']).optional().nullable(),
-  nationality: z.string().min(1, 'Nationality is required').max(50, 'Nationality too long'),
-  passportNumber: z.string().optional().nullable(),
-  secondaryNumber: z.string().optional().nullable(),
+  nationality: z.string()
+    .min(1, 'Nationality is required')
+    .max(50, 'Nationality too long')
+    .regex(/^[a-zA-Z\s]+$/, 'Nationality can only contain letters and spaces'),
+  passportNumber: z.string()
+    .optional()
+    .nullable()
+    .refine((passport) => {
+      if (!passport) return true;
+      return passport.length >= 6 && passport.length <= 15;
+    }, 'Passport number must be 6-15 characters'),
+  secondaryNumber: z.string()
+    .optional()
+    .nullable()
+    .refine((phone) => {
+      if (!phone) return true;
+      return /^[\+]?[1-9][\d]{9,19}$/.test(phone);
+    }, 'Invalid secondary phone number format'),
   address: z.string().optional().nullable(),
 });
 
 const academicInfoSchema = z.object({
-  highestQualification: z.enum(["High School", "Bachelor's Degree", "Master's Degree", "PhD"]).optional().nullable(),
-  highestInstitution: z.string().min(1, 'Institution name is required').max(100, 'Institution name too long'),
+  highestQualification: z.enum(["High School", "Bachelor's Degree", "Master's Degree", "PhD"])
+    .refine((qual) => qual !== undefined, 'Highest qualification is required'),
+  highestInstitution: z.string()
+    .min(1, 'Institution name is required')
+    .max(100, 'Institution name too long')
+    .regex(/^[a-zA-Z0-9\s\-\.&,]+$/, 'Institution name contains invalid characters'),
   highestCountry: z.string().optional().nullable(),
-  highestGpa: z.string().optional().nullable(),
+  highestGpa: z.string()
+    .optional()
+    .nullable()
+    .refine((gpa) => {
+      if (!gpa) return true;
+      // Accept percentage (0-100%) or GPA scale (0-4.0 or 0-10)
+      const percentage = /^(\d{1,2}|100)%?$/.test(gpa);
+      const gpaScale = /^([0-4](\.\d{1,2})?|[0-9](\.\d{1,2})?|10(\.0{1,2})?)$/.test(gpa);
+      return percentage || gpaScale;
+    }, 'GPA must be in percentage (0-100%) or scale format (0-4.0 or 0-10)'),
   graduationYear: z.number()
     .min(1980, 'Graduation year must be after 1980')
-    .max(2030, 'Graduation year cannot be in the future')
-    .optional().nullable(),
-  currentAcademicGap: z.number().min(0, 'Gap cannot be negative').max(50, 'Gap too large').optional().nullable(),
-});
+    .max(new Date().getFullYear() + 1, 'Graduation year cannot be more than 1 year in the future')
+    .refine((year) => year !== undefined, 'Graduation year is required'),
+  currentAcademicGap: z.number()
+    .min(0, 'Academic gap cannot be negative')
+    .max(50, 'Academic gap too large')
+    .optional()
+    .nullable(),
+}).refine((data) => {
+  // Cross-field validation: Calculate academic gap based on graduation year
+  if (data.graduationYear) {
+    const currentYear = new Date().getFullYear();
+    const calculatedGap = currentYear - data.graduationYear;
+    if (data.currentAcademicGap !== null && data.currentAcademicGap !== undefined) {
+      return Math.abs(data.currentAcademicGap - calculatedGap) <= 1;
+    }
+  }
+  return true;
+}, 'Academic gap should match the difference between graduation year and current year');
 
 const studyPreferencesSchema = z.object({
-  interestedCourse: z.string().min(1, 'Course interest is required').max(100, 'Course name too long'),
-  fieldOfStudy: z.enum(['Engineering', 'Business', 'Medicine', 'Arts', 'Science', 'Technology', 'Other']),
-  preferredIntake: z.enum(['Fall 2024', 'Spring 2025', 'Fall 2025', 'Spring 2026', 'Fall 2026']),
-  budgetRange: z.enum(['under-10000', '10000-25000', '25000-50000', '50000-75000', '75000-100000', 'over-100000']),
-  preferredCountries: z.array(z.string()).min(1, 'At least one country must be selected'),
+  interestedCourse: z.string()
+    .min(1, 'Course interest is required')
+    .max(100, 'Course name too long')
+    .regex(/^[a-zA-Z0-9\s\-\.&,()]+$/, 'Course name contains invalid characters'),
+  fieldOfStudy: z.enum(['Engineering', 'Business', 'Medicine', 'Arts', 'Science', 'Technology', 'Other'])
+    .refine((field) => field !== undefined, 'Field of study is required'),
+  preferredIntake: z.enum(['Fall 2024', 'Spring 2025', 'Fall 2025', 'Spring 2026', 'Fall 2026'])
+    .refine((intake) => intake !== undefined, 'Preferred intake is required'),
+  budgetRange: z.enum(['under-10000', '10000-25000', '25000-50000', '50000-75000', '75000-100000', 'over-100000'])
+    .refine((budget) => budget !== undefined, 'Budget range is required'),
+  preferredCountries: z.array(z.string())
+    .min(1, 'At least one country must be selected')
+    .max(5, 'Maximum 5 countries allowed'),
 });
 
 const financialInfoSchema = z.object({
@@ -445,18 +513,18 @@ const ProfilePageRedesign: React.FC = () => {
             )}
           </div>
         </CardContent>
-      </Card>
+        </Card>
 
-      <div className="space-y-6">
-        {/* Personal Information */}
-        <ProfileSectionCard
-          title="Personal Information"
-          description="Basic personal details and contact information"
-          icon={<User className="w-5 h-5 text-blue-600" />}
-          isComplete={isSectionComplete('personal')}
-          isEditing={editingSection === 'personal'}
-          onEdit={() => setEditingSection('personal')}
-        >
+        <div className="space-y-6">
+          {/* Personal Information */}
+          <ProfileSectionCard
+            title="Personal Information"
+            description="Basic personal details and contact information"
+            icon={<User className="w-5 h-5 text-blue-600" />}
+            isComplete={isSectionComplete('personal')}
+            isEditing={editingSection === 'personal'}
+            onEdit={() => setEditingSection('personal')}
+          >
           {editingSection === 'personal' ? (
             <Form {...personalForm}>
               <form onSubmit={personalForm.handleSubmit(submitPersonalInfo)} className="space-y-4">
@@ -1038,8 +1106,8 @@ const ProfilePageRedesign: React.FC = () => {
             <p className="mt-2">Current tests: {user?.englishProficiencyTests?.length || 0} English proficiency tests recorded</p>
           </div>
         </ProfileSectionCard>
+        </div>
       </div>
-    </div>
     </DashboardLayout>
   );
 };
