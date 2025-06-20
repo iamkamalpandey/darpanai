@@ -7,9 +7,15 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { Save, X, Plus, Trash2 } from 'lucide-react';
+import { Save, X, Plus, Trash2, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+
+interface ValidationError {
+  field: string;
+  message: string;
+}
 
 interface ProfileSectionEditorProps {
   open: boolean;
@@ -20,6 +26,8 @@ interface ProfileSectionEditorProps {
 
 export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSectionEditorProps) {
   const [formData, setFormData] = useState<any>({});
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [isValidating, setIsValidating] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -85,18 +93,120 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
     });
   };
 
+  // Validation rules for each section
+  const getValidationRules = (section: string) => {
+    switch (section) {
+      case 'personal':
+        return [
+          { field: 'firstName', message: 'First name is required', required: true },
+          { field: 'lastName', message: 'Last name is required', required: true },
+          { field: 'dateOfBirth', message: 'Date of birth is required', required: true },
+          { field: 'gender', message: 'Gender is required', required: true },
+          { field: 'nationality', message: 'Nationality is required', required: true },
+          { field: 'phoneNumber', message: 'Phone number is required', required: true, 
+            validator: (value: string) => /^\+?[1-9]\d{1,14}$/.test(value) || 'Invalid phone number format' }
+        ];
+      case 'academic':
+        return [
+          { field: 'highestQualification', message: 'Highest qualification is required', required: true },
+          { field: 'highestInstitution', message: 'Institution name is required', required: true },
+          { field: 'highestGpa', message: 'GPA/Grade is required', required: true },
+          { field: 'graduationYear', message: 'Graduation year is required', required: true,
+            validator: (value: any) => {
+              const year = parseInt(value);
+              const currentYear = new Date().getFullYear();
+              return (year >= 1980 && year <= currentYear + 10) || 'Invalid graduation year';
+            }
+          }
+        ];
+      case 'studyPreferences':
+        return [
+          { field: 'interestedCourse', message: 'Interested course is required', required: true },
+          { field: 'fieldOfStudy', message: 'Field of study is required', required: true },
+          { field: 'preferredIntake', message: 'Preferred intake is required', required: true },
+          { field: 'budgetRange', message: 'Budget range is required', required: true },
+          { field: 'preferredCountries', message: 'At least one preferred country is required', required: true,
+            validator: (value: any) => (Array.isArray(value) && value.length > 0) || 'Select at least one country'
+          }
+        ];
+      case 'employment':
+        return [
+          { field: 'currentEmploymentStatus', message: 'Employment status is required', required: true }
+        ];
+      case 'language':
+        return [
+          { field: 'englishProficiencyTests', message: 'At least one English proficiency test is required', required: true,
+            validator: (value: any) => (Array.isArray(value) && value.length > 0 && value.some((test: any) => test.testType && test.overallScore)) || 'Add at least one complete English test record'
+          }
+        ];
+      default:
+        return [];
+    }
+  };
+
+  const validateForm = (data: any, section: string): ValidationError[] => {
+    const errors: ValidationError[] = [];
+    const rules = getValidationRules(section);
+
+    rules.forEach(rule => {
+      const value = data[rule.field];
+      
+      // Check required fields
+      if (rule.required && (!value || (typeof value === 'string' && value.trim() === ''))) {
+        errors.push({ field: rule.field, message: rule.message });
+        return;
+      }
+
+      // Check custom validators
+      if (rule.validator && value) {
+        const validationResult = rule.validator(value);
+        if (validationResult !== true) {
+          errors.push({ field: rule.field, message: validationResult });
+        }
+      }
+    });
+
+    return errors;
+  };
+
   const handleSave = () => {
-    // Ensure graduationYear is converted to number for submission
+    setIsValidating(true);
+    setValidationErrors([]);
+
+    // Validate form data
+    const errors = validateForm(formData, section);
+    
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      setIsValidating(false);
+      toast({
+        title: 'Validation Failed',
+        description: `Please fix ${errors.length} error${errors.length > 1 ? 's' : ''} before saving.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Prepare data for submission
     const submitData = { ...formData };
+    
+    // Data transformation
     if (submitData.graduationYear && typeof submitData.graduationYear === 'string') {
       submitData.graduationYear = parseInt(submitData.graduationYear);
     }
     
-    // Ensure englishProficiencyTests array exists
     if (!submitData.englishProficiencyTests) {
       submitData.englishProficiencyTests = [];
     }
+
+    // Remove empty strings and convert to null for optional fields
+    Object.keys(submitData).forEach(key => {
+      if (submitData[key] === '' || submitData[key] === undefined) {
+        submitData[key] = null;
+      }
+    });
     
+    setIsValidating(false);
     updateMutation.mutate(submitData);
   };
 
@@ -132,24 +242,36 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="firstName">First Name *</Label>
+          <Label htmlFor="firstName" className={hasFieldError('firstName') ? 'text-red-600' : ''}>
+            First Name *
+          </Label>
           <Input 
             id="firstName" 
             value={formData.firstName || ''} 
             onChange={(e) => handleInputChange('firstName', e.target.value)}
             placeholder="Enter first name"
             required
+            className={hasFieldError('firstName') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
           />
+          {getFieldError('firstName') && (
+            <p className="text-sm text-red-600 mt-1">{getFieldError('firstName')}</p>
+          )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="lastName">Last Name *</Label>
+          <Label htmlFor="lastName" className={hasFieldError('lastName') ? 'text-red-600' : ''}>
+            Last Name *
+          </Label>
           <Input 
             id="lastName" 
             value={formData.lastName || ''} 
             onChange={(e) => handleInputChange('lastName', e.target.value)}
             placeholder="Enter last name"
             required
+            className={hasFieldError('lastName') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
           />
+          {getFieldError('lastName') && (
+            <p className="text-sm text-red-600 mt-1">{getFieldError('lastName')}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="dateOfBirth">Date of Birth *</Label>
@@ -235,12 +357,14 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="highestQualification">Highest Qualification *</Label>
+          <Label htmlFor="highestQualification" className={hasFieldError('highestQualification') ? 'text-red-600' : ''}>
+            Highest Qualification *
+          </Label>
           <Select 
             value={formData.highestQualification || ''} 
             onValueChange={(value) => handleInputChange('highestQualification', value)}
           >
-            <SelectTrigger>
+            <SelectTrigger className={hasFieldError('highestQualification') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}>
               <SelectValue placeholder="Select qualification" />
             </SelectTrigger>
             <SelectContent>
@@ -252,16 +376,25 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
               <SelectItem value="Certificate">Certificate</SelectItem>
             </SelectContent>
           </Select>
+          {getFieldError('highestQualification') && (
+            <p className="text-sm text-red-600 mt-1">{getFieldError('highestQualification')}</p>
+          )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="highestInstitution">Institution Name *</Label>
+          <Label htmlFor="highestInstitution" className={hasFieldError('highestInstitution') ? 'text-red-600' : ''}>
+            Institution Name *
+          </Label>
           <Input 
             id="highestInstitution" 
             value={formData.highestInstitution || ''} 
             onChange={(e) => handleInputChange('highestInstitution', e.target.value)}
             placeholder="Enter institution name"
             required
+            className={hasFieldError('highestInstitution') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
           />
+          {getFieldError('highestInstitution') && (
+            <p className="text-sm text-red-600 mt-1">{getFieldError('highestInstitution')}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="highestCountry">Country of Education</Label>
@@ -662,6 +795,15 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
     }
   };
 
+  const getFieldError = (fieldName: string): string | null => {
+    const error = validationErrors.find(err => err.field === fieldName);
+    return error ? error.message : null;
+  };
+
+  const hasFieldError = (fieldName: string): boolean => {
+    return validationErrors.some(err => err.field === fieldName);
+  };
+
   const renderSectionContent = () => {
     switch (section) {
       case 'personal': return renderPersonalInformation();
@@ -686,6 +828,21 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Validation Error Summary */}
+          {validationErrors.length > 0 && (
+            <Alert variant="destructive" className="border-red-200 bg-red-50">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <div className="font-medium mb-2">Please fix the following errors:</div>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  {validationErrors.map((error, index) => (
+                    <li key={index}>{error.message}</li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {renderSectionContent()}
           
           <div className="flex justify-end space-x-3 pt-4 border-t">
@@ -695,11 +852,11 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
             </Button>
             <Button 
               onClick={handleSave} 
-              disabled={updateMutation.isPending}
+              disabled={updateMutation.isPending || isValidating}
               className="bg-blue-600 hover:bg-blue-700"
             >
               <Save className="h-4 w-4 mr-2" />
-              {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+              {updateMutation.isPending || isValidating ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </div>
