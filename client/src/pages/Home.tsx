@@ -382,6 +382,12 @@ export default function Home() {
         </div>
 
       </div>
+
+      {/* Profile Completion Prompt */}
+      <ProfileCompletionPrompt 
+        open={showProfilePrompt} 
+        onClose={() => setShowProfilePrompt(false)} 
+      />
     </DashboardLayout>
   );
 }

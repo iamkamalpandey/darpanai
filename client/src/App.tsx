@@ -45,7 +45,7 @@ const AdminDocumentChecklists = lazy(() => import("@/pages/admin-document-checkl
 const AdminFeedback = lazy(() => import("@/pages/admin-feedback"));
 const AdminOfferLetterAnalysisView = lazy(() => import("@/pages/AdminOfferLetterAnalysisView"));
 const StudyDestinationSuggestions = lazy(() => import("@/pages/StudyDestinationSuggestions"));
-const UserProfile = lazy(() => import("@/pages/UserProfile"));
+const EnhancedUserProfile = lazy(() => import("@/pages/EnhancedUserProfile"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -135,7 +135,7 @@ function Router() {
       <Route path="/profile">
         <UserProtectedRoute path="/profile" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <UserProfile />
+            <EnhancedUserProfile />
           </Suspense>
         )} />
       </Route>
