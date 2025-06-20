@@ -604,8 +604,8 @@ const ProfilePageRedesign: React.FC = () => {
           >
           {editingSection === 'personal' ? (
             <Form {...personalForm}>
-              <form onSubmit={personalForm.handleSubmit(submitPersonalInfo)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form onSubmit={personalForm.handleSubmit(submitPersonalInfo)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <FormField
                     control={personalForm.control}
                     name="firstName"
@@ -716,22 +716,38 @@ const ProfilePageRedesign: React.FC = () => {
               </form>
             </Form>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">Name</Label>
-                <p className="text-sm">{user?.firstName} {user?.lastName}</p>
+                <p className="text-sm mt-1 font-medium">{user?.firstName} {user?.lastName}</p>
               </div>
-              <div>
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">Phone</Label>
-                <p className="text-sm">{user?.phoneNumber || 'Not provided'}</p>
+                <p className="text-sm mt-1 font-medium">{user?.phoneNumber || 'Not provided'}</p>
               </div>
-              <div>
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">Nationality</Label>
-                <p className="text-sm">{user?.nationality || 'Not provided'}</p>
+                <p className="text-sm mt-1 font-medium">{user?.nationality || 'Not provided'}</p>
               </div>
-              <div>
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">Date of Birth</Label>
-                <p className="text-sm">{user?.dateOfBirth || 'Not provided'}</p>
+                <p className="text-sm mt-1 font-medium">{user?.dateOfBirth || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Gender</Label>
+                <p className="text-sm mt-1 font-medium">{user?.gender || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Passport</Label>
+                <p className="text-sm mt-1 font-medium">{user?.passportNumber || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Secondary Phone</Label>
+                <p className="text-sm mt-1 font-medium">{user?.secondaryNumber || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg lg:col-span-1">
+                <Label className="text-sm font-medium text-gray-600">Address</Label>
+                <p className="text-sm mt-1 font-medium">{user?.address || 'Not provided'}</p>
               </div>
             </div>
           )}
@@ -748,8 +764,8 @@ const ProfilePageRedesign: React.FC = () => {
         >
           {editingSection === 'academic' ? (
             <Form {...academicForm}>
-              <form onSubmit={academicForm.handleSubmit(submitAcademicInfo)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form onSubmit={academicForm.handleSubmit(submitAcademicInfo)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <FormField
                     control={academicForm.control}
                     name="highestQualification"
