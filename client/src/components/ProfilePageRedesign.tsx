@@ -158,7 +158,7 @@ const ProfilePageRedesign: React.FC = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
 
   // Fetch user data
-  const { data: user, isLoading, error } = useQuery({
+  const { data: user, isLoading, error } = useQuery<any>({
     queryKey: ['/api/user/fresh'],
     staleTime: 0,
     refetchOnMount: true,
@@ -207,17 +207,34 @@ const ProfilePageRedesign: React.FC = () => {
   const personalForm = useForm({
     resolver: zodResolver(personalInfoSchema),
     defaultValues: {
-      firstName: user?.firstName || '',
-      lastName: user?.lastName || '',
-      phoneNumber: user?.phoneNumber || '',
-      dateOfBirth: user?.dateOfBirth || '',
-      gender: user?.gender || '',
-      nationality: user?.nationality || '',
-      passportNumber: user?.passportNumber || '',
-      secondaryNumber: user?.secondaryNumber || '',
-      address: user?.address || '',
+      firstName: '',
+      lastName: '',
+      phoneNumber: '',
+      dateOfBirth: '',
+      gender: '',
+      nationality: '',
+      passportNumber: '',
+      secondaryNumber: '',
+      address: '',
     },
   });
+
+  // Update form values when user data loads
+  React.useEffect(() => {
+    if (user) {
+      personalForm.reset({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        phoneNumber: user.phoneNumber || '',
+        dateOfBirth: user.dateOfBirth || '',
+        gender: user.gender || '',
+        nationality: user.nationality || '',
+        passportNumber: user.passportNumber || '',
+        secondaryNumber: user.secondaryNumber || '',
+        address: user.address || '',
+      });
+    }
+  }, [user, personalForm]);
 
   // Academic Information Form
   const academicForm = useForm({

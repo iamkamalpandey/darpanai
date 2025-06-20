@@ -1847,8 +1847,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         budgetRange: updatedUser.budgetRange || undefined,
         preferredCountries: updatedUser.preferredCountries || undefined,
         currentEmploymentStatus: updatedUser.currentEmploymentStatus || undefined,
-        englishProficiencyTests: updatedUser.englishProficiencyTests || undefined,
-        standardizedTests: updatedUser.standardizedTests || undefined,
+        englishProficiencyTests: Array.isArray(updatedUser.englishProficiencyTests) ? updatedUser.englishProficiencyTests : undefined,
+        standardizedTests: Array.isArray(updatedUser.standardizedTests) ? updatedUser.standardizedTests : undefined,
       };
       
       const { analysis, tokensUsed, processingTime } = await generateDestinationSuggestions(

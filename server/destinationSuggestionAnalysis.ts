@@ -174,16 +174,13 @@ Analyze the following student profile and provide comprehensive personalized stu
 
 STUDENT PROFILE:
 - Name: ${userProfile.firstName} ${userProfile.lastName}
-- Current Country: ${userProfile.country}
-- Study Level: ${userProfile.studyLevel || 'Not specified'}
-- Preferred Fields: ${userProfile.preferredStudyFields?.join(', ') || 'Not specified'}
+- Current Country: ${userProfile.country || 'Not specified'}
+- Highest Qualification: ${userProfile.highestQualification || 'Not specified'}
+- Field of Study: ${userProfile.fieldOfStudy || 'Not specified'}
 - Budget Range: ${userProfile.budgetRange || 'Not specified'}
-- Language Preferences: ${userProfile.languagePreferences?.join(', ') || 'Not specified'}
-- Climate Preference: ${userProfile.climatePreference || 'Not specified'}
-- University Ranking Importance: ${userProfile.universityRankingImportance || 'Not specified'}
-- Work Permit Importance: ${userProfile.workPermitImportance || 'Not specified'}
-- Cultural Preferences: ${userProfile.culturalPreferences?.join(', ') || 'Not specified'}
-- Career Goals: ${userProfile.careerGoals || 'Not specified'}
+- Preferred Countries: ${userProfile.preferredCountries?.join(', ') || 'Not specified'}
+- Employment Status: ${userProfile.currentEmploymentStatus || 'Not specified'}
+- English Tests: ${userProfile.englishProficiencyTests?.length || 0} tests recorded
 
 ADDITIONAL CONTEXT:
 - Current Education: ${requestData.currentEducation || 'Not provided'}
