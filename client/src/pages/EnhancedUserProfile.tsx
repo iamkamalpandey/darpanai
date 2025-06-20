@@ -123,12 +123,13 @@ export default function EnhancedUserProfile() {
               </Badge>
             </div>
             <Progress value={completionPercentage} className="w-32" />
-            <Link href="/profile/edit">
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Profile
-              </Button>
-            </Link>
+            <Button 
+              onClick={() => setEditingSection('personal')}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Profile
+            </Button>
           </div>
         </div>
 
@@ -213,11 +214,13 @@ export default function EnhancedUserProfile() {
               </div>
               <div className="flex items-center space-x-2">
                 {getCompletionBadge(getSectionCompletion(SECTION_FIELDS.academic))}
-                <Link href="/profile/edit">
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setEditingSection('academic')}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -259,11 +262,13 @@ export default function EnhancedUserProfile() {
               </div>
               <div className="flex items-center space-x-2">
                 {getCompletionBadge(getSectionCompletion(SECTION_FIELDS.studyPreferences))}
-                <Link href="/profile/edit">
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setEditingSection('studyPreferences')}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -307,11 +312,13 @@ export default function EnhancedUserProfile() {
               </div>
               <div className="flex items-center space-x-2">
                 {getCompletionBadge(getSectionCompletion(SECTION_FIELDS.employment))}
-                <Link href="/profile/edit">
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setEditingSection('employment')}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -349,11 +356,13 @@ export default function EnhancedUserProfile() {
               </div>
               <div className="flex items-center space-x-2">
                 {getCompletionBadge(getSectionCompletion(SECTION_FIELDS.language))}
-                <Link href="/profile/edit">
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setEditingSection('language')}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -421,16 +430,25 @@ export default function EnhancedUserProfile() {
                     Your profile is {completionPercentage}% complete. Complete all sections to get more accurate AI analysis and study destination recommendations.
                   </p>
                 </div>
-                <Link href="/profile/edit">
-                  <Button className="bg-yellow-600 hover:bg-yellow-700 text-white">
-                    Complete Profile
-                  </Button>
-                </Link>
+                <Button 
+                  onClick={() => setEditingSection('personal')}
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                >
+                  Complete Profile
+                </Button>
               </div>
             </CardContent>
           </Card>
         )}
       </div>
+
+      {/* Profile Section Editor Modal */}
+      <ProfileSectionEditor
+        open={!!editingSection}
+        onClose={() => setEditingSection(null)}
+        section={editingSection || ''}
+        user={user}
+      />
     </DashboardLayout>
   );
 }
