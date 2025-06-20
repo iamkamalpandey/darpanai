@@ -486,7 +486,7 @@ export default function OfferLetterAnalysisView() {
                   <div>
                     <p className="font-medium text-gray-900 mb-2">Academic Requirements</p>
                     <ul className="space-y-1">
-                      {analysisData.documentAnalysis.termsAndConditions.academicRequirements.map((req, index) => (
+                      {(analysisData.documentAnalysis?.termsAndConditions?.academicRequirements || []).map((req, index) => (
                         <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
                           <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                           {req}
@@ -617,7 +617,7 @@ export default function OfferLetterAnalysisView() {
                     <div>
                       <p className="font-medium text-gray-900 mb-2">Eligibility Criteria</p>
                       <ul className="space-y-1">
-                        {scholarship.criteria.map((criterion, criterionIndex) => (
+                        {(scholarship.criteria || []).map((criterion, criterionIndex) => (
                           <li key={criterionIndex} className="text-sm text-gray-700 flex items-start gap-2">
                             <CheckCircle className="h-3 w-3 text-green-600 mt-1 flex-shrink-0" />
                             {criterion}
@@ -645,7 +645,7 @@ export default function OfferLetterAnalysisView() {
                         <div className="bg-blue-50 p-3 rounded-lg">
                           <p className="text-sm text-blue-900 mb-2">{scholarship.applicationStrategy.preparationTime}</p>
                           <div className="space-y-1">
-                            {scholarship.applicationStrategy.successTips?.map((tip, tipIndex) => (
+                            {(scholarship.applicationStrategy?.successTips || []).map((tip, tipIndex) => (
                               <p key={tipIndex} className="text-sm text-blue-800 flex items-start gap-2">
                                 <Lightbulb className="h-3 w-3 text-blue-600 mt-1 flex-shrink-0" />
                                 {tip}
@@ -723,7 +723,7 @@ export default function OfferLetterAnalysisView() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {analysisData.costSavingStrategies.map((strategy, index) => (
+                  {(analysisData.costSavingStrategies || []).map((strategy, index) => (
                     <div key={index} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium text-gray-900">{strategy.strategy}</h4>
@@ -766,7 +766,7 @@ export default function OfferLetterAnalysisView() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {categoryRecs.map((rec, index) => (
+                      {(categoryRecs || []).map((rec, index) => (
                         <div key={index} className="border rounded-lg p-4">
                           <div className="flex items-start justify-between mb-2">
                             <h4 className="font-medium text-gray-900">{rec.recommendation}</h4>
@@ -788,7 +788,7 @@ export default function OfferLetterAnalysisView() {
                           <div className="mt-3">
                             <p className="font-medium text-gray-900 mb-1">Implementation Steps</p>
                             <ul className="space-y-1">
-                              {rec.implementationSteps.map((step, stepIndex) => (
+                              {(rec.implementationSteps || []).map((step, stepIndex) => (
                                 <li key={stepIndex} className="text-sm text-gray-700 flex items-start gap-2">
                                   <span className="text-blue-600 font-medium">{stepIndex + 1}.</span>
                                   {step}
@@ -818,7 +818,7 @@ export default function OfferLetterAnalysisView() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {analysisData.nextSteps.map((step, index) => (
+                {(analysisData.nextSteps || []).map((step, index) => (
                   <div key={index} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-start gap-3">
