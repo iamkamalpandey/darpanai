@@ -13,7 +13,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { AlertCircle, Check, Edit, User, GraduationCap, Globe, DollarSign, Briefcase, Languages, Save, X } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { AlertCircle, Check, Edit, User, GraduationCap, Globe, DollarSign, Briefcase, Languages, Save, X, TrendingUp, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -101,6 +102,26 @@ const languageProficiencySchema = z.object({
 });
 
 type ProfileSection = 'personal' | 'academic' | 'study' | 'financial' | 'employment' | 'language';
+
+// Profile completion calculation
+const calculateProfileCompletion = (user: any) => {
+  if (!user) return { percentage: 0, completedSections: 0, totalSections: 6 };
+
+  const sections = {
+    personal: !!(user.firstName && user.lastName && user.phoneNumber && user.nationality),
+    academic: !!(user.highestQualification && user.highestInstitution && user.graduationYear),
+    study: !!(user.interestedCourse && user.fieldOfStudy && user.preferredIntake && user.budgetRange && user.preferredCountries?.length),
+    financial: !!(user.fundingSource && user.estimatedBudget),
+    employment: !!(user.currentEmploymentStatus),
+    language: !!(user.englishProficiencyTests?.length || user.standardizedTests?.length)
+  };
+
+  const completedSections = Object.values(sections).filter(Boolean).length;
+  const totalSections = Object.keys(sections).length;
+  const percentage = Math.round((completedSections / totalSections) * 100);
+
+  return { percentage, completedSections, totalSections, sections };
+};
 
 const ProfileSectionCard: React.FC<{
   title: string;
@@ -357,6 +378,9 @@ const ProfilePageRedesign: React.FC = () => {
     );
   }
 
+  // Calculate profile completion
+  const profileCompletion = calculateProfileCompletion(user);
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8">
@@ -365,6 +389,61 @@ const ProfilePageRedesign: React.FC = () => {
           Complete your profile to unlock personalized AI analysis and study destination recommendations.
         </p>
       </div>
+
+      {/* Profile Completion Card */}
+      <Card className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <TrendingUp className="w-6 h-6 text-blue-600" />
+              <div>
+                <CardTitle className="text-xl text-blue-900">Profile Completion</CardTitle>
+                <CardDescription className="text-blue-700">
+                  {profileCompletion.completedSections} of {profileCompletion.totalSections} sections completed
+                </CardDescription>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-3xl font-bold text-blue-600">{profileCompletion.percentage}%</div>
+              <div className="text-sm text-blue-700">Complete</div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="w-full bg-blue-200 rounded-full h-3">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full transition-all duration-500"
+                style={{ width: `${profileCompletion.percentage}%` }}
+              ></div>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {Object.entries(profileCompletion.sections || {}).map(([section, isComplete]) => (
+                <div key={section} className="flex items-center space-x-2">
+                  {isComplete ? (
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  ) : (
+                    <div className="w-4 h-4 rounded-full border-2 border-gray-300"></div>
+                  )}
+                  <span className={`text-sm capitalize ${isComplete ? 'text-green-700' : 'text-gray-600'}`}>
+                    {section.replace(/([A-Z])/g, ' $1').trim()}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {profileCompletion.percentage < 100 && (
+              <Alert className="bg-blue-50 border-blue-200">
+                <AlertCircle className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-800">
+                  Complete all sections to unlock advanced AI features and personalized study destination recommendations.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="space-y-6">
         {/* Personal Information */}
