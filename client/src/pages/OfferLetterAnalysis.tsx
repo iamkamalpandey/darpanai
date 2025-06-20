@@ -54,9 +54,26 @@ interface OfferLetterAnalysis {
     studentProfileMatch?: {
       gpaRequirement: string;
       matchesGPA: boolean;
+      gpaAnalysis?: string;
       academicRequirement: string;
       matchesAcademic: boolean;
+      academicAnalysis?: string;
+      nationalityRequirement?: string;
+      matchesNationality?: boolean;
+      programRequirement?: string;
+      matchesProgram?: boolean;
       overallMatch: number;
+      matchReasoning?: string;
+      improvementSuggestions?: string[];
+    };
+    competitiveness?: 'Low' | 'Medium' | 'High';
+    renewalRequirements?: string;
+    additionalBenefits?: string[];
+    applicationStrategy?: {
+      recommendedSubmissionTime?: string;
+      requiredDocuments?: string[];
+      preparationTime?: string;
+      successTips?: string[];
     };
   }>;
   costSavingStrategies: Array<{
@@ -227,12 +244,19 @@ export default function OfferLetterAnalysis() {
                     onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
                     className="hidden"
                     id="file-upload"
+                    ref={(input) => {
+                      if (input) {
+                        input.onclick = () => input.value = '';
+                      }
+                    }}
                   />
-                  <label htmlFor="file-upload">
-                    <Button variant="outline" className="cursor-pointer">
-                      Select File
-                    </Button>
-                  </label>
+                  <Button 
+                    variant="outline" 
+                    className="cursor-pointer"
+                    onClick={() => document.getElementById('file-upload')?.click()}
+                  >
+                    Select File
+                  </Button>
                 </div>
 
                 {selectedFile && (
@@ -529,6 +553,41 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                                         <span>Academic: {scholarship.studentProfileMatch.academicRequirement}</span>
                                       </div>
                                     )}
+                                    
+                                    {scholarship.studentProfileMatch.nationalityRequirement && (
+                                      <div className="flex items-center gap-1">
+                                        <span className={`w-2 h-2 rounded-full ${
+                                          scholarship.studentProfileMatch.matchesNationality ? 'bg-green-500' : 'bg-red-500'
+                                        }`}></span>
+                                        <span>Nationality: {scholarship.studentProfileMatch.nationalityRequirement}</span>
+                                      </div>
+                                    )}
+                                    
+                                    {scholarship.studentProfileMatch.programRequirement && (
+                                      <div className="flex items-center gap-1">
+                                        <span className={`w-2 h-2 rounded-full ${
+                                          scholarship.studentProfileMatch.matchesProgram ? 'bg-green-500' : 'bg-red-500'
+                                        }`}></span>
+                                        <span>Program: {scholarship.studentProfileMatch.programRequirement}</span>
+                                      </div>
+                                    )}
+                                    
+                                    {scholarship.studentProfileMatch.matchReasoning && (
+                                      <div className="mt-2 p-2 bg-gray-100 rounded text-xs">
+                                        <strong>Match Analysis:</strong> {scholarship.studentProfileMatch.matchReasoning}
+                                      </div>
+                                    )}
+                                    
+                                    {scholarship.studentProfileMatch.improvementSuggestions && scholarship.studentProfileMatch.improvementSuggestions.length > 0 && (
+                                      <div className="mt-2">
+                                        <strong className="text-xs">Improvement Tips:</strong>
+                                        <ul className="list-disc list-inside text-xs mt-1 space-y-1">
+                                          {scholarship.studentProfileMatch.improvementSuggestions.map((tip, tipIdx) => (
+                                            <li key={tipIdx} className="text-orange-600">{tip}</li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -541,10 +600,60 @@ function OfferLetterAnalysisCard({ analysis }: { analysis: OfferLetterAnalysis }
                                   <span className="text-sm font-medium text-gray-700">Deadline:</span>
                                   <p className="text-sm text-red-600 font-semibold">{scholarship.applicationDeadline}</p>
                                 </div>
+                                
+                                {scholarship.competitiveness && (
+                                  <div>
+                                    <span className="text-sm font-medium text-gray-700">Competition:</span>
+                                    <Badge className={`ml-1 text-xs ${
+                                      scholarship.competitiveness === 'Low' ? 'bg-green-100 text-green-800' :
+                                      scholarship.competitiveness === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                                      'bg-red-100 text-red-800'
+                                    }`}>
+                                      {scholarship.competitiveness}
+                                    </Badge>
+                                  </div>
+                                )}
+                                
                                 <div>
                                   <span className="text-sm font-medium text-gray-700">Process:</span>
                                   <p className="text-xs text-gray-600 mt-1">{scholarship.applicationProcess}</p>
                                 </div>
+                                
+                                {scholarship.applicationStrategy?.preparationTime && (
+                                  <div>
+                                    <span className="text-sm font-medium text-gray-700">Prep Time:</span>
+                                    <p className="text-xs text-blue-600">{scholarship.applicationStrategy.preparationTime}</p>
+                                  </div>
+                                )}
+                                
+                                {scholarship.renewalRequirements && (
+                                  <div>
+                                    <span className="text-sm font-medium text-gray-700">Renewal:</span>
+                                    <p className="text-xs text-gray-600 mt-1">{scholarship.renewalRequirements}</p>
+                                  </div>
+                                )}
+                                
+                                {scholarship.additionalBenefits && scholarship.additionalBenefits.length > 0 && (
+                                  <div>
+                                    <span className="text-sm font-medium text-gray-700">Benefits:</span>
+                                    <ul className="list-disc list-inside text-xs mt-1 space-y-1">
+                                      {scholarship.additionalBenefits.map((benefit, idx) => (
+                                        <li key={idx} className="text-purple-600">{benefit}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                                
+                                {scholarship.applicationStrategy?.successTips && scholarship.applicationStrategy.successTips.length > 0 && (
+                                  <div>
+                                    <span className="text-sm font-medium text-gray-700">Success Tips:</span>
+                                    <ul className="list-disc list-inside text-xs mt-1 space-y-1">
+                                      {scholarship.applicationStrategy.successTips.map((tip, idx) => (
+                                        <li key={idx} className="text-green-600">{tip}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
                               </div>
                             </td>
 

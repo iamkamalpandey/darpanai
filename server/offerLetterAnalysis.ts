@@ -210,50 +210,107 @@ async function researchUniversityScholarships(
   try {
     console.log('Researching scholarships with student profile matching for:', universityName);
     
-    const scholarshipPrompt = `Research verified scholarships for ${universityName} (${location}) offering ${program} program.
+    const scholarshipPrompt = `You are a comprehensive scholarship research specialist with deep expertise in university funding opportunities. Research and analyze ALL available scholarships for ${universityName} (${location}) offering ${program} program.
 
-STUDENT PROFILE FOR MATCHING:
-${studentProfile ? JSON.stringify(studentProfile, null, 2) : 'Profile not available - provide general scholarships'}
+STUDENT PROFILE FOR DETAILED MATCHING:
+${studentProfile ? JSON.stringify(studentProfile, null, 2) : 'Profile not available - provide comprehensive general scholarships'}
 
-COMPREHENSIVE RESEARCH REQUIREMENTS:
-1. Search official ${universityName} website for all scholarship programs
-2. Include merit-based, need-based, international student, and program-specific scholarships
-3. Verify eligibility requirements against student profile
-4. Research government and external scholarships available to students at this institution
-5. Include application processes and official website links
+COMPREHENSIVE INSTITUTIONAL RESEARCH MANDATE:
+Conduct thorough research across multiple official sources:
 
-SCHOLARSHIP CATEGORIES TO RESEARCH:
-- Academic Excellence/Merit Scholarships
-- International Student Scholarships
-- ${program} Program-specific scholarships
-- Need-based financial assistance
-- Research assistantships and teaching positions
-- External government scholarships for international students
+1. OFFICIAL UNIVERSITY SCHOLARSHIP DATABASE SEARCH:
+   - Main institutional scholarships and awards
+   - College/department-specific funding (${program} program)
+   - Merit-based academic excellence awards
+   - Need-based financial assistance programs
+   - International student-specific scholarships
+   - Research assistantships and teaching fellowships
+   - Graduate/undergraduate distinction awards
 
-Return JSON with detailed scholarship matching:
+2. EXTERNAL SCHOLARSHIP ECOSYSTEM RESEARCH:
+   - Government scholarships available to ${universityName} students
+   - Private foundation scholarships for ${program} students
+   - Industry-specific scholarships related to ${program}
+   - Regional/country-specific scholarships for international students
+   - Professional association scholarships in ${program} field
+
+3. DETAILED STUDENT PROFILE ANALYSIS:
+   - Calculate precise eligibility match percentages
+   - Analyze GPA compatibility with scholarship requirements
+   - Evaluate academic standing against scholarship criteria
+   - Assess nationality/citizenship requirements
+   - Match program/field of study with scholarship focus areas
+   - Identify skill-based or achievement-based opportunities
+
+4. COMPREHENSIVE FINANCIAL IMPACT ASSESSMENT:
+   - Total potential funding available to this student
+   - Scholarship combination strategies for maximum benefit
+   - Application priority recommendations based on match likelihood
+   - Timeline optimization for multiple scholarship applications
+
+DETAILED RESPONSE FORMAT:
 {
+  "totalScholarshipsFound": number,
+  "estimatedTotalValue": "Combined potential scholarship value",
+  "highPriorityCount": number,
   "scholarships": [
     {
-      "name": "Exact scholarship name from official source",
-      "amount": "Specific amount (e.g., $5,000 per year, 50% tuition reduction)",
-      "criteria": ["Academic GPA 3.5+", "International student status", "Program enrollment"],
-      "applicationDeadline": "Specific date or application period",
-      "applicationProcess": "Step-by-step application instructions",
-      "sourceUrl": "Direct link to official scholarship page",
-      "eligibilityMatch": "High/Medium/Low based on student profile",
-      "scholarshipType": "Merit/Need-based/International/Research/Program-specific",
+      "name": "Complete official scholarship name",
+      "amount": "Exact amount with currency and period (e.g., $15,000 USD per academic year)",
+      "totalValue": "Total scholarship value over program duration",
+      "criteria": ["Detailed eligibility requirements with specific thresholds"],
+      "applicationDeadline": "Exact deadline with year and time zone",
+      "applicationProcess": "Comprehensive step-by-step application guide",
+      "sourceUrl": "Direct official scholarship webpage URL",
+      "eligibilityMatch": "High/Medium/Low with detailed reasoning",
+      "scholarshipType": "Merit/Need-based/International/Research/Program-specific/Government/Foundation",
+      "competitiveness": "Low/Medium/High based on typical applicant pool",
+      "renewalRequirements": "Requirements to maintain scholarship",
+      "additionalBenefits": ["Non-monetary benefits like mentorship, networking"],
       "studentProfileMatch": {
-        "gpaRequirement": "Required GPA if specified",
+        "gpaRequirement": "Specific GPA requirement",
         "matchesGPA": true/false,
-        "academicRequirement": "Academic standing requirement",
+        "gpaAnalysis": "Detailed assessment of GPA compatibility",
+        "academicRequirement": "Academic standing or achievement requirements",
         "matchesAcademic": true/false,
-        "overallMatch": 85 (percentage 0-100)
+        "academicAnalysis": "Detailed assessment of academic compatibility",
+        "nationalityRequirement": "Citizenship/nationality requirements",
+        "matchesNationality": true/false,
+        "programRequirement": "Field of study requirements",
+        "matchesProgram": true/false,
+        "overallMatch": 85,
+        "matchReasoning": "Detailed explanation of match percentage calculation",
+        "improvementSuggestions": ["Specific actions to improve eligibility"]
+      },
+      "applicationStrategy": {
+        "recommendedSubmissionTime": "Optimal timing for application",
+        "requiredDocuments": ["Complete list of required documents"],
+        "preparationTime": "Estimated time needed for strong application",
+        "successTips": ["Expert tips for scholarship application success"]
       }
     }
-  ]
+  ],
+  "scholarshipStrategy": {
+    "highPriorityApplications": ["Top 3-5 scholarships to prioritize"],
+    "combinationOpportunities": ["Scholarships that can be combined"],
+    "timelineRecommendations": "Optimal application schedule",
+    "totalPotentialFunding": "Maximum possible scholarship funding",
+    "applicationWorkload": "Estimated total effort required"
+  }
 }
 
-CRITICAL: Only include scholarships that actually exist. Verify against official university sources and provide accurate matching analysis.`;
+RESEARCH DEPTH REQUIREMENTS:
+- Minimum 8-12 scholarships per university (mix of institutional and external)
+- Include both competitive and accessible opportunities
+- Cover full range of funding amounts ($500 to full tuition)
+- Provide specific dates, amounts, and requirements
+- Include detailed application strategies and success tips
+
+CRITICAL SUCCESS FACTORS:
+- All scholarships must be real and currently available
+- Provide comprehensive eligibility analysis for each opportunity
+- Include specific improvement recommendations for borderline matches
+- Deliver actionable scholarship application strategy`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -377,26 +434,85 @@ export async function analyzeOfferLetterDocument(
     }
     
     // Comprehensive analysis with institution research and scholarship integration
-    const comprehensivePrompt = `Analyze this university offer letter and provide comprehensive structured analysis in JSON format:
+    const comprehensivePrompt = `You are an expert education consultant specializing in offer letter analysis and financial optimization. Provide comprehensive analysis of this university offer letter with detailed scholarship integration and strategic recommendations.
 
 DOCUMENT TEXT (first 6000 characters):
 ${documentText.substring(0, 6000)}
 
-VERIFIED SCHOLARSHIPS FOUND:
+COMPREHENSIVE SCHOLARSHIP RESEARCH RESULTS:
 ${JSON.stringify(scholarships, null, 2)}
 
-STUDENT PROFILE EXTRACTED:
+EXTRACTED STUDENT PROFILE:
 ${JSON.stringify(studentProfile, null, 2)}
 
-Provide comprehensive analysis with these sections:
-1. universityInfo: {name, location, program, tuition, duration}
-2. profileAnalysis: {academicStanding, gpa, financialStatus, relevantSkills[], strengths[], weaknesses[]}
-3. scholarshipOpportunities: Include the verified scholarships above plus any mentioned in the document
-4. costSavingStrategies: [{strategy, description, potentialSavings, implementationSteps[], timeline, difficulty}]
-5. recommendations: [strings] - Include scholarship application recommendations
-6. nextSteps: [strings] - Include specific scholarship deadlines and actions
+ANALYSIS REQUIREMENTS:
+Provide detailed strategic analysis that goes beyond simple data extraction. Focus on actionable insights, financial optimization, and comprehensive guidance for informed decision-making.
 
-Focus on extracting actual information from the document and integrating verified scholarship opportunities.`;
+REQUIRED ANALYSIS STRUCTURE:
+{
+  "universityInfo": {
+    "name": "Official university name",
+    "location": "Complete location with city, state/province, country",
+    "program": "Full program name with degree level",
+    "tuition": "Annual tuition with currency and additional fees",
+    "duration": "Complete program duration",
+    "institutionalRanking": "University ranking and reputation insights",
+    "programAccreditation": "Relevant accreditations and recognitions"
+  },
+  "profileAnalysis": {
+    "academicStanding": "Detailed academic assessment",
+    "gpa": "GPA with scale and context",
+    "financialStatus": "Comprehensive financial situation analysis",
+    "relevantSkills": ["Extracted skills with proficiency levels"],
+    "strengths": ["Detailed academic and professional strengths"],
+    "weaknesses": ["Areas for improvement with development suggestions"],
+    "competitivePosition": "Analysis of student's competitive standing for scholarships"
+  },
+  "scholarshipOpportunities": [Use the comprehensive scholarship research above],
+  "costSavingStrategies": [
+    {
+      "strategy": "Specific cost-saving approach",
+      "description": "Detailed implementation description",
+      "potentialSavings": "Exact savings amount or percentage",
+      "implementationSteps": ["Step-by-step action plan"],
+      "timeline": "Implementation timeline with deadlines",
+      "difficulty": "Low/Medium/High",
+      "successProbability": "Likelihood of achieving savings",
+      "requirements": ["Prerequisites for implementing strategy"]
+    }
+  ],
+  "recommendations": [
+    "Prioritized scholarship application strategy based on research",
+    "Financial planning recommendations with timeline",
+    "Academic preparation suggestions for better scholarship eligibility",
+    "Alternative funding sources to explore",
+    "Risk mitigation strategies for funding gaps"
+  ],
+  "nextSteps": [
+    "Immediate action items with specific deadlines",
+    "Scholarship application priorities with submission dates",
+    "Document preparation requirements",
+    "Financial planning milestones",
+    "Communication strategies with university financial aid"
+  ],
+  "financialProjection": {
+    "totalProgramCost": "Complete cost breakdown",
+    "availableScholarships": "Total scholarship opportunities identified",
+    "estimatedNetCost": "Projected final cost after scholarships",
+    "fundingGaps": "Areas requiring additional funding",
+    "returnOnInvestment": "Career and financial ROI analysis"
+  }
+}
+
+ANALYSIS DEPTH REQUIREMENTS:
+- Integrate all scholarship research findings into actionable recommendations
+- Provide specific timelines and deadlines for all suggested actions
+- Include detailed financial projections and optimization strategies
+- Offer comprehensive guidance for maximizing scholarship opportunities
+- Address potential challenges and provide contingency planning
+- Ensure all recommendations are specific, measurable, and achievable
+
+Focus on creating a comprehensive strategic plan that maximizes the student's funding opportunities while providing clear, actionable guidance for their educational investment.`;
 
     console.log('Sending comprehensive analysis request to OpenAI...');
     
