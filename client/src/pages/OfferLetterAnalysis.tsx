@@ -42,8 +42,9 @@ interface OfferLetterAnalysisItem {
 }
 
 export default function OfferLetterAnalysis() {
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -60,24 +61,60 @@ export default function OfferLetterAnalysis() {
     staleTime: 20 * 60 * 1000, // 20 minutes
   });
 
-  // Upload and analyze mutation
-  const analyzeMutation = useMutation({
-    mutationFn: async (file: File) => {
+  // Upload and analyze mutation (following COE analysis pattern)
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedFile) {
+        throw new Error('No file selected');
+      }
+
       const formData = new FormData();
-      formData.append('document', file);
-      
+      formData.append('document', selectedFile);
+
+      // Simulate upload progress
+      setUploadProgress(0);
+      const uploadInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(uploadInterval);
+            return 100;
+          }
+          return prev + 10;
+        });
+      }, 200);
+
       const response = await fetch('/api/offer-letter-analyses/analyze', {
         method: 'POST',
         body: formData,
-        credentials: 'include'
       });
-      
+
+      clearInterval(uploadInterval);
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Analysis failed');
+        const errorData = await response.json();
+        const errorMessage = errorData.message 
+          ? `${errorData.error}\n\n${errorData.message}`
+          : errorData.error || 'Offer letter analysis failed';
+        throw new Error(errorMessage);
       }
-      
-      return response.json();
+
+      // Simulate analysis progress
+      setAnalysisProgress(0);
+      const analysisInterval = setInterval(() => {
+        setAnalysisProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(analysisInterval);
+            return 100;
+          }
+          return prev + 15;
+        });
+      }, 300);
+
+      const result = await response.json();
+      clearInterval(analysisInterval);
+      setAnalysisProgress(100);
+
+      return result;
     },
     onSuccess: (data) => {
       toast({
@@ -86,7 +123,9 @@ export default function OfferLetterAnalysis() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/offer-letter-analyses'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
-      setUploadedFile(null);
+      setSelectedFile(null);
+      setUploadProgress(0);
+      setAnalysisProgress(0);
       // Navigate to the detailed analysis view
       setLocation(`/offer-letter-analysis/${data.id}`);
     },
@@ -96,70 +135,46 @@ export default function OfferLetterAnalysis() {
         description: error.message || "Something went wrong during analysis.",
         variant: "destructive",
       });
-      setIsAnalyzing(false);
+      
+      setUploadProgress(0);
+      setAnalysisProgress(0);
     },
   });
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      // Validate file type
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
-      if (!allowedTypes.includes(file.type)) {
-        toast({
-          title: "Invalid File Type",
-          description: "Please upload a PDF, JPG, or PNG file.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Validate file size (10MB limit)
-      if (file.size > 10 * 1024 * 1024) {
-        toast({
-          title: "File Too Large",
-          description: "Please upload a file smaller than 10MB.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setUploadedFile(file);
-    }
-  }, [toast]);
-
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
     accept: {
       'application/pdf': ['.pdf'],
       'image/jpeg': ['.jpg', '.jpeg'],
       'image/png': ['.png']
     },
+    maxSize: 10 * 1024 * 1024, // 10MB
+    onDrop: (acceptedFiles) => {
+      if (acceptedFiles.length > 0) {
+        setSelectedFile(acceptedFiles[0]);
+      }
+    },
+    onDropRejected: () => {
+      toast({
+        title: "File Error",
+        description: "Please upload a PDF, JPG, or PNG file under 10MB.",
+        variant: "destructive",
+      });
+    },
     multiple: false,
-    disabled: isAnalyzing || analyzeMutation.isPending
+    disabled: mutation.isPending
   });
 
-  const handleAnalyze = async () => {
-    if (!uploadedFile) return;
-
-    // Check if user has analyses remaining
-    if (!user || user.analysisCount >= user.maxAnalyses) {
+  const handleAnalysis = () => {
+    if (!selectedFile) {
       toast({
-        title: "Analysis Limit Reached",
-        description: "You have reached your analysis limit. Please contact support to upgrade your plan.",
+        title: "No File Selected",
+        description: "Please select an offer letter document to analyze.",
         variant: "destructive",
       });
       return;
     }
 
-    setIsAnalyzing(true);
-    try {
-      await analyzeMutation.mutateAsync(uploadedFile);
-    } catch (error) {
-      // Error handled by mutation
-    } finally {
-      setIsAnalyzing(false);
-    }
+    mutation.mutate();
   };
 
   const viewAnalysis = (analysis: OfferLetterAnalysisItem) => {
