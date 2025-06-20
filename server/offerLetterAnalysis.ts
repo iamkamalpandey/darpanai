@@ -235,25 +235,26 @@ export async function analyzeOfferLetterDocument(
   try {
     console.log('Starting offer letter analysis for:', fileName);
     
-    // Extract university information for scholarship research
+    // Extract university information
     const { universityName, program, location } = extractUniversityInfo(documentText);
     console.log('Extracted university info:', { universityName, program, location });
     
-    // Research verified scholarships (with timeout)
-    let scholarships: UniversityScholarshipInfo[] = [];
-    try {
-      const scholarshipPromise = researchUniversityScholarships(universityName, program, location);
-      const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('Scholarship research timeout')), 15000)
-      );
-      scholarships = await Promise.race([scholarshipPromise, timeoutPromise]);
-      console.log('Found scholarships:', scholarships.length);
-    } catch (error) {
-      console.log('Scholarship research failed or timed out, continuing without:', error);
-    }
-    
-    // Generate comprehensive analysis with shorter prompt for faster processing
-    const prompt = getOfferLetterAnalysisPrompt(documentText.substring(0, 8000), scholarships);
+    // Simplified analysis without scholarship research to avoid timeouts
+    const simplifiedPrompt = `Analyze this university offer letter and provide structured analysis in JSON format:
+
+DOCUMENT TEXT (first 6000 characters):
+${documentText.substring(0, 6000)}
+
+Provide analysis with these sections:
+1. universityInfo: {name, location, program, tuition, duration}
+2. profileAnalysis: {academicStanding, gpa, financialStatus, relevantSkills[], strengths[], weaknesses[]}
+3. scholarshipOpportunities: [{name, amount, criteria[], applicationDeadline, applicationProcess, sourceUrl}]
+4. costSavingStrategies: [{strategy, description, potentialSavings, implementationSteps[], timeline, difficulty}]
+5. recommendations: [strings]
+6. nextSteps: [strings]
+
+Focus on extracting actual information from the document. For missing information, use "Not specified in document".`;
+
     console.log('Sending request to OpenAI...');
     
     const response = await openai.chat.completions.create({
@@ -261,15 +262,16 @@ export async function analyzeOfferLetterDocument(
       messages: [
         {
           role: "system",
-          content: "You are an expert education consultant. Analyze offer letters comprehensively but concisely. Focus on key information, scholarships, and actionable recommendations."
+          content: "You are an expert education consultant. Analyze offer letters and provide structured JSON responses. Focus on factual information from the document."
         },
         {
           role: "user",
-          content: prompt
+          content: simplifiedPrompt
         }
       ],
       response_format: { type: "json_object" },
       temperature: 0.3,
+      max_tokens: 3000,
     });
 
     const processingTime = Date.now() - startTime;
@@ -301,8 +303,7 @@ export async function analyzeOfferLetterDocument(
             ? analysisData.profileAnalysis.weaknesses 
             : ["Not specified in document"],
         },
-        scholarshipOpportunities: scholarships.length > 0 ? scholarships : 
-          (Array.isArray(analysisData.scholarshipOpportunities) ? analysisData.scholarshipOpportunities : []),
+        scholarshipOpportunities: Array.isArray(analysisData.scholarshipOpportunities) ? analysisData.scholarshipOpportunities : [],
         costSavingStrategies: Array.isArray(analysisData.costSavingStrategies) 
           ? analysisData.costSavingStrategies 
           : [
@@ -344,7 +345,7 @@ export async function analyzeOfferLetterDocument(
           strengths: ["Analysis completed - please review document manually"],
           weaknesses: ["Analysis completed - please review document manually"],
         },
-        scholarshipOpportunities: scholarships,
+        scholarshipOpportunities: [],
         costSavingStrategies: [
           {
             strategy: "Research University Scholarships",
