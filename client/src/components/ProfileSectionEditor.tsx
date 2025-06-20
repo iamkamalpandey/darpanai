@@ -244,32 +244,55 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
       return;
     }
 
-    // Prepare data for submission
-    const submitData = { ...formData };
+    // Get section-specific fields to only send relevant data
+    const getSectionFields = (section: string): string[] => {
+      switch (section) {
+        case 'personal':
+          return ['firstName', 'lastName', 'dateOfBirth', 'gender', 'nationality', 'phoneNumber', 'secondaryNumber', 'passportNumber', 'address'];
+        case 'academic':
+          return ['highestQualification', 'highestInstitution', 'highestCountry', 'highestGpa', 'graduationYear', 'currentAcademicGap', 'educationHistory'];
+        case 'study':
+          return ['interestedCourse', 'fieldOfStudy', 'preferredIntake', 'budgetRange', 'preferredCountries', 'interestedServices', 'partTimeInterest', 'accommodationRequired', 'hasDependents'];
+        case 'financial':
+          return ['fundingSource', 'estimatedBudget', 'savingsAmount', 'loanApproval', 'loanAmount', 'sponsorDetails', 'financialDocuments'];
+        case 'employment':
+          return ['currentEmploymentStatus', 'workExperienceYears', 'jobTitle', 'organizationName', 'fieldOfWork', 'gapReasonIfAny'];
+        case 'language':
+          return ['englishProficiencyTests', 'standardizedTests'];
+        default:
+          return Object.keys(formData); // fallback to all fields
+      }
+    };
+
+    // Only include fields relevant to current section
+    const sectionFields = getSectionFields(section);
+    const submitData: any = {};
+    
+    sectionFields.forEach(field => {
+      if (formData[field] !== undefined) {
+        submitData[field] = formData[field];
+      }
+    });
     
     // Data transformation for specific fields
     if (submitData.graduationYear && typeof submitData.graduationYear === 'string') {
       submitData.graduationYear = parseInt(submitData.graduationYear);
     }
     
-    // Transform financial numeric fields
-    if (submitData.estimatedBudget && typeof submitData.estimatedBudget === 'string') {
-      submitData.estimatedBudget = parseInt(submitData.estimatedBudget);
-    }
-    if (submitData.savingsAmount && typeof submitData.savingsAmount === 'string') {
-      submitData.savingsAmount = parseInt(submitData.savingsAmount);
-    }
+    // Keep financial fields as strings for range-based values
+    // No need to transform estimatedBudget and savingsAmount as they're now text ranges
+    
     if (submitData.loanAmount && typeof submitData.loanAmount === 'string') {
       submitData.loanAmount = parseInt(submitData.loanAmount);
     }
     
-    if (!submitData.englishProficiencyTests) {
+    if (!submitData.englishProficiencyTests && section === 'language') {
       submitData.englishProficiencyTests = [];
     }
 
-    // Remove empty strings and convert to null for optional fields
+    // Clean up empty strings - convert to null for database storage
     Object.keys(submitData).forEach(key => {
-      if (submitData[key] === '' || submitData[key] === undefined) {
+      if (submitData[key] === '') {
         submitData[key] = null;
       }
     });

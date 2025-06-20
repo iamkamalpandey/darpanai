@@ -286,59 +286,66 @@ export class DatabaseStorage implements IStorage {
     // Build update object dynamically to include all provided fields
     const updateData: any = {};
     
+    // Helper function to handle field updates - preserves existing data when field is undefined
+    const setField = (field: string, value: any) => {
+      if (value !== undefined) {
+        updateData[field] = value;
+      }
+    };
+    
     // Personal Information
-    if (profileData.firstName !== undefined) updateData.firstName = profileData.firstName;
-    if (profileData.lastName !== undefined) updateData.lastName = profileData.lastName;
-    if (profileData.dateOfBirth !== undefined) updateData.dateOfBirth = profileData.dateOfBirth;
-    if (profileData.gender !== undefined) updateData.gender = profileData.gender;
-    if (profileData.nationality !== undefined) updateData.nationality = profileData.nationality;
-    if (profileData.phoneNumber !== undefined) updateData.phoneNumber = profileData.phoneNumber;
-    if (profileData.secondaryNumber !== undefined) updateData.secondaryNumber = profileData.secondaryNumber;
-    if (profileData.passportNumber !== undefined) updateData.passportNumber = profileData.passportNumber;
-    if (profileData.city !== undefined) updateData.city = profileData.city;
-    if (profileData.country !== undefined) updateData.country = profileData.country;
-    if (profileData.address !== undefined) updateData.address = profileData.address;
+    setField('firstName', profileData.firstName);
+    setField('lastName', profileData.lastName);
+    setField('dateOfBirth', profileData.dateOfBirth);
+    setField('gender', profileData.gender);
+    setField('nationality', profileData.nationality);
+    setField('phoneNumber', profileData.phoneNumber);
+    setField('secondaryNumber', profileData.secondaryNumber);
+    setField('passportNumber', profileData.passportNumber);
+    setField('city', profileData.city);
+    setField('country', profileData.country);
+    setField('address', profileData.address);
     
     // Academic Information
-    if (profileData.highestQualification !== undefined) updateData.highestQualification = profileData.highestQualification;
-    if (profileData.highestInstitution !== undefined) updateData.highestInstitution = profileData.highestInstitution;
-    if (profileData.highestCountry !== undefined) updateData.highestCountry = profileData.highestCountry;
-    if (profileData.highestGpa !== undefined) updateData.highestGpa = profileData.highestGpa;
-    if (profileData.graduationYear !== undefined) updateData.graduationYear = profileData.graduationYear;
-    if (profileData.currentAcademicGap !== undefined) updateData.currentAcademicGap = profileData.currentAcademicGap;
-    if (profileData.educationHistory !== undefined) updateData.educationHistory = profileData.educationHistory;
+    setField('highestQualification', profileData.highestQualification);
+    setField('highestInstitution', profileData.highestInstitution);
+    setField('highestCountry', profileData.highestCountry);
+    setField('highestGpa', profileData.highestGpa);
+    setField('graduationYear', profileData.graduationYear);
+    setField('currentAcademicGap', profileData.currentAcademicGap);
+    setField('educationHistory', profileData.educationHistory);
     
     // Study Preferences
-    if (profileData.interestedCourse !== undefined) updateData.interestedCourse = profileData.interestedCourse;
-    if (profileData.fieldOfStudy !== undefined) updateData.fieldOfStudy = profileData.fieldOfStudy;
-    if (profileData.preferredIntake !== undefined) updateData.preferredIntake = profileData.preferredIntake;
-    if (profileData.budgetRange !== undefined) updateData.budgetRange = profileData.budgetRange;
-    if (profileData.preferredCountries !== undefined) updateData.preferredCountries = profileData.preferredCountries;
-    if (profileData.interestedServices !== undefined) updateData.interestedServices = profileData.interestedServices;
-    if (profileData.partTimeInterest !== undefined) updateData.partTimeInterest = profileData.partTimeInterest;
-    if (profileData.accommodationRequired !== undefined) updateData.accommodationRequired = profileData.accommodationRequired;
-    if (profileData.hasDependents !== undefined) updateData.hasDependents = profileData.hasDependents;
+    setField('interestedCourse', profileData.interestedCourse);
+    setField('fieldOfStudy', profileData.fieldOfStudy);
+    setField('preferredIntake', profileData.preferredIntake);
+    setField('budgetRange', profileData.budgetRange);
+    setField('preferredCountries', profileData.preferredCountries);
+    setField('interestedServices', profileData.interestedServices);
+    setField('partTimeInterest', profileData.partTimeInterest);
+    setField('accommodationRequired', profileData.accommodationRequired);
+    setField('hasDependents', profileData.hasDependents);
     
     // Financial Information
-    if (profileData.fundingSource !== undefined) updateData.fundingSource = profileData.fundingSource;
-    if (profileData.estimatedBudget !== undefined) updateData.estimatedBudget = profileData.estimatedBudget;
-    if (profileData.savingsAmount !== undefined) updateData.savingsAmount = profileData.savingsAmount;
-    if (profileData.loanApproval !== undefined) updateData.loanApproval = profileData.loanApproval;
-    if (profileData.loanAmount !== undefined) updateData.loanAmount = profileData.loanAmount;
-    if (profileData.sponsorDetails !== undefined) updateData.sponsorDetails = profileData.sponsorDetails;
-    if (profileData.financialDocuments !== undefined) updateData.financialDocuments = profileData.financialDocuments;
+    setField('fundingSource', profileData.fundingSource);
+    setField('estimatedBudget', profileData.estimatedBudget);
+    setField('savingsAmount', profileData.savingsAmount);
+    setField('loanApproval', profileData.loanApproval);
+    setField('loanAmount', profileData.loanAmount);
+    setField('sponsorDetails', profileData.sponsorDetails);
+    setField('financialDocuments', profileData.financialDocuments);
     
     // Employment Information
-    if (profileData.currentEmploymentStatus !== undefined) updateData.currentEmploymentStatus = profileData.currentEmploymentStatus;
-    if (profileData.workExperienceYears !== undefined) updateData.workExperienceYears = profileData.workExperienceYears;
-    if (profileData.jobTitle !== undefined) updateData.jobTitle = profileData.jobTitle;
-    if (profileData.organizationName !== undefined) updateData.organizationName = profileData.organizationName;
-    if (profileData.fieldOfWork !== undefined) updateData.fieldOfWork = profileData.fieldOfWork;
-    if (profileData.gapReasonIfAny !== undefined) updateData.gapReasonIfAny = profileData.gapReasonIfAny;
+    setField('currentEmploymentStatus', profileData.currentEmploymentStatus);
+    setField('workExperienceYears', profileData.workExperienceYears);
+    setField('jobTitle', profileData.jobTitle);
+    setField('organizationName', profileData.organizationName);
+    setField('fieldOfWork', profileData.fieldOfWork);
+    setField('gapReasonIfAny', profileData.gapReasonIfAny);
     
     // Language Proficiency
-    if (profileData.englishProficiencyTests !== undefined) updateData.englishProficiencyTests = profileData.englishProficiencyTests;
-    if (profileData.standardizedTests !== undefined) updateData.standardizedTests = profileData.standardizedTests;
+    setField('englishProficiencyTests', profileData.englishProficiencyTests);
+    setField('standardizedTests', profileData.standardizedTests);
     
     // Legacy fields for compatibility
     if (profileData.studyLevel !== undefined) updateData.studyLevel = profileData.studyLevel;
