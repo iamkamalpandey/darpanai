@@ -417,7 +417,7 @@ export default function OfferLetterAnalysisView() {
                   <div>
                     <p className="text-sm font-medium text-gray-500 mb-2">Strengths</p>
                     <div className="flex flex-wrap gap-2">
-                      {analysisData.profileAnalysis.strengths.map((strength, index) => (
+                      {(analysisData.profileAnalysis?.strengths || []).map((strength, index) => (
                         <Badge key={index} variant="secondary" className="bg-green-100 text-green-800">
                           <CheckCircle className="h-3 w-3 mr-1" />
                           {strength}
@@ -428,7 +428,7 @@ export default function OfferLetterAnalysisView() {
                   <div>
                     <p className="text-sm font-medium text-gray-500 mb-2">Improvement Areas</p>
                     <div className="flex flex-wrap gap-2">
-                      {analysisData.profileAnalysis.improvementAreas.map((area, index) => (
+                      {(analysisData.profileAnalysis?.improvementAreas || []).map((area, index) => (
                         <Badge key={index} variant="secondary" className="bg-yellow-100 text-yellow-800">
                           <TrendingUp className="h-3 w-3 mr-1" />
                           {area}
@@ -514,7 +514,7 @@ export default function OfferLetterAnalysisView() {
                   <div>
                     <p className="font-medium text-gray-900 mb-2">Critical Deadlines</p>
                     <ul className="space-y-1">
-                      {analysisData.documentAnalysis.termsAndConditions.criticalDeadlines.map((deadline, index) => (
+                      {(analysisData.documentAnalysis?.termsAndConditions?.criticalDeadlines || []).map((deadline, index) => (
                         <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
                           <Clock className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                           {deadline}
@@ -537,7 +537,7 @@ export default function OfferLetterAnalysisView() {
                   <div>
                     <p className="font-medium text-gray-900 mb-2">High-Risk Factors</p>
                     <ul className="space-y-1">
-                      {analysisData.documentAnalysis.riskAssessment.highRiskFactors.map((risk, index) => (
+                      {(analysisData.documentAnalysis?.riskAssessment?.highRiskFactors || []).map((risk, index) => (
                         <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
                           <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                           {risk}
@@ -551,7 +551,7 @@ export default function OfferLetterAnalysisView() {
                   <div>
                     <p className="font-medium text-gray-900 mb-2">Financial Risks</p>
                     <ul className="space-y-1">
-                      {analysisData.documentAnalysis.riskAssessment.financialRisks.map((risk, index) => (
+                      {(analysisData.documentAnalysis?.riskAssessment?.financialRisks || []).map((risk, index) => (
                         <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
                           <DollarSign className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
                           {risk}
@@ -565,7 +565,7 @@ export default function OfferLetterAnalysisView() {
                   <div>
                     <p className="font-medium text-gray-900 mb-2">Mitigation Strategies</p>
                     <ul className="space-y-1">
-                      {analysisData.documentAnalysis.riskAssessment.mitigationStrategies.map((strategy, index) => (
+                      {(analysisData.documentAnalysis?.riskAssessment?.mitigationStrategies || []).map((strategy, index) => (
                         <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
                           <Shield className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                           {strategy}
@@ -584,7 +584,7 @@ export default function OfferLetterAnalysisView() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Award className="h-5 w-5 text-yellow-600" />
-                  Scholarship Opportunities ({analysisData.scholarshipOpportunities.length})
+                  Scholarship Opportunities ({(analysisData.scholarshipOpportunities || []).length})
                 </CardTitle>
                 <CardDescription>
                   Researched scholarships from official university sources with eligibility matching
@@ -593,7 +593,7 @@ export default function OfferLetterAnalysisView() {
             </Card>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {analysisData.scholarshipOpportunities.map((scholarship, index) => (
+              {(analysisData.scholarshipOpportunities || []).map((scholarship, index) => (
                 <Card key={index} className="border-l-4 border-l-yellow-500">
                   <CardHeader>
                     <div className="flex items-start justify-between">
