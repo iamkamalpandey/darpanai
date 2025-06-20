@@ -61,6 +61,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     queryKey: ['/api/user'],
   }) as { data: any };
 
+  const { data: completionStatus } = useQuery({
+    queryKey: ['/api/user/profile-completion'],
+  }) as { data: any };
+
+  const completionPercentage = completionStatus?.completionPercentage || 0;
+
   const handleLogout = async () => {
     try {
       await fetch('/api/logout', { method: 'POST' });
@@ -72,7 +78,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const sidebarItems = [
     { icon: <Home size={20} />, label: 'Dashboard', href: '/' },
-    { icon: <User size={20} />, label: 'Profile', href: '/profile' },
     { icon: <FileText size={20} />, label: 'My Analysis', href: '/my-analysis' },
     { icon: <Shield size={20} />, label: 'Visa Analysis', href: '/visa-analysis' },
     { 
@@ -140,10 +145,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
               </Link>
               <Link href="/profile">
-                <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-colors cursor-pointer">
+                <div className="relative h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-colors cursor-pointer">
                   <span className="text-xs font-semibold text-white">
                     {user?.firstName?.[0]}{user?.lastName?.[0]}
                   </span>
+                  {/* Profile Completion Indicator */}
+                  <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-white rounded-full flex items-center justify-center shadow-sm">
+                    <div className={`h-3 w-3 rounded-full flex items-center justify-center ${
+                      completionPercentage >= 80 ? 'bg-green-500' : 
+                      completionPercentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}>
+                      <span className="text-[7px] font-bold text-white">{Math.round(completionPercentage)}</span>
+                    </div>
+                  </div>
                 </div>
               </Link>
             </div>
