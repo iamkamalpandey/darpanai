@@ -1,0 +1,450 @@
+# Offer Letter Information Extraction Page Design Schema
+
+## Page Layout Structure
+
+### 1. Header Section
+```
+[Logo/Brand] | Offer Letter Analyzer | [User Account/Login]
+```
+
+### 2. Upload Section
+```
+┌─────────────────────────────────────────────────────────────┐
+│  📄 Upload Your Offer Letter / Letter of Offer             │
+│                                                             │
+│  [Drag & Drop Area] or [Browse Files Button]               │
+│                                                             │
+│  Supported formats: PDF, JPG, PNG, DOCX                    │
+│  Maximum file size: 10MB                                   │
+│                                                             │
+│  [Upload Button] [Clear Button]                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 3. Results Display Section
+
+## Key Information Extraction Template
+
+### A. Document Status Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ✅ Offer Letter Processed Successfully                      │
+│ 📅 Processed on: [Date/Time]                               │
+│ 📋 Student ID: [Student ID Number]                         │
+│ 🏫 Institution: [Provider Name]                            │
+│ 📧 Offer Date: [Letter Date]                               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### B. Institution Information Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 🏛️ INSTITUTION DETAILS                                     │
+│                                                             │
+│ Institution Name: [Provider Name]                          │
+│ Trading Name: [If different]                               │
+│ Provider ID: [Registration Number]                         │
+│ CRICOS Code: [CRICOS Number]                               │
+│ ABN: [Australian Business Number]                          │
+│ Country: [Country]                                         │
+│                                                             │
+│ 📞 Contact Information:                                    │
+│   Address: [Full Address]                                  │
+│   Phone: [Phone Number]                                    │
+│   Email: [Email Address]                                   │
+│   Website: [Website URL]                                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### C. Student Information Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 👤 STUDENT DETAILS                                          │
+│                                                             │
+│ Student ID: [Student ID Number]                            │
+│ Full Name: [Title] [Full Name]                             │
+│ Date of Birth: [DD/MM/YYYY]                                │
+│ Age: [Calculated Age]                                      │
+│ Gender: [Gender]                                           │
+│ Nationality: [Country]                                     │
+│ Marital Status: [Status]                                   │
+│                                                             │
+│ 📍 Contact Details:                                        │
+│   Address: [Home Address]                                  │
+│   Phone: [Contact Number]                                  │
+│   Email: [Email Address]                                   │
+│                                                             │
+│ 🛂 Passport Information:                                   │
+│   Passport Number: [Number]                                │
+│   Expiry Date: [DD/MM/YYYY]                                │
+│   Status: [Valid/Expiring Soon]                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### D. Course Details Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 📚 COURSE INFORMATION                                       │
+│                                                             │
+│ Course Title: [Full Course Name]                           │
+│ Course Code: [CRICOS Code]                                 │
+│ Specialization: [Major/Specialization]                     │
+│ Level: [Bachelor/Master/Diploma/Certificate]               │
+│ Field of Study: [Subject Area]                             │
+│                                                             │
+│ 📊 Course Structure:                                       │
+│   Total Units: [Number] ([Credit Points] credit points)   │
+│   Units per Year: [Breakdown]                              │
+│   Course Length: [X weeks/years]                           │
+│                                                             │
+│ 📅 Important Dates:                                        │
+│   Orientation: [Date & Time]                               │
+│   Course Start: [DD/MM/YYYY] ([Days from now])            │
+│   Course End: [DD/MM/YYYY]                                 │
+│   Total Duration: [X years Y months]                       │
+│                                                             │
+│ 🎓 Study Mode: [Face-to-face/Online/Hybrid]                │
+│ 📋 Delivery Method: [Full details]                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### E. Financial Information Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 💰 FINANCIAL DETAILS                                        │
+│                                                             │
+│ 💵 Tuition Fees:                                           │
+│   Per Unit: [Currency] [Amount]                            │
+│   Total Course Fee: [Currency] [Amount]                    │
+│   Upfront Fee for CoE: [Currency] [Amount]                 │
+│                                                             │
+│ 📊 Cost Breakdown:                                         │
+│   • Per Year: [Calculated Amount]                          │
+│   • Per Study Period: [Amount]                             │
+│   • Enrollment Fee: [Amount] (non-refundable)              │
+│                                                             │
+│ 🏆 Scholarships/Financial Aid:                             │
+│   Status: [Applied/Granted/Not Applicable]                 │
+│   Value: [Amount/Percentage if applicable]                 │
+│                                                             │
+│ 💳 Payment Methods Available:                              │
+│   • Bank Transfer (BSB: [BSB], Acc: [Account])             │
+│   • Credit Card (Online portal available)                  │
+│   • Bank Cheque                                            │
+│                                                             │
+│ 📅 First Payment Due: [Currency] [Amount]                  │
+│   Due Date: [When CoE issued/Specific Date]                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### F. Payment Schedule Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 📅 PAYMENT SCHEDULE                                         │
+│                                                             │
+│ Study Period 1: [Amount] - Due: [Date]                     │
+│ Study Period 2: [Amount] - Due: [Date]                     │
+│ Study Period 3: [Amount] - Due: [Date]                     │
+│ Study Period 4: [Amount] - Due: [Date]                     │
+│ Study Period 5: [Amount] - Due: [Date]                     │
+│ Study Period 6: [Amount] - Due: [Date]                     │
+│ Study Period 7: [Amount] - Due: [Date]                     │
+│                                                             │
+│ 📋 Payment Rules:                                          │
+│   • Fees due 2 weeks before each study period              │
+│   • International students must study full-time            │
+│   • Minimum 8 units per year required                      │
+│                                                             │
+│ 💰 Total Amount: [Currency] [Total Amount]                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### G. Offer Conditions Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ⚖️ CONDITIONS OF OFFER                                      │
+│                                                             │
+│ 🔍 Requirements to Accept Offer:                           │
+│   1. [Condition 1 - e.g., Genuine Student requirement]     │
+│   2. [Condition 2 - e.g., Document requirements]           │
+│   3. [Condition 3 - e.g., Prior qualifications]            │
+│   4. [Condition 4 - e.g., Credit transfers]                │
+│   5. [Additional conditions as applicable]                  │
+│                                                             │
+│ ⏰ Acceptance Deadline:                                     │
+│   Must respond within: [X weeks] from offer date           │
+│   Deadline: [Calculated Date]                              │
+│   Days Remaining: [Number] days                            │
+│                                                             │
+│ 📝 Required Actions:                                       │
+│   • Sign Student Declaration                               │
+│   • Return signed documents                                │
+│   • Submit supporting documents                            │
+│   • Pay required fees                                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### H. Additional Costs Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 💸 ADDITIONAL COSTS & FEES                                  │
+│                                                             │
+│ 🎓 Academic Fees:                                          │
+│   • Enrollment Fee: [Amount] (non-refundable)              │
+│   • Material Fee: [Amount]                                 │
+│   • Graduation Fee: [Amount]                               │
+│   • Re-exam Fee: [Amount] per assessment                   │
+│                                                             │
+│ 🏠 Living Expenses (Estimated):                            │
+│   • Accommodation: [Amount range]                          │
+│   • Living Costs: [Government estimates]                   │
+│   • Transport: [Estimated amount]                          │
+│                                                             │
+│ 🔧 Service Fees:                                           │
+│   • Course Transfer: [Amount]                              │
+│   • Late Payment: [Amount]                                 │
+│   • Document Replacement: [Amount]                         │
+│   • Airport Pickup: [Amount]                               │
+│                                                             │
+│ 📚 Study Materials:                                        │
+│   • Textbooks: [Estimated cost]                            │
+│   • Laptop Required: [Yes/No - bring own]                  │
+│   • Software/Equipment: [If applicable]                    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### I. Student Support Services Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 🤝 STUDENT SUPPORT SERVICES                                │
+│                                                             │
+│ 📚 Academic Support:                                       │
+│   □ Academic skills development                            │
+│   □ Literacy & numeracy support                            │
+│   □ Career development guidance                            │
+│                                                             │
+│ 🌍 International Student Services:                         │
+│   □ Airport pickup service                                 │
+│   □ Accommodation assistance                               │
+│   □ Visa related advice                                    │
+│   □ Cultural competence support                            │
+│                                                             │
+│ ♿ Accessibility Support:                                  │
+│   □ Physical ability support                               │
+│   □ Intellectual ability support                           │
+│   □ Other special needs                                    │
+│                                                             │
+│ 📞 Support Contacts:                                       │
+│   Student Services: [Contact Details]                      │
+│   International Office: [Contact Details]                  │
+│   Academic Support: [Contact Details]                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### J. Visa & Immigration Information Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 🛂 VISA & IMMIGRATION INFORMATION                           │
+│                                                             │
+│ 📋 Visa Requirements:                                       │
+│   • Must meet Genuine Student requirement                  │
+│   • Student Visa (Subclass 500) required                   │
+│   • OSHC (health cover) mandatory                          │
+│   • Full-time study requirement (min 8 units/year)         │
+│                                                             │
+│ 📅 Next Steps for Visa:                                    │
+│   1. Accept offer and pay fees                             │
+│   2. Receive CoE                                           │
+│   3. Apply for student visa                                │
+│   4. Arrange health cover                                  │
+│                                                             │
+│ ⚠️ Important Notes:                                        │
+│   • Visa conditions must be maintained                     │
+│   • Address changes must be reported within 7 days        │
+│   • Academic progress requirements apply                   │
+│                                                             │
+│ 🔗 Useful Links:                                           │
+│   • Home Affairs: [Website]                               │
+│   • OSHC Providers: [Links]                               │
+│   • Visa Application: [Portal]                            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### K. Refund Policy Summary Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 💰 REFUND POLICY SUMMARY                                    │
+│                                                             │
+│ ✅ 100% Refund Scenarios:                                  │
+│   • College cancels enrollment                             │
+│   • Visa application rejected                              │
+│   • Cannot meet entry requirements                         │
+│   • Exceptional circumstances                              │
+│                                                             │
+│ ❌ No Refund Scenarios:                                    │
+│   • Student withdrawal after course start                  │
+│   • Visa condition breaches                                │
+│   • Late/no arrival with valid visa                        │
+│   • Student policy breaches                                │
+│                                                             │
+│ 📝 Important Notes:                                        │
+│   • Enrollment fee is non-refundable                       │
+│   • Refund processing fee: [Amount]                        │
+│   • Applications must be in writing                        │
+│                                                             │
+│ 📧 Refund Contact: [Email Address]                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### L. Important Dates & Deadlines Card
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ⏰ KEY DATES & DEADLINES                                    │
+│                                                             │
+│ 📅 Critical Dates:                                         │
+│   Offer Date: [DD/MM/YYYY]                                 │
+│   Response Deadline: [DD/MM/YYYY] ([X days remaining])     │
+│   Orientation: [DD/MM/YYYY] at [Time]                      │
+│   Course Start: [DD/MM/YYYY] ([Days from now])             │
+│   First Payment Due: [When CoE issued]                     │
+│                                                             │
+│ 🚨 Urgent Actions Required:                                │
+│   Priority 1: [Action with deadline]                       │
+│   Priority 2: [Action with deadline]                       │
+│   Priority 3: [Action with deadline]                       │
+│                                                             │
+│ 📋 Document Submission:                                    │
+│   Submit to: [Email Address]                               │
+│   Required: Signed acceptance + supporting docs            │
+│   Format: PDF/Original documents                           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Interactive Features
+
+### M. Action Buttons Section
+```
+┌─────────────────────────────────────────────────────────────┐
+│ [📧 Email Summary] [📄 Download PDF] [🔄 Process Another]  │
+│ [💰 Calculate Total Costs] [📋 Create Checklist]           │
+│ [🔍 Compare Offers] [📞 Contact Institution]               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### N. Additional Services Panel
+```
+┌─────────────────────────────────────────────────────────────┐
+│ 🔗 RELATED SERVICES                                         │
+│                                                             │
+│ • Offer Letter Comparison Tool                             │
+│ • Visa Application Guidance                                │
+│ • Financial Planning Calculator                            │
+│ • Document Checklist Generator                             │
+│ • Institution Contact Directory                            │
+│ • Student Testimonials & Reviews                           │
+│ • Accommodation Search                                      │
+│ • Pre-departure Planning                                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Sample Data Display (Based on Provided Offer Letter)
+
+### Example Output for User Interface:
+
+```
+✅ Offer Letter Processed Successfully
+📅 Processed on: 19/06/2025 14:30:22
+📋 Student ID: SM20251939
+🏫 Institution: Sydney Metropolitan Institute of Technology
+📧 Offer Date: 13/06/2025
+```
+
+```
+🏛️ INSTITUTION DETAILS
+Institution: Sydney Metropolitan Institute of Technology Pty Ltd
+Trading as: Sydney Met
+Provider ID: PRV14280
+CRICOS Code: 03906M
+Address: 432-434 Kent Street, Sydney NSW 2000
+📞 Phone: 1300 186 729
+📧 Email: admissions@sydneymet.edu.au
+```
+
+```
+👤 STUDENT DETAILS
+Student ID: SM20251939
+Name: Mrs Roshni HEMJAN
+Date of Birth: 01/05/2001 (Age: 24)
+Gender: Female
+Nationality: Nepal
+Marital Status: Married
+📍 Address: Pabitra Tole, Hetauda, Nepal
+🛂 Passport: PA0367121 (Expires: 22/05/2032)
+```
+
+```
+📚 COURSE INFORMATION
+Course: Bachelor of Social Work
+CRICOS Code: 111670E
+Specialization: No Major
+Level: Bachelor Degree
+📊 Structure: 25 Units (150 credit points)
+📅 Start Date: 31/01/2028 (587 days from now)
+📅 End Date: 02/02/2031
+⏱️ Duration: 157 weeks (3 years)
+🎓 Mode: Face-to-face with online components
+```
+
+```
+💰 FINANCIAL DETAILS
+Per Unit Fee: AUD $3,993.00
+Total Course Fee: AUD $99,825.00
+Upfront for CoE: AUD $15,972.00
+Enrollment Fee: AUD $200.00 (non-refundable)
+💳 First Payment: AUD $16,172.00 (Due at CoE issue)
+📊 Per Year: ~AUD $33,275.00
+```
+
+```
+⚖️ CONDITIONS OF OFFER
+1. Meet Genuine Student requirement
+2. Present Diploma of Community Service completion
+3. Receive 7 units (42 credit points) credit transfer
+4. Complete 25 units over 3 years (8+8+9 structure)
+5. Provide original Year 12 documents
+⏰ Response Required: Within 4 weeks (by 11/07/2025)
+📝 Status: 22 days remaining to respond
+```
+
+```
+💸 ADDITIONAL COSTS
+📚 Academic: Enrollment $200, Graduation $250
+🏠 Living: Government estimates available
+🔧 Services: Late payment $200, Transfer $200
+📱 Other: Student ID $20, Printing $0.10/page
+🚗 Optional: Airport pickup $200
+```
+
+## Design Considerations
+
+### Visual Design Elements:
+- **Status Indicators**: Clear visual cues for deadlines and requirements
+- **Progress Bars**: Show time remaining for offer acceptance
+- **Color Coding**: Red for urgent, Orange for pending, Green for completed
+- **Interactive Elements**: Expandable sections, tooltips, quick actions
+- **Mobile Responsive**: Optimized for all device sizes
+
+### User Experience Features:
+- **Smart Calculations**: Auto-calculate costs, deadlines, ages
+- **Document Tracking**: Show what documents are still needed
+- **Deadline Alerts**: Prominent warnings for time-sensitive actions
+- **Comparison Tools**: Side-by-side offer comparisons
+- **Export Options**: PDF summary, email sharing, print-friendly formats
+
+### Error Handling & Validation:
+- **File Format Validation**: Check document types and sizes
+- **Data Extraction Confidence**: Show reliability scores
+- **Missing Information**: Highlight incomplete extractions
+- **Alternative Formats**: Handle various offer letter layouts
+
+This schema provides a comprehensive framework for extracting and presenting offer letter information in a user-friendly, actionable format that helps students understand their offers and take appropriate next steps.

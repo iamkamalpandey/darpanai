@@ -49,6 +49,15 @@ interface OfferLetterAnalysis {
     applicationDeadline: string;
     applicationProcess: string;
     sourceUrl: string;
+    eligibilityMatch?: 'High' | 'Medium' | 'Low';
+    scholarshipType?: 'Merit' | 'Need-based' | 'International' | 'Research' | 'Program-specific';
+    studentProfileMatch?: {
+      gpaRequirement: string;
+      matchesGPA: boolean;
+      academicRequirement: string;
+      matchesAcademic: boolean;
+      overallMatch: number;
+    };
   }>;
   costSavingStrategies: Array<{
     strategy: string;

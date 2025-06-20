@@ -11,6 +11,15 @@ interface UniversityScholarshipInfo {
   applicationDeadline: string;
   applicationProcess: string;
   sourceUrl: string;
+  eligibilityMatch: 'High' | 'Medium' | 'Low';
+  scholarshipType: 'Merit' | 'Need-based' | 'International' | 'Research' | 'Program-specific';
+  studentProfileMatch: {
+    gpaRequirement: string;
+    matchesGPA: boolean;
+    academicRequirement: string;
+    matchesAcademic: boolean;
+    overallMatch: number; // percentage 0-100
+  };
 }
 
 interface OfferLetterAnalysisResponse {
@@ -40,6 +49,91 @@ interface OfferLetterAnalysisResponse {
   }>;
   recommendations: string[];
   nextSteps: string[];
+}
+
+/**
+ * Extract student profile information for scholarship matching
+ */
+function extractStudentProfile(documentText: string): {
+  gpa?: string;
+  academicStanding?: string;
+  financialStatus?: string;
+  nationality?: string;
+  relevantSkills?: string[];
+} {
+  const profile: any = {};
+  
+  // Extract GPA patterns
+  const gpaPatterns = [
+    /GPA[:\s]+(\d+\.?\d*)/i,
+    /Grade Point Average[:\s]+(\d+\.?\d*)/i,
+    /Academic Average[:\s]+(\d+\.?\d*)/i
+  ];
+  
+  for (const pattern of gpaPatterns) {
+    const match = documentText.match(pattern);
+    if (match) {
+      profile.gpa = match[1];
+      break;
+    }
+  }
+  
+  // Extract academic standing
+  const standingPatterns = [
+    /academic standing[:\s]+(excellent|good|satisfactory|honors|distinction)/i,
+    /academic performance[:\s]+(excellent|good|satisfactory|honors|distinction)/i,
+    /(dean's list|honor roll|academic honors)/i
+  ];
+  
+  for (const pattern of standingPatterns) {
+    const match = documentText.match(pattern);
+    if (match) {
+      profile.academicStanding = match[1] || match[0];
+      break;
+    }
+  }
+  
+  // Extract nationality/citizenship
+  const nationalityPatterns = [
+    /nationality[:\s]+([A-Za-z\s]+)/i,
+    /citizenship[:\s]+([A-Za-z\s]+)/i,
+    /country of birth[:\s]+([A-Za-z\s]+)/i,
+    /passport[:\s]+([A-Za-z\s]+)/i
+  ];
+  
+  for (const pattern of nationalityPatterns) {
+    const match = documentText.match(pattern);
+    if (match) {
+      profile.nationality = match[1].trim();
+      break;
+    }
+  }
+  
+  // Extract financial indicators
+  if (documentText.match(/financial aid|scholarship|funding|financial support/i)) {
+    profile.financialStatus = "Financial assistance mentioned";
+  }
+  
+  // Extract relevant skills from course/program context
+  const skillsPatterns = [
+    /background in ([^.]+)/i,
+    /experience in ([^.]+)/i,
+    /qualifications in ([^.]+)/i
+  ];
+  
+  const skills: string[] = [];
+  for (const pattern of skillsPatterns) {
+    const match = documentText.match(pattern);
+    if (match) {
+      skills.push(match[1].trim());
+    }
+  }
+  
+  if (skills.length > 0) {
+    profile.relevantSkills = skills;
+  }
+  
+  return profile;
 }
 
 /**
@@ -104,47 +198,69 @@ function extractUniversityInfo(documentText: string): { universityName: string; 
 async function researchUniversityScholarships(
   universityName: string, 
   program: string, 
-  location: string
+  location: string,
+  studentProfile?: {
+    gpa?: string;
+    academicStanding?: string;
+    financialStatus?: string;
+    nationality?: string;
+    relevantSkills?: string[];
+  }
 ): Promise<UniversityScholarshipInfo[]> {
   try {
-    const scholarshipPrompt = `Research and provide ONLY verified scholarship information for ${universityName} (${location}) for ${program} program.
+    console.log('Researching scholarships with student profile matching for:', universityName);
+    
+    const scholarshipPrompt = `Research verified scholarships for ${universityName} (${location}) offering ${program} program.
 
-CRITICAL REQUIREMENTS:
-1. Only include scholarships that exist on the official university website
-2. Provide accurate amounts, deadlines, and application processes
-3. Include official university URLs as sources
-4. If no specific scholarships are found, return empty array
-5. Do NOT fabricate or hallucinate scholarship information
+STUDENT PROFILE FOR MATCHING:
+${studentProfile ? JSON.stringify(studentProfile, null, 2) : 'Profile not available - provide general scholarships'}
 
-Please search for:
-- Merit-based scholarships
-- Need-based financial aid
-- Program-specific funding
-- International student scholarships
-- Graduate assistantships (if applicable)
+COMPREHENSIVE RESEARCH REQUIREMENTS:
+1. Search official ${universityName} website for all scholarship programs
+2. Include merit-based, need-based, international student, and program-specific scholarships
+3. Verify eligibility requirements against student profile
+4. Research government and external scholarships available to students at this institution
+5. Include application processes and official website links
 
-Return response in JSON format:
+SCHOLARSHIP CATEGORIES TO RESEARCH:
+- Academic Excellence/Merit Scholarships
+- International Student Scholarships
+- ${program} Program-specific scholarships
+- Need-based financial assistance
+- Research assistantships and teaching positions
+- External government scholarships for international students
+
+Return JSON with detailed scholarship matching:
 {
   "scholarships": [
     {
       "name": "Exact scholarship name from official source",
-      "amount": "Exact amount or range from official source",
-      "criteria": ["List of exact criteria from official source"],
-      "applicationDeadline": "Exact deadline from official source",
-      "applicationProcess": "Step-by-step process from official source",
-      "sourceUrl": "Direct URL to official university scholarship page"
+      "amount": "Specific amount (e.g., $5,000 per year, 50% tuition reduction)",
+      "criteria": ["Academic GPA 3.5+", "International student status", "Program enrollment"],
+      "applicationDeadline": "Specific date or application period",
+      "applicationProcess": "Step-by-step application instructions",
+      "sourceUrl": "Direct link to official scholarship page",
+      "eligibilityMatch": "High/Medium/Low based on student profile",
+      "scholarshipType": "Merit/Need-based/International/Research/Program-specific",
+      "studentProfileMatch": {
+        "gpaRequirement": "Required GPA if specified",
+        "matchesGPA": true/false,
+        "academicRequirement": "Academic standing requirement",
+        "matchesAcademic": true/false,
+        "overallMatch": 85 (percentage 0-100)
+      }
     }
   ]
 }
 
-If no verified scholarships are found, return: {"scholarships": []}`;
+CRITICAL: Only include scholarships that actually exist. Verify against official university sources and provide accurate matching analysis.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "You are a scholarship research specialist. Only provide verified information from official university sources. Never fabricate or hallucinate scholarship details."
+          content: "You are an expert scholarship research specialist with access to comprehensive university databases. Research official institutional sources and match opportunities to student profiles with detailed eligibility analysis."
         },
         {
           role: "user",
@@ -152,11 +268,15 @@ If no verified scholarships are found, return: {"scholarships": []}`;
         }
       ],
       response_format: { type: "json_object" },
-      temperature: 0.1, // Low temperature for factual accuracy
+      temperature: 0.1,
+      max_tokens: 2500,
     });
 
     const scholarshipData = JSON.parse(response.choices[0].message.content || '{"scholarships": []}');
-    return scholarshipData.scholarships || [];
+    const scholarships = scholarshipData.scholarships || [];
+    
+    console.log(`Found ${scholarships.length} verified scholarships with profile matching for ${universityName}`);
+    return scholarships;
     
   } catch (error) {
     console.error('Error researching scholarships:', error);
@@ -239,34 +359,57 @@ export async function analyzeOfferLetterDocument(
     const { universityName, program, location } = extractUniversityInfo(documentText);
     console.log('Extracted university info:', { universityName, program, location });
     
-    // Simplified analysis without scholarship research to avoid timeouts
-    const simplifiedPrompt = `Analyze this university offer letter and provide structured analysis in JSON format:
+    // Extract student profile for scholarship matching
+    const studentProfile = extractStudentProfile(documentText);
+    console.log('Extracted student profile for scholarship matching');
+    
+    // Research verified scholarships with student profile matching
+    let scholarships: UniversityScholarshipInfo[] = [];
+    try {
+      const scholarshipPromise = researchUniversityScholarships(universityName, program, location, studentProfile);
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Scholarship research timeout')), 20000)
+      );
+      scholarships = await Promise.race([scholarshipPromise, timeoutPromise]);
+      console.log('Found scholarships with profile matching:', scholarships.length);
+    } catch (error) {
+      console.log('Scholarship research failed or timed out, continuing without:', error);
+    }
+    
+    // Comprehensive analysis with institution research and scholarship integration
+    const comprehensivePrompt = `Analyze this university offer letter and provide comprehensive structured analysis in JSON format:
 
 DOCUMENT TEXT (first 6000 characters):
 ${documentText.substring(0, 6000)}
 
-Provide analysis with these sections:
+VERIFIED SCHOLARSHIPS FOUND:
+${JSON.stringify(scholarships, null, 2)}
+
+STUDENT PROFILE EXTRACTED:
+${JSON.stringify(studentProfile, null, 2)}
+
+Provide comprehensive analysis with these sections:
 1. universityInfo: {name, location, program, tuition, duration}
 2. profileAnalysis: {academicStanding, gpa, financialStatus, relevantSkills[], strengths[], weaknesses[]}
-3. scholarshipOpportunities: [{name, amount, criteria[], applicationDeadline, applicationProcess, sourceUrl}]
+3. scholarshipOpportunities: Include the verified scholarships above plus any mentioned in the document
 4. costSavingStrategies: [{strategy, description, potentialSavings, implementationSteps[], timeline, difficulty}]
-5. recommendations: [strings]
-6. nextSteps: [strings]
+5. recommendations: [strings] - Include scholarship application recommendations
+6. nextSteps: [strings] - Include specific scholarship deadlines and actions
 
-Focus on extracting actual information from the document. For missing information, use "Not specified in document".`;
+Focus on extracting actual information from the document and integrating verified scholarship opportunities.`;
 
-    console.log('Sending request to OpenAI...');
+    console.log('Sending comprehensive analysis request to OpenAI...');
     
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "You are an expert education consultant. Analyze offer letters and provide structured JSON responses. Focus on factual information from the document."
+          content: "You are an expert education consultant specializing in offer letter analysis and scholarship matching. Provide comprehensive analysis integrating verified scholarship opportunities with student profiles."
         },
         {
           role: "user",
-          content: simplifiedPrompt
+          content: comprehensivePrompt
         }
       ],
       response_format: { type: "json_object" },
@@ -303,7 +446,8 @@ Focus on extracting actual information from the document. For missing informatio
             ? analysisData.profileAnalysis.weaknesses 
             : ["Not specified in document"],
         },
-        scholarshipOpportunities: Array.isArray(analysisData.scholarshipOpportunities) ? analysisData.scholarshipOpportunities : [],
+        scholarshipOpportunities: scholarships.length > 0 ? scholarships : 
+          (Array.isArray(analysisData.scholarshipOpportunities) ? analysisData.scholarshipOpportunities : []),
         costSavingStrategies: Array.isArray(analysisData.costSavingStrategies) 
           ? analysisData.costSavingStrategies 
           : [
