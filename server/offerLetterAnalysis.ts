@@ -233,21 +233,35 @@ export async function analyzeOfferLetterDocument(
   const startTime = Date.now();
   
   try {
+    console.log('Starting offer letter analysis for:', fileName);
+    
     // Extract university information for scholarship research
     const { universityName, program, location } = extractUniversityInfo(documentText);
+    console.log('Extracted university info:', { universityName, program, location });
     
-    // Research verified scholarships
-    const scholarships = await researchUniversityScholarships(universityName, program, location);
+    // Research verified scholarships (with timeout)
+    let scholarships: UniversityScholarshipInfo[] = [];
+    try {
+      const scholarshipPromise = researchUniversityScholarships(universityName, program, location);
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Scholarship research timeout')), 15000)
+      );
+      scholarships = await Promise.race([scholarshipPromise, timeoutPromise]);
+      console.log('Found scholarships:', scholarships.length);
+    } catch (error) {
+      console.log('Scholarship research failed or timed out, continuing without:', error);
+    }
     
-    // Generate comprehensive analysis
-    const prompt = getOfferLetterAnalysisPrompt(documentText, scholarships);
+    // Generate comprehensive analysis with shorter prompt for faster processing
+    const prompt = getOfferLetterAnalysisPrompt(documentText.substring(0, 8000), scholarships);
+    console.log('Sending request to OpenAI...');
     
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "You are an expert education consultant specializing in offer letter analysis, scholarship matching, and cost optimization. Provide comprehensive, accurate analysis based only on verified information."
+          content: "You are an expert education consultant. Analyze offer letters comprehensively but concisely. Focus on key information, scholarships, and actionable recommendations."
         },
         {
           role: "user",
