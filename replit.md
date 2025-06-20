@@ -130,18 +130,17 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
-**June 20, 2025 - Fixed Offer Letter Analysis Data Loading Issues & Enhanced Error Handling:**
-- Resolved critical data loading issue where offer letter analysis ID 3 showed "data not available" due to failed analysis records
-- Fixed database schema column mapping inconsistencies between snake_case and camelCase property access
-- Added comprehensive error handling to filter out corrupted analyses with "Analysis Error - Please Try Again" values
-- Enhanced API response structure to properly parse and map analysisResults JSON data to frontend expected format
-- Implemented proper documentAnalysis structure extraction from stored JSON analysis results
-- Added fallback data structures for incomplete analysis records ensuring robust data display
-- Updated both user and admin endpoints to handle failed analyses gracefully with proper error messages
-- Enhanced data integrity by filtering corrupted records from API responses while preserving valid analyses
-- Fixed analysis viewing functionality for both user dashboard (/offer-letter-analysis/:id) and admin panel (/admin/offer-letter-analyses/:id)
-- Applied comprehensive JSON parsing with error handling to prevent application crashes from malformed data
-- Successfully restored offer letter analysis viewing capability with complete scholarship opportunities, cost savings, and recommendations display
+**June 20, 2025 - Fixed Offer Letter Analysis Data Loading & API Response Structure:**
+- Resolved critical data loading issue where offer letter analysis showed "Not specified" for all university information fields
+- Fixed API response structure to properly parse analysisResults JSON column containing complete analysis data
+- Enhanced both user (/api/offer-letter-analyses/:id) and admin (/api/admin/offer-letter-analyses/:id) endpoints with correct JSON parsing
+- Applied comprehensive error handling to filter out corrupted analyses with "Analysis Error - Please Try Again" values
+- Updated data extraction to properly access stored analysis results from database JSON structure
+- Fixed university information display: Sydney Metropolitan Institute of Technology Pty Ltd, Bachelor of Social Work, $99,825.00 AUD total
+- Enhanced profile analysis extraction with academic standing, financial status, strengths, and weaknesses from stored JSON
+- Implemented proper scholarship opportunities and cost-saving strategies data mapping from analysisResults column
+- Added fallback data structures ensuring robust display for incomplete analysis records
+- Successfully restored complete offer letter analysis viewing with university info, scholarships, recommendations, and next steps
 
 **June 20, 2025 - Enhanced Comprehensive COE Analysis System with Strategic Insights & Compliance Assessment:**
 - Completely revamped COE Analysis system with comprehensive strategic analysis capabilities matching offer letter analysis depth

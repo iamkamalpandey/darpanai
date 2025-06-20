@@ -1204,48 +1204,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Return the complete parsed analysis data
       return res.status(200).json({
         ...analysis,
-        documentAnalysis: parsedAnalysis?.documentAnalysis || {
+        documentAnalysis: {
           totalPages: "Complete document processed",
           documentSections: ["Full offer letter analysis completed"],
           termsAndConditions: {
-            academicRequirements: parsedAnalysis?.academicRequirements || [],
-            financialObligations: parsedAnalysis?.financialObligations || [],
-            enrollmentConditions: parsedAnalysis?.enrollmentConditions || [],
-            academicProgress: parsedAnalysis?.academicProgress || [],
-            complianceRequirements: parsedAnalysis?.complianceRequirements || [],
-            hiddenClauses: parsedAnalysis?.hiddenClauses || [],
-            criticalDeadlines: parsedAnalysis?.criticalDeadlines || [],
-            penalties: parsedAnalysis?.penalties || [],
+            academicRequirements: [],
+            financialObligations: [],
+            enrollmentConditions: [],
+            academicProgress: [],
+            complianceRequirements: [],
+            hiddenClauses: [],
+            criticalDeadlines: [],
+            penalties: [],
           },
           riskAssessment: {
-            highRiskFactors: parsedAnalysis?.highRiskFactors || [],
-            financialRisks: parsedAnalysis?.financialRisks || [],
-            academicRisks: parsedAnalysis?.academicRisks || [],
-            complianceRisks: parsedAnalysis?.complianceRisks || [],
-            mitigationStrategies: parsedAnalysis?.mitigationStrategies || [],
+            highRiskFactors: [],
+            financialRisks: [],
+            academicRisks: [],
+            complianceRisks: [],
+            mitigationStrategies: [],
           }
         },
         profileAnalysis: parsedAnalysis?.profileAnalysis || {
-          academicStanding: analysis.academicStanding || parsedAnalysis?.profileAnalysis?.academicStanding || "Completion of Diploma of Community Service",
-          gpa: analysis.gpa || parsedAnalysis?.profileAnalysis?.gpa || "Not specified",
-          financialStatus: analysis.financialStatus || parsedAnalysis?.profileAnalysis?.financialStatus || "Requires financial assistance",
-          relevantSkills: analysis.relevantSkills || parsedAnalysis?.profileAnalysis?.relevantSkills || ["Community service experience"],
-          strengths: analysis.strengths || parsedAnalysis?.profileAnalysis?.strengths || ["Prior completion of relevant diploma", "Eligible for credit transfer"],
-          weaknesses: analysis.weaknesses || parsedAnalysis?.profileAnalysis?.weaknesses || ["High financial burden without confirmed scholarships"],
+          academicStanding: "Not specified",
+          gpa: "Not specified",
+          financialStatus: "Not specified",
+          relevantSkills: [],
+          strengths: [],
+          weaknesses: [],
         },
         universityInfo: parsedAnalysis?.universityInfo || {
-          name: analysis.universityName || parsedAnalysis?.universityInfo?.name || "Sydney Metropolitan Institute of Technology Pty Ltd",
-          location: analysis.universityLocation || parsedAnalysis?.universityInfo?.location || "Sydney, NSW, Australia",
-          program: analysis.program || parsedAnalysis?.universityInfo?.program || "Bachelor of Social Work",
-          tuition: analysis.tuition || parsedAnalysis?.universityInfo?.tuition || "$99,825.00 AUD total, $3,993.00 AUD per unit",
-          duration: analysis.duration || parsedAnalysis?.universityInfo?.duration || "157 weeks",
+          name: "Not specified",
+          location: "Not specified",
+          program: "Not specified",
+          tuition: "Not specified",
+          duration: "Not specified",
         },
-        scholarshipOpportunities: parsedAnalysis?.scholarshipOpportunities || analysis.scholarshipOpportunities || [],
-        costSavingStrategies: parsedAnalysis?.costSavingStrategies || analysis.costSavingStrategies || [],
-        recommendations: parsedAnalysis?.recommendations || analysis.recommendations || [],
-        nextSteps: parsedAnalysis?.nextSteps || analysis.nextSteps || [],
+        scholarshipOpportunities: parsedAnalysis?.scholarshipOpportunities || [],
+        costSavingStrategies: parsedAnalysis?.costSavingStrategies || [],
+        recommendations: parsedAnalysis?.recommendations || [],
+        nextSteps: parsedAnalysis?.nextSteps || [],
       });
       
     } catch (error) {
@@ -2177,7 +2178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Analysis failed or corrupted' });
       }
 
-      // Parse analysis results if available
+      // Parse analysis results from the stored JSON
       let parsedAnalysis = null;
       if (analysis.analysisResults) {
         try {
@@ -2189,51 +2190,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Return the complete parsed analysis data
       return res.status(200).json({
         id: analysis.id,
         fileName: analysis.filename,
         fileSize: analysis.fileSize,
         analysisDate: analysis.createdAt,
-        documentAnalysis: parsedAnalysis?.documentAnalysis || {
+        documentAnalysis: {
           totalPages: "Complete document processed",
           documentSections: ["Full offer letter analysis completed"],
           termsAndConditions: {
-            academicRequirements: parsedAnalysis?.academicRequirements || [],
-            financialObligations: parsedAnalysis?.financialObligations || [],
-            enrollmentConditions: parsedAnalysis?.enrollmentConditions || [],
-            academicProgress: parsedAnalysis?.academicProgress || [],
-            complianceRequirements: parsedAnalysis?.complianceRequirements || [],
-            hiddenClauses: parsedAnalysis?.hiddenClauses || [],
-            criticalDeadlines: parsedAnalysis?.criticalDeadlines || [],
-            penalties: parsedAnalysis?.penalties || [],
+            academicRequirements: [],
+            financialObligations: [],
+            enrollmentConditions: [],
+            academicProgress: [],
+            complianceRequirements: [],
+            hiddenClauses: [],
+            criticalDeadlines: [],
+            penalties: [],
           },
           riskAssessment: {
-            highRiskFactors: parsedAnalysis?.highRiskFactors || [],
-            financialRisks: parsedAnalysis?.financialRisks || [],
-            academicRisks: parsedAnalysis?.academicRisks || [],
-            complianceRisks: parsedAnalysis?.complianceRisks || [],
-            mitigationStrategies: parsedAnalysis?.mitigationStrategies || [],
+            highRiskFactors: [],
+            financialRisks: [],
+            academicRisks: [],
+            complianceRisks: [],
+            mitigationStrategies: [],
           }
         },
         profileAnalysis: parsedAnalysis?.profileAnalysis || {
-          academicStanding: analysis.academicStanding || parsedAnalysis?.profileAnalysis?.academicStanding || "Not specified",
-          gpa: analysis.gpa || parsedAnalysis?.profileAnalysis?.gpa || "Not specified",
-          financialStatus: analysis.financialStatus || parsedAnalysis?.profileAnalysis?.financialStatus || "Not specified",
-          relevantSkills: analysis.relevantSkills || parsedAnalysis?.profileAnalysis?.relevantSkills || [],
-          strengths: analysis.strengths || parsedAnalysis?.profileAnalysis?.strengths || [],
-          weaknesses: analysis.weaknesses || parsedAnalysis?.profileAnalysis?.weaknesses || [],
+          academicStanding: "Not specified",
+          gpa: "Not specified", 
+          financialStatus: "Not specified",
+          relevantSkills: [],
+          strengths: [],
+          weaknesses: [],
         },
         universityInfo: parsedAnalysis?.universityInfo || {
-          name: analysis.universityName || parsedAnalysis?.universityInfo?.name || "Sydney Metropolitan Institute of Technology Pty Ltd",
-          location: analysis.universityLocation || parsedAnalysis?.universityInfo?.location || "Sydney, NSW, Australia",
-          program: analysis.program || parsedAnalysis?.universityInfo?.program || "Bachelor of Social Work",
-          tuition: analysis.tuition || parsedAnalysis?.universityInfo?.tuition || "$99,825.00 AUD total",
-          duration: analysis.duration || parsedAnalysis?.universityInfo?.duration || "157 weeks",
+          name: "Not specified",
+          location: "Not specified",
+          program: "Not specified", 
+          tuition: "Not specified",
+          duration: "Not specified",
         },
-        scholarshipOpportunities: parsedAnalysis?.scholarshipOpportunities || analysis.scholarshipOpportunities || [],
-        costSavingStrategies: parsedAnalysis?.costSavingStrategies || analysis.costSavingStrategies || [],
-        recommendations: parsedAnalysis?.recommendations || analysis.recommendations || [],
-        nextSteps: parsedAnalysis?.nextSteps || analysis.nextSteps || [],
+        scholarshipOpportunities: parsedAnalysis?.scholarshipOpportunities || [],
+        costSavingStrategies: parsedAnalysis?.costSavingStrategies || [],
+        recommendations: parsedAnalysis?.recommendations || [],
+        nextSteps: parsedAnalysis?.nextSteps || [],
       });
     } catch (error) {
       console.error('Error fetching offer letter analysis:', error);
