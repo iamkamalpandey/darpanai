@@ -1636,7 +1636,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         studyLevel: z.string().nullable().optional().transform(val => val === null ? undefined : val),
         preferredStudyFields: z.array(z.string()).nullable().optional().transform(val => val === null ? undefined : val),
         startDate: z.string().nullable().optional().transform(val => val === null ? undefined : val),
-        fundingSource: z.string().nullable().optional().transform(val => val === null ? undefined : val),
         studyDestination: z.string().nullable().optional().transform(val => val === null ? undefined : val),
         languagePreferences: z.array(z.string()).nullable().optional().transform(val => val === null ? undefined : val),
         climatePreference: z.string().nullable().optional().transform(val => val === null ? undefined : val),
@@ -1647,10 +1646,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         counsellingMode: z.string().nullable().optional().transform(val => val === null ? undefined : val),
       });
 
+      console.log('Profile update request body:', req.body);
       const validatedData = profileSchema.parse(req.body);
+      console.log('Validated data:', validatedData);
       
       // Update user profile with validated data
       const updatedUser = await storage.updateUserProfile(userId, validatedData);
+      console.log('Updated user:', updatedUser);
       
       // Invalidate cache
       invalidateCache(`user:${userId}`);
@@ -1684,8 +1686,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         preferredStudyFields: z.array(z.string()).optional(),
         startDate: z.string().optional(),
         budgetRange: z.string().optional(),
-        fundingSource: z.string().optional(),
-        studyDestination: z.string().optional(),
         languagePreferences: z.array(z.string()).optional(),
         climatePreference: z.string().optional(),
         universityRankingImportance: z.string().optional(),

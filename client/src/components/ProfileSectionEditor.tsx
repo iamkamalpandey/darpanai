@@ -234,12 +234,16 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
     setIsValidating(true);
     setValidationErrors([]);
 
+    console.log('Saving section:', section);
+    console.log('Form data before validation:', formData);
+
     // Validate form data
     const errors = validateForm(formData, section);
     
     if (errors.length > 0) {
       setValidationErrors(errors);
       setIsValidating(false);
+      console.log('Validation errors:', errors);
       toast({
         title: 'Validation Failed',
         description: `Please fix ${errors.length} error${errors.length > 1 ? 's' : ''} before saving.`,
@@ -251,9 +255,20 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
     // Prepare data for submission
     const submitData = { ...formData };
     
-    // Data transformation
+    // Data transformation for specific fields
     if (submitData.graduationYear && typeof submitData.graduationYear === 'string') {
       submitData.graduationYear = parseInt(submitData.graduationYear);
+    }
+    
+    // Transform financial numeric fields
+    if (submitData.estimatedBudget && typeof submitData.estimatedBudget === 'string') {
+      submitData.estimatedBudget = parseInt(submitData.estimatedBudget);
+    }
+    if (submitData.savingsAmount && typeof submitData.savingsAmount === 'string') {
+      submitData.savingsAmount = parseInt(submitData.savingsAmount);
+    }
+    if (submitData.loanAmount && typeof submitData.loanAmount === 'string') {
+      submitData.loanAmount = parseInt(submitData.loanAmount);
     }
     
     if (!submitData.englishProficiencyTests) {
@@ -267,6 +282,7 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
       }
     });
     
+    console.log('Submit data after transformation:', submitData);
     setIsValidating(false);
     updateMutation.mutate(submitData);
   };
