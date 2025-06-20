@@ -1957,8 +1957,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           weaknesses: analysis.weaknesses || [],
         },
         universityInfo: {
-          name: analysis.universityName,
-          location: analysis.universityLocation,
+          name: analysis.university_name || analysis.universityName,
+          location: analysis.university_location || analysis.universityLocation,
           program: analysis.program,
           tuition: analysis.tuition,
           duration: analysis.duration,
@@ -2122,8 +2122,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           weaknesses: analysis.weaknesses || [],
         },
         universityInfo: {
-          name: analysis.universityName,
-          location: analysis.universityLocation,
+          name: analysis.university_name || analysis.universityName,
+          location: analysis.university_location || analysis.universityLocation,
           program: analysis.program,
           tuition: analysis.tuition,
           duration: analysis.duration,
