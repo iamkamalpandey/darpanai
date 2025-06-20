@@ -1,32 +1,31 @@
-import { useState, useCallback } from "react";
-import { useDropzone } from "react-dropzone";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DashboardLayout } from "@/components/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
-import { CustomCTA } from "@/components/CustomCTA";
-import { useLocation } from "wouter";
-import { apiRequest } from "@/lib/queryClient";
-import { users } from "@shared/schema";
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useDropzone } from 'react-dropzone';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import DashboardLayout from '@/components/DashboardLayout';
+import { useLocation } from 'wouter';
 import { 
   Upload, 
+  Target, 
   FileText, 
   CheckCircle, 
-  AlertCircle, 
-  AlertTriangle,
-  Target,
-  DollarSign,
+  Clock, 
+  DollarSign, 
+  Users, 
   Calendar,
+  Shield,
   Eye,
   Building,
-  User,
-  Loader2,
-  Plus,
-  Shield
-} from "lucide-react";
+  TrendingUp,
+  AlertCircle,
+  Loader2
+} from 'lucide-react';
+import { CustomCTA } from '@/components/CustomCTA';
+import { users } from "@shared/schema";
 
 type User = typeof users.$inferSelect;
 
@@ -39,6 +38,7 @@ interface OfferLetterAnalysisItem {
     name?: string;
     program?: string;
   };
+  createdAt: string;
 }
 
 export default function OfferLetterAnalysis() {
@@ -49,19 +49,39 @@ export default function OfferLetterAnalysis() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
-  // Fetch current user for quota checking (following COE analysis pattern)
+  // Fetch user data for credit validation
   const { data: user } = useQuery<User>({
     queryKey: ['/api/user'],
     staleTime: 15 * 60 * 1000, // 15 minutes
   });
 
-  // Fetch previous analyses
-  const { data: analyses = [], isLoading } = useQuery<OfferLetterAnalysisItem[]>({
+  // Fetch recent offer letter analyses
+  const { data: analyses = [], isLoading: isLoadingAnalyses } = useQuery<OfferLetterAnalysisItem[]>({
     queryKey: ['/api/offer-letter-analyses'],
-    staleTime: 20 * 60 * 1000, // 20 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  // Upload and analyze mutation (following COE analysis pattern)
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: {
+      'application/pdf': ['.pdf'],
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png']
+    },
+    maxSize: 10 * 1024 * 1024, // 10MB
+    onDrop: (acceptedFiles) => {
+      if (acceptedFiles.length > 0) {
+        setSelectedFile(acceptedFiles[0]);
+      }
+    },
+    onDropRejected: () => {
+      toast({
+        title: "File Error",
+        description: "Please upload a PDF, JPG, or PNG file under 10MB.",
+        variant: "destructive",
+      });
+    }
+  });
+
   const mutation = useMutation({
     mutationFn: async () => {
       if (!selectedFile) {
@@ -129,39 +149,16 @@ export default function OfferLetterAnalysis() {
       // Navigate to the detailed analysis view
       setLocation(`/offer-letter-analysis/${data.id}`);
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Analysis Failed",
-        description: error.message || "Something went wrong during analysis.",
+        title: "Offer Letter Analysis Failed",
+        description: error.message,
         variant: "destructive",
       });
       
       setUploadProgress(0);
       setAnalysisProgress(0);
     },
-  });
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: {
-      'application/pdf': ['.pdf'],
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png']
-    },
-    maxSize: 10 * 1024 * 1024, // 10MB
-    onDrop: (acceptedFiles) => {
-      if (acceptedFiles.length > 0) {
-        setSelectedFile(acceptedFiles[0]);
-      }
-    },
-    onDropRejected: () => {
-      toast({
-        title: "File Error",
-        description: "Please upload a PDF, JPG, or PNG file under 10MB.",
-        variant: "destructive",
-      });
-    },
-    multiple: false,
-    disabled: mutation.isPending
   });
 
   const handleAnalysis = () => {
@@ -181,36 +178,47 @@ export default function OfferLetterAnalysis() {
     setLocation(`/offer-letter-analysis/${analysis.id}`);
   };
 
-  const canUpload = user ? user.analysisCount < user.maxAnalyses : false;
+  const hasCreditsRemaining = user && user.analysisCount < user.maxAnalyses;
+  const isProcessing = mutation.isPending;
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg border border-green-200">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 bg-green-100 rounded-full">
-              <Target className="h-8 w-8 text-green-600" />
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Hero Section */}
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-8 text-center">
+          <div className="max-w-3xl mx-auto space-y-4">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Target className="h-10 w-10 text-green-600" />
+              <h1 className="text-4xl font-bold text-gray-900">Offer Letter Analysis</h1>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Offer Letter Analysis</h1>
-              <p className="text-gray-600 mt-1">
-                Get comprehensive analysis of your offer letter with scholarship opportunities and cost-saving strategies
-              </p>
+            <p className="text-lg text-gray-700">
+              Comprehensive AI-powered analysis of your university offer letters with strategic scholarship matching, 
+              detailed terms examination, and verified recommendations from official university sources.
+            </p>
+            <div className="flex justify-center items-center gap-6 mt-6">
+              <div className="flex items-center gap-2 text-green-600">
+                <CheckCircle className="h-5 w-5" />
+                <span className="font-medium">Scholarship Research</span>
+              </div>
+              <div className="flex items-center gap-2 text-blue-600">
+                <DollarSign className="h-5 w-5" />
+                <span className="font-medium">Cost Optimization</span>
+              </div>
+              <div className="flex items-center gap-2 text-purple-600">
+                <Shield className="h-5 w-5" />
+                <span className="font-medium">Terms Analysis</span>
+              </div>
             </div>
-          </div>
 
-          {/* Usage Stats */}
-          {user && (
-            <div className="flex items-center gap-4 text-sm">
-              <Badge variant={canUpload ? "default" : "destructive"}>
-                {user.analysisCount} / {user.maxAnalyses} analyses used
-              </Badge>
-              <span className="text-gray-600">
-                {canUpload ? "You can upload more documents" : "Analysis limit reached"}
-              </span>
-            </div>
-          )}
+            {/* Usage Stats */}
+            {user && (
+              <div className="flex justify-center mt-6">
+                <Badge variant={hasCreditsRemaining ? "secondary" : "destructive"} className="text-sm">
+                  {user.analysisCount} / {user.maxAnalyses} analyses used
+                </Badge>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Upload Section */}
@@ -220,17 +228,21 @@ export default function OfferLetterAnalysis() {
               <Upload className="h-5 w-5" />
               Upload Offer Letter
             </CardTitle>
+            <CardDescription>
+              Upload your university offer letter to get comprehensive analysis with scholarship opportunities and cost-saving strategies.
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             {/* File Upload */}
             <div
               {...getRootProps()}
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer
-                ${isDragActive ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-green-400'}
-                ${!canUpload || isAnalyzing || analyzeMutation.isPending ? 'opacity-50 cursor-not-allowed' : ''}
+              className={`
+                border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer
+                ${isDragActive ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-green-400'}
+                ${!hasCreditsRemaining || isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
               `}
             >
-              <input {...getInputProps()} disabled={!canUpload || isAnalyzing || analyzeMutation.isPending} />
+              <input {...getInputProps()} disabled={!hasCreditsRemaining || isProcessing} />
               
               <div className="space-y-4">
                 <div className="p-4 bg-green-100 rounded-full w-fit mx-auto">
@@ -242,7 +254,7 @@ export default function OfferLetterAnalysis() {
                 ) : (
                   <div>
                     <p className="text-lg font-medium text-gray-900 mb-2">
-                      {uploadedFile ? uploadedFile.name : 'Click to upload or drag and drop your offer letter'}
+                      {selectedFile ? selectedFile.name : 'Click to upload or drag and drop your offer letter'}
                     </p>
                     <p className="text-gray-600">
                       Supports PDF, JPG, PNG files up to 10MB
@@ -252,175 +264,133 @@ export default function OfferLetterAnalysis() {
               </div>
             </div>
 
-            {/* Upload Actions */}
-            {uploadedFile && (
+            {/* File Preview */}
+            {selectedFile && (
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <FileText className="h-5 w-5 text-gray-600" />
                   <div>
-                    <p className="font-medium text-gray-900">{uploadedFile.name}</p>
+                    <p className="font-medium text-gray-900">{selectedFile.name}</p>
                     <p className="text-sm text-gray-600">
-                      {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                     </p>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
-                    onClick={() => setUploadedFile(null)}
-                    disabled={isAnalyzing || analyzeMutation.isPending}
+                    onClick={() => setSelectedFile(null)}
+                    disabled={isProcessing}
                   >
                     Remove
                   </Button>
                   <Button
-                    onClick={handleAnalyze}
-                    disabled={!canUpload || isAnalyzing || analyzeMutation.isPending}
+                    onClick={handleAnalysis}
+                    disabled={!hasCreditsRemaining || isProcessing}
                     className="bg-green-600 hover:bg-green-700"
                   >
-                    {isAnalyzing || analyzeMutation.isPending ? (
+                    {isProcessing ? (
                       <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Analyzing...
                       </>
                     ) : (
-                      <>
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Analyze Document
-                      </>
+                      'Analyze Offer Letter'
                     )}
                   </Button>
                 </div>
               </div>
             )}
 
-            {!canUpload && (
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  You have reached your analysis limit. Contact support to upgrade your plan for more analyses.
-                </AlertDescription>
-              </Alert>
+            {/* Progress Indicators */}
+            {isProcessing && (
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>Upload Progress</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <Progress value={uploadProgress} className="h-2" />
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>Analysis Progress</span>
+                    <span>{analysisProgress}%</span>
+                  </div>
+                  <Progress value={analysisProgress} className="h-2" />
+                </div>
+              </div>
+            )}
+
+            {/* Credit Limit Warning */}
+            {!hasCreditsRemaining && (
+              <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+                <div>
+                  <p className="font-medium text-red-800">Analysis Limit Reached</p>
+                  <p className="text-sm text-red-600">
+                    You've used all {user?.maxAnalyses || 0} analyses. Contact support to increase your limit.
+                  </p>
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Features Section */}
+        {/* Recent Analyses */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
-              What You'll Get
+              <Clock className="h-5 w-5" />
+              Recent Offer Letter Analyses
             </CardTitle>
+            <CardDescription>
+              View your previous offer letter analysis reports and results.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <Shield className="h-6 w-6 text-blue-600 mb-2" />
-                <h4 className="font-semibold text-gray-900 mb-2">Document Analysis</h4>
-                <p className="text-sm text-gray-600">
-                  Complete terms & conditions examination, risk assessment, and compliance guidance
-                </p>
-              </div>
-              <div className="p-4 bg-purple-50 rounded-lg">
-                <User className="h-6 w-6 text-purple-600 mb-2" />
-                <h4 className="font-semibold text-gray-900 mb-2">Profile Analysis</h4>
-                <p className="text-sm text-gray-600">
-                  Academic standing assessment, strengths evaluation, and improvement areas
-                </p>
-              </div>
-              <div className="p-4 bg-yellow-50 rounded-lg">
-                <Target className="h-6 w-6 text-yellow-600 mb-2" />
-                <h4 className="font-semibold text-gray-900 mb-2">Scholarship Research</h4>
-                <p className="text-sm text-gray-600">
-                  University-specific scholarships with eligibility matching and application guidance
-                </p>
-              </div>
-              <div className="p-4 bg-green-50 rounded-lg">
-                <DollarSign className="h-6 w-6 text-green-600 mb-2" />
-                <h4 className="font-semibold text-gray-900 mb-2">Cost Optimization</h4>
-                <p className="text-sm text-gray-600">
-                  Proven strategies to reduce education costs with implementation timelines
-                </p>
-              </div>
-              <div className="p-4 bg-indigo-50 rounded-lg">
-                <CheckCircle className="h-6 w-6 text-indigo-600 mb-2" />
-                <h4 className="font-semibold text-gray-900 mb-2">Action Plan</h4>
-                <p className="text-sm text-gray-600">
-                  Step-by-step next steps with priorities and deadlines
-                </p>
-              </div>
-              <div className="p-4 bg-red-50 rounded-lg">
-                <AlertTriangle className="h-6 w-6 text-red-600 mb-2" />
-                <h4 className="font-semibold text-gray-900 mb-2">Risk Mitigation</h4>
-                <p className="text-sm text-gray-600">
-                  Identify potential risks and get strategies to address them
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Previous Analyses */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <div className="p-2 bg-gray-100 rounded-full">
-                <FileText className="h-5 w-5 text-gray-600" />
-              </div>
-              Previous Analyses
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            {isLoadingAnalyses ? (
+              <div className="text-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-400" />
+                <p className="text-gray-600">Loading your analyses...</p>
               </div>
             ) : analyses.length === 0 ? (
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">No Previous Analyses</h3>
-                <p className="text-gray-500">
-                  Upload your first offer letter to get comprehensive analysis and scholarship opportunities.
-                </p>
+                <p className="text-gray-600 mb-2">No offer letter analyses yet</p>
+                <p className="text-sm text-gray-500">Upload your first offer letter to get started</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {analyses.map((analysis) => (
-                  <div 
-                    key={analysis.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 cursor-pointer transition-colors"
-                    onClick={() => viewAnalysis(analysis)}
-                  >
-                    <div className="flex items-center gap-3">
+                  <div key={analysis.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                    <div className="flex items-center gap-4">
                       <div className="p-2 bg-green-100 rounded">
-                        <FileText className="h-5 w-5 text-green-600" />
+                        <FileText className="h-4 w-4 text-green-600" />
                       </div>
                       <div>
-                        <h4 className="font-medium text-gray-900 text-sm">
-                          {analysis.fileName}
-                        </h4>
-                        <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+                        <p className="font-medium text-gray-900">{analysis.fileName}</p>
+                        <div className="flex items-center gap-4 text-sm text-gray-600">
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
                             {new Date(analysis.analysisDate).toLocaleDateString()}
                           </span>
-                          {analysis.universityInfo?.name && (
-                            <span className="flex items-center gap-1">
-                              <Building className="h-3 w-3" />
-                              {analysis.universityInfo.name}
-                            </span>
-                          )}
+                          <span className="flex items-center gap-1">
+                            <Building className="h-3 w-3" />
+                            {analysis.universityInfo?.name || 'University details available'}
+                          </span>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-green-600 text-sm font-medium">View Analysis</span>
-                      <div className="p-1">
-                        <svg className="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => viewAnalysis(analysis)}
+                      className="flex items-center gap-2"
+                    >
+                      <Eye className="h-4 w-4" />
+                      View Analysis
+                    </Button>
                   </div>
                 ))}
               </div>
