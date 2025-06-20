@@ -89,21 +89,114 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
         return;
       }
 
-      // Check if user data is present in response
-      if (!data.user) {
-        console.error('No user data in server response:', data);
-        console.log('Response structure:', Object.keys(data));
-        console.log('Expected user object missing');
+      // Verify actual data persistence by checking if user object exists and has expected structure
+      if (!data.user || !data.user.id) {
+        console.error('Invalid user data in server response:', data);
         toast({
-          title: 'Save Warning',
-          description: 'Profile may not have been fully saved. Please verify your changes.',
+          title: 'Save Failed',
+          description: 'Server did not return valid user data. Please try again.',
           variant: 'destructive',
         });
         return;
       }
 
-      // Debug financial information CRUD operations
-      if (section === 'financial') {
+      // Verify actual data persistence by comparing submitted vs saved data
+      const getSectionFields = (sectionType: string) => {
+        switch (sectionType) {
+          case 'financial':
+            return ['fundingSource', 'estimatedBudget', 'savingsAmount', 'loanApproval', 'loanAmount', 'sponsorDetails', 'financialDocuments'];
+          case 'academic':
+            return ['highestQualification', 'highestInstitution', 'highestCountry', 'highestGpa', 'graduationYear', 'currentAcademicGap', 'educationHistory'];
+          case 'personal':
+            return ['firstName', 'lastName', 'dateOfBirth', 'gender', 'nationality', 'phoneNumber', 'secondaryNumber', 'passportNumber', 'address'];
+          case 'employment':
+            return ['currentEmploymentStatus', 'workExperienceYears', 'jobTitle', 'organizationName', 'fieldOfWork', 'gapReasonIfAny'];
+          case 'language':
+            return ['englishProficiencyTests', 'standardizedTests'];
+          default:
+            return [];
+        }
+      };
+
+      // Accurate data persistence validation - only check fields that were actually submitted
+      const sectionFields = getSectionFields(section);
+      const failedFields: string[] = [];
+      
+      // Only validate fields that have actual values in the form submission
+      const submittedData = Object.keys(formData).filter(key => {
+        const value = formData[key];
+        return value !== undefined && value !== null && value !== '' && sectionFields.includes(key);
+      });
+
+      submittedData.forEach(field => {
+        const submittedValue = formData[field];
+        const savedValue = data.user[field];
+        
+        // Strict comparison for data persistence verification
+        if (typeof submittedValue === 'boolean') {
+          // Boolean fields must match exactly
+          if (savedValue !== submittedValue) {
+            failedFields.push(field);
+          }
+        } else if (typeof submittedValue === 'number') {
+          // Number fields must match exactly
+          if (Number(savedValue) !== Number(submittedValue)) {
+            failedFields.push(field);
+          }
+        } else {
+          // String fields must match exactly (not null/undefined/empty when submitted)
+          if (!savedValue || String(savedValue).trim() !== String(submittedValue).trim()) {
+            failedFields.push(field);
+          }
+        }
+      });
+
+      // Show error ONLY if data was actually not saved
+      if (failedFields.length > 0) {
+        console.error('Data persistence failed for fields:', failedFields);
+        console.log('Submitted vs Saved comparison:', failedFields.map(field => ({
+          field,
+          submitted: formData[field],
+          saved: data.user[field]
+        })));
+        
+        toast({
+          title: 'Save Failed',
+          description: `Failed to save: ${failedFields.join(', ')}. Please try again.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Debug CRUD operations for academic and financial sections
+      if (section === 'academic') {
+        console.log('=== ACADEMIC QUALIFICATION CRUD DEBUG ===');
+        console.log('Submitted academic data:', {
+          highestQualification: formData.highestQualification,
+          highestInstitution: formData.highestInstitution,
+          highestCountry: formData.highestCountry,
+          highestGpa: formData.highestGpa,
+          graduationYear: formData.graduationYear,
+          currentAcademicGap: formData.currentAcademicGap,
+          educationHistory: formData.educationHistory
+        });
+        console.log('Saved academic data:', {
+          highestQualification: data.user.highestQualification,
+          highestInstitution: data.user.highestInstitution,
+          highestCountry: data.user.highestCountry,
+          highestGpa: data.user.highestGpa,
+          graduationYear: data.user.graduationYear,
+          currentAcademicGap: data.user.currentAcademicGap,
+          educationHistory: data.user.educationHistory
+        });
+        console.log('Academic CRUD Pattern:');
+        console.log('- CREATE: New academic fields added via setField() in updateUserProfile()');
+        console.log('- READ: Academic data retrieved from users table via /api/user');
+        console.log('- UPDATE: Existing academic fields updated with new values');
+        console.log('- DELETE: Fields cleared by setting to null/empty string');
+        console.log('Academic data persistence: SUCCESS');
+        console.log('=== END ACADEMIC DEBUG ===');
+      } else if (section === 'financial') {
         console.log('=== FINANCIAL CRUD OPERATION DEBUG ===');
         console.log('Submitted financial data:', {
           fundingSource: formData.fundingSource,
@@ -123,7 +216,7 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
           sponsorDetails: data.user.sponsorDetails,
           financialDocuments: data.user.financialDocuments
         });
-        console.log('CRUD Pattern Analysis:');
+        console.log('Financial CRUD Pattern:');
         console.log('- CREATE: New financial fields added to user profile');
         console.log('- READ: Financial data retrieved from database via /api/user endpoint');
         console.log('- UPDATE: Financial fields updated via setField() pattern in updateUserProfile()');
