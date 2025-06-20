@@ -90,12 +90,26 @@ export default function EnhancedUserProfile() {
     return ranges[value as keyof typeof ranges] || value;
   };
   
-  // Use fresh data endpoint to bypass caching
+  // Use fresh data endpoint with aggressive refresh mechanism
   const { data: user, isLoading, refetch } = useQuery({
     queryKey: ['/api/user/fresh'],
     staleTime: 0,
     refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    refetchInterval: false, // No automatic polling
+    notifyOnChangeProps: ['data', 'error'], // Only notify on data changes
   }) as { data: any, isLoading: boolean, refetch: any };
+
+  // Force immediate refresh after any profile updates
+  useEffect(() => {
+    const handleStorageChange = () => {
+      console.log('Profile updated detected, forcing fresh data retrieval');
+      refetch();
+    };
+    
+    window.addEventListener('profile-updated', handleStorageChange);
+    return () => window.removeEventListener('profile-updated', handleStorageChange);
+  }, [refetch]);
 
   // Calculate completion percentage based on actual user data
   const completionPercentage = useMemo(() => {

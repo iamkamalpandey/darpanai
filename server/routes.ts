@@ -1687,7 +1687,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Employment Information
         currentEmploymentStatus: z.string().nullable().optional().transform(val => val === null ? undefined : val),
-        workExperienceYears: z.string().nullable().optional().transform(val => val === null ? undefined : val),
+        workExperienceYears: z.union([z.string(), z.number()]).nullable().optional().transform(val => val === null ? undefined : (typeof val === 'number' ? val : (typeof val === 'string' ? parseInt(val) || undefined : val))),
         jobTitle: z.string().nullable().optional().transform(val => val === null ? undefined : val),
         organizationName: z.string().nullable().optional().transform(val => val === null ? undefined : val),
         fieldOfWork: z.string().nullable().optional().transform(val => val === null ? undefined : val),

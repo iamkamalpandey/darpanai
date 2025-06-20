@@ -200,18 +200,27 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
         console.log('=== END FINANCIAL DEBUG ===');
       }
 
-      console.log('Save successful, implementing aggressive cache refresh');
+      console.log('Save successful, implementing immediate data refresh');
       console.log('Frontend-Backend Connection: SUCCESS');
 
-      // Aggressive cache invalidation to force fresh data retrieval
+      // Remove all cached data to force fresh retrieval
       queryClient.removeQueries({ queryKey: ['/api/user'] });
+      queryClient.removeQueries({ queryKey: ['/api/user/fresh'] });
       queryClient.removeQueries({ queryKey: ['/api/user/profile-completion'] });
       
-      // Force immediate refetch with no cache
+      // Immediately set fresh data from server response
+      queryClient.setQueryData(['/api/user/fresh'], data.user);
+      
+      // Force refetch to ensure UI shows fresh data
       await queryClient.refetchQueries({ 
-        queryKey: ['/api/user'], 
+        queryKey: ['/api/user/fresh'], 
         type: 'active'
       });
+      
+      // Trigger global profile update event for immediate UI refresh
+      window.dispatchEvent(new CustomEvent('profile-updated', { 
+        detail: { section, updatedData: data.user }
+      }));
       
       // Update local form state with server response
       setFormData({ ...data.user });
@@ -219,9 +228,15 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
       // Clear any validation errors
       setValidationErrors([]);
       
+      console.log('=== COMPLETE DATA FLOW VERIFICATION ===');
+      console.log('Section updated:', section);
+      console.log('Server response user data:', data.user);
+      console.log('Updated fields:', Object.keys(data.user).filter(key => data.user[key] !== null && data.user[key] !== undefined));
+      console.log('=== END VERIFICATION ===');
+      
       toast({
         title: 'Profile Updated',
-        description: `${getSectionName(section)} has been successfully saved.`,
+        description: `${getSectionName(section)} has been successfully saved and will appear immediately.`,
       });
       onClose();
     },
