@@ -2220,6 +2220,76 @@ const ProfilePageRedesign: React.FC = () => {
                     onChange={(e) => updateProfileMutation.mutate({ campaignId: e.target.value })}
                   />
                 </div>
+                
+                {/* Application Status Fields */}
+                <div>
+                  <Label htmlFor="leadType">Lead Type</Label>
+                  <Select 
+                    value={user?.leadType || ''} 
+                    onValueChange={(value) => updateProfileMutation.mutate({ leadType: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select lead type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Prospect">Prospect</SelectItem>
+                      <SelectItem value="Applicant">Applicant</SelectItem>
+                      <SelectItem value="Enrolled">Enrolled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="applicationStatus">Application Status</Label>
+                  <Select 
+                    value={user?.applicationStatus || ''} 
+                    onValueChange={(value) => updateProfileMutation.mutate({ applicationStatus: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="New">New</SelectItem>
+                      <SelectItem value="Contacted">Contacted</SelectItem>
+                      <SelectItem value="In Progress">In Progress</SelectItem>
+                      <SelectItem value="Applied">Applied</SelectItem>
+                      <SelectItem value="Offer Received">Offer Received</SelectItem>
+                      <SelectItem value="Rejected">Rejected</SelectItem>
+                      <SelectItem value="Enrolled">Enrolled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Status Flags */}
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="isArchived"
+                    checked={user?.isArchived || false}
+                    onCheckedChange={(checked) => updateProfileMutation.mutate({ isArchived: checked as boolean })}
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <Label htmlFor="isArchived" className="text-sm font-medium leading-none">
+                      Archived Profile
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Mark profile as archived
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="dropout"
+                    checked={user?.dropout || false}
+                    onCheckedChange={(checked) => updateProfileMutation.mutate({ dropout: checked as boolean })}
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <Label htmlFor="dropout" className="text-sm font-medium leading-none">
+                      Dropout Status
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Mark as dropout if applicable
+                    </p>
+                  </div>
+                </div>
               </div>
               
               <div className="flex justify-end space-x-2">
@@ -2265,6 +2335,22 @@ const ProfilePageRedesign: React.FC = () => {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <Label className="text-sm font-medium text-gray-600">Campaign ID</Label>
                 <p className="text-sm mt-1 font-medium">{user?.campaignId || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Lead Type</Label>
+                <p className="text-sm mt-1 font-medium">{user?.leadType || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Application Status</Label>
+                <p className="text-sm mt-1 font-medium">{user?.applicationStatus || 'Not provided'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Archived Status</Label>
+                <p className="text-sm mt-1 font-medium">{user?.isArchived ? 'Yes' : 'No'}</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <Label className="text-sm font-medium text-gray-600">Dropout Status</Label>
+                <p className="text-sm mt-1 font-medium">{user?.dropout ? 'Yes' : 'No'}</p>
               </div>
             </div>
           )}
