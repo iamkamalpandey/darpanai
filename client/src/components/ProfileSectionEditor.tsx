@@ -36,22 +36,32 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error('Failed to update profile');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update profile');
+      }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Force refresh user data instead of just invalidating
+      queryClient.setQueryData(['/api/user'], data.user || data);
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile-completion'] });
+      
+      // Update form data to reflect saved changes
+      setFormData({ ...data.user || data });
+      
       toast({
         title: 'Profile Updated',
         description: 'Your profile section has been successfully updated.',
       });
       onClose();
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Profile update error:', error);
       toast({
         title: 'Update Failed',
-        description: 'Failed to update profile. Please try again.',
+        description: error.message || 'Failed to update profile. Please try again.',
         variant: 'destructive',
       });
     },
