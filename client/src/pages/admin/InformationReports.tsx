@@ -27,7 +27,9 @@ import {
   Info,
   CalendarRange,
   Download,
-  BarChart3
+  BarChart3,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import { AdminLayout } from '@/components/AdminLayout';
 import { Link } from 'wouter';
@@ -142,6 +144,8 @@ export default function InformationReports() {
   const [institutionFilter, setInstitutionFilter] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'name' | 'institution'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [expandedOfferLetter, setExpandedOfferLetter] = useState<number | null>(null);
+  const [expandedCoe, setExpandedCoe] = useState<number | null>(null);
 
   const { data: offerLetters, isLoading: offerLettersLoading } = useQuery({
     queryKey: ['/api/admin/offer-letter-info'],
@@ -296,13 +300,32 @@ export default function InformationReports() {
         </div>
 
         <div className="pt-3 border-t">
-          <Link href={`/offer-letter-info/${offerLetter.id}`}>
-            <Button variant="outline" size="sm" className="w-full">
-              <Eye className="h-4 w-4 mr-2" />
-              View Full Details
-            </Button>
-          </Link>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full"
+            onClick={() => setExpandedOfferLetter(expandedOfferLetter === offerLetter.id ? null : offerLetter.id)}
+          >
+            {expandedOfferLetter === offerLetter.id ? (
+              <>
+                <ChevronUp className="h-4 w-4 mr-2" />
+                Hide Details
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-4 w-4 mr-2" />
+                Show Details
+              </>
+            )}
+          </Button>
         </div>
+        
+        {/* Expanded Details Section */}
+        {expandedOfferLetter === offerLetter.id && (
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+            <OfferLetterDetailReport offerLetterId={offerLetter.id} />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -416,7 +439,7 @@ export default function InformationReports() {
               </div>
 
               {/* Filter Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Date Range Filter */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700">Date Range</label>
@@ -430,23 +453,6 @@ export default function InformationReports() {
                       <SelectItem value="7days">Last 7 Days</SelectItem>
                       <SelectItem value="30days">Last 30 Days</SelectItem>
                       <SelectItem value="90days">Last 90 Days</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Status Filter (for COE) */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Status</label>
-                  <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
-                    <SelectTrigger>
-                      <Shield className="h-4 w-4 mr-2" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -477,20 +483,6 @@ export default function InformationReports() {
                       <SelectItem value="date">Date</SelectItem>
                       <SelectItem value="name">File Name</SelectItem>
                       <SelectItem value="institution">Institution</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Sort Order */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Order</label>
-                  <Select value={sortOrder} onValueChange={(value) => setSortOrder(value as any)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="desc">Newest First</SelectItem>
-                      <SelectItem value="asc">Oldest First</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
