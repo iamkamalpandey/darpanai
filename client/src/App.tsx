@@ -48,6 +48,8 @@ const AdminDocumentChecklists = lazy(() => import("@/pages/admin-document-checkl
 const AdminFeedback = lazy(() => import("@/pages/admin-feedback"));
 const AdminOfferLetterAnalysisView = lazy(() => import("@/pages/AdminOfferLetterAnalysisView"));
 const AdminInformationReports = lazy(() => import("@/pages/admin/InformationReports"));
+const AdminOfferLetterDetails = lazy(() => import("@/pages/admin/OfferLetterDetails"));
+const AdminCoeDetails = lazy(() => import("@/pages/admin/CoeDetails"));
 const StudyDestinationSuggestions = lazy(() => import("@/pages/StudyDestinationSuggestions"));
 const DestinationSuggestionDetail = lazy(() => import("@/pages/DestinationSuggestionDetail"));
 const PersonalizedDestinationAnalysis = lazy(() => import("@/pages/PersonalizedDestinationAnalysis"));
