@@ -682,9 +682,9 @@ export default function ComprehensiveOfferLetterAnalysis() {
                 <CardContent className="space-y-4">
                   <div>
                     <Label className="font-medium">Institution Name</Label>
-                    <p className="text-gray-700">{analysis.institutionDetails.name}</p>
+                    <p className="text-gray-700">{analysis.institutionDetails?.name || 'Not specified'}</p>
                   </div>
-                  {analysis.institutionDetails.tradingName && (
+                  {analysis.institutionDetails?.tradingName && (
                     <div>
                       <Label className="font-medium">Trading Name</Label>
                       <p className="text-gray-700">{analysis.institutionDetails.tradingName}</p>
@@ -692,9 +692,9 @@ export default function ComprehensiveOfferLetterAnalysis() {
                   )}
                   <div>
                     <Label className="font-medium">Type</Label>
-                    <p className="text-gray-700">{analysis.institutionDetails.institutionType}</p>
+                    <p className="text-gray-700">{analysis.institutionDetails?.institutionType || 'Not specified'}</p>
                   </div>
-                  {analysis.institutionDetails.foundedYear && (
+                  {analysis.institutionDetails?.foundedYear && (
                     <div>
                       <Label className="font-medium">Founded</Label>
                       <p className="text-gray-700">{analysis.institutionDetails.foundedYear}</p>
@@ -1480,7 +1480,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {analysis.actionPlan.immediate.map((action, index) => (
+                  {analysis.actionPlan?.immediate?.map((action, index) => (
                     <div key={index} className="p-4 bg-red-50 rounded-lg border border-red-200">
                       <div className="flex justify-between items-start mb-2">
                         <p className="font-medium text-red-800">{action.action}</p>
@@ -1496,11 +1496,11 @@ export default function ComprehensiveOfferLetterAnalysis() {
                         {action.estimatedTime && (
                           <p><span className="font-medium">Est. Time:</span> {action.estimatedTime}</p>
                         )}
-                        {action.documents.length > 0 && (
+                        {action.documents?.length > 0 && (
                           <p><span className="font-medium">Documents:</span> {action.documents.length} required</p>
                         )}
                       </div>
-                      {action.documents.length > 0 && (
+                      {action.documents?.length > 0 && (
                         <div className="mt-2">
                           <Label className="font-medium text-xs">Required Documents:</Label>
                           <div className="flex flex-wrap gap-1 mt-1">
@@ -1512,20 +1512,22 @@ export default function ComprehensiveOfferLetterAnalysis() {
                           </div>
                         </div>
                       )}
-                      {action.dependencies.length > 0 && (
+                      {action.dependencies?.length > 0 && (
                         <div className="mt-2">
                           <Label className="font-medium text-xs">Dependencies:</Label>
                           <p className="text-xs text-gray-600">{action.dependencies.join(', ')}</p>
                         </div>
                       )}
                     </div>
-                  ))}
+                  )) || (
+                    <p className="text-sm text-gray-600">No immediate actions available</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             {/* Short Term Actions */}
-            {analysis.actionPlan.shortTerm.length > 0 && (
+            {analysis.actionPlan?.shortTerm?.length > 0 && (
               <Card className="border-yellow-200">
                 <CardHeader>
                   <CardTitle className="text-yellow-800 flex items-center gap-2">
@@ -1559,7 +1561,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
             )}
 
             {/* Long Term Actions */}
-            {analysis.actionPlan.longTerm.length > 0 && (
+            {analysis.actionPlan?.longTerm?.length > 0 && (
               <Card className="border-green-200">
                 <CardHeader>
                   <CardTitle className="text-green-800 flex items-center gap-2">
@@ -1575,7 +1577,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
                         {action.description && (
                           <p className="text-sm text-gray-700 mt-1">{action.description}</p>
                         )}
-                        {action.milestones.length > 0 && (
+                        {action.milestones?.length > 0 && (
                           <div className="mt-2">
                             <Label className="font-medium text-xs">Milestones:</Label>
                             <ul className="list-disc list-inside text-xs text-gray-600 space-y-1 mt-1">
