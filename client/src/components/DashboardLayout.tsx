@@ -97,7 +97,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       label: 'Enrollment Info', 
       isSubmenu: true,
       submenuItems: [
-        { icon: <GraduationCap size={18} />, label: 'Offer Letter Info', href: '/offer-letter-info' },
         { icon: <GraduationCap size={18} />, label: 'Offer Letter Information', href: '/offer-letter-information' },
         { icon: <FileCheck size={18} />, label: 'COE Information', href: '/coe-info' },
       ]
