@@ -285,272 +285,331 @@ export default function AdminOfferLetterDetails() {
           </div>
         </div>
 
-        {/* Content Grid */}
-        <div className="grid gap-6">
-          {/* File Information */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <FileText className="h-5 w-5 flex-shrink-0" />
-                File Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoItem 
-                  icon={FileText} 
-                  label="File Name" 
-                  value={offerLetter.fileName} 
-                />
-                <InfoItem 
-                  icon={FileText} 
-                  label="File Size" 
-                  value={offerLetter.fileSize ? `${(offerLetter.fileSize / 1024).toFixed(2)} KB` : null} 
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Student Information */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <User className="h-5 w-5 flex-shrink-0" />
-                Student Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoItem 
-                  icon={User} 
-                  label="Student Name" 
-                  value={offerLetter.studentName} 
-                />
-                <InfoItem 
-                  icon={FileText} 
-                  label="Student ID" 
-                  value={offerLetter.studentId} 
-                />
-                <InfoItem 
-                  icon={FileText} 
-                  label="Application Number" 
-                  value={offerLetter.applicationNumber} 
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Institution Information */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Building className="h-5 w-5 flex-shrink-0" />
-                Institution Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoItem 
-                  icon={Building} 
-                  label="Institution Name" 
-                  value={offerLetter.institutionName} 
-                />
-                <InfoItem 
-                  icon={MapPin} 
-                  label="Institution Address" 
-                  value={offerLetter.institutionAddress} 
-                />
-                <InfoItem 
-                  icon={Phone} 
-                  label="Institution Phone" 
-                  value={offerLetter.institutionPhone} 
-                />
-                <InfoItem 
-                  icon={Mail} 
-                  label="Institution Email" 
-                  value={offerLetter.institutionEmail} 
-                />
-                <InfoItem 
-                  icon={Globe} 
-                  label="Institution Website" 
-                  value={offerLetter.institutionWebsite} 
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Program Information */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <GraduationCap className="h-5 w-5 flex-shrink-0" />
-                Program Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoItem 
-                  icon={BookOpen} 
-                  label="Program Name" 
-                  value={offerLetter.programName} 
-                />
-                <InfoItem 
-                  icon={Award} 
-                  label="Program Level" 
-                  value={offerLetter.programLevel} 
-                />
-                <InfoItem 
-                  icon={Clock} 
-                  label="Program Duration" 
-                  value={offerLetter.programDuration} 
-                />
-                <InfoItem 
-                  icon={FileText} 
-                  label="Study Mode" 
-                  value={offerLetter.studyMode} 
-                />
-                <InfoItem 
-                  icon={MapPin} 
-                  label="Campus Location" 
-                  value={offerLetter.campusLocation} 
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Important Dates */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Calendar className="h-5 w-5 flex-shrink-0" />
-                Important Dates
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoItem 
-                  icon={Calendar} 
-                  label="Start Date" 
-                  value={offerLetter.startDate} 
-                />
-                <InfoItem 
-                  icon={Calendar} 
-                  label="End Date" 
-                  value={offerLetter.endDate} 
-                />
-                <InfoItem 
-                  icon={Clock} 
-                  label="Application Deadline" 
-                  value={offerLetter.applicationDeadline} 
-                />
-                <InfoItem 
-                  icon={Clock} 
-                  label="Acceptance Deadline" 
-                  value={offerLetter.acceptanceDeadline} 
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Financial Information */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <DollarSign className="h-5 w-5 flex-shrink-0" />
-                Financial Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Main Fees */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <DollarSign className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                    <span className="font-medium text-blue-800 break-words overflow-hidden text-wrap">Tuition Fee</span>
+        {/* Content Grid - Two Column Layout */}
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Left Column */}
+          <div className="space-y-6">
+            {/* Institution Information */}
+            <Card className="bg-white border">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                  <Building className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  Institution Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2">
+                    <Building className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">Institution Name</div>
+                      <div className="font-medium break-words">{offerLetter.institutionName || 'Not specified'}</div>
+                    </div>
                   </div>
-                  <div className="text-lg font-bold text-blue-900 break-words overflow-hidden text-wrap">
-                    {offerLetter.tuitionFee || 'Not specified'}
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">Address</div>
+                      <div className="font-medium break-words">{offerLetter.institutionAddress || 'Not specified'}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Phone className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">Phone</div>
+                      <div className="font-medium break-words">{offerLetter.institutionPhone || 'Not specified'}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Mail className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">Email</div>
+                      <div className="font-medium break-words">{offerLetter.institutionEmail || 'Not specified'}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Globe className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">Website</div>
+                      <div className="font-medium break-words">{offerLetter.institutionWebsite || 'Not specified'}</div>
+                    </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FileText className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span className="font-medium text-green-800 break-words overflow-hidden text-wrap">Application Fee</span>
+            {/* Important Dates */}
+            <Card className="bg-white border">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                  <Calendar className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  Important Dates
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2">
+                    <Calendar className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">Start Date</div>
+                      <div className="font-medium">{offerLetter.startDate || 'Not specified'}</div>
+                    </div>
                   </div>
-                  <div className="text-lg font-bold text-green-900 break-words overflow-hidden text-wrap">
-                    {offerLetter.applicationFee || 'Not specified'}
+                  <div className="flex items-start gap-2">
+                    <Calendar className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">End Date</div>
+                      <div className="font-medium">{offerLetter.endDate || 'Not specified'}</div>
+                    </div>
                   </div>
-                </div>
-
-                <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="h-4 w-4 text-orange-600 flex-shrink-0" />
-                    <span className="font-medium text-orange-800 break-words overflow-hidden text-wrap">Deposit Required</span>
+                  <div className="flex items-start gap-2">
+                    <Clock className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">Application Deadline</div>
+                      <div className="font-medium">{offerLetter.applicationDeadline || 'Not specified'}</div>
+                    </div>
                   </div>
-                  <div className="text-lg font-bold text-orange-900 break-words overflow-hidden text-wrap">
-                    {offerLetter.depositRequired || 'Not specified'}
-                  </div>
-                </div>
-
-                <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Award className="h-4 w-4 text-purple-600 flex-shrink-0" />
-                    <span className="font-medium text-purple-800 break-words overflow-hidden text-wrap">Total Cost</span>
-                  </div>
-                  <div className="text-lg font-bold text-purple-900 break-words overflow-hidden text-wrap">
-                    {offerLetter.totalCost || 'Not specified'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Additional Financial Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoItem 
-                  icon={Calendar} 
-                  label="Payment Schedule" 
-                  value={offerLetter.paymentSchedule} 
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Requirements */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <FileText className="h-5 w-5 flex-shrink-0" />
-                Requirements
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2 break-words overflow-hidden text-wrap">Academic Requirements</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg border break-words overflow-hidden text-wrap">
-                    {formatRequirementsText(offerLetter.academicRequirements)}
+                  <div className="flex items-start gap-2">
+                    <Clock className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">Acceptance Deadline</div>
+                      <div className="font-medium">{offerLetter.acceptanceDeadline || 'Not specified'}</div>
+                    </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2 break-words overflow-hidden text-wrap">English Requirements</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg border break-words overflow-hidden text-wrap">
-                    {formatRequirementsText(offerLetter.englishRequirements)}
+            {/* Student Information */}
+            <Card className="bg-white border">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                  <User className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  Student Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2">
+                    <User className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">Student Name</div>
+                      <div className="font-medium break-words">{offerLetter.studentName || 'Not specified'}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <FileText className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">Student ID</div>
+                      <div className="font-medium">{offerLetter.studentId || 'Not specified'}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <FileText className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">Application Number</div>
+                      <div className="font-medium">{offerLetter.applicationNumber || 'Not specified'}</div>
+                    </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2 break-words overflow-hidden text-wrap">Document Requirements</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg border break-words overflow-hidden text-wrap">
-                    {formatRequirementsText(offerLetter.documentRequirements)}
+            {/* Academic Documents Required */}
+            <Card className="bg-white border">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                  <GraduationCap className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  Academic Documents Required
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xs text-gray-700 break-words">
+                  {formatRequirementsText(offerLetter.academicRequirements)}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Additional Documents Required */}
+            <Card className="bg-white border">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                  <FileText className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  Additional Documents Required
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xs text-gray-700 break-words">
+                  {formatRequirementsText(offerLetter.documentRequirements)}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-6">
+            {/* Program Information */}
+            <Card className="bg-white border">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                  <GraduationCap className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  Program Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2">
+                    <BookOpen className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">Program Name</div>
+                      <div className="font-medium break-words">{offerLetter.programName || 'Not specified'}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Award className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">Qualification</div>
+                      <div className="font-medium">{offerLetter.programLevel || 'Not specified'}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Clock className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">Duration</div>
+                      <div className="font-medium">{offerLetter.programDuration || 'Not specified'}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <FileText className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">Study Mode</div>
+                      <div className="font-medium">{offerLetter.studyMode || 'Not specified'}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-3 w-3 text-gray-500 mt-1 flex-shrink-0" />
+                    <div className="text-xs">
+                      <div className="text-gray-500">Campus Location</div>
+                      <div className="font-medium">{offerLetter.campusLocation || 'Not specified'}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
+            {/* Financial Information */}
+            <Card className="bg-green-50 border border-green-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                  <DollarSign className="h-4 w-4 text-green-600 flex-shrink-0" />
+                  Financial Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="bg-white p-3 rounded border">
+                    <div className="text-xs text-gray-500 mb-1">Tuition Fee</div>
+                    <div className="text-xl font-bold text-green-600">
+                      {offerLetter.tuitionFee || '$0.00'}
+                    </div>
+                  </div>
+                  <div className="bg-white p-3 rounded border">
+                    <div className="text-xs text-gray-500 mb-1">Application Fee</div>
+                    <div className="text-lg font-semibold text-blue-600">
+                      {offerLetter.applicationFee || '$0.00'}
+                    </div>
+                  </div>
+                  <div className="bg-white p-3 rounded border">
+                    <div className="text-xs text-gray-500 mb-1">Deposit Required</div>
+                    <div className="text-lg font-semibold text-purple-600">
+                      {offerLetter.depositRequired || '$0.00'}
+                    </div>
+                  </div>
+                  <div className="bg-white p-3 rounded border">
+                    <div className="text-xs text-gray-500 mb-1">Total Cost</div>
+                    <div className="text-xl font-bold text-red-600">
+                      {offerLetter.totalCost || '$0.00'}
+                    </div>
+                  </div>
+                  <div className="bg-white p-3 rounded border">
+                    <div className="text-xs text-gray-500 mb-1">Payment Schedule</div>
+                    <div className="text-sm text-gray-700 break-words">
+                      {offerLetter.paymentSchedule || 'Not specified'}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
+            {/* English Language Requirements */}
+            <Card className="bg-white border">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                  <Globe className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                  English Language Requirements
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xs text-gray-700 break-words">
+                  {formatRequirementsText(offerLetter.englishRequirements)}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
+
+        {/* Financial Summary Table */}
+        <Card className="mt-6 bg-yellow-50 border border-yellow-200">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base font-semibold">
+              <DollarSign className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+              Financial Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left text-xs font-semibold text-gray-700 py-2 px-3">Fee Type</th>
+                    <th className="text-left text-xs font-semibold text-gray-700 py-2 px-3">Amount</th>
+                    <th className="text-left text-xs font-semibold text-gray-700 py-2 px-3">Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-gray-100">
+                    <td className="text-xs py-2 px-3 font-medium">Tuition Fee</td>
+                    <td className="text-xs py-2 px-3 font-bold text-green-600">
+                      {offerLetter.tuitionFee || '$0.00'}
+                    </td>
+                    <td className="text-xs py-2 px-3 text-gray-600">Main program fee</td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="text-xs py-2 px-3 font-medium">Application Fee</td>
+                    <td className="text-xs py-2 px-3 font-bold text-blue-600">
+                      {offerLetter.applicationFee || '$0.00'}
+                    </td>
+                    <td className="text-xs py-2 px-3 text-gray-600">One-time application processing fee</td>
+                  </tr>
+                  <tr className="border-b border-gray-100">
+                    <td className="text-xs py-2 px-3 font-medium">Deposit Required</td>
+                    <td className="text-xs py-2 px-3 font-bold text-purple-600">
+                      {offerLetter.depositRequired || '$0.00'}
+                    </td>
+                    <td className="text-xs py-2 px-3 text-gray-600">Required to secure enrollment</td>
+                  </tr>
+                  <tr className="bg-yellow-100 border-b border-yellow-200">
+                    <td className="text-xs py-2 px-3 font-bold">Total Estimated Cost</td>
+                    <td className="text-xs py-2 px-3 font-bold text-red-600 text-base">
+                      {offerLetter.totalCost || '$0.00'}
+                    </td>
+                    <td className="text-xs py-2 px-3 text-gray-600">Complete program cost including all fees</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );
