@@ -60,6 +60,7 @@ const OfferLetterInfo = lazy(() => import("@/pages/OfferLetterInfo"));
 const OfferLetterDetails = lazy(() => import("@/pages/OfferLetterDetails"));
 const CoeInformation = lazy(() => import("@/pages/CoeInformation"));
 const CoeDetails = lazy(() => import("@/pages/CoeDetailsNew"));
+const UserCoeDetails = lazy(() => import("@/pages/UserCoeDetails"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -215,6 +216,13 @@ function Router() {
         <UserProtectedRoute path="/coe-info/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <CoeDetails />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/user-coe-details/:id">
+        <UserProtectedRoute path="/user-coe-details/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <UserCoeDetails />
           </Suspense>
         )} />
       </Route>
@@ -418,6 +426,13 @@ function Router() {
       </Route>
       <Route path="/admin/offer-letter-details/:id">
         <AdminProtectedRoute path="/admin/offer-letter-details/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminOfferLetterDetails />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/offer-letter-info/:id">
+        <AdminProtectedRoute path="/admin/offer-letter-info/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <AdminOfferLetterDetails />
           </Suspense>
