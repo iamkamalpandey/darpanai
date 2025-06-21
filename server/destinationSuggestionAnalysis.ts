@@ -777,20 +777,113 @@ function generateFallbackAnalysis(
       tailoredStrategicActions: ["Focus on countries with favorable immigration policies", "Research scholarship opportunities early", "Consider cost of living alongside tuition"],
       uniqueOpportunities: ["Pathway programs for lower English scores", "Merit scholarships for academic excellence", "Work-study opportunities"]
     },
-    nextSteps: {
-      immediate: ["Research specific programs in recommended countries", "Assess financial requirements", "Check language proficiency requirements"],
-      shortTerm: ["Prepare standardized test scores", "Gather required documents", "Apply for scholarships"],
-      longTerm: ["Submit university applications", "Prepare visa applications", "Plan for departure"]
+    actionPlan: {
+      immediateActions: [
+        {
+          action: "Research specific programs in recommended countries",
+          deadline: "Within 2 weeks",
+          priority: "High",
+          specificSteps: ["Visit university websites", "Compare program requirements", "Note application deadlines"],
+          resources: ["University websites", "Program brochures", "Admission counselors"]
+        },
+        {
+          action: "Assess financial requirements and funding options",
+          deadline: "Within 1 week",
+          priority: "High",
+          specificSteps: ["Calculate total costs", "Evaluate funding options", "Review scholarship opportunities"],
+          resources: ["Cost calculators", "Financial aid offices", "Scholarship databases"]
+        }
+      ],
+      shortTermGoals: [
+        {
+          goal: "Complete language proficiency and standardized tests",
+          timeline: "1-3 months",
+          milestones: ["Register for tests", "Prepare and study", "Take tests", "Receive scores"],
+          requirements: ["Test registration", "Study materials", "Test fees"],
+          successMetrics: ["Achieve required scores", "Meet university requirements"]
+        },
+        {
+          goal: "Prepare comprehensive application packages",
+          timeline: "2-4 months",
+          milestones: ["Gather transcripts", "Write essays", "Obtain recommendations", "Complete applications"],
+          requirements: ["Official transcripts", "Letters of recommendation", "Personal statements"],
+          successMetrics: ["Complete application packages", "Submit before deadlines"]
+        }
+      ],
+      longTermStrategy: [
+        {
+          objective: "Secure university admissions and funding",
+          timeframe: "4-8 months",
+          keyActivities: ["Submit applications", "Follow up with universities", "Apply for scholarships"],
+          dependencies: ["Completed documents", "Test scores", "Application fees"],
+          expectedOutcomes: ["University admissions", "Scholarship awards", "Program confirmations"]
+        },
+        {
+          objective: "Complete visa process and prepare for departure",
+          timeframe: "6-12 months",
+          keyActivities: ["Apply for visas", "Arrange accommodation", "Plan travel"],
+          dependencies: ["Admission letters", "Financial documentation", "Visa requirements"],
+          expectedOutcomes: ["Visa approval", "Confirmed housing", "Ready for studies"]
+        }
+      ]
     },
-    budgetOptimization: {
-      costSavingStrategies: ["Apply to public universities", "Look for merit-based scholarships", "Consider smaller cities for lower living costs"],
-      scholarshipOpportunities: ["Government scholarships", "University merit awards", "Field-specific scholarships"],
-      financialPlanningTips: ["Create comprehensive budget including hidden costs", "Explore education loan options", "Plan for currency fluctuations"]
+    financialStrategy: {
+      personalizedBudgetPlan: {
+        totalInvestmentRequired: "$40,000 - $70,000 annually",
+        fundingGapAnalysis: "Identify gaps between available funds and total costs",
+        cashflowProjection: ["Year 1: $40,000-50,000", "Year 2: $42,000-52,000", "Total investment: $80,000-100,000"]
+      },
+      targetedScholarships: [
+        {
+          scholarshipName: "Government Merit Scholarships",
+          provider: "Various government agencies",
+          amount: "$5,000 - $15,000",
+          eligibilityMatch: "Strong academic record required",
+          applicationDeadline: "Varies by country",
+          competitiveness: "High",
+          applicationStrategy: ["Research early", "Prepare strong essays", "Obtain strong recommendations"]
+        },
+        {
+          scholarshipName: "University Merit Awards",
+          provider: "Individual universities",
+          amount: "$2,000 - $10,000",
+          eligibilityMatch: "Based on academic performance",
+          applicationDeadline: "With university application",
+          competitiveness: "Moderate",
+          applicationStrategy: ["Apply to multiple universities", "Highlight unique achievements", "Submit early applications"]
+        }
+      ],
+      costOptimizationStrategies: [
+        {
+          strategy: "Choose public universities over private institutions",
+          potentialSavings: "$10,000 - $20,000 annually",
+          implementationSteps: ["Research public university options", "Compare program quality", "Apply to top public institutions"],
+          timeline: "During application phase"
+        },
+        {
+          strategy: "Consider smaller cities for lower living costs",
+          potentialSavings: "$5,000 - $10,000 annually",
+          implementationSteps: ["Research cost of living", "Explore housing options", "Consider transportation costs"],
+          timeline: "Before final university selection"
+        }
+      ]
     },
-    timeline: {
-      preparation: "6-12 months for comprehensive research and preparation",
-      application: "4-6 months for applications and documentation",
-      decisionMaking: "2-4 months for university selection and visa processing"
+    personlizedTimeline: {
+      preparationPhase: {
+        duration: "6-12 months for comprehensive research and preparation",
+        keyMilestones: ["Research completed", "Tests scheduled", "Documents gathered"],
+        criticalDeadlines: ["Test registration", "Application deadlines", "Scholarship deadlines"]
+      },
+      applicationPhase: {
+        duration: "4-6 months for applications and documentation",
+        applicationWindows: ["Fall intake: January-March", "Spring intake: August-October"],
+        documentsRequired: ["Transcripts", "Test scores", "Essays", "Recommendations"]
+      },
+      decisionPhase: {
+        duration: "2-4 months for university selection and visa processing",
+        evaluationCriteria: ["Program quality", "Financial aid", "Location preferences"],
+        finalSteps: ["Accept offers", "Apply for visa", "Arrange accommodation"]
+      }
     }
   };
 }
