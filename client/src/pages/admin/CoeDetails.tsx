@@ -177,7 +177,7 @@ export default function AdminCoeDetails() {
               </div>
               <div>
                 <p className="font-medium text-muted-foreground">File Name</p>
-                <p className="font-semibold">{coeInfo.fileName}</p>
+                <p className="font-semibold break-words overflow-hidden" title={coeInfo.fileName}>{coeInfo.fileName}</p>
               </div>
               <div>
                 <p className="font-medium text-muted-foreground">Upload Date</p>
@@ -204,26 +204,26 @@ export default function AdminCoeDetails() {
               <div>
                 <p className="font-medium text-muted-foreground mb-1">Personal Details</p>
                 <div className="space-y-2">
-                  <p className="font-semibold">{coeInfo.studentName || 'Not specified'}</p>
-                  <p className="text-sm text-muted-foreground">Student ID: {coeInfo.studentId || 'Not specified'}</p>
+                  <p className="font-semibold break-words overflow-hidden">{coeInfo.studentName || 'Not specified'}</p>
+                  <p className="text-sm text-muted-foreground break-words overflow-hidden">Student ID: {coeInfo.studentId || 'Not specified'}</p>
                 </div>
               </div>
               <div>
                 <p className="font-medium text-muted-foreground mb-1">Date of Birth</p>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <p>{coeInfo.dateOfBirth || 'Not specified'}</p>
+                  <p className="break-words overflow-hidden">{coeInfo.dateOfBirth || 'Not specified'}</p>
                 </div>
               </div>
             </div>
             <div className="space-y-4">
               <div>
                 <p className="font-medium text-muted-foreground mb-1">Nationality</p>
-                <p>{coeInfo.nationality || 'Not specified'}</p>
+                <p className="break-words overflow-hidden">{coeInfo.nationality || 'Not specified'}</p>
               </div>
               <div>
                 <p className="font-medium text-muted-foreground mb-1">Passport Number</p>
-                <p className="font-mono text-sm">{coeInfo.passportNumber || 'Not specified'}</p>
+                <p className="font-mono text-sm break-words overflow-hidden">{coeInfo.passportNumber || 'Not specified'}</p>
               </div>
             </div>
           </CardContent>
@@ -242,7 +242,7 @@ export default function AdminCoeDetails() {
               <div>
                 <p className="font-medium text-muted-foreground mb-1">Institution Details</p>
                 <div className="space-y-2">
-                  <p className="font-semibold">{coeInfo.institutionName || 'Not specified'}</p>
+                  <p className="font-semibold break-words overflow-hidden">{coeInfo.institutionName || 'Not specified'}</p>
                   <div className="flex items-center gap-2 text-sm">
                     <Badge variant="outline">Code: {coeInfo.institutionCode || 'N/A'}</Badge>
                     <Badge variant="outline">CRICOS: {coeInfo.cricosCode || 'N/A'}</Badge>
