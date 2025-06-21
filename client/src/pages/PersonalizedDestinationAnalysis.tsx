@@ -1,12 +1,31 @@
-import { useQuery } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MapPin, GraduationCap, DollarSign, Calendar, AlertTriangle, Users, TrendingUp, Globe, CheckCircle, Clock, Star, Award, BookOpen, Briefcase, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  MapPin, 
+  GraduationCap, 
+  Calendar, 
+  DollarSign, 
+  Clock, 
+  Star, 
+  AlertTriangle,
+  CheckCircle,
+  TrendingUp,
+  Building,
+  Users,
+  Globe,
+  Target,
+  Award,
+  BookOpen,
+  Heart,
+  ArrowLeft
+} from "lucide-react";
 
+// Define comprehensive interfaces for type safety
 interface CountryRecommendation {
   country: string;
   countryCode: string;
@@ -131,9 +150,9 @@ export default function PersonalizedDestinationAnalysis() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto"></div>
-          <p className="mt-6 text-lg text-gray-700 font-medium">Loading your personalized destination analysis...</p>
-          <p className="mt-2 text-sm text-gray-500">Preparing comprehensive country recommendations</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-6 text-lg text-gray-600">Loading your personalized destination analysis...</p>
+          <p className="mt-2 text-sm text-gray-500">This may take a few moments</p>
         </div>
       </div>
     );
@@ -142,12 +161,13 @@ export default function PersonalizedDestinationAnalysis() {
   if (error || !analysis) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Analysis Not Found</h2>
-          <p className="text-gray-600 mb-6">The destination analysis you're looking for doesn't exist or may have been removed.</p>
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertTriangle className="w-10 h-10 text-red-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Analysis Not Found</h2>
+          <p className="text-gray-600 mb-6">The destination analysis you're looking for doesn't exist or has been removed.</p>
           <Button onClick={() => setLocation('/destination-suggestions')} className="bg-blue-600 hover:bg-blue-700">
-            <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Analysis Hub
           </Button>
         </div>
@@ -155,169 +175,113 @@ export default function PersonalizedDestinationAnalysis() {
     );
   }
 
-  const getOverallMatch = () => {
-    if (analysis.matchScore) {
-      return analysis.matchScore;
-    }
-    return 0;
-  };
-
-  const getFormattedDate = () => {
-    try {
-      const date = new Date(analysis.createdAt);
-      if (isNaN(date.getTime())) {
-        return "Recent Analysis";
-      }
-      return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
-      });
-    } catch {
-      return "Recent Analysis";
-    }
-  };
-
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return "text-green-600 bg-green-100";
-    if (score >= 80) return "text-blue-600 bg-blue-100";
-    if (score >= 70) return "text-yellow-600 bg-yellow-100";
-    return "text-red-600 bg-red-100";
-  };
-
-  const getScoreLabel = (score: number) => {
-    if (score >= 90) return "Excellent Match";
-    if (score >= 80) return "Strong Match";
-    if (score >= 70) return "Good Match";
-    return "Consider Alternatives";
-  };
-
+  // Get countries data with fallback
+  const countries = analysis.suggestedCountries || [];
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Enhanced Header */}
-      <div className="bg-white border-b shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            <div className="flex items-center space-x-6">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex items-start justify-between">
+            <div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setLocation('/destination-suggestions')}
-                className="flex items-center space-x-2 hover:bg-blue-50"
+                className="text-white hover:bg-white/10 mb-4"
               >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back to Hub</span>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Analysis Hub
               </Button>
-              <div className="h-8 w-px bg-gray-300" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                  <Globe className="w-6 h-6 mr-3 text-blue-600" />
-                  Personalized Study Destination Analysis
-                </h1>
-                <p className="text-sm text-gray-500 mt-1">Generated on {getFormattedDate()}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-6">
-              <div className="text-right">
-                <div className="text-sm text-gray-500 font-medium">Overall Compatibility</div>
-                <div className={`text-3xl font-bold ${getScoreColor(getOverallMatch()).split(' ')[0]}`}>
-                  {getOverallMatch()}%
+              <h1 className="text-4xl font-bold mb-4">Your Personalized Study Destination Analysis</h1>
+              <p className="text-xl text-blue-100 mb-6 max-w-2xl">
+                Comprehensive AI-powered recommendations tailored specifically to your academic profile, career goals, and personal preferences.
+              </p>
+              <div className="flex items-center space-x-6">
+                <div className="flex items-center space-x-2">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <Target className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-blue-100">Overall Match</p>
+                    <p className="text-2xl font-bold">{analysis.matchScore}%</p>
+                  </div>
                 </div>
-                <div className={`text-xs px-2 py-1 rounded-full ${getScoreColor(getOverallMatch())}`}>
-                  {getScoreLabel(getOverallMatch())}
+                <div className="flex items-center space-x-2">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <Calendar className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-blue-100">Generated</p>
+                    <p className="text-lg font-semibold">{new Date(analysis.createdAt).toLocaleDateString()}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="w-16 h-16">
-                <Progress value={getOverallMatch()} className="w-full h-2" />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Content */}
+      {/* Executive Summary */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Executive Summary */}
-        <Card className="mb-8 border-0 shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-          <CardHeader className="pb-4">
-            <div className="flex items-center space-x-3">
-              <Target className="w-8 h-8" />
-              <div>
-                <CardTitle className="text-2xl font-bold">Executive Summary</CardTitle>
-                <CardDescription className="text-blue-100 mt-1">
-                  Comprehensive analysis based on your academic profile and career goals
-                </CardDescription>
-              </div>
-            </div>
+        <Card className="mb-8 border-0 shadow-xl">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b">
+            <CardTitle className="text-2xl font-bold text-gray-900 flex items-center">
+              <BookOpen className="w-6 h-6 mr-3 text-blue-600" />
+              Executive Summary
+            </CardTitle>
+            <CardDescription className="text-lg mt-2">
+              Key insights and strategic overview of your study abroad opportunities
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <p className="text-lg leading-relaxed text-blue-50">
-              {analysis.reasoning || "We've analyzed your complete academic profile, financial situation, and career aspirations to provide personalized study destination recommendations. Each country has been evaluated using our comprehensive matching algorithm that considers academic fit, financial viability, visa success rates, and long-term career prospects."}
-            </p>
-            {analysis.keyFactors && analysis.keyFactors.length > 0 && (
-              <div className="mt-6">
-                <h4 className="font-semibold text-blue-100 mb-3">Key Analysis Factors:</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {analysis.keyFactors.map((factor: string, index: number) => (
-                    <div key={index} className="flex items-start space-x-2">
-                      <CheckCircle className="w-5 h-5 text-green-300 mt-0.5 flex-shrink-0" />
-                      <span className="text-blue-50">{factor}</span>
-                    </div>
-                  ))}
+          <CardContent className="p-8">
+            <div className="prose max-w-none">
+              <p className="text-lg text-gray-700 leading-relaxed">
+                {analysis.reasoning || "Based on your comprehensive profile analysis, we've identified the most suitable study destinations that align with your academic background, career objectives, and personal preferences."}
+              </p>
+              {analysis.keyFactors && analysis.keyFactors.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3">Key Assessment Factors:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {analysis.keyFactors.map((factor: string, index: number) => (
+                      <Badge key={index} variant="secondary" className="px-3 py-1 text-sm">
+                        {factor}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </CardContent>
         </Card>
 
-        {/* Enhanced Tabs */}
+        {/* Main Content Tabs */}
         <Tabs defaultValue="countries" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-5 h-14 bg-white shadow-md rounded-xl">
-            <TabsTrigger value="countries" className="flex items-center space-x-2 text-sm font-medium">
-              <MapPin className="w-4 h-4" />
-              <span>Country Matches</span>
+          <TabsList className="grid w-full grid-cols-4 h-12">
+            <TabsTrigger value="countries" className="flex items-center space-x-2">
+              <Globe className="w-4 h-4" />
+              <span>Recommended Countries</span>
             </TabsTrigger>
-            <TabsTrigger value="universities" className="flex items-center space-x-2 text-sm font-medium">
+            <TabsTrigger value="universities" className="flex items-center space-x-2">
               <GraduationCap className="w-4 h-4" />
-              <span>Universities</span>
+              <span>Target Universities</span>
             </TabsTrigger>
-            <TabsTrigger value="scholarships" className="flex items-center space-x-2 text-sm font-medium">
+            <TabsTrigger value="scholarships" className="flex items-center space-x-2">
               <Award className="w-4 h-4" />
-              <span>Scholarships</span>
+              <span>Scholarship Matching</span>
             </TabsTrigger>
-            <TabsTrigger value="action-plan" className="flex items-center space-x-2 text-sm font-medium">
-              <Calendar className="w-4 h-4" />
-              <span>Action Plan</span>
-            </TabsTrigger>
-            <TabsTrigger value="insights" className="flex items-center space-x-2 text-sm font-medium">
+            <TabsTrigger value="insights" className="flex items-center space-x-2">
               <TrendingUp className="w-4 h-4" />
-              <span>Insights</span>
+              <span>Quarterly Action Plan</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Country Matches Tab */}
           <TabsContent value="countries" className="space-y-6">
             <div className="grid gap-8">
-              {(() => {
-                // Get countries from either suggestedCountries or topRecommendations field
-                const countries = analysis.suggestedCountries || (analysis as any).topRecommendations || [];
-                console.log('Countries data for rendering:', countries);
-                
-                if (!countries || countries.length === 0) {
-                  return (
-                    <Card className="p-8 text-center">
-                      <CardContent>
-                        <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Country Recommendations Available</h3>
-                        <p className="text-gray-600">
-                          Unable to display country recommendations. Please try refreshing the page or contact support.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  );
-                }
-                
-                return countries.map((country: CountryRecommendation, index: number) => (
+              {countries && countries.length > 0 ? (
+                countries.map((country: CountryRecommendation, index: number) => (
                   <Card key={index} className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300">
                     <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b">
                       <div className="flex items-center justify-between">
@@ -343,101 +307,106 @@ export default function PersonalizedDestinationAnalysis() {
                       </div>
                     </CardHeader>
                     <CardContent className="p-6">
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                        {/* Personalized Match Reasons */}
-                        <div className="bg-blue-50 p-5 rounded-xl border border-blue-200">
-                          <h4 className="font-bold text-blue-900 mb-3 flex items-center">
-                            <Target className="w-5 h-5 mr-2" />
-                            Why This Match?
+                      <div className="grid lg:grid-cols-2 gap-8">
+                        {/* Why This Country */}
+                        <div>
+                          <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <Heart className="w-5 h-5 mr-2 text-red-500" />
+                            Why {country.country} is Perfect for You
                           </h4>
-                          <ul className="space-y-2">
+                          <ul className="space-y-3">
                             {country.personalizedReasons?.map((reason: string, i: number) => (
-                              <li key={i} className="flex items-start text-sm text-blue-800">
-                                <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
-                                {reason}
+                              <li key={i} className="flex items-start">
+                                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                                <span className="text-gray-700">{reason}</span>
                               </li>
                             ))}
                           </ul>
                         </div>
 
+                        {/* Cost Grid */}
+                        <div>
+                          <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <DollarSign className="w-5 h-5 mr-2 text-green-600" />
+                            Investment Overview
+                          </h4>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-blue-50 p-4 rounded-lg">
+                              <p className="text-sm text-blue-600 font-medium">Tuition (Masters)</p>
+                              <p className="text-lg font-bold text-blue-900">{country.detailedCostBreakdown?.tuitionFees?.masters || 'Contact university'}</p>
+                            </div>
+                            <div className="bg-purple-50 p-4 rounded-lg">
+                              <p className="text-sm text-purple-600 font-medium">Living Expenses</p>
+                              <p className="text-lg font-bold text-purple-900">{country.detailedCostBreakdown?.livingExpenses?.totalMonthly || 'Varies by city'}</p>
+                            </div>
+                            <div className="bg-green-50 p-4 rounded-lg">
+                              <p className="text-sm text-green-600 font-medium">Work Rights</p>
+                              <p className="text-lg font-bold text-green-900">{country.personalizedVisaGuidance?.workRights || 'Available'}</p>
+                            </div>
+                            <div className="bg-amber-50 p-4 rounded-lg">
+                              <p className="text-sm text-amber-600 font-medium">Scholarship</p>
+                              <p className="text-lg font-bold text-amber-900">{country.detailedCostBreakdown?.scholarshipPotential || 'Available'}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Entry Requirements */}
+                        <div className="lg:col-span-2">
+                          <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <Building className="w-5 h-5 mr-2 text-indigo-600" />
+                            Entry Requirements & Pathway
+                          </h4>
+                          <div className="bg-gray-50 p-6 rounded-lg">
+                            <div className="grid md:grid-cols-3 gap-6">
+                              <div>
+                                <p className="font-medium text-gray-900 mb-2">Visa Success Rate</p>
+                                <p className="text-2xl font-bold text-green-600">{country.personalizedVisaGuidance?.successRate || '85%+'}</p>
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900 mb-2">Processing Time</p>
+                                <p className="text-lg text-gray-700">{country.personalizedVisaGuidance?.timelineForUser || '4-8 weeks'}</p>
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900 mb-2">Post-Study Options</p>
+                                <p className="text-lg text-gray-700">{country.personalizedVisaGuidance?.postStudyOptions || 'Work visa available'}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
                         {/* Career Prospects */}
-                        <div className="bg-green-50 p-5 rounded-xl border border-green-200">
-                          <h4 className="font-bold text-green-900 mb-3 flex items-center">
-                            <Briefcase className="w-5 h-5 mr-2" />
-                            Career Prospects
-                          </h4>
-                          <div className="space-y-2 text-sm text-green-800">
-                            <div><strong>Industry Demand:</strong> {country.careerPathway?.industryDemand}</div>
-                            <div><strong>Salary Range:</strong> {country.careerPathway?.salaryExpectations}</div>
-                            <div><strong>Career Growth:</strong> {country.careerPathway?.careerProgression}</div>
-                            <div><strong>ROI:</strong> {country.careerPathway?.returnOnInvestment}</div>
-                          </div>
-                        </div>
-
-                        {/* Visa & Immigration */}
-                        <div className="bg-purple-50 p-5 rounded-xl border border-purple-200">
-                          <h4 className="font-bold text-purple-900 mb-3 flex items-center">
-                            <Globe className="w-5 h-5 mr-2" />
-                            Visa & Work Rights
-                          </h4>
-                          <div className="space-y-2 text-sm text-purple-800">
-                            <div><strong>Work Rights:</strong> {country.personalizedVisaGuidance?.workRights}</div>
-                            <div><strong>Success Rate:</strong> {country.personalizedVisaGuidance?.successRate}</div>
-                            <div><strong>Processing:</strong> {country.personalizedVisaGuidance?.timelineForUser}</div>
-                            <div><strong>Post-Study:</strong> {country.personalizedVisaGuidance?.postStudyOptions}</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Financial Breakdown */}
-                      {country.detailedCostBreakdown && (
-                        <div className="bg-gray-50 p-5 rounded-xl border">
-                          <h4 className="font-bold text-gray-900 mb-4 flex items-center">
-                            <DollarSign className="w-5 h-5 mr-2" />
-                            Complete Financial Breakdown
-                          </h4>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="bg-white p-4 rounded-lg border text-center">
-                              <div className="text-xs text-gray-600 mb-1">Masters Tuition</div>
-                              <div className="font-bold text-gray-900">{country.detailedCostBreakdown.tuitionFees?.masters}</div>
+                        {country.careerPathway && (
+                          <div className="lg:col-span-2">
+                            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                              <TrendingUp className="w-5 h-5 mr-2 text-purple-600" />
+                              Career Prospects & ROI
+                            </h4>
+                            <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-6 rounded-lg">
+                              <div className="grid md:grid-cols-2 gap-6">
+                                <div>
+                                  <p className="font-medium text-gray-900 mb-2">Industry Demand</p>
+                                  <p className="text-gray-700">{country.careerPathway.industryDemand}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-900 mb-2">Starting Salary</p>
+                                  <p className="text-gray-700">{country.careerPathway.salaryExpectations}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-900 mb-2">Career Growth</p>
+                                  <p className="text-gray-700">{country.careerPathway.careerProgression}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-900 mb-2">ROI Assessment</p>
+                                  <p className="text-gray-700">{country.careerPathway.returnOnInvestment}</p>
+                                </div>
+                              </div>
                             </div>
-                            <div className="bg-white p-4 rounded-lg border text-center">
-                              <div className="text-xs text-gray-600 mb-1">Monthly Living</div>
-                              <div className="font-bold text-gray-900">{country.detailedCostBreakdown.livingExpenses?.totalMonthly}</div>
-                            </div>
-                            <div className="bg-white p-4 rounded-lg border text-center">
-                              <div className="text-xs text-gray-600 mb-1">Work Earnings</div>
-                              <div className="font-bold text-green-600">{country.detailedCostBreakdown.workStudyEarnings}</div>
-                            </div>
-                            <div className="bg-white p-4 rounded-lg border text-center">
-                              <div className="text-xs text-gray-600 mb-1">Scholarship Potential</div>
-                              <div className="font-bold text-blue-600">{country.detailedCostBreakdown.scholarshipPotential}</div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Advantages & Challenges */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                        {country.specificAdvantages && (
-                          <div>
-                            <h5 className="font-semibold text-green-800 mb-2 flex items-center">
-                              <CheckCircle className="w-4 h-4 mr-2" />
-                              Key Advantages
-                            </h5>
-                            <ul className="space-y-1 text-sm text-green-700">
-                              {country.specificAdvantages.map((advantage: string, i: number) => (
-                                <li key={i} className="flex items-start">
-                                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 mr-2 flex-shrink-0"></div>
-                                  {advantage}
-                                </li>
-                              ))}
-                            </ul>
                           </div>
                         )}
-                        
-                        {country.potentialChallenges && (
-                          <div>
+
+                        {/* Challenges */}
+                        {country.potentialChallenges && country.potentialChallenges.length > 0 && (
+                          <div className="lg:col-span-2">
                             <h5 className="font-semibold text-amber-800 mb-2 flex items-center">
                               <AlertTriangle className="w-4 h-4 mr-2" />
                               Consider These Factors
@@ -474,8 +443,8 @@ export default function PersonalizedDestinationAnalysis() {
           {/* Universities Tab */}
           <TabsContent value="universities" className="space-y-6">
             <div className="grid gap-6">
-              {analysis.suggestedCountries && analysis.suggestedCountries.length > 0 ? (
-                analysis.suggestedCountries.map((country: CountryRecommendation, countryIndex: number) => (
+              {countries && countries.length > 0 ? (
+                countries.map((country: CountryRecommendation, countryIndex: number) => (
                   <Card key={countryIndex} className="border-0 shadow-lg">
                     <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 border-b">
                       <CardTitle className="flex items-center space-x-3 text-xl">
@@ -491,38 +460,25 @@ export default function PersonalizedDestinationAnalysis() {
                             <div className="flex items-start justify-between mb-4">
                               <div>
                                 <h4 className="text-lg font-bold text-gray-900 mb-1">{university.name}</h4>
-                                <p className="text-sm text-gray-600 flex items-center">
-                                  <Star className="w-4 h-4 mr-1" />
-                                  {university.ranking}
-                                </p>
+                                <p className="text-blue-600 font-medium">{university.programSpecific}</p>
                               </div>
-                              <Badge className="bg-blue-100 text-blue-800">Recommended</Badge>
+                              <Badge variant="secondary" className="bg-green-100 text-green-800">
+                                {university.ranking}
+                              </Badge>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                              <div className="bg-blue-50 p-3 rounded-lg">
-                                <span className="text-blue-800 font-medium block mb-1">Program</span>
-                                <span className="text-blue-700">{university.programSpecific}</span>
+                            
+                            <div className="grid md:grid-cols-2 gap-4 mt-4">
+                              <div>
+                                <p className="font-medium text-gray-900 mb-2">Admission Requirements</p>
+                                <p className="text-gray-700 text-sm">{university.admissionRequirements}</p>
                               </div>
-                              <div className="bg-green-50 p-3 rounded-lg">
-                                <span className="text-green-800 font-medium block mb-1">Scholarship</span>
-                                <span className="text-green-700">{university.scholarshipAvailable}</span>
-                              </div>
-                              <div className="bg-purple-50 p-3 rounded-lg">
-                                <span className="text-purple-800 font-medium block mb-1">Requirements</span>
-                                <span className="text-purple-700">{university.admissionRequirements}</span>
-                              </div>
-                              <div className="bg-gray-50 p-3 rounded-lg">
-                                <span className="text-gray-800 font-medium block mb-1">Application</span>
-                                <span className="text-gray-700">Apply directly or through portal</span>
+                              <div>
+                                <p className="font-medium text-gray-900 mb-2">Scholarship Available</p>
+                                <p className="text-gray-700 text-sm">{university.scholarshipAvailable}</p>
                               </div>
                             </div>
                           </div>
-                        )) || (
-                          <div className="text-center py-8">
-                            <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                            <p className="text-gray-600">University recommendations will be displayed here after analysis generation.</p>
-                          </div>
-                        )}
+                        ))}
                       </div>
                     </CardContent>
                   </Card>
@@ -531,8 +487,8 @@ export default function PersonalizedDestinationAnalysis() {
                 <Card className="border-0 shadow-lg">
                   <CardContent className="text-center py-16">
                     <GraduationCap className="w-24 h-24 text-gray-400 mx-auto mb-6" />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">No University Information Available</h3>
-                    <p className="text-gray-600">University recommendations will appear after generating country analysis.</p>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">No University Data Available</h3>
+                    <p className="text-gray-600">University recommendations will appear here once your analysis is complete.</p>
                   </CardContent>
                 </Card>
               )}
@@ -542,26 +498,28 @@ export default function PersonalizedDestinationAnalysis() {
           {/* Scholarships Tab */}
           <TabsContent value="scholarships" className="space-y-6">
             <Card className="border-0 shadow-lg">
-              <CardHeader className="bg-gradient-to-r from-yellow-50 to-orange-50 border-b">
-                <CardTitle className="flex items-center space-x-3 text-xl">
-                  <Award className="w-6 h-6 text-yellow-600" />
-                  <span>Scholarship Opportunities</span>
+              <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 border-b">
+                <CardTitle className="flex items-center space-x-3">
+                  <Award className="w-6 h-6 text-green-600" />
+                  <span>Scholarship Matching System</span>
                 </CardTitle>
                 <CardDescription>
-                  Scholarships matched to your profile and academic achievements
+                  Personalized scholarship opportunities based on your profile and target destinations
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-6">
-                {analysis.recommendations?.budgetOptimization?.scholarshipOpportunities && 
-                 analysis.recommendations.budgetOptimization.scholarshipOpportunities.length > 0 ? (
-                  <div className="grid gap-4">
+                {analysis.recommendations?.budgetOptimization?.scholarshipOpportunities?.length > 0 ? (
+                  <div className="grid gap-6">
                     {analysis.recommendations.budgetOptimization.scholarshipOpportunities.map((scholarship: string, index: number) => (
-                      <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="flex items-start space-x-3">
-                          <Award className="w-5 h-5 text-yellow-600 mt-1 flex-shrink-0" />
+                      <div key={index} className="border rounded-lg p-6 hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between mb-4">
                           <div>
-                            <p className="text-gray-800 leading-relaxed">{scholarship}</p>
+                            <h4 className="text-lg font-bold text-gray-900 mb-2">Scholarship Opportunity</h4>
+                            <p className="text-gray-700">{scholarship}</p>
                           </div>
+                          <Badge variant="secondary" className="bg-green-100 text-green-800">
+                            Eligible
+                          </Badge>
                         </div>
                       </div>
                     ))}
@@ -569,188 +527,139 @@ export default function PersonalizedDestinationAnalysis() {
                 ) : (
                   <div className="text-center py-12">
                     <Award className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Scholarship Matching Coming Soon</h3>
-                    <p className="text-gray-600">Personalized scholarship recommendations will be available after generating your analysis.</p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Scholarship Analysis Coming Soon</h3>
+                    <p className="text-gray-600">Detailed scholarship matching will be available in your comprehensive analysis.</p>
                   </div>
                 )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Action Plan Tab */}
-          <TabsContent value="action-plan" className="space-y-6">
-            <div className="grid gap-6">
-              {analysis.recommendations?.nextSteps && (
-                <>
-                  <Card className="border-0 shadow-lg">
-                    <CardHeader className="bg-red-50 border-b">
-                      <CardTitle className="flex items-center space-x-3 text-red-800">
-                        <Clock className="w-6 h-6" />
-                        <span>Immediate Actions (Next 30 Days)</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="space-y-3">
-                        {analysis.recommendations.nextSteps.immediate?.map((action: string, index: number) => (
-                          <div key={index} className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg">
-                            <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-xs font-bold text-red-600">{index + 1}</span>
-                            </div>
-                            <p className="text-red-800">{action}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-0 shadow-lg">
-                    <CardHeader className="bg-yellow-50 border-b">
-                      <CardTitle className="flex items-center space-x-3 text-yellow-800">
-                        <Calendar className="w-6 h-6" />
-                        <span>Short-term Goals (Next 3-6 Months)</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="space-y-3">
-                        {analysis.recommendations.nextSteps.shortTerm?.map((action: string, index: number) => (
-                          <div key={index} className="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg">
-                            <div className="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-xs font-bold text-yellow-600">{index + 1}</span>
-                            </div>
-                            <p className="text-yellow-800">{action}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-0 shadow-lg">
-                    <CardHeader className="bg-green-50 border-b">
-                      <CardTitle className="flex items-center space-x-3 text-green-800">
-                        <Target className="w-6 h-6" />
-                        <span>Long-term Strategy (6-12 Months)</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="space-y-3">
-                        {analysis.recommendations.nextSteps.longTerm?.map((action: string, index: number) => (
-                          <div key={index} className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
-                            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-xs font-bold text-green-600">{index + 1}</span>
-                            </div>
-                            <p className="text-green-800">{action}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
-            </div>
-          </TabsContent>
-
           {/* Insights Tab */}
           <TabsContent value="insights" className="space-y-6">
             <div className="grid gap-6">
-              {analysis.recommendations?.personalizedInsights && (
-                <>
-                  <Card className="border-0 shadow-lg">
-                    <CardHeader className="bg-green-50 border-b">
-                      <CardTitle className="flex items-center space-x-3 text-green-800">
-                        <CheckCircle className="w-6 h-6" />
-                        <span>Your Profile Strengths</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="space-y-3">
-                        {analysis.recommendations.personalizedInsights.strengthsAnalysis?.map((strength: string, index: number) => (
-                          <div key={index} className="flex items-start space-x-3">
-                            <CheckCircle className="w-5 h-5 text-green-600 mt-1 flex-shrink-0" />
-                            <p className="text-green-800">{strength}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="border-0 shadow-lg">
-                    <CardHeader className="bg-blue-50 border-b">
-                      <CardTitle className="flex items-center space-x-3 text-blue-800">
-                        <TrendingUp className="w-6 h-6" />
-                        <span>Strategic Recommendations</span>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6">
-                      <div className="space-y-3">
-                        {analysis.recommendations.personalizedInsights.strategicRecommendations?.map((recommendation: string, index: number) => (
-                          <div key={index} className="flex items-start space-x-3">
-                            <TrendingUp className="w-5 h-5 text-blue-600 mt-1 flex-shrink-0" />
-                            <p className="text-blue-800">{recommendation}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {analysis.recommendations.personalizedInsights.improvementAreas && 
-                   analysis.recommendations.personalizedInsights.improvementAreas.length > 0 && (
-                    <Card className="border-0 shadow-lg">
-                      <CardHeader className="bg-amber-50 border-b">
-                        <CardTitle className="flex items-center space-x-3 text-amber-800">
-                          <AlertTriangle className="w-6 h-6" />
-                          <span>Areas for Enhancement</span>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="p-6">
-                        <div className="space-y-3">
-                          {analysis.recommendations.personalizedInsights.improvementAreas.map((area: string, index: number) => (
-                            <div key={index} className="flex items-start space-x-3">
-                              <AlertTriangle className="w-5 h-5 text-amber-600 mt-1 flex-shrink-0" />
-                              <p className="text-amber-800">{area}</p>
-                            </div>
+              {/* Quarterly Action Plan */}
+              <Card className="border-0 shadow-lg">
+                <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 border-b">
+                  <CardTitle className="flex items-center space-x-3">
+                    <Calendar className="w-6 h-6 text-purple-600" />
+                    <span>Quarterly Action Plan</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Strategic timeline aligned with university admission cycles
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid gap-8">
+                    {/* Immediate Actions */}
+                    {analysis.recommendations?.nextSteps?.immediate?.length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                          <Clock className="w-5 h-5 mr-2 text-red-600" />
+                          Immediate Actions (Next 30 Days)
+                        </h4>
+                        <ul className="space-y-3">
+                          {analysis.recommendations.nextSteps.immediate.map((action: string, index: number) => (
+                            <li key={index} className="flex items-start">
+                              <div className="w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5 flex-shrink-0">
+                                {index + 1}
+                              </div>
+                              <span className="text-gray-700">{action}</span>
+                            </li>
                           ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </>
-              )}
+                        </ul>
+                      </div>
+                    )}
 
-              {/* Intelligent Alternatives */}
-              {analysis.intelligentAlternatives && analysis.intelligentAlternatives.length > 0 && (
+                    {/* Short Term Goals */}
+                    {analysis.recommendations?.nextSteps?.shortTerm?.length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                          <Target className="w-5 h-5 mr-2 text-blue-600" />
+                          Short Term Goals (3-6 Months)
+                        </h4>
+                        <ul className="space-y-3">
+                          {analysis.recommendations.nextSteps.shortTerm.map((goal: string, index: number) => (
+                            <li key={index} className="flex items-start">
+                              <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5 flex-shrink-0">
+                                {index + 1}
+                              </div>
+                              <span className="text-gray-700">{goal}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Long Term Strategy */}
+                    {analysis.recommendations?.nextSteps?.longTerm?.length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                          <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
+                          Long Term Strategy (6+ Months)
+                        </h4>
+                        <ul className="space-y-3">
+                          {analysis.recommendations.nextSteps.longTerm.map((strategy: string, index: number) => (
+                            <li key={index} className="flex items-start">
+                              <div className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm font-bold mr-3 mt-0.5 flex-shrink-0">
+                                {index + 1}
+                              </div>
+                              <span className="text-gray-700">{strategy}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Strategic Insights */}
+              {analysis.recommendations?.personalizedInsights && (
                 <Card className="border-0 shadow-lg">
-                  <CardHeader className="bg-purple-50 border-b">
-                    <CardTitle className="flex items-center space-x-3 text-purple-800">
-                      <Globe className="w-6 h-6" />
-                      <span>Smart Alternative Destinations</span>
+                  <CardHeader className="bg-gradient-to-r from-blue-50 to-green-50 border-b">
+                    <CardTitle className="flex items-center space-x-3">
+                      <Users className="w-6 h-6 text-blue-600" />
+                      <span>Strategic Profile Insights</span>
                     </CardTitle>
-                    <CardDescription>
-                      Countries that might offer better opportunities than your initial preferences
-                    </CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <div className="grid gap-4">
-                      {analysis.intelligentAlternatives.map((alternative: IntelligentAlternative, index: number) => (
-                        <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                          <div className="flex items-start justify-between mb-3">
-                            <h4 className="font-semibold text-lg text-gray-900">{alternative.country}</h4>
-                            <Badge variant="outline" className="bg-purple-50 text-purple-700">
-                              {alternative.matchScore}% Match
-                            </Badge>
-                          </div>
-                          <p className="text-gray-700 mb-3">{alternative.whyBetter}</p>
-                          {alternative.costAdvantage && (
-                            <p className="text-sm text-green-600 font-medium mb-2">{alternative.costAdvantage}</p>
-                          )}
-                          <div className="flex flex-wrap gap-2">
-                            {alternative.keyBenefits?.map((benefit: string, benefitIndex: number) => (
-                              <Badge key={benefitIndex} variant="secondary" className="text-xs">
-                                {benefit}
-                              </Badge>
+                    <div className="grid md:grid-cols-2 gap-8">
+                      {/* Strengths */}
+                      {analysis.recommendations.personalizedInsights.strengthsAnalysis?.length > 0 && (
+                        <div>
+                          <h4 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                            <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
+                            Your Strengths
+                          </h4>
+                          <ul className="space-y-2">
+                            {analysis.recommendations.personalizedInsights.strengthsAnalysis.map((strength: string, index: number) => (
+                              <li key={index} className="flex items-start">
+                                <Star className="w-4 h-4 text-green-500 mt-1 mr-2 flex-shrink-0" />
+                                <span className="text-gray-700">{strength}</span>
+                              </li>
                             ))}
-                          </div>
+                          </ul>
                         </div>
-                      ))}
+                      )}
+
+                      {/* Improvement Areas */}
+                      {analysis.recommendations.personalizedInsights.improvementAreas?.length > 0 && (
+                        <div>
+                          <h4 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                            <TrendingUp className="w-5 h-5 mr-2 text-blue-600" />
+                            Growth Opportunities
+                          </h4>
+                          <ul className="space-y-2">
+                            {analysis.recommendations.personalizedInsights.improvementAreas.map((area: string, index: number) => (
+                              <li key={index} className="flex items-start">
+                                <Target className="w-4 h-4 text-blue-500 mt-1 mr-2 flex-shrink-0" />
+                                <span className="text-gray-700">{area}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -759,17 +668,18 @@ export default function PersonalizedDestinationAnalysis() {
           </TabsContent>
         </Tabs>
 
-        {/* Professional Disclaimer */}
-        <Card className="mt-8 border-0 shadow-lg bg-gradient-to-r from-amber-50 to-orange-50">
+        {/* Disclaimer */}
+        <Card className="mt-12 border-amber-200 bg-amber-50">
           <CardContent className="p-6">
             <div className="flex items-start space-x-3">
-              <AlertTriangle className="w-6 h-6 text-amber-600 mt-1 flex-shrink-0" />
+              <AlertTriangle className="w-6 h-6 text-amber-600 mt-0.5 flex-shrink-0" />
               <div>
-                <h4 className="font-semibold text-amber-800 mb-2">Professional Consultation Recommended</h4>
-                <p className="text-amber-700 text-sm leading-relaxed">
-                  This analysis is for informational purposes only. We strongly recommend consulting with licensed education counselors, 
-                  migration agents, and university admission advisors before making final decisions. Requirements, costs, and policies 
-                  can change, and professional guidance ensures you have the most current and accurate information for your specific situation.
+                <h4 className="font-semibold text-amber-900 mb-2">Professional Disclaimer</h4>
+                <p className="text-amber-800 text-sm leading-relaxed">
+                  This analysis is generated using AI technology and provides general guidance based on available data. 
+                  For making final decisions about your study abroad journey, we strongly recommend consulting with 
+                  licensed education counselors and migration agents who can provide personalized advice based on 
+                  current regulations and your specific circumstances.
                 </p>
               </div>
             </div>
