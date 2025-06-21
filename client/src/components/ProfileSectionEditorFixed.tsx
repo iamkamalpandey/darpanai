@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { Save, X, Plus, Trash2 } from 'lucide-react';
+import { Save, X, Plus, Trash2, AlertCircle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -27,9 +29,8 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
   // Initialize form data when dialog opens
   useEffect(() => {
     if (user && open) {
-      console.log('=== CRUD OPERATION: READ ===');
-      console.log('Loading user data for section:', section);
-      console.log('User data loaded:', user);
+      console.log('Initializing form data for section:', section);
+      console.log('User data:', user);
       setFormData({ ...user });
     }
   }, [user, open, section]);
@@ -37,10 +38,6 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
   // CRUD Operations: UPDATE mutation
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      console.log('=== CRUD OPERATION: UPDATE ===');
-      console.log('Sending update request for section:', section);
-      console.log('Data to update:', data);
-      
       const response = await fetch('/api/user/complete-profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -55,21 +52,20 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
       return response.json();
     },
     onSuccess: async (data) => {
-      console.log('=== CRUD OPERATION: UPDATE SUCCESS ===');
       console.log('Profile updated successfully:', data);
       
-      // Clear cache and refresh data (CRUD READ operation)
+      // Clear cache and refresh data
       queryClient.removeQueries({ queryKey: ['/api/user'] });
       queryClient.removeQueries({ queryKey: ['/api/user/fresh'] });
       queryClient.removeQueries({ queryKey: ['/api/user/profile-completion'] });
       
-      // Set fresh data in cache
+      // Set fresh data
       if (data.user) {
         queryClient.setQueryData(['/api/user'], data.user);
         queryClient.setQueryData(['/api/user/fresh'], data.user);
       }
       
-      // Trigger profile update event for immediate UI refresh
+      // Trigger profile update event
       window.dispatchEvent(new CustomEvent('profile-updated', { 
         detail: { section, updatedData: data.user }
       }));
@@ -82,7 +78,6 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
       onClose();
     },
     onError: (error: any) => {
-      console.error('=== CRUD OPERATION: UPDATE FAILED ===');
       console.error('Profile update error:', error);
       toast({
         title: 'Update Failed',
@@ -92,20 +87,16 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
     },
   });
 
-  // Handle input changes (CRUD preparation for UPDATE)
+  // Handle input changes
   const handleInputChange = (field: string, value: any) => {
-    console.log('=== CRUD OPERATION: MODIFY ===');
-    console.log('Field being modified:', field, 'New value:', value);
-    
     setFormData((prev: any) => ({
       ...prev,
       [field]: value
     }));
   };
 
-  // Handle save operation (CRUD UPDATE execution)
+  // Handle save operation
   const handleSave = async () => {
-    console.log('=== CRUD OPERATION: SAVE INITIATED ===');
     setIsLoading(true);
     
     try {
@@ -137,11 +128,7 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
         }
       });
       
-      console.log('=== CRUD OPERATION: UPDATE DATA PREPARED ===');
-      console.log('Section:', section);
-      console.log('Fields to update:', Object.keys(submitData));
-      console.log('Submitting data:', submitData);
-      
+      console.log('Submitting data for section:', section, submitData);
       updateMutation.mutate(submitData);
     } finally {
       setIsLoading(false);
@@ -181,7 +168,7 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
     }
   };
 
-  // Render section content based on section type
+  // Render section content
   const renderSectionContent = () => {
     switch (section) {
       case 'personal':
@@ -396,7 +383,7 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="workExperienceYears">Work Experience</Label>
-          <Select value={formData.workExperienceYears?.toString() || ''} onValueChange={(value) => handleInputChange('workExperienceYears', parseInt(value))}>
+          <Select value={formData.workExperienceYears || ''} onValueChange={(value) => handleInputChange('workExperienceYears', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Select experience" />
             </SelectTrigger>
@@ -406,7 +393,7 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
               <SelectItem value="2">2 years</SelectItem>
               <SelectItem value="3">3 years</SelectItem>
               <SelectItem value="4">4 years</SelectItem>
-              <SelectItem value="5">5+ years</SelectItem>
+              <SelectItem value="5+">5+ years</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -598,44 +585,31 @@ export function ProfileSectionEditor({ open, onClose, section, user }: ProfileSe
         
         {formData.englishProficiencyTests && formData.englishProficiencyTests.length > 0 ? (
           <div className="space-y-3">
-            {formData.englishProficiencyTests.map((test: any, index: number) => {
-              // Calculate test validity
-              const testDate = new Date(test.testDate);
-              const validityYears = test.testType === 'GRE' || test.testType === 'GMAT' || test.testType === 'SAT' || test.testType === 'ACT' ? 5 : 2;
-              const validUntil = new Date(testDate);
-              validUntil.setFullYear(validUntil.getFullYear() + validityYears);
-              const isValid = validUntil > new Date();
-
-              return (
-                <Card key={index}>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">{test.testType}</Badge>
-                        <Badge variant={isValid ? "default" : "destructive"} className="text-xs">
-                          {isValid ? "Valid" : "Expired"}
-                        </Badge>
-                        <span className="font-semibold text-lg text-blue-600">{test.overallScore}</span>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const updatedTests = formData.englishProficiencyTests.filter((_: any, i: number) => i !== index);
-                          handleInputChange('englishProficiencyTests', updatedTests);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+            {formData.englishProficiencyTests.map((test: any, index: number) => (
+              <Card key={index}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{test.testType}</Badge>
+                      <span className="font-semibold">{test.overallScore}</span>
                     </div>
-                    <div className="text-sm text-gray-600">
-                      Test Date: {test.testDate ? new Date(test.testDate).toLocaleDateString() : 'Not specified'} | 
-                      Valid Until: {validUntil.toLocaleDateString()}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const updatedTests = formData.englishProficiencyTests.filter((_: any, i: number) => i !== index);
+                        handleInputChange('englishProficiencyTests', updatedTests);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Test Date: {test.testDate ? new Date(test.testDate).toLocaleDateString() : 'Not specified'}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         ) : (
           <p className="text-sm text-gray-500">No English tests added yet</p>
