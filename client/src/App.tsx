@@ -26,6 +26,7 @@ const COEAnalysisView = lazy(() => import("@/pages/COEAnalysisView"));
 const OfferLetterAnalysis = lazy(() => import("@/pages/OfferLetterAnalysis"));
 const OfferLetterAnalysisView = lazy(() => import("@/pages/OfferLetterAnalysisView_comprehensive"));
 const ComprehensiveOfferLetterAnalysis = lazy(() => import("@/pages/ComprehensiveOfferLetterAnalysis"));
+const OfferLetterAnalysisDisplay = lazy(() => import("@/pages/OfferLetterAnalysisDisplay"));
 const VisaAnalysisView = lazy(() => import("@/pages/VisaAnalysisView"));
 const UserVisaAnalysisView = lazy(() => import("@/pages/UserVisaAnalysisView"));
 const EnrollmentAnalysisResults = lazy(() => import("@/pages/EnrollmentAnalysisResults"));
@@ -126,6 +127,13 @@ function Router() {
         <UserProtectedRoute path="/offer-letter-analysis" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <ComprehensiveOfferLetterAnalysis />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/offer-letter-analysis/:id">
+        <UserProtectedRoute path="/offer-letter-analysis/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <OfferLetterAnalysisDisplay />
           </Suspense>
         )} />
       </Route>

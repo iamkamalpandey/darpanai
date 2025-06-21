@@ -862,62 +862,41 @@ export default function ComprehensiveOfferLetterAnalysis() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {analysis.offerDetails?.program && (
-                    <div>
-                      <Label className="font-medium">Program</Label>
-                      <p className="text-gray-700">{analysis.offerDetails.program}</p>
-                    </div>
-                  )}
-                  {analysis.offerDetails?.tuition && (
-                    <div>
-                      <Label className="font-medium">Tuition</Label>
-                      <p className="text-gray-700">{analysis.offerDetails.tuition}</p>
-                    </div>
-                  )}
-                  {analysis.offerDetails?.startDate && (
-                    <div>
-                      <Label className="font-medium">Start Date</Label>
-                      <p className="text-gray-700">{analysis.offerDetails.startDate}</p>
-                    </div>
-                  )}
+                  <div>
+                    <Label className="font-medium">Analysis Date</Label>
+                    <p className="text-gray-700">{new Date().toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <Label className="font-medium">Status</Label>
+                    <p className="text-gray-700">Analysis Complete</p>
+                  </div>
+                  <div>
+                    <Label className="font-medium">Processing Time</Label>
+                    <p className="text-gray-700">{data.processingTime}ms</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Professional Accreditation */}
-            {analysis.courseDetails.accreditation.professionalBodies.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Professional Accreditation</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="font-medium">Professional Bodies</Label>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {analysis.courseDetails.accreditation.professionalBodies.map((body, index) => (
-                          <Badge key={index} variant="outline">
-                            {body}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    {analysis.courseDetails.accreditation.careerOutcomes.length > 0 && (
-                      <div>
-                        <Label className="font-medium">Career Outcomes</Label>
-                        <div className="flex flex-wrap gap-2 mt-1">
-                          {analysis.courseDetails.accreditation.careerOutcomes.map((outcome, index) => (
-                            <Badge key={index} variant="secondary">
-                              {outcome}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
+            {/* Analysis Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Analysis Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="prose max-w-none">
+                    {typeof analysis === 'string' ? (
+                      <p className="text-gray-700 whitespace-pre-wrap">{analysis}</p>
+                    ) : (
+                      <p className="text-gray-700 whitespace-pre-wrap">
+                        {JSON.stringify(analysis, null, 2)}
+                      </p>
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Financial Tab */}
