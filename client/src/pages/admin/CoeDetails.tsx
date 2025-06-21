@@ -1,42 +1,116 @@
 import { useQuery } from '@tanstack/react-query';
-import { useRoute } from 'wouter';
-import { ArrowLeft, Building, GraduationCap, Calendar, DollarSign, Shield, Phone, Mail, Globe, MapPin, User, Clock, BookOpen, Info, FileCheck, FileText } from 'lucide-react';
+import { useParams } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { 
+  ArrowLeft, 
+  User, 
+  Building, 
+  GraduationCap, 
+  Calendar, 
+  DollarSign, 
+  FileText, 
+  Phone, 
+  Mail, 
+  MapPin,
+  Clock,
+  Shield,
+  BookOpen,
+  Home,
+  Info
+} from 'lucide-react';
 import { AdminLayout } from '@/components/AdminLayout';
-import { format } from 'date-fns';
 import { Link } from 'wouter';
+import { format } from 'date-fns';
 
-// Helper component for consistent info display
-const InfoItem = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
-  <div className="flex items-start gap-3">
-    <div className="text-gray-500 mt-1">{icon}</div>
-    <div className="flex-1">
-      <p className="text-sm font-medium text-gray-900">{label}</p>
-      <p className="text-sm text-gray-600 mt-1">{value || 'Not specified in document'}</p>
-    </div>
-  </div>
-);
+interface CoeInformation {
+  id: number;
+  userId: number;
+  fileName: string;
+  fileSize: number | null;
+  documentText: string | null;
+  studentName: string | null;
+  studentId: string | null;
+  dateOfBirth: string | null;
+  nationality: string | null;
+  passportNumber: string | null;
+  institutionName: string | null;
+  institutionCode: string | null;
+  cricosCode: string | null;
+  institutionAddress: string | null;
+  institutionPhone: string | null;
+  institutionEmail: string | null;
+  courseName: string | null;
+  courseCode: string | null;
+  courseLevel: string | null;
+  fieldOfStudy: string | null;
+  courseDuration: string | null;
+  studyMode: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  totalTuition: string | null;
+  tuitionPerSemester: string | null;
+  applicationFee: string | null;
+  materialFee: string | null;
+  otherFees: string | null;
+  paymentSchedule: string | null;
+  oshcProvider: string | null;
+  oshcCoverage: string | null;
+  oshcCost: string | null;
+  oshcDuration: string | null;
+  languageRequirement: string | null;
+  minimumScore: string | null;
+  testDate: string | null;
+  healthInsuranceRequired: boolean | null;
+  accommodationInfo: string | null;
+  visaConditions: string | null;
+  workRights: string | null;
+  attendanceRequirement: string | null;
+  academicRequirements: string | null;
+  complianceNotes: string | null;
+  keyFindings: string | null;
+  nextSteps: string | null;
+  riskAssessment: string | null;
+  recommendations: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function AdminCoeDetails() {
-  const [match, params] = useRoute('/admin/coe-details/:id');
-  const coeId = params?.id;
+  const { id } = useParams<{ id: string }>();
 
-  const { data: coe, isLoading, error } = useQuery({
-    queryKey: [`/api/admin/coe-info/${coeId}`],
-    enabled: !!coeId,
-  }) as { data: any; isLoading: boolean; error: any };
+  const { data: coeInfo, isLoading, error } = useQuery({
+    queryKey: ['/api/admin/coe-info', id],
+    queryFn: async () => {
+      const response = await fetch(`/api/admin/coe-info/${id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch COE details');
+      }
+      return response.json();
+    },
+    enabled: !!id,
+  });
 
   if (isLoading) {
     return (
       <AdminLayout>
-        <div className="space-y-6">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="h-48 bg-gray-200 rounded"></div>
-              <div className="h-48 bg-gray-200 rounded"></div>
+        <div className="container mx-auto p-6">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-muted rounded w-1/3"></div>
+            <div className="grid gap-6">
+              {[1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <CardContent className="p-6">
+                    <div className="h-4 bg-muted rounded mb-4"></div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-muted rounded w-3/4"></div>
+                      <div className="h-3 bg-muted rounded w-1/2"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </div>
@@ -44,23 +118,19 @@ export default function AdminCoeDetails() {
     );
   }
 
-  if (error || !coe) {
+  if (error || !coeInfo) {
     return (
       <AdminLayout>
-        <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <Link href="/admin/information-reports">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Information Reports
+        <div className="container mx-auto p-6">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">COE document not found or access denied</p>
+              <Button asChild className="mt-4">
+                <Link href="/admin/information-reports">Back to Information Reports</Link>
               </Button>
-            </Link>
-          </div>
-          <div className="text-center py-12">
-            <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">COE Document Not Found</h3>
-            <p className="text-gray-600">The COE document details could not be loaded.</p>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </AdminLayout>
     );
@@ -68,174 +138,197 @@ export default function AdminCoeDetails() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/admin/information-reports">
-              <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/admin/information-reports">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Information Reports
-              </Button>
-            </Link>
+              </Link>
+            </Button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">COE Document Details</h1>
-              <p className="text-gray-600">{coe.fileName}</p>
+              <h1 className="text-3xl font-bold">COE Information</h1>
+              <p className="text-muted-foreground">{coeInfo.fileName}</p>
             </div>
           </div>
-          <Badge variant="outline" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            COE Information
+          <Badge variant="secondary" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Admin View
           </Badge>
         </div>
 
-        {/* Document Info */}
+        {/* Document Metadata */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Info className="h-5 w-5" />
+              <FileText className="h-5 w-5" />
               Document Information
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-4 gap-4">
-            <InfoItem 
-              icon={<FileText className="h-4 w-4" />}
-              label="File Name" 
-              value={coe.fileName} 
-            />
-            <InfoItem 
-              icon={<User className="h-4 w-4" />}
-              label="User ID" 
-              value={coe.userId?.toString()} 
-            />
-            <InfoItem 
-              icon={<Calendar className="h-4 w-4" />}
-              label="Upload Date" 
-              value={coe.createdAt ? format(new Date(coe.createdAt), 'MMM dd, yyyy HH:mm') : 'Not available'} 
-            />
-            <InfoItem 
-              icon={<Clock className="h-4 w-4" />}
-              label="Last Updated" 
-              value={coe.updatedAt ? format(new Date(coe.updatedAt), 'MMM dd, yyyy HH:mm') : 'Not available'} 
-            />
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <p className="font-medium text-muted-foreground">User ID</p>
+                <p className="font-semibold">{coeInfo.userId}</p>
+              </div>
+              <div>
+                <p className="font-medium text-muted-foreground">File Name</p>
+                <p className="font-semibold">{coeInfo.fileName}</p>
+              </div>
+              <div>
+                <p className="font-medium text-muted-foreground">Upload Date</p>
+                <p className="font-semibold">{coeInfo.createdAt ? new Date(coeInfo.createdAt).toLocaleDateString() : 'N/A'}</p>
+              </div>
+              <div>
+                <p className="font-medium text-muted-foreground">Status</p>
+                <Badge variant="outline">Active</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Student Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5 text-blue-600" />
+              Student Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Personal Details</p>
+                <div className="space-y-2">
+                  <p className="font-semibold">{coeInfo.studentName || 'Not specified'}</p>
+                  <p className="text-sm text-muted-foreground">Student ID: {coeInfo.studentId || 'Not specified'}</p>
+                </div>
+              </div>
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Date of Birth</p>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <p>{coeInfo.dateOfBirth || 'Not specified'}</p>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Nationality</p>
+                <p>{coeInfo.nationality || 'Not specified'}</p>
+              </div>
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Passport Number</p>
+                <p className="font-mono text-sm">{coeInfo.passportNumber || 'Not specified'}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         {/* Institution Information */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5" />
-                Institution Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <InfoItem 
-                icon={<Building className="h-4 w-4" />}
-                label="Institution Name" 
-                value={coe.institutionName} 
-              />
-              <InfoItem 
-                icon={<MapPin className="h-4 w-4" />}
-                label="Address" 
-                value={coe.institutionAddress} 
-              />
-              <InfoItem 
-                icon={<Phone className="h-4 w-4" />}
-                label="Phone" 
-                value={coe.institutionPhone} 
-              />
-              <InfoItem 
-                icon={<Mail className="h-4 w-4" />}
-                label="Email" 
-                value={coe.institutionEmail} 
-              />
-              <InfoItem 
-                icon={<Info className="h-4 w-4" />}
-                label="CRICOS Code" 
-                value={coe.cricosCode} 
-              />
-            </CardContent>
-          </Card>
-
-          {/* Student Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Student Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <InfoItem 
-                icon={<User className="h-4 w-4" />}
-                label="Student Name" 
-                value={coe.studentName} 
-              />
-              <InfoItem 
-                icon={<Calendar className="h-4 w-4" />}
-                label="Date of Birth" 
-                value={coe.dateOfBirth} 
-              />
-              <InfoItem 
-                icon={<Globe className="h-4 w-4" />}
-                label="Nationality" 
-                value={coe.nationality} 
-              />
-              <InfoItem 
-                icon={<FileText className="h-4 w-4" />}
-                label="Passport Number" 
-                value={coe.passportNumber} 
-              />
-              <InfoItem 
-                icon={<Info className="h-4 w-4" />}
-                label="Student ID" 
-                value={coe.studentId} 
-              />
-            </CardContent>
-          </Card>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5 text-green-600" />
+              Institution Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Institution Details</p>
+                <div className="space-y-2">
+                  <p className="font-semibold">{coeInfo.institutionName || 'Not specified'}</p>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Badge variant="outline">Code: {coeInfo.institutionCode || 'N/A'}</Badge>
+                    <Badge variant="outline">CRICOS: {coeInfo.cricosCode || 'N/A'}</Badge>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Address</p>
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                  <p className="text-sm">{coeInfo.institutionAddress || 'Not specified'}</p>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Contact Information</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm">{coeInfo.institutionPhone || 'Not specified'}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm">{coeInfo.institutionEmail || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Course Information */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <GraduationCap className="h-5 w-5" />
+              <GraduationCap className="h-5 w-5 text-purple-600" />
               Course Information
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-3 gap-4">
-            <InfoItem 
-              icon={<BookOpen className="h-4 w-4" />}
-              label="Course Name" 
-              value={coe.courseName} 
-            />
-            <InfoItem 
-              icon={<Info className="h-4 w-4" />}
-              label="Course Code" 
-              value={coe.courseCode} 
-            />
-            <InfoItem 
-              icon={<GraduationCap className="h-4 w-4" />}
-              label="Course Level" 
-              value={coe.courseLevel} 
-            />
-            <InfoItem 
-              icon={<Calendar className="h-4 w-4" />}
-              label="Course Start Date" 
-              value={coe.courseStartDate} 
-            />
-            <InfoItem 
-              icon={<Calendar className="h-4 w-4" />}
-              label="Course End Date" 
-              value={coe.courseEndDate} 
-            />
-            <InfoItem 
-              icon={<Clock className="h-4 w-4" />}
-              label="Duration" 
-              value={coe.duration} 
-            />
+          <CardContent className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Course Details</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-muted-foreground" />
+                    <p className="font-semibold">{coeInfo.courseName || 'Not specified'}</p>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Badge variant="outline">Code: {coeInfo.courseCode || 'N/A'}</Badge>
+                    <Badge variant="outline">Level: {coeInfo.courseLevel || 'N/A'}</Badge>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Field of Study</p>
+                <p>{coeInfo.fieldOfStudy || 'Not specified'}</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Duration & Mode</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <p>Duration: {coeInfo.courseDuration || 'Not specified'}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Home className="h-4 w-4 text-muted-foreground" />
+                    <p>Mode: {coeInfo.studyMode || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Study Period</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <p>Start: {coeInfo.startDate || 'Not specified'}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <p>End: {coeInfo.endDate || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -243,75 +336,228 @@ export default function AdminCoeDetails() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
+              <DollarSign className="h-5 w-5 text-green-600" />
               Financial Information
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-3 gap-4">
-            <InfoItem 
-              icon={<DollarSign className="h-4 w-4" />}
-              label="Total Tuition" 
-              value={coe.totalTuition} 
-            />
-            <InfoItem 
-              icon={<DollarSign className="h-4 w-4" />}
-              label="Tuition Per Year" 
-              value={coe.tuitionPerYear} 
-            />
-            <InfoItem 
-              icon={<DollarSign className="h-4 w-4" />}
-              label="Non-Tuition Fees" 
-              value={coe.nonTuitionFees} 
-            />
-            <InfoItem 
-              icon={<DollarSign className="h-4 w-4" />}
-              label="OSHC Cost" 
-              value={coe.oshcCost} 
-            />
-            <InfoItem 
-              icon={<Info className="h-4 w-4" />}
-              label="OSHC Provider" 
-              value={coe.oshcProvider} 
-            />
-            <InfoItem 
-              icon={<Calendar className="h-4 w-4" />}
-              label="OSHC Period" 
-              value={coe.oshcPeriod} 
-            />
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-4 mb-6">
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign className="h-4 w-4 text-green-600" />
+                  <p className="font-medium text-green-800">Total Tuition</p>
+                </div>
+                <p className="text-lg font-bold text-green-900">{coeInfo.totalTuition || 'Not specified'}</p>
+              </div>
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign className="h-4 w-4 text-blue-600" />
+                  <p className="font-medium text-blue-800">Per Semester</p>
+                </div>
+                <p className="text-lg font-bold text-blue-900">{coeInfo.tuitionPerSemester || 'Not specified'}</p>
+              </div>
+              <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign className="h-4 w-4 text-orange-600" />
+                  <p className="font-medium text-orange-800">Application Fee</p>
+                </div>
+                <p className="text-lg font-bold text-orange-900">{coeInfo.applicationFee || 'Not specified'}</p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <p className="font-medium text-muted-foreground mb-2">Additional Fees</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Material Fee:</span>
+                    <span className="font-medium">{coeInfo.materialFee || 'Not specified'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Other Fees:</span>
+                    <span className="font-medium">{coeInfo.otherFees || 'Not specified'}</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p className="font-medium text-muted-foreground mb-2">Payment Schedule</p>
+                <p className="text-sm bg-gray-50 p-3 rounded border">
+                  {coeInfo.paymentSchedule || 'Not specified'}
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Compliance Information */}
+        {/* Health Insurance (OSHC) */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Compliance Information
+              <Shield className="h-5 w-5 text-red-600" />
+              Health Insurance (OSHC)
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-2 gap-4">
-            <InfoItem 
-              icon={<FileCheck className="h-4 w-4" />}
-              label="Visa Conditions" 
-              value={coe.visaConditions} 
-            />
-            <InfoItem 
-              icon={<Info className="h-4 w-4" />}
-              label="Work Rights" 
-              value={coe.workRights} 
-            />
-            <InfoItem 
-              icon={<Calendar className="h-4 w-4" />}
-              label="Reporting Requirements" 
-              value={coe.reportingRequirements} 
-            />
-            <InfoItem 
-              icon={<FileText className="h-4 w-4" />}
-              label="Important Notes" 
-              value={coe.importantNotes} 
-            />
+          <CardContent className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Provider Details</p>
+                <div className="space-y-2">
+                  <p className="font-semibold">{coeInfo.oshcProvider || 'Not specified'}</p>
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-muted-foreground" />
+                    <p className="text-sm">Coverage: {coeInfo.oshcCoverage || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Cost & Duration</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <p>Cost: {coeInfo.oshcCost || 'Not specified'}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <p>Duration: {coeInfo.oshcDuration || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
+
+        {/* Requirements */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-purple-600" />
+              Requirements & Conditions
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {coeInfo.languageRequirement && (
+              <div>
+                <p className="font-medium mb-2">Language Requirements</p>
+                <div className="bg-blue-50 p-4 rounded border border-blue-200">
+                  <div className="space-y-2">
+                    <p className="text-sm">{coeInfo.languageRequirement}</p>
+                    {coeInfo.minimumScore && (
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">Min Score: {coeInfo.minimumScore}</Badge>
+                        {coeInfo.testDate && <Badge variant="outline">Test Date: {coeInfo.testDate}</Badge>}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {coeInfo.academicRequirements && (
+              <div>
+                <p className="font-medium mb-2">Academic Requirements</p>
+                <div className="bg-green-50 p-4 rounded border border-green-200">
+                  <p className="text-sm">{coeInfo.academicRequirements}</p>
+                </div>
+              </div>
+            )}
+
+            {coeInfo.attendanceRequirement && (
+              <div>
+                <p className="font-medium mb-2">Attendance Requirements</p>
+                <div className="bg-yellow-50 p-4 rounded border border-yellow-200">
+                  <p className="text-sm">{coeInfo.attendanceRequirement}</p>
+                </div>
+              </div>
+            )}
+
+            {coeInfo.visaConditions && (
+              <div>
+                <p className="font-medium mb-2">Visa Conditions</p>
+                <div className="bg-purple-50 p-4 rounded border border-purple-200">
+                  <p className="text-sm">{coeInfo.visaConditions}</p>
+                </div>
+              </div>
+            )}
+
+            {coeInfo.workRights && (
+              <div>
+                <p className="font-medium mb-2">Work Rights</p>
+                <div className="bg-indigo-50 p-4 rounded border border-indigo-200">
+                  <p className="text-sm">{coeInfo.workRights}</p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Additional Information */}
+        {(coeInfo.accommodationInfo || coeInfo.complianceNotes || coeInfo.keyFindings || coeInfo.nextSteps || coeInfo.riskAssessment || coeInfo.recommendations) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Info className="h-5 w-5 text-gray-600" />
+                Additional Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {coeInfo.accommodationInfo && (
+                <div>
+                  <p className="font-medium mb-2">Accommodation Information</p>
+                  <div className="bg-gray-50 p-4 rounded border border-gray-200">
+                    <p className="text-sm">{coeInfo.accommodationInfo}</p>
+                  </div>
+                </div>
+              )}
+
+              {coeInfo.keyFindings && (
+                <div>
+                  <p className="font-medium mb-2">Key Findings</p>
+                  <div className="bg-blue-50 p-4 rounded border border-blue-200">
+                    <p className="text-sm">{coeInfo.keyFindings}</p>
+                  </div>
+                </div>
+              )}
+
+              {coeInfo.riskAssessment && (
+                <div>
+                  <p className="font-medium mb-2">Risk Assessment</p>
+                  <div className="bg-red-50 p-4 rounded border border-red-200">
+                    <p className="text-sm">{coeInfo.riskAssessment}</p>
+                  </div>
+                </div>
+              )}
+
+              {coeInfo.recommendations && (
+                <div>
+                  <p className="font-medium mb-2">Recommendations</p>
+                  <div className="bg-green-50 p-4 rounded border border-green-200">
+                    <p className="text-sm">{coeInfo.recommendations}</p>
+                  </div>
+                </div>
+              )}
+
+              {coeInfo.nextSteps && (
+                <div>
+                  <p className="font-medium mb-2">Next Steps</p>
+                  <div className="bg-purple-50 p-4 rounded border border-purple-200">
+                    <p className="text-sm">{coeInfo.nextSteps}</p>
+                  </div>
+                </div>
+              )}
+
+              {coeInfo.complianceNotes && (
+                <div>
+                  <p className="font-medium mb-2">Compliance Notes</p>
+                  <div className="bg-yellow-50 p-4 rounded border border-yellow-200">
+                    <p className="text-sm">{coeInfo.complianceNotes}</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </AdminLayout>
   );

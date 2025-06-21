@@ -1,42 +1,170 @@
 import { useQuery } from '@tanstack/react-query';
-import { useRoute } from 'wouter';
-import { ArrowLeft, Building, GraduationCap, Calendar, DollarSign, FileText, Phone, Mail, Globe, MapPin, User, Clock, BookOpen, Info, FileCheck, Shield } from 'lucide-react';
+import { useParams } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { 
+  Building, 
+  GraduationCap, 
+  Calendar, 
+  DollarSign, 
+  FileText, 
+  Phone, 
+  Mail, 
+  Globe, 
+  MapPin, 
+  User, 
+  Clock,
+  BookOpen,
+  Award,
+  Search,
+  Loader2,
+  ExternalLink,
+  Home,
+  Plane,
+  ArrowLeft
+} from 'lucide-react';
 import { AdminLayout } from '@/components/AdminLayout';
-import { format } from 'date-fns';
 import { Link } from 'wouter';
 
-// Helper component for consistent info display
-const InfoItem = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
-  <div className="flex items-start gap-3">
-    <div className="text-gray-500 mt-1">{icon}</div>
-    <div className="flex-1">
-      <p className="text-sm font-medium text-gray-900">{label}</p>
-      <p className="text-sm text-gray-600 mt-1">{value || 'Not specified in document'}</p>
-    </div>
-  </div>
-);
+// Helper function to format requirements text with proper lists and highlighting
+function formatRequirementsText(text: string | null): JSX.Element {
+  if (!text || text === 'Not specified') {
+    return <span className="text-gray-400 italic">Not specified</span>;
+  }
+
+  // Check for explicit list markers first
+  const hasExplicitListMarkers = /[•\-\*]\s/.test(text);
+  const hasNumberedList = /^\d+\.\s/.test(text);
+  const hasLetterList = /^\w\)\s/.test(text);
+  const hasLineBreaks = text.includes('\n');
+  
+  if (hasExplicitListMarkers || hasNumberedList || hasLetterList) {
+    // Split by list markers and preserve full content
+    const lines = text
+      .split(/(?=\s*[•\-\*]\s)|(?=\s*\d+\.\s)|(?=\s*\w\)\s)/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+    
+    if (lines.length > 1) {
+      return (
+        <ul className="space-y-2">
+          {lines.map((line, index) => (
+            <li key={index} className="flex items-start">
+              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2.5 mr-3 flex-shrink-0"></span>
+              <span className="leading-relaxed text-sm">{highlightImportantTerms(line)}</span>
+            </li>
+          ))}
+        </ul>
+      );
+    }
+  }
+
+  // Check for line breaks
+  if (hasLineBreaks) {
+    const lines = text.split('\n').filter(line => line.trim().length > 0);
+    if (lines.length > 1) {
+      return (
+        <ul className="space-y-2">
+          {lines.map((line, index) => (
+            <li key={index} className="flex items-start">
+              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2.5 mr-3 flex-shrink-0"></span>
+              <span className="leading-relaxed text-sm">{highlightImportantTerms(line)}</span>
+            </li>
+          ))}
+        </ul>
+      );
+    }
+  }
+
+  // Check for sentences separated by periods or semicolons only if text is very long
+  if (text.length > 200) {
+    const sentences = text.split(/\.\s+/).filter(s => s.trim().length > 20);
+    if (sentences.length > 2) {
+      return (
+        <ul className="space-y-2">
+          {sentences.map((sentence, index) => {
+            const cleanSentence = sentence.trim();
+            if (cleanSentence) {
+              return (
+                <li key={index} className="flex items-start">
+                  <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2.5 mr-3 flex-shrink-0"></span>
+                  <span className="leading-relaxed text-sm">{highlightImportantTerms(cleanSentence + '.')}</span>
+                </li>
+              );
+            }
+            return null;
+          })}
+        </ul>
+      );
+    }
+  }
+
+  return <div className="leading-relaxed text-sm">{highlightImportantTerms(text)}</div>;
+}
+
+// Helper function to highlight important terms and conditions
+function highlightImportantTerms(text: string): JSX.Element {
+  const importantTerms = [
+    'minimum', 'required', 'must', 'mandatory', 'deadline', 'fee', 'cost', 
+    'tuition', 'deposit', 'scholarship', 'IELTS', 'TOEFL', 'GPA', 'grade',
+    'certificate', 'transcript', 'visa', 'passport', 'insurance', 'accommodation',
+    'terms', 'conditions', 'policy', 'refund', 'withdrawal', 'academic', 'attendance'
+  ];
+
+  let highlightedText = text;
+  
+  importantTerms.forEach(term => {
+    const regex = new RegExp(`\\b${term}\\b`, 'gi');
+    highlightedText = highlightedText.replace(regex, `<mark class="bg-orange-100 text-orange-800 px-1 rounded">${term}</mark>`);
+  });
+
+  // Highlight monetary amounts
+  highlightedText = highlightedText.replace(/\$[\d,]+(?:\.\d{2})?/g, '<span class="bg-green-100 text-green-800 px-2 py-1 rounded font-medium">$&</span>');
+  
+  // Highlight percentages
+  highlightedText = highlightedText.replace(/\b\d+(?:\.\d+)?%/g, '<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded font-medium">$&</span>');
+  
+  // Highlight dates
+  highlightedText = highlightedText.replace(/\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}/g, '<span class="bg-purple-100 text-purple-800 px-2 py-1 rounded font-medium">$&</span>');
+
+  return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
+}
 
 export default function AdminOfferLetterDetails() {
-  const [match, params] = useRoute('/admin/offer-letter-details/:id');
-  const offerLetterId = params?.id;
+  const { id } = useParams<{ id: string }>();
 
   const { data: offerLetter, isLoading, error } = useQuery({
-    queryKey: [`/api/admin/offer-letter-info/${offerLetterId}`],
-    enabled: !!offerLetterId,
-  }) as { data: any; isLoading: boolean; error: any };
+    queryKey: ['/api/admin/offer-letter-info', id],
+    queryFn: async () => {
+      const response = await fetch(`/api/admin/offer-letter-info/${id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch offer letter details');
+      }
+      return response.json();
+    },
+    enabled: !!id,
+  });
 
   if (isLoading) {
     return (
       <AdminLayout>
-        <div className="space-y-6">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="h-48 bg-gray-200 rounded"></div>
-              <div className="h-48 bg-gray-200 rounded"></div>
+        <div className="container mx-auto p-6">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-muted rounded w-1/3"></div>
+            <div className="grid gap-6">
+              {[1, 2, 3].map((i) => (
+                <Card key={i}>
+                  <CardContent className="p-6">
+                    <div className="h-4 bg-muted rounded mb-4"></div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-muted rounded w-3/4"></div>
+                      <div className="h-3 bg-muted rounded w-1/2"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </div>
@@ -47,20 +175,16 @@ export default function AdminOfferLetterDetails() {
   if (error || !offerLetter) {
     return (
       <AdminLayout>
-        <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <Link href="/admin/information-reports">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Information Reports
+        <div className="container mx-auto p-6">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">Offer letter not found or access denied</p>
+              <Button asChild className="mt-4">
+                <Link href="/admin/information-reports">Back to Information Reports</Link>
               </Button>
-            </Link>
-          </div>
-          <div className="text-center py-12">
-            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Offer Letter Not Found</h3>
-            <p className="text-gray-600">The offer letter details could not be loaded.</p>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </AdminLayout>
     );
@@ -68,241 +192,316 @@ export default function AdminOfferLetterDetails() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/admin/information-reports">
-              <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/admin/information-reports">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Information Reports
-              </Button>
-            </Link>
+              </Link>
+            </Button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Offer Letter Details</h1>
-              <p className="text-gray-600">{offerLetter.fileName}</p>
+              <h1 className="text-3xl font-bold">Offer Letter Information</h1>
+              <p className="text-muted-foreground">{offerLetter.fileName}</p>
             </div>
           </div>
-          <Badge variant="outline" className="flex items-center gap-2">
+          <Badge variant="secondary" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            Offer Letter Information
+            Admin View
           </Badge>
         </div>
 
-        {/* Document Info */}
+        {/* Document Metadata */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Info className="h-5 w-5" />
+              <FileText className="h-5 w-5" />
               Document Information
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-4 gap-4">
-            <InfoItem 
-              icon={<FileText className="h-4 w-4" />}
-              label="File Name" 
-              value={offerLetter.fileName} 
-            />
-            <InfoItem 
-              icon={<User className="h-4 w-4" />}
-              label="User ID" 
-              value={offerLetter.userId?.toString()} 
-            />
-            <InfoItem 
-              icon={<Calendar className="h-4 w-4" />}
-              label="Upload Date" 
-              value={offerLetter.createdAt ? format(new Date(offerLetter.createdAt), 'MMM dd, yyyy HH:mm') : 'Not available'} 
-            />
-            <InfoItem 
-              icon={<Clock className="h-4 w-4" />}
-              label="Last Updated" 
-              value={offerLetter.updatedAt ? format(new Date(offerLetter.updatedAt), 'MMM dd, yyyy HH:mm') : 'Not available'} 
-            />
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <p className="font-medium text-muted-foreground">User ID</p>
+                <p className="font-semibold">{offerLetter.userId}</p>
+              </div>
+              <div>
+                <p className="font-medium text-muted-foreground">File Name</p>
+                <p className="font-semibold">{offerLetter.fileName}</p>
+              </div>
+              <div>
+                <p className="font-medium text-muted-foreground">Upload Date</p>
+                <p className="font-semibold">{offerLetter.createdAt ? new Date(offerLetter.createdAt).toLocaleDateString() : 'N/A'}</p>
+              </div>
+              <div>
+                <p className="font-medium text-muted-foreground">Status</p>
+                <Badge variant="outline">Active</Badge>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         {/* Institution Information */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5" />
-                Institution Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <InfoItem 
-                icon={<Building className="h-4 w-4" />}
-                label="Institution Name" 
-                value={offerLetter.institutionName} 
-              />
-              <InfoItem 
-                icon={<MapPin className="h-4 w-4" />}
-                label="Address" 
-                value={offerLetter.institutionAddress} 
-              />
-              <InfoItem 
-                icon={<Phone className="h-4 w-4" />}
-                label="Phone" 
-                value={offerLetter.institutionPhone} 
-              />
-              <InfoItem 
-                icon={<Mail className="h-4 w-4" />}
-                label="Email" 
-                value={offerLetter.institutionEmail} 
-              />
-              <InfoItem 
-                icon={<Globe className="h-4 w-4" />}
-                label="Website" 
-                value={offerLetter.institutionWebsite} 
-              />
-            </CardContent>
-          </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5 text-blue-600" />
+              Institution Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Institution Name</p>
+                <p className="font-semibold">{offerLetter.institutionName || 'Not specified'}</p>
+              </div>
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Address</p>
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                  <p>{offerLetter.institutionAddress || 'Not specified'}</p>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Contact Information</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <p>{offerLetter.institutionPhone || 'Not specified'}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <p>{offerLetter.institutionEmail || 'Not specified'}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    <p>{offerLetter.institutionWebsite || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Program Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5" />
-                Program Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <InfoItem 
-                icon={<BookOpen className="h-4 w-4" />}
-                label="Program Name" 
-                value={offerLetter.programName} 
-              />
-              <InfoItem 
-                icon={<GraduationCap className="h-4 w-4" />}
-                label="Program Level" 
-                value={offerLetter.programLevel} 
-              />
-              <InfoItem 
-                icon={<Calendar className="h-4 w-4" />}
-                label="Start Date" 
-                value={offerLetter.startDate} 
-              />
-              <InfoItem 
-                icon={<Calendar className="h-4 w-4" />}
-                label="End Date" 
-                value={offerLetter.endDate} 
-              />
-              <InfoItem 
-                icon={<Clock className="h-4 w-4" />}
-                label="Duration" 
-                value={offerLetter.duration} 
-              />
-            </CardContent>
-          </Card>
-        </div>
+        {/* Program Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5 text-green-600" />
+              Program Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Program Details</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-muted-foreground" />
+                    <p className="font-semibold">{offerLetter.programName || 'Not specified'}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                    <p>{offerLetter.programLevel || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Timeline</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <p>Start: {offerLetter.startDate || 'Not specified'}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <p>End: {offerLetter.endDate || 'Not specified'}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <p>Duration: {offerLetter.duration || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Financial Information */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
+              <DollarSign className="h-5 w-5 text-green-600" />
               Financial Information
             </CardTitle>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-3 gap-4">
-            <InfoItem 
-              icon={<DollarSign className="h-4 w-4" />}
-              label="Total Tuition" 
-              value={offerLetter.totalTuition} 
-            />
-            <InfoItem 
-              icon={<DollarSign className="h-4 w-4" />}
-              label="Application Fee" 
-              value={offerLetter.applicationFee} 
-            />
-            <InfoItem 
-              icon={<DollarSign className="h-4 w-4" />}
-              label="Deposit Required" 
-              value={offerLetter.depositRequired} 
-            />
-            <InfoItem 
-              icon={<Calendar className="h-4 w-4" />}
-              label="Payment Due Date" 
-              value={offerLetter.paymentDueDate} 
-            />
-            <InfoItem 
-              icon={<DollarSign className="h-4 w-4" />}
-              label="Scholarship Amount" 
-              value={offerLetter.scholarshipAmount} 
-            />
-            <InfoItem 
-              icon={<Info className="h-4 w-4" />}
-              label="Scholarship Conditions" 
-              value={offerLetter.scholarshipConditions} 
-            />
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign className="h-4 w-4 text-green-600" />
+                  <p className="font-medium text-green-800">Total Tuition</p>
+                </div>
+                <p className="text-lg font-bold text-green-900">{offerLetter.totalTuition || 'Not specified'}</p>
+              </div>
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign className="h-4 w-4 text-blue-600" />
+                  <p className="font-medium text-blue-800">Application Fee</p>
+                </div>
+                <p className="text-lg font-bold text-blue-900">{offerLetter.applicationFee || 'Not specified'}</p>
+              </div>
+              <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <DollarSign className="h-4 w-4 text-orange-600" />
+                  <p className="font-medium text-orange-800">Deposit Required</p>
+                </div>
+                <p className="text-lg font-bold text-orange-900">{offerLetter.depositRequired || 'Not specified'}</p>
+              </div>
+            </div>
+            
+            {/* Additional Financial Details */}
+            <div className="mt-6 space-y-4">
+              <div>
+                <p className="font-medium text-muted-foreground mb-2">Payment Information</p>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <p>Due Date: {offerLetter.paymentDueDate || 'Not specified'}</p>
+                  </div>
+                </div>
+              </div>
+              
+              {(offerLetter.scholarshipAmount || offerLetter.scholarshipConditions) && (
+                <div>
+                  <p className="font-medium text-muted-foreground mb-2">Scholarship Information</p>
+                  <div className="space-y-2">
+                    {offerLetter.scholarshipAmount && (
+                      <div className="flex items-center gap-2">
+                        <Award className="h-4 w-4 text-yellow-600" />
+                        <p>Amount: {offerLetter.scholarshipAmount}</p>
+                      </div>
+                    )}
+                    {offerLetter.scholarshipConditions && (
+                      <div>
+                        <p className="font-medium mb-1">Conditions:</p>
+                        <div className="bg-yellow-50 p-3 rounded border border-yellow-200">
+                          {formatRequirementsText(offerLetter.scholarshipConditions)}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
-        {/* Requirements & Compliance */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileCheck className="h-5 w-5" />
-                Requirements
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <InfoItem 
-                icon={<Info className="h-4 w-4" />}
-                label="Academic Requirements" 
-                value={offerLetter.academicRequirements} 
-              />
-              <InfoItem 
-                icon={<Globe className="h-4 w-4" />}
-                label="Language Requirements" 
-                value={offerLetter.languageRequirements} 
-              />
-              <InfoItem 
-                icon={<Shield className="h-4 w-4" />}
-                label="Visa Requirements" 
-                value={offerLetter.visaRequirements} 
-              />
-              <InfoItem 
-                icon={<FileText className="h-4 w-4" />}
-                label="Required Documents" 
-                value={offerLetter.requiredDocuments} 
-              />
-            </CardContent>
-          </Card>
+        {/* Requirements */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-purple-600" />
+              Requirements & Conditions
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {offerLetter.academicRequirements && (
+              <div>
+                <p className="font-medium mb-2">Academic Requirements</p>
+                <div className="bg-blue-50 p-4 rounded border border-blue-200">
+                  {formatRequirementsText(offerLetter.academicRequirements)}
+                </div>
+              </div>
+            )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Info className="h-5 w-5" />
-                Important Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <InfoItem 
-                icon={<Calendar className="h-4 w-4" />}
-                label="Acceptance Deadline" 
-                value={offerLetter.acceptanceDeadline} 
-              />
-              <InfoItem 
-                icon={<Info className="h-4 w-4" />}
-                label="Important Notes" 
-                value={offerLetter.importantNotes} 
-              />
-              <InfoItem 
-                icon={<FileText className="h-4 w-4" />}
-                label="Terms & Conditions" 
-                value={offerLetter.termsConditions} 
-              />
-              <InfoItem 
-                icon={<User className="h-4 w-4" />}
-                label="Contact Person" 
-                value={offerLetter.contactPerson} 
-              />
-            </CardContent>
-          </Card>
-        </div>
+            {offerLetter.languageRequirements && (
+              <div>
+                <p className="font-medium mb-2">Language Requirements</p>
+                <div className="bg-green-50 p-4 rounded border border-green-200">
+                  {formatRequirementsText(offerLetter.languageRequirements)}
+                </div>
+              </div>
+            )}
+
+            {offerLetter.visaRequirements && (
+              <div>
+                <p className="font-medium mb-2">Visa Requirements</p>
+                <div className="bg-purple-50 p-4 rounded border border-purple-200">
+                  {formatRequirementsText(offerLetter.visaRequirements)}
+                </div>
+              </div>
+            )}
+
+            {offerLetter.requiredDocuments && (
+              <div>
+                <p className="font-medium mb-2">Required Documents</p>
+                <div className="bg-gray-50 p-4 rounded border border-gray-200">
+                  {formatRequirementsText(offerLetter.requiredDocuments)}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Important Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-red-600" />
+              Important Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {offerLetter.acceptanceDeadline && (
+              <div>
+                <p className="font-medium mb-2">Acceptance Deadline</p>
+                <div className="bg-red-50 p-4 rounded border border-red-200">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-red-600" />
+                    <p className="font-semibold text-red-800">{offerLetter.acceptanceDeadline}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {offerLetter.importantNotes && (
+              <div>
+                <p className="font-medium mb-2">Important Notes</p>
+                <div className="bg-yellow-50 p-4 rounded border border-yellow-200">
+                  {formatRequirementsText(offerLetter.importantNotes)}
+                </div>
+              </div>
+            )}
+
+            {offerLetter.termsConditions && (
+              <div>
+                <p className="font-medium mb-2">Terms & Conditions</p>
+                <div className="bg-gray-50 p-4 rounded border border-gray-200">
+                  {formatRequirementsText(offerLetter.termsConditions)}
+                </div>
+              </div>
+            )}
+
+            {offerLetter.contactPerson && (
+              <div>
+                <p className="font-medium mb-2">Contact Person</p>
+                <div className="bg-blue-50 p-4 rounded border border-blue-200">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-blue-600" />
+                    <p>{offerLetter.contactPerson}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );
