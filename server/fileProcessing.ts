@@ -35,7 +35,7 @@ export async function extractTextFromDocument(
  * @param pdfBuffer The PDF file buffer
  * @returns Extracted text
  */
-async function extractTextFromPdf(pdfBuffer: Buffer): Promise<string> {
+export async function extractTextFromPdf(pdfBuffer: Buffer): Promise<string> {
   try {
     console.log('Using pdf-parse to extract text from PDF');
     

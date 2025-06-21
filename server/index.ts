@@ -185,7 +185,10 @@ function setupGracefulShutdown(server: any) {
     // Step 4: Register all routes
     logWithLevel('Registering application routes...');
     const server = await registerRoutes(app);
-    setupOfferLetterRoutes(app);
+    
+    // Import and register simplified offer letter routes
+    const { setupOfferLetterRoutesSimplified } = await import('./offerLetterRoutesSimplified');
+    setupOfferLetterRoutesSimplified(app);
     
     // Step 5: Setup error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
