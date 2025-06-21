@@ -531,21 +531,21 @@ function transformToNewStructure(
       uniqueOpportunities: analysis.personalizedInsights?.uniqueOpportunities || [`Leverage ${userProfile.nationality || 'your'} background for specific opportunities`]
     },
     actionPlan: {
-      immediateActions: (analysis.nextSteps?.immediate || ['Research target universities', 'Prepare application documents']).map(action => ({
+      immediateActions: (analysis.nextSteps?.immediate || ['Research target universities', 'Prepare application documents']).map((action: string) => ({
         action,
         deadline: 'Within 2-4 weeks',
         priority: 'High',
         specificSteps: ['Research requirements', 'Gather documents'],
         resources: ['University websites', 'Official guides']
       })),
-      shortTermGoals: (analysis.nextSteps?.shortTerm || ['Submit applications', 'Apply for scholarships']).map(goal => ({
+      shortTermGoals: (analysis.nextSteps?.shortTerm || ['Submit applications', 'Apply for scholarships']).map((goal: string) => ({
         goal,
         timeline: '3-6 months',
         milestones: ['Application submitted', 'Interviews completed'],
         requirements: ['Complete application', 'Meet deadlines'],
         successMetrics: ['Acceptance received', 'Scholarship awarded']
       })),
-      longTermStrategy: (analysis.nextSteps?.longTerm || ['Complete studies', 'Career development']).map(objective => ({
+      longTermStrategy: (analysis.nextSteps?.longTerm || ['Complete studies', 'Career development']).map((objective: string) => ({
         objective,
         timeframe: '2-4 years',
         keyActivities: ['Academic excellence', 'Industry networking'],
@@ -559,7 +559,7 @@ function transformToNewStructure(
         fundingGapAnalysis: `Based on ${userProfile.budgetRange || 'stated budget'}, evaluate funding options`,
         cashflowProjection: ['Year 1: $40,000', 'Year 2: $35,000']
       },
-      targetedScholarships: (analysis.budgetOptimization?.scholarshipOpportunities || ['Merit scholarships available']).map(scholarship => ({
+      targetedScholarships: (analysis.budgetOptimization?.scholarshipOpportunities || ['Merit scholarships available']).map((scholarship: string) => ({
         scholarshipName: scholarship,
         provider: 'University/Government',
         amount: '$5,000 - $15,000 annually',
@@ -568,7 +568,7 @@ function transformToNewStructure(
         competitiveness: 'Medium competition',
         applicationStrategy: ['Strong academic record', 'Compelling personal statement']
       })),
-      costOptimizationStrategies: (analysis.budgetOptimization?.costSavingStrategies || ['Research affordable housing options']).map(strategy => ({
+      costOptimizationStrategies: (analysis.budgetOptimization?.costSavingStrategies || ['Research affordable housing options']).map((strategy: string) => ({
         strategy,
         potentialSavings: '$5,000 - $10,000 annually',
         implementationSteps: ['Research options', 'Apply early'],

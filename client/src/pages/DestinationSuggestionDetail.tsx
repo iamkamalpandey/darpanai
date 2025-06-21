@@ -97,24 +97,72 @@ interface DestinationSuggestion {
   keyFactors: string[];
   recommendations: {
     personalizedInsights: {
-      strengthsAnalysis: string[];
-      improvementAreas: string[];
-      strategicRecommendations: string[];
+      profileStrengths: string[];
+      specificImprovementAreas: string[];
+      tailoredStrategicActions: string[];
+      uniqueOpportunities: string[];
     };
-    nextSteps: {
-      immediate: string[];
-      shortTerm: string[];
-      longTerm: string[];
+    actionPlan: {
+      immediateActions: Array<{
+        action: string;
+        deadline: string;
+        priority: string;
+        specificSteps: string[];
+        resources: string[];
+      }>;
+      shortTermGoals: Array<{
+        goal: string;
+        timeline: string;
+        milestones: string[];
+        requirements: string[];
+        successMetrics: string[];
+      }>;
+      longTermStrategy: Array<{
+        objective: string;
+        timeframe: string;
+        keyActivities: string[];
+        dependencies: string[];
+        expectedOutcomes: string[];
+      }>;
     };
-    budgetOptimization: {
-      costSavingStrategies: string[];
-      scholarshipOpportunities: string[];
-      financialPlanningTips: string[];
+    financialStrategy: {
+      personalizedBudgetPlan: {
+        totalInvestmentRequired: string;
+        fundingGapAnalysis: string;
+        cashflowProjection: string[];
+      };
+      targetedScholarships: Array<{
+        scholarshipName: string;
+        provider: string;
+        amount: string;
+        eligibilityMatch: string;
+        applicationDeadline: string;
+        competitiveness: string;
+        applicationStrategy: string[];
+      }>;
+      costOptimizationStrategies: Array<{
+        strategy: string;
+        potentialSavings: string;
+        implementationSteps: string[];
+        timeline: string;
+      }>;
     };
-    timeline: {
-      preparation: string;
-      application: string;
-      decisionMaking: string;
+    personlizedTimeline: {
+      preparationPhase: {
+        duration: string;
+        keyMilestones: string[];
+        criticalDeadlines: string[];
+      };
+      applicationPhase: {
+        duration: string;
+        applicationWindows: string[];
+        documentsRequired: string[];
+      };
+      decisionPhase: {
+        duration: string;
+        evaluationCriteria: string[];
+        finalSteps: string[];
+      };
     };
   };
   createdAt: string;
@@ -294,7 +342,7 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {(suggestion.recommendations?.personalizedInsights?.strengthsAnalysis || []).map((strength, i) => (
+                    {(suggestion.recommendations?.personalizedInsights?.profileStrengths || []).map((strength: string, i: number) => (
                       <li key={i} className="flex items-start">
                         <span className="text-green-500 mr-2">✓</span>
                         <span className="text-gray-700">{strength}</span>
@@ -310,7 +358,7 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {(suggestion.recommendations?.personalizedInsights?.improvementAreas || []).map((area, i) => (
+                    {(suggestion.recommendations?.personalizedInsights?.specificImprovementAreas || []).map((area: string, i: number) => (
                       <li key={i} className="flex items-start">
                         <span className="text-orange-500 mr-2">→</span>
                         <span className="text-gray-700">{area}</span>
@@ -326,7 +374,7 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {(suggestion.recommendations?.personalizedInsights?.strategicRecommendations || []).map((rec, i) => (
+                    {(suggestion.recommendations?.personalizedInsights?.tailoredStrategicActions || []).map((rec: string, i: number) => (
                       <li key={i} className="flex items-start">
                         <span className="text-blue-500 mr-2">•</span>
                         <span className="text-gray-700">{rec}</span>
@@ -347,10 +395,10 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {(suggestion.recommendations?.budgetOptimization?.costSavingStrategies || []).map((strategy, i) => (
+                    {(suggestion.recommendations?.financialStrategy?.costOptimizationStrategies || []).map((strategy: any, i: number) => (
                       <li key={i} className="flex items-start">
                         <span className="text-green-500 mr-2">💰</span>
-                        <span className="text-gray-700">{strategy}</span>
+                        <span className="text-gray-700">{typeof strategy === 'string' ? strategy : strategy.strategy}</span>
                       </li>
                     ))}
                   </ul>
