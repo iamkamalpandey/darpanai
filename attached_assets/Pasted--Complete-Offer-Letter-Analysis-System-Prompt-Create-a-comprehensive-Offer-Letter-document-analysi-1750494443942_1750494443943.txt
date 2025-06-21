@@ -1,0 +1,979 @@
+# Complete Offer Letter Analysis System Prompt
+
+Create a comprehensive Offer Letter document analysis system with the following specifications:
+
+## CORE FUNCTIONALITY
+Build an AI-powered Offer Letter analysis system that processes university offer letter documents and provides detailed strategic insights, institutional research, scholarship opportunities, and comparative analysis for international students. The system should handle PDF uploads, extract text content, generate structured analysis reports, and perform real-time web scraping for institutional data.
+
+## TECHNICAL ARCHITECTURE
+- **Frontend**: React with TypeScript, using shadcn/ui components
+- **Backend**: Express.js with PostgreSQL database using Drizzle ORM
+- **File Processing**: multer for uploads, pdf-parse for text extraction
+- **AI Integration**: Multi-model approach using OpenAI GPT-4o and Claude Anthropic for specialized analysis tasks
+- **Web Scraping**: Puppeteer/Playwright for institutional data collection
+- **Authentication**: Session-based auth with user quota management
+- **Caching**: Redis for institutional data and scholarship information
+
+## DATABASE SCHEMA
+Create `offer_letter_analyses` table with:
+- id (primary key)
+- userId (foreign key to users table)
+- fileName (original document name)
+- fileSize (document size in bytes)
+- documentText (extracted text content)
+- analysisResults (JSONB containing structured analysis)
+- gptAnalysisResults (JSONB containing OpenAI GPT analysis)
+- claudeAnalysisResults (JSONB containing Claude Anthropic analysis)
+- hybridAnalysisResults (JSONB containing combined AI insights)
+- institutionalData (JSONB containing scraped institutional information)
+- scholarshipData (JSONB containing available scholarships)
+- competitorAnalysis (JSONB containing similar institutions data)
+- tokensUsed (OpenAI API usage tracking)
+- claudeTokensUsed (Claude API usage tracking)
+- totalAiCost (combined AI processing cost)
+- processingTime (analysis duration in seconds)
+- scrapingTime (web scraping duration in seconds)
+- isPublic (boolean for admin visibility)
+- createdAt (timestamp)
+
+## ANALYSIS STRUCTURE
+The AI analysis should return structured JSON with these comprehensive sections:
+
+### 1. Institution Analysis
+```json
+{
+  "institutionDetails": {
+    "name": "institution name",
+    "tradingName": "trading name if different",
+    "address": {
+      "street": "street address",
+      "city": "city",
+      "state": "state/province",
+      "country": "country",
+      "postalCode": "postal code"
+    },
+    "registrations": {
+      "cricos": "CRICOS provider code",
+      "providerId": "provider ID",
+      "abn": "Australian Business Number",
+      "accreditation": "accreditation details"
+    },
+    "contactInformation": {
+      "phone": "contact phone",
+      "email": "admissions email",
+      "website": "official website"
+    },
+    "institutionType": "public|private|vocational",
+    "foundedYear": "establishment year",
+    "reputation": {
+      "ranking": "institutional ranking if available",
+      "accreditationBodies": ["list of accrediting bodies"],
+      "specializations": ["key areas of expertise"]
+    }
+  }
+}
+```
+
+### 2. Course Analysis
+```json
+{
+  "courseDetails": {
+    "program": {
+      "name": "full program name",
+      "specialization": "specialization if any",
+      "level": "bachelor|master|diploma|certificate",
+      "field": "field of study",
+      "mode": "full-time|part-time|online|blended"
+    },
+    "codes": {
+      "courseCode": "internal course code",
+      "cricosCode": "CRICOS course code"
+    },
+    "duration": {
+      "totalWeeks": "total duration in weeks",
+      "years": "duration in years",
+      "unitsTotal": "total units/subjects",
+      "creditsTotal": "total credit points"
+    },
+    "schedule": {
+      "orientationDate": "orientation date",
+      "startDate": "course start date",
+      "endDate": "expected completion date",
+      "studyPeriods": "number of study periods",
+      "periodsPerYear": "study periods per year"
+    },
+    "structure": {
+      "unitsPerYear": "units per year breakdown",
+      "creditTransfer": "credit transfer information",
+      "prerequisites": "prerequisite requirements",
+      "pathwayPrograms": "pathway program details"
+    },
+    "accreditation": {
+      "professionalBodies": ["professional accreditation bodies"],
+      "careerOutcomes": ["potential career paths"],
+      "industryConnections": ["industry partnerships"]
+    }
+  }
+}
+```
+
+### 3. Student Profile Analysis
+```json
+{
+  "studentProfile": {
+    "personalDetails": {
+      "name": "student name",
+      "dateOfBirth": "date of birth",
+      "gender": "gender",
+      "nationality": "country of citizenship",
+      "maritalStatus": "marital status"
+    },
+    "contact": {
+      "homeAddress": "full home address",
+      "phone": "contact number",
+      "email": "email address",
+      "emergencyContact": "emergency contact if available"
+    },
+    "identification": {
+      "studentId": "assigned student ID",
+      "passportNumber": "passport number",
+      "passportExpiry": "passport expiry date"
+    },
+    "agent": {
+      "agentName": "education agent name",
+      "agentContact": "agent contact details"
+    },
+    "supportNeeds": {
+      "academic": "academic support requirements",
+      "accessibility": "accessibility needs",
+      "cultural": "cultural support needs",
+      "services": ["additional services requested"]
+    }
+  }
+}
+```
+
+### 4. Financial Analysis
+```json
+{
+  "financialBreakdown": {
+    "tuitionFees": {
+      "perUnit": "fee per unit",
+      "upfrontFee": "initial payment required",
+      "totalFees": "total program cost",
+      "currency": "AUD|USD|CAD|etc"
+    },
+    "paymentSchedule": [
+      {
+        "studyPeriod": "study period number",
+        "amount": "payment amount",
+        "dueDate": "payment due date",
+        "description": "payment description"
+      }
+    ],
+    "additionalFees": {
+      "enrollmentFee": "enrollment fee",
+      "materialFee": "material/resource fee",
+      "administrativeFees": "other administrative fees",
+      "estimatedTotalCost": "total estimated cost including additional fees"
+    },
+    "scholarships": {
+      "offered": "scholarship amount if any",
+      "conditions": "scholarship conditions",
+      "renewalCriteria": "renewal requirements"
+    },
+    "paymentMethods": [
+      {
+        "method": "payment method type",
+        "details": "payment method details",
+        "fees": "associated fees"
+      }
+    ],
+    "costComparison": {
+      "marketAverage": "average cost for similar programs",
+      "competitivePosition": "expensive|moderate|affordable",
+      "valueAssessment": "value for money analysis"
+    }
+  }
+}
+```
+
+### 5. Offer Conditions Analysis
+```json
+{
+  "offerConditions": {
+    "academic": [
+      {
+        "condition": "specific academic requirement",
+        "deadline": "compliance deadline",
+        "documentation": "required documents",
+        "priority": "high|medium|low"
+      }
+    ],
+    "visa": [
+      {
+        "requirement": "visa-related requirement",
+        "authority": "relevant government department",
+        "timeline": "processing timeline",
+        "implications": "consequences of non-compliance"
+      }
+    ],
+    "health": [
+      {
+        "requirement": "health-related requirement",
+        "provider": "OSHC provider details",
+        "coverage": "coverage details",
+        "cost": "associated costs"
+      }
+    ],
+    "english": [
+      {
+        "requirement": "English proficiency requirement",
+        "acceptedTests": ["IELTS", "TOEFL", "PTE"],
+        "minimumScores": "minimum score requirements",
+        "alternatives": "alternative pathways"
+      }
+    ],
+    "other": [
+      {
+        "condition": "other specific conditions",
+        "category": "condition category",
+        "compliance": "compliance requirements"
+      }
+    ]
+  }
+}
+```
+
+### 6. Compliance & Legal Requirements
+```json
+{
+  "complianceRequirements": {
+    "studentVisa": {
+      "subclass": "visa subclass (e.g., 500)",
+      "conditions": ["list of visa conditions"],
+      "workRights": "work authorization details",
+      "familyRights": "dependent/family visa rights"
+    },
+    "academicProgress": {
+      "minimumRequirements": "minimum academic progress requirements",
+      "attendanceRequirements": "attendance percentage required",
+      "interventionStrategy": "academic intervention procedures",
+      "consequencesOfFailure": "consequences of non-compliance"
+    },
+    "esos": {
+      "framework": "ESOS framework applicability",
+      "studentRights": ["list of student rights"],
+      "providerObligations": ["list of provider obligations"],
+      "complaintProcedures": "complaint and appeal procedures"
+    },
+    "refundPolicy": [
+      {
+        "scenario": "refund scenario",
+        "percentage": "refund percentage",
+        "conditions": "conditions for refund",
+        "timeline": "refund processing time"
+      }
+    ]
+  }
+}
+```
+
+### 7. Institutional Research Data (Web Scraped)
+```json
+{
+  "institutionalResearch": {
+    "rankings": {
+      "global": "global university ranking",
+      "national": "national ranking",
+      "subjectSpecific": "subject-specific rankings",
+      "sources": ["ranking organization sources"]
+    },
+    "facilities": {
+      "campus": "campus facilities description",
+      "library": "library resources",
+      "laboratories": "laboratory facilities",
+      "accommodation": "on-campus accommodation options",
+      "studentServices": ["list of student services"]
+    },
+    "faculty": {
+      "totalFaculty": "number of faculty members",
+      "internationalFaculty": "percentage of international faculty",
+      "studentFacultyRatio": "student to faculty ratio",
+      "researchOutput": "research publications/achievements"
+    },
+    "studentBody": {
+      "totalEnrollment": "total student enrollment",
+      "internationalStudents": "number/percentage of international students",
+      "diversity": "diversity statistics",
+      "graduationRate": "graduation rate percentage"
+    },
+    "careerOutcomes": {
+      "employmentRate": "graduate employment rate",
+      "averageSalary": "average starting salary",
+      "topEmployers": ["list of top graduate employers"],
+      "industryConnections": ["industry partnership details"]
+    }
+  }
+}
+```
+
+### 8. Available Scholarships (Web Scraped)
+```json
+{
+  "availableScholarships": [
+    {
+      "name": "scholarship name",
+      "type": "merit|need-based|specific-criteria",
+      "amount": "scholarship amount/percentage",
+      "duration": "scholarship duration",
+      "eligibility": {
+        "academic": "academic requirements",
+        "nationality": "nationality restrictions",
+        "program": "program restrictions",
+        "other": "other eligibility criteria"
+      },
+      "application": {
+        "deadline": "application deadline",
+        "process": "application process",
+        "documents": ["required documents"],
+        "link": "application link"
+      },
+      "renewable": "renewal conditions",
+      "competitiveness": "high|medium|low",
+      "estimatedApplicants": "estimated number of applicants"
+    }
+  ]
+}
+```
+
+### 9. Competitor Analysis
+```json
+{
+  "competitorAnalysis": {
+    "similarInstitutions": [
+      {
+        "name": "institution name",
+        "location": "institution location",
+        "programCost": "similar program cost",
+        "duration": "program duration",
+        "ranking": "institutional ranking",
+        "advantages": ["competitive advantages"],
+        "disadvantages": ["potential disadvantages"],
+        "applicationDeadline": "application deadline",
+        "scholarships": "available scholarships",
+        "website": "institution website"
+      }
+    ],
+    "marketPosition": {
+      "costPosition": "expensive|moderate|affordable",
+      "qualityRating": "high|medium|standard",
+      "competitiveAdvantages": ["list of advantages"],
+      "potentialConcerns": ["list of concerns"]
+    }
+  }
+}
+```
+
+### 10. Strategic Analysis & Recommendations
+```json
+{
+  "strategicAnalysis": {
+    "strengths": [
+      {
+        "category": "academic|financial|location|career",
+        "strength": "specific strength",
+        "impact": "impact on student success",
+        "evidence": "supporting evidence"
+      }
+    ],
+    "concerns": [
+      {
+        "category": "financial|academic|visa|other",
+        "concern": "specific concern",
+        "severity": "high|medium|low",
+        "mitigation": "suggested mitigation strategy",
+        "timeline": "timeline for resolution"
+      }
+    ],
+    "opportunities": [
+      {
+        "opportunity": "identified opportunity",
+        "benefit": "potential benefit",
+        "requirements": "requirements to capitalize",
+        "timeline": "timeline to pursue"
+      }
+    ],
+    "recommendations": [
+      {
+        "category": "financial|academic|visa|career",
+        "recommendation": "specific recommendation",
+        "rationale": "reasoning behind recommendation",
+        "priority": "high|medium|low",
+        "timeline": "implementation timeline",
+        "resources": "required resources",
+        "expectedOutcome": "expected result"
+      }
+    ]
+  }
+}
+```
+
+### 11. Action Plan & Next Steps
+```json
+{
+  "actionPlan": {
+    "immediate": [
+      {
+        "action": "action item",
+        "description": "detailed description",
+        "deadline": "completion deadline",
+        "priority": "critical|high|medium",
+        "documents": ["required documents"],
+        "estimatedTime": "time required",
+        "dependencies": ["dependent actions"]
+      }
+    ],
+    "shortTerm": [
+      {
+        "action": "action within 1-3 months",
+        "description": "detailed description",
+        "timeline": "specific timeline",
+        "preparation": "preparation required"
+      }
+    ],
+    "longTerm": [
+      {
+        "action": "action within 3-12 months",
+        "description": "detailed description",
+        "milestones": ["key milestones"],
+        "planning": "planning considerations"
+      }
+    ]
+  }
+}
+```
+
+## MULTI-MODEL AI STRATEGY
+
+### OpenAI GPT-4o - Primary Roles:
+- **Structured Data Extraction**: Parsing offer letter details with high accuracy
+- **Financial Analysis**: Complex cost calculations and payment schedule analysis
+- **Code Generation**: Creating dynamic charts and financial projections
+- **Market Research Integration**: Processing large datasets of institutional comparisons
+- **Predictive Modeling**: ROI calculations and success probability scoring
+- **Multi-language Support**: Handling documents in various languages
+
+### Claude Anthropic - Primary Roles:
+- **Strategic Analysis & Recommendations**: Providing nuanced educational guidance
+- **Risk Assessment**: Comprehensive evaluation of academic, financial, and visa risks
+- **Policy Interpretation**: Understanding complex visa and educational regulations
+- **Ethical Considerations**: Ensuring recommendations align with student best interests
+- **Long-form Content Generation**: Creating detailed reports and action plans
+- **Critical Thinking**: Identifying potential concerns and alternative perspectives
+
+### Hybrid Analysis Approach:
+```javascript
+const performHybridAnalysis = async (documentText, institutionalData) => {
+  // Parallel processing for efficiency
+  const [gptAnalysis, claudeAnalysis] = await Promise.all([
+    
+    // OpenAI GPT-4o Analysis
+    openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{
+        role: "system",
+        content: `You are a financial analyst and data extraction expert specializing in international education documents.
+        
+        Focus on:
+        1. Precise data extraction from offer letters
+        2. Financial calculations and projections
+        3. Market comparison analysis
+        4. Scholarship opportunity identification
+        5. Cost-benefit analysis with ROI projections
+        
+        Extract and analyze all numerical data, dates, financial information, and institutional details.
+        Provide structured JSON output with precise calculations.`
+      }, {
+        role: "user",
+        content: `Analyze this offer letter document: ${documentText}`
+      }],
+      temperature: 0.1, // Low temperature for precision
+      response_format: { type: "json_object" }
+    }),
+    
+    // Claude Anthropic Analysis
+    anthropic.messages.create({
+      model: "claude-3-sonnet-20240229",
+      max_tokens: 4000,
+      messages: [{
+        role: "user",
+        content: `You are an expert international education consultant with deep knowledge of global education systems, visa regulations, and student welfare.
+
+        Focus on:
+        1. Strategic educational guidance and recommendations
+        2. Risk assessment (academic, financial, visa, career)
+        3. Policy and regulatory interpretation
+        4. Ethical considerations in educational choices
+        5. Long-term career impact analysis
+        6. Alternative pathway suggestions
+        
+        Provide thoughtful, nuanced analysis considering the student's long-term success and well-being.
+        
+        Document to analyze: ${documentText}
+        
+        Additional context: ${institutionalData}`
+      }],
+      temperature: 0.3 // Slightly higher for creative insights
+    })
+  ]);
+  
+  // Combine insights using both models
+  const hybridInsights = await synthesizeAnalysis(gptAnalysis, claudeAnalysis);
+  
+  return {
+    gptAnalysis,
+    claudeAnalysis,
+    hybridInsights
+  };
+};
+```
+
+## AI PROMPT ENGINEERING
+### OpenAI GPT-4o Specialized Prompts:
+
+#### Financial Analysis Prompt:
+```
+You are a financial analyst specializing in international education costs and ROI analysis.
+
+DOCUMENT CONTENT:
+{documentText}
+
+MARKET DATA:
+{competitorPricingData}
+
+EXCHANGE RATES:
+{currentExchangeRates}
+
+Extract and analyze ALL financial information with mathematical precision:
+
+1. Parse exact fee structures and payment schedules
+2. Calculate total cost of education including hidden fees
+3. Perform market comparison analysis
+4. Identify cost optimization opportunities
+5. Generate ROI projections based on career outcomes
+6. Analyze scholarship opportunities and eligibility
+
+Return structured JSON with:
+- Precise financial breakdowns
+- Market positioning analysis
+- Cost optimization recommendations
+- ROI calculations with multiple scenarios
+- Scholarship matching results
+
+Focus on numerical accuracy and data-driven insights.
+```
+
+#### Data Extraction Prompt:
+```
+You are an expert document parser specializing in educational documents.
+
+DOCUMENT CONTENT:
+{documentText}
+
+Extract ALL structured data with 100% accuracy:
+
+1. Institution details (names, codes, addresses, contact info)
+2. Course information (codes, duration, structure, requirements)
+3. Student details (personal info, identification, requirements)
+4. Dates and deadlines (all critical dates with exact formatting)
+5. Payment schedules (amounts, due dates, methods)
+6. Conditions and requirements (academic, visa, health, English)
+
+Return structured JSON with every data point accurately extracted.
+Ensure all dates are in ISO format and all amounts include currency.
+Flag any ambiguous or unclear information for human review.
+```
+
+### Claude Anthropic Specialized Prompts:
+
+#### Strategic Analysis Prompt:
+```
+You are an expert international education consultant with 20+ years of experience guiding students through complex educational decisions.
+
+OFFER LETTER CONTENT:
+{documentText}
+
+INSTITUTIONAL RESEARCH:
+{institutionalData}
+
+STUDENT PROFILE:
+{studentBackground}
+
+Provide comprehensive strategic analysis considering:
+
+1. Long-term career implications and market trends
+2. Comprehensive risk assessment (academic, financial, visa, career)
+3. Alternative pathway analysis
+4. Cultural and social integration considerations
+5. Return on investment beyond just financial metrics
+6. Ethical considerations in educational choices
+
+Your analysis should be:
+- Nuanced and considering multiple perspectives
+- Focused on student's long-term success and well-being
+- Aware of potential challenges and mitigation strategies
+- Balanced between opportunities and realistic concerns
+
+Provide strategic recommendations that prioritize the student's holistic development and future success.
+```
+
+#### Risk Assessment Prompt:
+```
+You are a risk analyst specializing in international education and immigration.
+
+DOCUMENT ANALYSIS:
+{documentText}
+
+CURRENT REGULATIONS:
+{visaAndEducationPolicies}
+
+MARKET CONDITIONS:
+{educationMarketTrends}
+
+Conduct comprehensive risk assessment across:
+
+1. Financial Risk Analysis
+   - Market volatility impact
+   - Exchange rate considerations
+   - Hidden cost identification
+   - Financial sustainability assessment
+
+2. Academic Risk Analysis
+   - Institution stability and reputation
+   - Program quality and outcomes
+   - Academic progression requirements
+   - Support system adequacy
+
+3. Visa and Legal Risk Analysis
+   - Compliance requirements complexity
+   - Policy change implications
+   - Documentation completeness
+   - Timeline feasibility
+
+4. Career Risk Analysis
+   - Industry demand projections
+   - Skill market saturation
+   - Geographic employment limitations
+   - Professional recognition challenges
+
+Provide detailed mitigation strategies for each identified risk.
+```
+
+### Hybrid Synthesis Prompt:
+```
+You are an AI coordinator tasked with synthesizing insights from multiple AI analyses.
+
+GPT-4O ANALYSIS:
+{gptAnalysisResults}
+
+CLAUDE ANALYSIS:
+{claudeAnalysisResults}
+
+ADDITIONAL DATA:
+{webScrapedData}
+
+Create a unified, comprehensive analysis that:
+1. Combines the precision of GPT's data analysis with Claude's strategic insights
+2. Resolves any conflicting recommendations through weighted decision criteria
+3. Presents a coherent narrative that serves the student's best interests
+4. Provides confidence scores for each recommendation
+5. Identifies areas where human expert consultation is recommended
+
+Output format:
+- Executive Summary with unified recommendations
+- Detailed analysis sections combining both AI perspectives
+- Confidence ratings for each major recommendation
+- Escalation flags for complex decisions requiring human expertise
+```
+
+### Legacy Comprehensive Prompt (Maintained for Reference):
+
+```
+You are an expert international education consultant and institutional researcher analyzing an Offer Letter document for an international student. Your analysis should be comprehensive, strategic, and actionable.
+
+DOCUMENT CONTENT:
+{documentText}
+
+INSTITUTIONAL RESEARCH DATA:
+{scrapedInstitutionalData}
+
+SCHOLARSHIP INFORMATION:
+{scrapedScholarshipData}
+
+COMPETITOR DATA:
+{competitorAnalysisData}
+
+Analyze this offer letter comprehensively and provide strategic insights that will help the student make an informed decision about their international education journey.
+
+[JSON structure remains the same as previously defined]
+
+Focus on:
+1. Comprehensive financial analysis including hidden costs
+2. Detailed compliance requirements and deadlines
+3. Strategic recommendations based on market comparison
+4. Actionable next steps with specific timelines
+5. Risk assessment and mitigation strategies
+6. Scholarship opportunities and alternative funding
+7. Career outcomes and return on investment
+8. Competitive positioning in the education market
+```
+
+## AI MODEL SELECTION LOGIC
+
+### Routing Algorithm:
+```javascript
+const selectOptimalAIModel = (analysisType, documentComplexity, userPreferences) => {
+  const strategies = {
+    'financial_analysis': {
+      primary: 'gpt-4o',
+      secondary: 'claude-3-sonnet',
+      reason: 'GPT-4o excels at numerical precision and calculations'
+    },
+    'strategic_planning': {
+      primary: 'claude-3-sonnet',
+      secondary: 'gpt-4o',
+      reason: 'Claude provides nuanced strategic thinking and risk assessment'
+    },
+    'document_extraction': {
+      primary: 'gpt-4o',
+      secondary: null,
+      reason: 'GPT-4o superior for structured data extraction'
+    },
+    'risk_assessment': {
+      primary: 'claude-3-sonnet',
+      secondary: 'gpt-4o',
+      reason: 'Claude better at identifying nuanced risks and ethical considerations'
+    },
+    'market_comparison': {
+      primary: 'gpt-4o',
+      secondary: 'claude-3-sonnet',
+      reason: 'GPT-4o handles large datasets and comparative analysis better'
+    },
+    'regulatory_interpretation': {
+      primary: 'claude-3-sonnet',
+      secondary: 'gpt-4o',
+      reason: 'Claude excels at policy interpretation and compliance guidance'
+    }
+  };
+  
+  return strategies[analysisType] || strategies['strategic_planning'];
+};
+```
+
+### Quality Assurance Through AI Consensus:
+```javascript
+const validateAnalysisConsensus = async (gptResults, claudeResults) => {
+  const consensusCheck = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [{
+      role: "system",
+      content: "You are a quality assurance specialist. Compare these two AI analyses and identify any significant discrepancies or contradictions."
+    }, {
+      role: "user",
+      content: `
+        GPT Analysis: ${JSON.stringify(gptResults)}
+        Claude Analysis: ${JSON.stringify(claudeResults)}
+        
+        Identify discrepancies and provide a confidence-weighted synthesis.
+      `
+    }]
+  });
+  
+  return consensusCheck;
+};
+```
+
+## WEB SCRAPING MODULES
+
+### Institution Data Scraper
+```javascript
+const scrapeInstitutionalData = async (institutionWebsite) => {
+  // Scrape university ranking data
+  // Extract faculty information
+  // Collect student demographics
+  // Gather facility information
+  // Analyze course offerings
+  // Research industry partnerships
+}
+```
+
+### Scholarship Data Scraper
+```javascript
+const scrapeScholarshipData = async (institutionWebsite, courseLevel, nationality) => {
+  // Extract available scholarships
+  // Collect eligibility criteria
+  // Gather application deadlines
+  // Analyze award amounts
+  // Research renewal conditions
+  // Find application links
+}
+```
+
+### Competitor Analysis Scraper
+```javascript
+const scrapeCompetitorData = async (courseField, location, programLevel) => {
+  // Identify similar institutions
+  // Compare tuition fees
+  // Analyze program structures
+  // Research ranking positions
+  // Collect application requirements
+  // Extract scholarship offerings
+}
+```
+
+## FRONTEND COMPONENTS
+
+### 1. Enhanced Upload Interface
+- Drag-and-drop with preview
+- Multi-file support for related documents
+- Real-time validation and processing status
+- Progress indicators for all analysis stages
+- Error handling with detailed feedback
+
+### 2. Comprehensive Analysis Dashboard
+- Executive summary with visual indicators
+- Tabbed interface (Institution | Course | Financial | Compliance | Recommendations)
+- Interactive charts and comparisons
+- Downloadable comprehensive reports
+- Sharing functionality with privacy controls
+
+### 3. Scholarship Discovery Interface
+- Filtered scholarship listings
+- Eligibility matching system
+- Application deadline tracking
+- Bookmark and favorites system
+- Direct application links
+
+### 4. Competitor Comparison Tool
+- Side-by-side institution comparison
+- Cost-benefit analysis charts
+- Program structure comparisons
+- Ranking and reputation analysis
+- Alternative recommendations
+
+## API ENDPOINTS
+
+### Core Analysis Endpoints
+- `POST /api/offer-analysis` - Upload and analyze offer letter (multi-AI processing)
+- `GET /api/offer-analyses` - List user's analyses
+- `GET /api/offer-analyses/:id` - Get specific analysis
+- `PUT /api/offer-analyses/:id` - Update analysis
+- `DELETE /api/offer-analyses/:id` - Delete analysis
+
+### AI Processing Endpoints  
+- `POST /api/ai/gpt-analysis` - Process with OpenAI GPT-4o
+- `POST /api/ai/claude-analysis` - Process with Claude Anthropic
+- `POST /api/ai/hybrid-analysis` - Combined multi-model analysis
+- `GET /api/ai/model-recommendations` - Get optimal AI model for task
+- `POST /api/ai/consensus-check` - Validate analysis consensus
+
+### Research Endpoints
+- `GET /api/institutional-research/:institutionId` - Get institution data
+- `GET /api/scholarships/:institutionId` - Get scholarship information
+- `GET /api/competitors/:field/:level` - Get competitor analysis
+- `POST /api/research/refresh` - Refresh scraped data
+
+### Utility Endpoints
+- `GET /api/user/stats` - User quota and usage statistics
+- `GET /api/ai/usage-stats` - AI model usage and costs
+- `GET /api/market/trends` - Education market trends
+- `GET /api/currency/rates` - Current exchange rates
+- `GET /api/visa/requirements` - Visa requirement updates
+
+## ADVANCED FEATURES
+
+### 1. AI-Powered Multi-Model Insights
+- **Hybrid Analysis**: Combines GPT-4o's precision with Claude's strategic thinking
+- **Specialized Task Routing**: Automatically selects optimal AI model for each analysis component
+- **Consensus Validation**: Cross-validates findings between AI models for higher accuracy
+- **Confidence Scoring**: Provides confidence levels for each recommendation
+- **Human-AI Collaboration**: Flags complex cases requiring expert consultation
+
+### 2. Enhanced Decision Intelligence
+- Predictive career outcome analysis
+- Personalized scholarship matching
+- Advanced risk assessment modeling
+- Market trend integration
+- Success probability scoring
+
+### 2. Real-time Updates
+- Scholarship deadline notifications
+- Visa requirement changes
+- Exchange rate fluctuations
+- Institution ranking updates
+- Market condition changes
+
+### 3. Collaborative Features
+- Family/guardian sharing access
+- Education consultant collaboration
+- Peer student networking
+- Alumni connections
+- Expert consultation booking
+
+### 4. Decision Support Tools
+- Multi-criteria decision analysis
+- Cost-benefit calculators
+- ROI projections
+- Timeline planning tools
+- Scenario modeling
+
+## SECURITY & PRIVACY
+
+### Data Protection
+- End-to-end encryption for sensitive documents
+- GDPR/Privacy Act compliance
+- Secure file storage with automatic deletion
+- User consent management
+- Data anonymization for analytics
+
+### Access Control
+- Role-based permissions (student/consultant/admin)
+- Secure sharing with expiration dates
+- Audit logging for all actions
+- Two-factor authentication
+- Session management
+
+## PERFORMANCE OPTIMIZATION
+
+### Caching Strategy
+- Redis caching for institutional data
+- CDN for static resources
+- Database query optimization
+- Lazy loading for large datasets
+- Background processing for heavy operations
+
+### Scalability
+- Microservices architecture
+- Load balancing for web scraping
+- Database sharding for large datasets
+- Auto-scaling for peak demand
+- Queue management for processing
+
+## QUALITY ASSURANCE
+
+### Data Accuracy
+- Multi-source verification
+- Automated fact-checking
+- Regular data freshness audits
+- User feedback integration
+- Error reporting and correction
+
+### Analysis Validation
+- Cross-validation with multiple AI models
+- Expert review for complex cases
+- Continuous model improvement
+- A/B testing for recommendations
+- Outcome tracking and optimization
+
+This comprehensive system provides international students with detailed, strategic analysis of their offer letters, helping them make informed decisions about their education investments while identifying opportunities for funding and comparing alternatives in the competitive international education market.

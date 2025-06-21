@@ -307,43 +307,34 @@ export const userUpdateViews = pgTable("user_update_views", {
 });
 
 // Offer Letter Analysis
+// Comprehensive Offer Letter Analysis with Multi-AI Integration
 export const offerLetterAnalyses = pgTable("offer_letter_analyses", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
-  filename: text("filename").notNull(),
+  fileName: text("file_name").notNull(),
   fileSize: integer("file_size").notNull(),
-  originalText: text("original_text").notNull(),
+  documentText: text("document_text").notNull(),
   
-  // University Information
-  universityName: text("university_name"),
-  universityLocation: text("university_location"),
-  program: text("program"),
-  tuition: text("tuition"),
-  duration: text("duration"),
+  // Multi-AI Analysis Results
+  analysisResults: jsonb("analysis_results"), // Combined final analysis
+  gptAnalysisResults: jsonb("gpt_analysis_results"), // OpenAI GPT-4o analysis
+  claudeAnalysisResults: jsonb("claude_analysis_results"), // Claude Anthropic analysis
+  hybridAnalysisResults: jsonb("hybrid_analysis_results"), // Combined AI insights
   
-  // Profile Analysis
-  academicStanding: text("academic_standing"),
-  gpa: text("gpa"),
-  financialStatus: text("financial_status"),
-  relevantSkills: jsonb("relevant_skills"),
-  strengths: jsonb("strengths"),
-  weaknesses: jsonb("weaknesses"),
+  // Scraped Data
+  institutionalData: jsonb("institutional_data"), // Scraped institutional information
+  scholarshipData: jsonb("scholarship_data"), // Available scholarships
+  competitorAnalysis: jsonb("competitor_analysis"), // Similar institutions data
   
-  // Scholarship Opportunities (JSONB for structured data)
-  scholarshipOpportunities: jsonb("scholarship_opportunities"),
+  // AI Processing Metrics
+  tokensUsed: integer("tokens_used"), // OpenAI API usage tracking
+  claudeTokensUsed: integer("claude_tokens_used"), // Claude API usage tracking
+  totalAiCost: text("total_ai_cost"), // Combined AI processing cost
+  processingTime: integer("processing_time"), // Analysis duration in seconds
+  scrapingTime: integer("scraping_time"), // Web scraping duration in seconds
   
-  // Cost Saving Strategies (JSONB for structured data)
-  costSavingStrategies: jsonb("cost_saving_strategies"),
-  
-  // Recommendations and Next Steps (JSONB for complex structures)
-  recommendations: jsonb("recommendations"),
-  nextSteps: jsonb("next_steps"),
-  
-  // Analysis metadata
-  analysisResults: jsonb("analysis_results"), // Complete OpenAI response
-  tokensUsed: integer("tokens_used"),
-  processingTime: integer("processing_time"), // in milliseconds
-  isPublic: boolean("is_public").default(false).notNull(),
+  // Metadata
+  isPublic: boolean("is_public").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
