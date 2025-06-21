@@ -59,7 +59,7 @@ const ProfilePageRedesign = lazy(() => import("@/components/ProfilePageRedesign"
 const OfferLetterInfo = lazy(() => import("@/pages/OfferLetterInfo"));
 const OfferLetterDetails = lazy(() => import("@/pages/OfferLetterDetails"));
 const CoeInformation = lazy(() => import("@/pages/CoeInformation"));
-const CoeDetails = lazy(() => import("@/pages/CoeDetails"));
+const CoeDetails = lazy(() => import("@/pages/CoeDetailsNew"));
 
 // Loading fallback component
 const LoadingFallback = () => (
