@@ -1,7 +1,7 @@
 import { 
   users, analyses, appointments, professionalApplications, updates, userUpdateViews,
   documentTemplates, documentChecklists, enrollmentAnalyses, documentCategories, documentTypes,
-  analysisFeedback, offerLetterAnalyses, studyDestinationSuggestions, countries,
+  analysisFeedback, offerLetterAnalyses,
   type User, type InsertUser, type Analysis, type InsertAnalysis, 
   type Appointment, type InsertAppointment, type LoginUser,
   type ProfessionalApplication, type InsertProfessionalApplication,
@@ -12,9 +12,7 @@ import {
   type DocumentCategory, type InsertDocumentCategory,
   type DocumentType, type InsertDocumentType,
   type AnalysisFeedback, type InsertAnalysisFeedback,
-  type OfferLetterAnalysis, type InsertOfferLetterAnalysis,
-  type StudyDestinationSuggestion, type InsertStudyDestinationSuggestion,
-  type Country, type InsertCountry
+  type OfferLetterAnalysis, type InsertOfferLetterAnalysis
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, isNull, isNotNull, sql, or, gt } from "drizzle-orm";
