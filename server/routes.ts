@@ -2893,6 +2893,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get specific COE information by ID (admin only)
+  app.get('/api/admin/coe-info/:id', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid COE ID' });
+      }
+
+      const coeInfo = await storage.getCoeInfoById(id);
+
+      if (!coeInfo) {
+        return res.status(404).json({ error: 'COE information not found' });
+      }
+
+      res.json(coeInfo);
+
+    } catch (error) {
+      console.error('Error fetching admin COE info:', error);
+      res.status(500).json({ error: 'Failed to fetch COE information' });
+    }
+  });
+
   // Analysis Feedback API Routes
   // Submit feedback for an analysis
   app.post('/api/analyses/:id/feedback', requireAuth, async (req: Request, res: Response) => {

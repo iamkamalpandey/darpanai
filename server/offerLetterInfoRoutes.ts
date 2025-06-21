@@ -152,4 +152,32 @@ export function setupOfferLetterInfoRoutes(app: any) {
       res.status(500).json({ error: 'Failed to fetch offer letter information' });
     }
   });
+
+  // Admin route - get specific offer letter information by ID
+  app.get('/api/admin/offer-letter-info/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = req.user as any;
+
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid offer letter ID' });
+      }
+
+      const info = await offerLetterInfoStorage.getOfferLetterInfoById(id);
+
+      if (!info) {
+        return res.status(404).json({ error: 'Offer letter information not found' });
+      }
+
+      res.json(info);
+
+    } catch (error) {
+      console.error('Error fetching admin offer letter info:', error);
+      res.status(500).json({ error: 'Failed to fetch offer letter information' });
+    }
+  });
 }
