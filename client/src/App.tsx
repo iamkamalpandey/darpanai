@@ -416,6 +416,20 @@ function Router() {
           </Suspense>
         )} />
       </Route>
+      <Route path="/admin/offer-letter-details/:id">
+        <AdminProtectedRoute path="/admin/offer-letter-details/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminOfferLetterDetails />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/coe-details/:id">
+        <AdminProtectedRoute path="/admin/coe-details/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminCoeDetails />
+          </Suspense>
+        )} />
+      </Route>
       
       {/* 404 Route */}
       <Route component={NotFound} />
