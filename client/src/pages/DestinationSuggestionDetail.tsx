@@ -411,10 +411,17 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {(suggestion.recommendations?.budgetOptimization?.scholarshipOpportunities || []).map((scholarship, i) => (
+                    {(suggestion.recommendations?.financialStrategy?.targetedScholarships || []).map((scholarship: any, i: number) => (
                       <li key={i} className="flex items-start">
                         <span className="text-blue-500 mr-2">🎓</span>
-                        <span className="text-gray-700">{scholarship}</span>
+                        <div className="text-gray-700">
+                          <div className="font-medium">{typeof scholarship === 'string' ? scholarship : scholarship.scholarshipName}</div>
+                          {typeof scholarship === 'object' && (
+                            <div className="text-sm text-gray-500">
+                              {scholarship.amount} • {scholarship.competitiveness} competition
+                            </div>
+                          )}
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -427,12 +434,18 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {(suggestion.recommendations?.budgetOptimization?.financialPlanningTips || []).map((tip, i) => (
+                    {(suggestion.recommendations?.financialStrategy?.personalizedBudgetPlan?.cashflowProjection || []).map((tip: string, i: number) => (
                       <li key={i} className="flex items-start">
-                        <span className="text-purple-500 mr-2">💡</span>
+                        <span className="text-purple-500 mr-2">📊</span>
                         <span className="text-gray-700">{tip}</span>
                       </li>
                     ))}
+                    {suggestion.recommendations?.financialStrategy?.personalizedBudgetPlan?.fundingGapAnalysis && (
+                      <li className="flex items-start">
+                        <span className="text-purple-500 mr-2">💡</span>
+                        <span className="text-gray-700">{suggestion.recommendations.financialStrategy.personalizedBudgetPlan.fundingGapAnalysis}</span>
+                      </li>
+                    )}
                   </ul>
                 </CardContent>
               </Card>
@@ -453,15 +466,39 @@ export default function DestinationSuggestionDetail() {
                   <div className="grid gap-4">
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <h4 className="font-semibold text-blue-700 mb-2">Preparation Phase</h4>
-                      <p className="text-gray-700">{suggestion.recommendations?.timeline?.preparation || 'Timeline information not available'}</p>
+                      <p className="text-gray-700">{suggestion.recommendations?.personlizedTimeline?.preparationPhase?.duration || 'Timeline information not available'}</p>
+                      <div className="mt-2">
+                        <span className="text-sm font-medium text-blue-600">Key Milestones:</span>
+                        <ul className="text-sm text-gray-600 mt-1">
+                          {(suggestion.recommendations?.personlizedTimeline?.preparationPhase?.keyMilestones || []).map((milestone: string, i: number) => (
+                            <li key={i}>• {milestone}</li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                     <div className="bg-green-50 p-4 rounded-lg">
                       <h4 className="font-semibold text-green-700 mb-2">Application Phase</h4>
-                      <p className="text-gray-700">{suggestion.recommendations?.timeline?.application || 'Timeline information not available'}</p>
+                      <p className="text-gray-700">{suggestion.recommendations?.personlizedTimeline?.applicationPhase?.duration || 'Timeline information not available'}</p>
+                      <div className="mt-2">
+                        <span className="text-sm font-medium text-green-600">Application Windows:</span>
+                        <ul className="text-sm text-gray-600 mt-1">
+                          {(suggestion.recommendations?.personlizedTimeline?.applicationPhase?.applicationWindows || []).map((window: string, i: number) => (
+                            <li key={i}>• {window}</li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                     <div className="bg-purple-50 p-4 rounded-lg">
                       <h4 className="font-semibold text-purple-700 mb-2">Decision Making</h4>
-                      <p className="text-gray-700">{suggestion.recommendations?.timeline?.decisionMaking || 'Timeline information not available'}</p>
+                      <p className="text-gray-700">{suggestion.recommendations?.personlizedTimeline?.decisionPhase?.duration || 'Timeline information not available'}</p>
+                      <div className="mt-2">
+                        <span className="text-sm font-medium text-purple-600">Final Steps:</span>
+                        <ul className="text-sm text-gray-600 mt-1">
+                          {(suggestion.recommendations?.personlizedTimeline?.decisionPhase?.finalSteps || []).map((step: string, i: number) => (
+                            <li key={i}>• {step}</li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -478,10 +515,17 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {(suggestion.recommendations?.nextSteps?.immediate || []).map((step, i) => (
+                    {(suggestion.recommendations?.actionPlan?.immediateActions || []).map((step: any, i: number) => (
                       <li key={i} className="flex items-start">
                         <span className="text-red-500 mr-2">🔥</span>
-                        <span className="text-gray-700">{step}</span>
+                        <div className="text-gray-700">
+                          <div className="font-medium">{typeof step === 'string' ? step : step.action}</div>
+                          {typeof step === 'object' && (
+                            <div className="text-sm text-gray-500 mt-1">
+                              Priority: {step.priority} • Deadline: {step.deadline}
+                            </div>
+                          )}
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -494,10 +538,17 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {(suggestion.recommendations?.nextSteps?.shortTerm || []).map((step, i) => (
+                    {(suggestion.recommendations?.actionPlan?.shortTermGoals || []).map((step: any, i: number) => (
                       <li key={i} className="flex items-start">
                         <span className="text-orange-500 mr-2">📅</span>
-                        <span className="text-gray-700">{step}</span>
+                        <div className="text-gray-700">
+                          <div className="font-medium">{typeof step === 'string' ? step : step.goal}</div>
+                          {typeof step === 'object' && (
+                            <div className="text-sm text-gray-500 mt-1">
+                              Timeline: {step.timeline}
+                            </div>
+                          )}
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -510,10 +561,17 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {(suggestion.recommendations?.nextSteps?.longTerm || []).map((step, i) => (
+                    {(suggestion.recommendations?.actionPlan?.longTermStrategy || []).map((step: any, i: number) => (
                       <li key={i} className="flex items-start">
                         <span className="text-green-500 mr-2">🎯</span>
-                        <span className="text-gray-700">{step}</span>
+                        <div className="text-gray-700">
+                          <div className="font-medium">{typeof step === 'string' ? step : step.objective}</div>
+                          {typeof step === 'object' && (
+                            <div className="text-sm text-gray-500 mt-1">
+                              Timeframe: {step.timeframe}
+                            </div>
+                          )}
+                        </div>
                       </li>
                     ))}
                   </ul>
