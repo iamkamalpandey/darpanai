@@ -530,9 +530,9 @@ export default function ComprehensiveOfferLetterAnalysis() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-xl">{analysis.institutionDetails.name}</CardTitle>
+                <CardTitle className="text-xl">{analysis.institutionDetails?.name || 'Institution Name Not Available'}</CardTitle>
                 <CardDescription className="text-lg font-medium text-gray-700">
-                  {analysis.courseDetails.program.name}
+                  {analysis.courseDetails?.program?.name || 'Program Name Not Available'}
                 </CardDescription>
               </div>
               <div className="flex gap-4 text-sm text-gray-600">

@@ -1159,24 +1159,48 @@ export class DatabaseStorage implements IStorage {
   // Offer Letter Analysis methods
   async saveOfferLetterAnalysis(analysisData: Partial<OfferLetterAnalysis>, userId: number): Promise<OfferLetterAnalysis> {
     try {
-      // Ensure array fields are properly handled for JSONB
+      // Only use fields that exist in the database schema
       const processedData = {
-        ...analysisData,
         userId,
-        // Convert arrays to proper JSONB format
-        relevantSkills: analysisData.relevantSkills || [],
-        strengths: analysisData.strengths || [],
-        weaknesses: analysisData.weaknesses || [],
-        scholarshipOpportunities: analysisData.scholarshipOpportunities || [],
-        costSavingStrategies: analysisData.costSavingStrategies || [],
-        recommendations: analysisData.recommendations || [],
-        nextSteps: analysisData.nextSteps || [],
-        analysisResults: analysisData.analysisResults || {}
+        fileName: analysisData.fileName,
+        fileSize: analysisData.fileSize,
+        documentText: analysisData.documentText,
+        analysisResults: analysisData.analysisResults || {},
+        gptAnalysisResults: analysisData.gptAnalysisResults,
+        claudeAnalysisResults: analysisData.claudeAnalysisResults,
+        hybridAnalysisResults: analysisData.hybridAnalysisResults,
+        institutionalData: analysisData.institutionalData,
+        scholarshipData: analysisData.scholarshipData,
+        competitorAnalysis: analysisData.competitorAnalysis,
+        tokensUsed: analysisData.tokensUsed,
+        claudeTokensUsed: analysisData.claudeTokensUsed,
+        totalAiCost: analysisData.totalAiCost,
+        processingTime: analysisData.processingTime,
+        scrapingTime: analysisData.scrapingTime,
+        isPublic: analysisData.isPublic || false,
       };
 
       const [analysis] = await db
         .insert(offerLetterAnalyses)
-        .values(processedData as any)
+        .values({
+          userId: processedData.userId,
+          fileName: processedData.fileName || '',
+          fileSize: processedData.fileSize || 0,
+          documentText: processedData.documentText || '',
+          analysisResults: processedData.analysisResults,
+          gptAnalysisResults: processedData.gptAnalysisResults,
+          claudeAnalysisResults: processedData.claudeAnalysisResults,
+          hybridAnalysisResults: processedData.hybridAnalysisResults,
+          institutionalData: processedData.institutionalData,
+          scholarshipData: processedData.scholarshipData,
+          competitorAnalysis: processedData.competitorAnalysis,
+          tokensUsed: processedData.tokensUsed,
+          claudeTokensUsed: processedData.claudeTokensUsed,
+          totalAiCost: processedData.totalAiCost,
+          processingTime: processedData.processingTime,
+          scrapingTime: processedData.scrapingTime,
+          isPublic: processedData.isPublic,
+        })
         .returning();
       return analysis;
     } catch (error) {

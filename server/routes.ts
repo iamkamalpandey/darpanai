@@ -1286,7 +1286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if this is a failed analysis
-      if (analysis.universityName === 'Analysis Error - Please Try Again') {
+      if (!analysis.analysisResults || Object.keys(analysis.analysisResults).length === 0) {
         return res.status(404).json({ error: 'Analysis failed or corrupted' });
       }
 
@@ -2393,24 +2393,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Save comprehensive analysis with core student information to database
       const savedAnalysis = await storage.saveOfferLetterAnalysis({
-        filename: file.originalname,
+        fileName: file.originalname,
         fileSize: file.size,
-        originalText: extractedText,
-        universityName: coreInfo.institutionName,
-        universityLocation: coreInfo.country,
-        program: coreInfo.program,
-        tuition: `${coreInfo.tuitionFee} ${coreInfo.currency}`,
-        duration: coreInfo.duration,
-        academicStanding: analysis.executiveSummary?.overallAssessment || 'Not specified',
-        gpa: 'Based on comprehensive analysis',
-        financialStatus: analysis.executiveSummary?.riskLevel || 'Not specified',
-        relevantSkills: analysis.qualityAssurance?.strengths || [],
-        strengths: analysis.qualityAssurance?.strengths || [],
-        weaknesses: analysis.qualityAssurance?.areasOfConcern || [],
-        scholarshipOpportunities: [],
-        costSavingStrategies: [],
-        recommendations: analysis.finalRecommendations || [],
-        nextSteps: [],
+        documentText: extractedText,
         analysisResults: {
           ...analysis,
           coreStudentInfo: coreInfo // Add core student info to analysis results
