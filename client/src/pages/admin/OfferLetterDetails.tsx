@@ -26,7 +26,7 @@ export default function AdminOfferLetterDetails() {
   const { data: offerLetter, isLoading, error } = useQuery({
     queryKey: [`/api/admin/offer-letter-info/${offerLetterId}`],
     enabled: !!offerLetterId,
-  });
+  }) as { data: any; isLoading: boolean; error: any };
 
   if (isLoading) {
     return (

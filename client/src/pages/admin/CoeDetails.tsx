@@ -26,7 +26,7 @@ export default function AdminCoeDetails() {
   const { data: coe, isLoading, error } = useQuery({
     queryKey: [`/api/admin/coe-info/${coeId}`],
     enabled: !!coeId,
-  });
+  }) as { data: any; isLoading: boolean; error: any };
 
   if (isLoading) {
     return (

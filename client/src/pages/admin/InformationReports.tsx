@@ -37,16 +37,16 @@ export default function InformationReports() {
   // Fetch offer letter information
   const { data: offerLetters = [], isLoading: isLoadingOfferLetters } = useQuery({
     queryKey: ['/api/admin/offer-letter-info'],
-  });
+  }) as { data: any[]; isLoading: boolean };
 
   // Fetch COE information
   const { data: coeInfo = [], isLoading: isLoadingCoe } = useQuery({
     queryKey: ['/api/admin/coe-info'],
-  });
+  }) as { data: any[]; isLoading: boolean };
 
   // Filter and search logic
   const filteredOfferLetters = useMemo(() => {
-    return offerLetters.filter((item: any) => {
+    return (offerLetters as any[]).filter((item: any) => {
       const matchesSearch = 
         item.fileName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.institutionName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -57,7 +57,7 @@ export default function InformationReports() {
   }, [offerLetters, searchTerm]);
 
   const filteredCoeInfo = useMemo(() => {
-    return coeInfo.filter((item: any) => {
+    return (coeInfo as any[]).filter((item: any) => {
       const matchesSearch = 
         item.fileName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.institutionName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -80,7 +80,7 @@ export default function InformationReports() {
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="flex items-center gap-1">
               <BarChart3 className="h-4 w-4" />
-              {offerLetters.length + coeInfo.length} Total Reports
+              {(offerLetters as any[]).length + (coeInfo as any[]).length} Total Reports
             </Badge>
           </div>
         </div>
