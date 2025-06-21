@@ -32,8 +32,507 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { AdminLayout } from '@/components/AdminLayout';
-import { Link } from 'wouter';
 import { format } from 'date-fns';
+
+// Detail Report Components
+const OfferLetterDetailReport = ({ offerLetterId }: { offerLetterId: number }) => {
+  const { data: offerLetter, isLoading } = useQuery({
+    queryKey: [`/api/admin/offer-letter-info/${offerLetterId}`],
+    enabled: !!offerLetterId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="h-6 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!offerLetter) {
+    return <div className="text-red-600">Failed to load offer letter details</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-2">
+        <FileText className="h-5 w-5 text-blue-600" />
+        <h3 className="text-lg font-semibold">Complete Offer Letter Information</h3>
+      </div>
+
+      {/* Institution Information */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Institution Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <InfoItem 
+              icon={<Building className="h-4 w-4" />}
+              label="Institution Name" 
+              value={offerLetter.institutionName} 
+            />
+            <InfoItem 
+              icon={<MapPin className="h-4 w-4" />}
+              label="Address" 
+              value={offerLetter.institutionAddress} 
+            />
+            <InfoItem 
+              icon={<Phone className="h-4 w-4" />}
+              label="Phone" 
+              value={offerLetter.institutionPhone} 
+            />
+            <InfoItem 
+              icon={<Mail className="h-4 w-4" />}
+              label="Email" 
+              value={offerLetter.institutionEmail} 
+            />
+            <InfoItem 
+              icon={<Globe className="h-4 w-4" />}
+              label="Website" 
+              value={offerLetter.institutionWebsite} 
+            />
+          </CardContent>
+        </Card>
+
+        {/* Program Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5" />
+              Program Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <InfoItem 
+              icon={<BookOpen className="h-4 w-4" />}
+              label="Program Name" 
+              value={offerLetter.programName} 
+            />
+            <InfoItem 
+              icon={<GraduationCap className="h-4 w-4" />}
+              label="Level" 
+              value={offerLetter.programLevel} 
+            />
+            <InfoItem 
+              icon={<Clock className="h-4 w-4" />}
+              label="Duration" 
+              value={offerLetter.programDuration} 
+            />
+            <InfoItem 
+              icon={<BookOpen className="h-4 w-4" />}
+              label="Study Mode" 
+              value={offerLetter.studyMode} 
+            />
+            <InfoItem 
+              icon={<MapPin className="h-4 w-4" />}
+              label="Campus Location" 
+              value={offerLetter.campusLocation} 
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Financial Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5" />
+            Financial Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full border border-gray-200 rounded-lg">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="border border-gray-200 px-4 py-2 text-left font-semibold">Fee Type</th>
+                  <th className="border border-gray-200 px-4 py-2 text-left font-semibold">Amount</th>
+                  <th className="border border-gray-200 px-4 py-2 text-left font-semibold">Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="border border-gray-200 px-4 py-2 font-medium">Tuition Fee</td>
+                  <td className="border border-gray-200 px-4 py-2">
+                    <span className="font-semibold text-green-600 bg-green-50 px-2 py-1 rounded">
+                      {offerLetter.tuitionFee || 'Not specified'}
+                    </span>
+                  </td>
+                  <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
+                    {offerLetter.paymentSchedule || 'Payment schedule not specified'}
+                  </td>
+                </tr>
+                <tr className="bg-gray-25">
+                  <td className="border border-gray-200 px-4 py-2 font-medium">Application Fee</td>
+                  <td className="border border-gray-200 px-4 py-2">
+                    <span className="font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                      {offerLetter.applicationFee || 'Not specified'}
+                    </span>
+                  </td>
+                  <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
+                    One-time application processing fee
+                  </td>
+                </tr>
+                <tr>
+                  <td className="border border-gray-200 px-4 py-2 font-medium">Deposit Required</td>
+                  <td className="border border-gray-200 px-4 py-2">
+                    <span className="font-semibold text-orange-600 bg-orange-50 px-2 py-1 rounded">
+                      {offerLetter.depositRequired || 'Not specified'}
+                    </span>
+                  </td>
+                  <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
+                    Initial deposit to secure admission
+                  </td>
+                </tr>
+                <tr className="bg-gray-25">
+                  <td className="border border-gray-200 px-4 py-2 font-medium">Total Cost</td>
+                  <td className="border border-gray-200 px-4 py-2">
+                    <span className="font-semibold text-red-600 bg-red-50 px-2 py-1 rounded">
+                      {offerLetter.totalCost || 'Not specified'}
+                    </span>
+                  </td>
+                  <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
+                    Complete program cost including all fees
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Important Dates */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Important Dates
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <InfoItem 
+              icon={<Calendar className="h-4 w-4" />}
+              label="Program Start Date" 
+              value={offerLetter.startDate} 
+            />
+            <InfoItem 
+              icon={<Calendar className="h-4 w-4" />}
+              label="Program End Date" 
+              value={offerLetter.endDate} 
+            />
+            <InfoItem 
+              icon={<Clock className="h-4 w-4" />}
+              label="Application Deadline" 
+              value={offerLetter.applicationDeadline} 
+            />
+            <InfoItem 
+              icon={<Clock className="h-4 w-4" />}
+              label="Acceptance Deadline" 
+              value={offerLetter.acceptanceDeadline} 
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Student Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Student Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <InfoItem 
+              icon={<User className="h-4 w-4" />}
+              label="Student Name" 
+              value={offerLetter.studentName} 
+            />
+            <InfoItem 
+              icon={<FileText className="h-4 w-4" />}
+              label="Student ID" 
+              value={offerLetter.studentId} 
+            />
+            <InfoItem 
+              icon={<FileCheck className="h-4 w-4" />}
+              label="Application Number" 
+              value={offerLetter.applicationNumber} 
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Requirements */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Requirements
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <InfoItem 
+            icon={<GraduationCap className="h-4 w-4" />}
+            label="Academic Requirements" 
+            value={offerLetter.academicRequirements} 
+          />
+          <InfoItem 
+            icon={<Globe className="h-4 w-4" />}
+            label="English Requirements" 
+            value={offerLetter.englishRequirements} 
+          />
+          <InfoItem 
+            icon={<FileText className="h-4 w-4" />}
+            label="Document Requirements" 
+            value={offerLetter.documentRequirements} 
+          />
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// COE Detail Report Component
+const CoeDetailReport = ({ coeId }: { coeId: number }) => {
+  const { data: coe, isLoading } = useQuery({
+    queryKey: [`/api/admin/coe-info/${coeId}`],
+    enabled: !!coeId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="h-6 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!coe) {
+    return <div className="text-red-600">Failed to load COE details</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-2">
+        <Shield className="h-5 w-5 text-blue-600" />
+        <h3 className="text-lg font-semibold">Complete COE Information</h3>
+      </div>
+
+      {/* Student Information */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Student Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <InfoItem 
+              icon={<User className="h-4 w-4" />}
+              label="Student Name" 
+              value={coe.studentName} 
+            />
+            <InfoItem 
+              icon={<FileText className="h-4 w-4" />}
+              label="Student ID" 
+              value={coe.studentId} 
+            />
+            <InfoItem 
+              icon={<Globe className="h-4 w-4" />}
+              label="Nationality" 
+              value={coe.nationality} 
+            />
+            <InfoItem 
+              icon={<FileCheck className="h-4 w-4" />}
+              label="Enrollment Status" 
+              value={coe.enrollmentStatus} 
+            />
+          </CardContent>
+        </Card>
+
+        {/* Institution Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Institution Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <InfoItem 
+              icon={<Building className="h-4 w-4" />}
+              label="Institution Name" 
+              value={coe.institutionName} 
+            />
+            <InfoItem 
+              icon={<MapPin className="h-4 w-4" />}
+              label="Address" 
+              value={coe.institutionAddress} 
+            />
+            <InfoItem 
+              icon={<Phone className="h-4 w-4" />}
+              label="Contact" 
+              value={coe.institutionContact} 
+            />
+            <InfoItem 
+              icon={<FileText className="h-4 w-4" />}
+              label="CRICOS Code" 
+              value={coe.cricosCode} 
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Course Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <GraduationCap className="h-5 w-5" />
+            Course Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <InfoItem 
+              icon={<BookOpen className="h-4 w-4" />}
+              label="Course Name" 
+              value={coe.courseName} 
+            />
+            <InfoItem 
+              icon={<GraduationCap className="h-4 w-4" />}
+              label="Course Level" 
+              value={coe.courseLevel} 
+            />
+            <InfoItem 
+              icon={<Clock className="h-4 w-4" />}
+              label="Duration" 
+              value={coe.courseDuration} 
+            />
+            <InfoItem 
+              icon={<BookOpen className="h-4 w-4" />}
+              label="Study Mode" 
+              value={coe.studyMode} 
+            />
+            <InfoItem 
+              icon={<Calendar className="h-4 w-4" />}
+              label="Commencement Date" 
+              value={coe.commencementDate} 
+            />
+            <InfoItem 
+              icon={<Calendar className="h-4 w-4" />}
+              label="Completion Date" 
+              value={coe.completionDate} 
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Financial Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5" />
+            Financial Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-600">Tuition Fees</label>
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <span className="font-semibold text-green-700">
+                  {coe.tuitionFees || 'Not specified'}
+                </span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-600">OSHC Details</label>
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <span className="font-semibold text-blue-700">
+                  {coe.oshcDetails || 'Not specified'}
+                </span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Visa & Compliance Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Visa & Compliance Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <InfoItem 
+            icon={<FileText className="h-4 w-4" />}
+            label="Visa Subclass" 
+            value={coe.visaSubclass} 
+          />
+          <InfoItem 
+            icon={<Shield className="h-4 w-4" />}
+            label="Visa Obligations" 
+            value={coe.visaObligations} 
+          />
+          <InfoItem 
+            icon={<Clock className="h-4 w-4" />}
+            label="Work Rights" 
+            value={coe.workRights} 
+          />
+          <InfoItem 
+            icon={<Info className="h-4 w-4" />}
+            label="Compliance Requirements" 
+            value={coe.complianceRequirements} 
+          />
+        </CardContent>
+      </Card>
+
+      {/* Contact Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Phone className="h-5 w-5" />
+            Contact Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <InfoItem 
+            icon={<Phone className="h-4 w-4" />}
+            label="Emergency Contact" 
+            value={coe.emergencyContact} 
+          />
+          <InfoItem 
+            icon={<User className="h-4 w-4" />}
+            label="Academic Advisor" 
+            value={coe.academicAdvisor} 
+          />
+          <InfoItem 
+            icon={<Mail className="h-4 w-4" />}
+            label="Student Services" 
+            value={coe.studentServices} 
+          />
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
 
 interface OfferLetterInfo {
   id: number;
@@ -381,13 +880,32 @@ export default function InformationReports() {
         </div>
 
         <div className="pt-3 border-t">
-          <Link href={`/coe-info/${coe.id}`}>
-            <Button variant="outline" size="sm" className="w-full">
-              <Eye className="h-4 w-4 mr-2" />
-              View Full Details
-            </Button>
-          </Link>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full"
+            onClick={() => setExpandedCoe(expandedCoe === coe.id ? null : coe.id)}
+          >
+            {expandedCoe === coe.id ? (
+              <>
+                <ChevronUp className="h-4 w-4 mr-2" />
+                Hide Details
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-4 w-4 mr-2" />
+                Show Details
+              </>
+            )}
+          </Button>
         </div>
+        
+        {/* Expanded Details Section */}
+        {expandedCoe === coe.id && (
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+            <CoeDetailReport coeId={coe.id} />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
