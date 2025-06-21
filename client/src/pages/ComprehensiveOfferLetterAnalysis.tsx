@@ -333,9 +333,6 @@ interface ComprehensiveAnalysis {
 interface AnalysisResult {
   id: number;
   analysis: ComprehensiveAnalysis;
-  processingTime: number;
-  tokensUsed: number;
-  scrapingTime: number;
 }
 
 interface AnalysisListItem {
@@ -408,7 +405,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
       queryClient.invalidateQueries({ queryKey: ['/api/user/stats'] });
       toast({
         title: 'Analysis Complete',
-        description: `Comprehensive analysis completed in ${result.processingTime}s using ${result.tokensUsed} tokens`,
+        description: 'Your comprehensive offer letter analysis is ready to view',
       });
     },
     onError: (error: Error) => {
@@ -472,10 +469,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
       const analysis = await response.json();
       setSelectedAnalysis({
         id: analysis.id,
-        analysis: analysis.analysisResults,
-        processingTime: analysis.processingTime || 0,
-        tokensUsed: (analysis.tokensUsed || 0) + (analysis.claudeTokensUsed || 0),
-        scrapingTime: analysis.scrapingTime || 0
+        analysis: analysis.analysisResults
       });
     } catch (error) {
       toast({
@@ -1763,16 +1757,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
                           {analysis.fileName} • {new Date(analysis.createdAt).toLocaleDateString()}
                         </p>
                       </div>
-                      <div className="flex gap-2 text-xs text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {analysis.processingTime}s
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Brain className="h-3 w-3" />
-                          {analysis.tokensUsed}
-                        </div>
-                      </div>
+
                     </div>
                   </div>
                 ))}

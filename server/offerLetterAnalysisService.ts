@@ -643,10 +643,6 @@ export async function analyzeOfferLetter(
   institutionalData: any;
   scholarshipData: any[];
   competitorAnalysis: any;
-  tokensUsed: number;
-  claudeTokensUsed: number;
-  processingTime: number;
-  scrapingTime: number;
 }> {
   const startTime = Date.now();
   let scrapingStartTime = Date.now();
@@ -732,8 +728,6 @@ export async function analyzeOfferLetter(
     }
   };
   
-  const processingTime = Math.round((Date.now() - startTime) / 1000);
-  
   return {
     analysis,
     gptAnalysis,
@@ -741,10 +735,6 @@ export async function analyzeOfferLetter(
     hybridAnalysis: hybridInsights,
     institutionalData,
     scholarshipData,
-    competitorAnalysis,
-    tokensUsed: 3000, // Estimated GPT tokens
-    claudeTokensUsed: 2000, // Estimated Claude tokens
-    processingTime,
-    scrapingTime: Math.round(scrapingTime / 1000)
+    competitorAnalysis
   };
 }
