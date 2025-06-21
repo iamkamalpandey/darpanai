@@ -368,31 +368,31 @@ export default function CoeDetails() {
               {coe.commencementDate && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Commencement Date</label>
-                  <p>{highlightImportantTerms(coe.commencementDate)}</p>
+                  <p className="break-words overflow-hidden">{highlightImportantTerms(coe.commencementDate)}</p>
                 </div>
               )}
               {coe.completionDate && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Completion Date</label>
-                  <p>{highlightImportantTerms(coe.completionDate)}</p>
+                  <p className="break-words overflow-hidden">{highlightImportantTerms(coe.completionDate)}</p>
                 </div>
               )}
               {coe.expectedGraduation && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Expected Graduation</label>
-                  <p>{highlightImportantTerms(coe.expectedGraduation)}</p>
+                  <p className="break-words overflow-hidden">{highlightImportantTerms(coe.expectedGraduation)}</p>
                 </div>
               )}
               {coe.enrollmentStatus && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Enrollment Status</label>
-                  <Badge variant="default">{coe.enrollmentStatus}</Badge>
+                  <Badge variant="default" className="break-words overflow-hidden">{coe.enrollmentStatus}</Badge>
                 </div>
               )}
               {coe.studyLoad && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Study Load</label>
-                  <p>{coe.studyLoad}</p>
+                  <p className="break-words overflow-hidden">{coe.studyLoad}</p>
                 </div>
               )}
             </CardContent>
@@ -410,43 +410,43 @@ export default function CoeDetails() {
               {coe.tuitionFees && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Tuition Fees</label>
-                  <p className="font-medium">{highlightImportantTerms(coe.tuitionFees)}</p>
+                  <p className="font-medium break-words overflow-hidden">{highlightImportantTerms(coe.tuitionFees)}</p>
                 </div>
               )}
               {coe.totalCourseFee && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Total Course Fee</label>
-                  <p className="font-medium">{highlightImportantTerms(coe.totalCourseFee)}</p>
+                  <p className="font-medium break-words overflow-hidden">{highlightImportantTerms(coe.totalCourseFee)}</p>
                 </div>
               )}
               {coe.feesPerYear && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Fees Per Year</label>
-                  <p>{highlightImportantTerms(coe.feesPerYear)}</p>
+                  <p className="break-words overflow-hidden">{highlightImportantTerms(coe.feesPerYear)}</p>
                 </div>
               )}
               {coe.feesPerSemester && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Fees Per Semester</label>
-                  <p>{highlightImportantTerms(coe.feesPerSemester)}</p>
+                  <p className="break-words overflow-hidden">{highlightImportantTerms(coe.feesPerSemester)}</p>
                 </div>
               )}
               {coe.oshcProvider && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">OSHC Provider</label>
-                  <p>{highlightImportantTerms(coe.oshcProvider)}</p>
+                  <p className="break-words overflow-hidden">{highlightImportantTerms(coe.oshcProvider)}</p>
                 </div>
               )}
               {coe.oshcCost && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">OSHC Cost</label>
-                  <p>{highlightImportantTerms(coe.oshcCost)}</p>
+                  <p className="break-words overflow-hidden">{highlightImportantTerms(coe.oshcCost)}</p>
                 </div>
               )}
               {coe.oshcDuration && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">OSHC Duration</label>
-                  <p>{coe.oshcDuration}</p>
+                  <p className="break-words overflow-hidden">{coe.oshcDuration}</p>
                 </div>
               )}
             </CardContent>
@@ -464,25 +464,25 @@ export default function CoeDetails() {
               {coe.visaSubclass && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Visa Subclass</label>
-                  <Badge variant="default">{coe.visaSubclass}</Badge>
+                  <Badge variant="default" className="break-words overflow-hidden">{coe.visaSubclass}</Badge>
                 </div>
               )}
               {coe.visaConditions && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Visa Conditions</label>
-                  <div className="text-sm">{formatText(coe.visaConditions)}</div>
+                  <div className="text-sm break-words overflow-hidden">{formatText(coe.visaConditions)}</div>
                 </div>
               )}
               {coe.workRights && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Work Rights</label>
-                  <div className="text-sm">{formatText(coe.workRights)}</div>
+                  <div className="text-sm break-words overflow-hidden">{formatText(coe.workRights)}</div>
                 </div>
               )}
               {coe.studyRequirements && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Study Requirements</label>
-                  <div className="text-sm">{formatText(coe.studyRequirements)}</div>
+                  <div className="text-sm break-words overflow-hidden">{formatText(coe.studyRequirements)}</div>
                 </div>
               )}
             </CardContent>
@@ -502,25 +502,25 @@ export default function CoeDetails() {
               {coe.academicRequirements && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Academic Requirements</label>
-                  <div className="mt-2 text-sm">{formatText(coe.academicRequirements)}</div>
+                  <div className="mt-2 text-sm break-words overflow-hidden">{formatText(coe.academicRequirements)}</div>
                 </div>
               )}
               {coe.englishRequirements && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">English Requirements</label>
-                  <div className="mt-2 text-sm">{formatText(coe.englishRequirements)}</div>
+                  <div className="mt-2 text-sm break-words overflow-hidden">{formatText(coe.englishRequirements)}</div>
                 </div>
               )}
               {coe.attendanceRequirements && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Attendance Requirements</label>
-                  <div className="mt-2 text-sm">{formatText(coe.attendanceRequirements)}</div>
+                  <div className="mt-2 text-sm break-words overflow-hidden">{formatText(coe.attendanceRequirements)}</div>
                 </div>
               )}
               {coe.progressRequirements && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Progress Requirements</label>
-                  <div className="mt-2 text-sm">{formatText(coe.progressRequirements)}</div>
+                  <div className="mt-2 text-sm break-words overflow-hidden">{formatText(coe.progressRequirements)}</div>
                 </div>
               )}
             </CardContent>
@@ -540,15 +540,15 @@ export default function CoeDetails() {
               {coe.contactPerson && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Contact Person</label>
-                  <p className="font-medium">{coe.contactPerson}</p>
+                  <p className="font-medium break-words overflow-hidden">{coe.contactPerson}</p>
                 </div>
               )}
               {coe.contactEmail && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Contact Email</label>
                   <p className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    {coe.contactEmail}
+                    <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="break-words overflow-hidden">{coe.contactEmail}</span>
                   </p>
                 </div>
               )}
@@ -556,15 +556,15 @@ export default function CoeDetails() {
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Contact Phone</label>
                   <p className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    {coe.contactPhone}
+                    <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="break-words overflow-hidden">{coe.contactPhone}</span>
                   </p>
                 </div>
               )}
               {coe.studentSupportContact && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Student Support Contact</label>
-                  <p>{coe.studentSupportContact}</p>
+                  <p className="break-words overflow-hidden">{coe.studentSupportContact}</p>
                 </div>
               )}
             </CardContent>
@@ -584,25 +584,25 @@ export default function CoeDetails() {
               {coe.accommodationInfo && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Accommodation Information</label>
-                  <div className="mt-2 text-sm">{formatText(coe.accommodationInfo)}</div>
+                  <div className="mt-2 text-sm break-words overflow-hidden">{formatText(coe.accommodationInfo)}</div>
                 </div>
               )}
               {coe.orientationInfo && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Orientation Information</label>
-                  <div className="mt-2 text-sm">{formatText(coe.orientationInfo)}</div>
+                  <div className="mt-2 text-sm break-words overflow-hidden">{formatText(coe.orientationInfo)}</div>
                 </div>
               )}
               {coe.additionalNotes && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Additional Notes</label>
-                  <div className="mt-2 text-sm">{formatText(coe.additionalNotes)}</div>
+                  <div className="mt-2 text-sm break-words overflow-hidden">{formatText(coe.additionalNotes)}</div>
                 </div>
               )}
               {coe.terms && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Terms and Conditions</label>
-                  <div className="mt-2 text-sm">{formatText(coe.terms)}</div>
+                  <div className="mt-2 text-sm break-words overflow-hidden">{formatText(coe.terms)}</div>
                 </div>
               )}
             </CardContent>
