@@ -177,7 +177,7 @@ export default function CoeInformation() {
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold">Your COE Documents</h2>
           
-          {coeDocuments.length === 0 ? (
+          {(!coeDocuments || coeDocuments.length === 0) ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
@@ -189,7 +189,7 @@ export default function CoeInformation() {
             </Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {coeDocuments.map((doc: CoeDocument) => (
+              {(coeDocuments as CoeDocument[] || []).map((doc: CoeDocument) => (
                 <Card key={doc.id} className="hover:shadow-md transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">

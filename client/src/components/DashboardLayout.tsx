@@ -55,6 +55,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [enrollmentInfoOpen, setEnrollmentInfoOpen] = useState(false);
   const [location] = useLocation();
   const { unreadCount, hasUnread } = useUnreadUpdates();
   
@@ -90,7 +91,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         { icon: <GraduationCap size={18} />, label: 'Offer Letter Analysis', href: '/offer-letter-analysis' },
       ]
     },
-    { icon: <FileText size={20} />, label: 'Offer Letter Info', href: '/offer-letter-info' },
+    { 
+      icon: <FileText size={20} />, 
+      label: 'Enrollment Info', 
+      isSubmenu: true,
+      submenuItems: [
+        { icon: <GraduationCap size={18} />, label: 'Offer Letter Info', href: '/offer-letter-info' },
+        { icon: <FileCheck size={18} />, label: 'COE Information', href: '/coe-info' },
+      ]
+    },
     { icon: <GraduationCap size={20} />, label: 'Scholarship Research', href: '/scholarship-research' },
     { icon: <MapPin size={20} />, label: 'Personalized Destination Analysis', href: '/personalized-destination-analysis' },
 
@@ -191,20 +200,26 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   {item.isSubmenu ? (
                     <div>
                       <button
-                        onClick={() => setResourcesOpen(!resourcesOpen)}
+                        onClick={() => {
+                          if (item.label === 'Resources') {
+                            setResourcesOpen(!resourcesOpen);
+                          } else if (item.label === 'Enrollment Info') {
+                            setEnrollmentInfoOpen(!enrollmentInfoOpen);
+                          }
+                        }}
                         className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                       >
                         <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-gray-500">
                           {item.icon}
                         </span>
                         <span className="truncate flex-1 text-left">{item.label}</span>
-                        {resourcesOpen ? (
+                        {((item.label === 'Resources' && resourcesOpen) || (item.label === 'Enrollment Info' && enrollmentInfoOpen)) ? (
                           <ChevronDown className="h-4 w-4 text-gray-400" />
                         ) : (
                           <ChevronRight className="h-4 w-4 text-gray-400" />
                         )}
                       </button>
-                      {resourcesOpen && item.submenuItems && (
+                      {((item.label === 'Resources' && resourcesOpen) || (item.label === 'Enrollment Info' && enrollmentInfoOpen)) && item.submenuItems && (
                         <div className="ml-8 mt-1 space-y-1">
                           {item.submenuItems.map((subItem) => (
                             <div key={subItem.href} onClick={() => setSidebarOpen(false)}>
