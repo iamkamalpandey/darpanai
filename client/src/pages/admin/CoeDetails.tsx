@@ -383,7 +383,7 @@ export default function AdminCoeDetails() {
               </div>
               <div>
                 <p className="font-medium text-muted-foreground mb-2">Payment Schedule</p>
-                <p className="text-sm bg-gray-50 p-3 rounded border">
+                <p className="text-sm bg-gray-50 p-3 rounded border break-words overflow-hidden">
                   {coeInfo.paymentSchedule || 'Not specified'}
                 </p>
               </div>
@@ -404,10 +404,10 @@ export default function AdminCoeDetails() {
               <div>
                 <p className="font-medium text-muted-foreground mb-1">Provider Details</p>
                 <div className="space-y-2">
-                  <p className="font-semibold">{coeInfo.oshcProvider || 'Not specified'}</p>
+                  <p className="font-semibold break-words overflow-hidden">{coeInfo.oshcProvider || 'Not specified'}</p>
                   <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-sm">Coverage: {coeInfo.oshcCoverage || 'Not specified'}</p>
+                    <Shield className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="text-sm break-words overflow-hidden">Coverage: {coeInfo.oshcCoverage || 'Not specified'}</p>
                   </div>
                 </div>
               </div>
@@ -417,12 +417,12 @@ export default function AdminCoeDetails() {
                 <p className="font-medium text-muted-foreground mb-1">Cost & Duration</p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <p>Cost: {coeInfo.oshcCost || 'Not specified'}</p>
+                    <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="break-words overflow-hidden">Cost: {coeInfo.oshcCost || 'Not specified'}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <p>Duration: {coeInfo.oshcDuration || 'Not specified'}</p>
+                    <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="break-words overflow-hidden">Duration: {coeInfo.oshcDuration || 'Not specified'}</p>
                   </div>
                 </div>
               </div>
@@ -444,7 +444,7 @@ export default function AdminCoeDetails() {
                 <p className="font-medium mb-2">Language Requirements</p>
                 <div className="bg-blue-50 p-4 rounded border border-blue-200">
                   <div className="space-y-2">
-                    <p className="text-sm">{coeInfo.languageRequirement}</p>
+                    <p className="text-sm break-words overflow-hidden">{coeInfo.languageRequirement}</p>
                     {coeInfo.minimumScore && (
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">Min Score: {coeInfo.minimumScore}</Badge>
@@ -460,7 +460,7 @@ export default function AdminCoeDetails() {
               <div>
                 <p className="font-medium mb-2">Academic Requirements</p>
                 <div className="bg-green-50 p-4 rounded border border-green-200">
-                  <p className="text-sm">{coeInfo.academicRequirements}</p>
+                  <p className="text-sm break-words overflow-hidden">{coeInfo.academicRequirements}</p>
                 </div>
               </div>
             )}
@@ -469,7 +469,7 @@ export default function AdminCoeDetails() {
               <div>
                 <p className="font-medium mb-2">Attendance Requirements</p>
                 <div className="bg-yellow-50 p-4 rounded border border-yellow-200">
-                  <p className="text-sm">{coeInfo.attendanceRequirement}</p>
+                  <p className="text-sm break-words overflow-hidden">{coeInfo.attendanceRequirement}</p>
                 </div>
               </div>
             )}
