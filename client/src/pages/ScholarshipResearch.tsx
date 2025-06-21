@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -12,6 +13,16 @@ import { Loader2, Search, GraduationCap, DollarSign, Calendar, ExternalLink, Awa
 import { useToast } from '@/hooks/use-toast';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { scholarshipSearchSchema, type ScholarshipSearch, type Scholarship } from '@shared/scholarshipSchema';
+
+// Utility function to format dates safely
+const formatDate = (dateString: string | null): string => {
+  if (!dateString) return 'Not specified';
+  try {
+    return format(new Date(dateString), 'MMM dd, yyyy');
+  } catch {
+    return dateString; // Return original string if parsing fails
+  }
+};
 
 interface ScholarshipResearchResponse {
   success: boolean;
@@ -24,6 +35,12 @@ interface ScholarshipResearchResponse {
   };
   isFromCache: boolean;
   message: string;
+  researchGroups?: Array<{
+    groupName: string;
+    scholarships: Scholarship[];
+    totalFunding: string;
+    averageAmount: string;
+  }>;
 }
 
 function ScholarshipCard({ scholarship }: { scholarship: Scholarship }) {
@@ -228,7 +245,7 @@ export default function ScholarshipResearch() {
   });
 
   // Get user's research history
-  const { data: researchHistory, isLoading: isLoadingHistory } = useQuery({
+  const { data: researchHistory, isLoading: isLoadingHistory } = useQuery<ScholarshipResearchResponse>({
     queryKey: ['/api/scholarships/my-research'],
     enabled: true
   });
@@ -238,10 +255,10 @@ export default function ScholarshipResearch() {
     researchMutation.mutate(data);
   };
 
-  const currentResearch = researchHistory?.researchGroups?.find((group: any) => 
-    group.institutionName === form.watch('institutionName') &&
-    group.programName === form.watch('programName') &&
-    group.programLevel === form.watch('programLevel')
+  const currentResearch = researchHistory?.researchGroups?.find((group) => 
+    group.groupName.includes(form.watch('institutionName') || '') &&
+    group.groupName.includes(form.watch('programName') || '') &&
+    group.groupName.includes(form.watch('programLevel') || '')
   );
 
   return (
