@@ -120,6 +120,13 @@ export default function PersonalizedDestinationAnalysis() {
     enabled: !!id,
   });
 
+  // Debug logging to trace data structure
+  if (analysis) {
+    console.log('PersonalizedDestinationAnalysis - Full analysis data:', analysis);
+    console.log('PersonalizedDestinationAnalysis - suggestedCountries:', analysis.suggestedCountries);
+    console.log('PersonalizedDestinationAnalysis - suggestedCountries length:', analysis.suggestedCountries?.length);
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
@@ -291,8 +298,26 @@ export default function PersonalizedDestinationAnalysis() {
           {/* Country Matches Tab */}
           <TabsContent value="countries" className="space-y-6">
             <div className="grid gap-8">
-              {analysis.suggestedCountries && analysis.suggestedCountries.length > 0 ? (
-                analysis.suggestedCountries.map((country: CountryRecommendation, index: number) => (
+              {(() => {
+                // Get countries from either suggestedCountries or topRecommendations field
+                const countries = analysis.suggestedCountries || (analysis as any).topRecommendations || [];
+                console.log('Countries data for rendering:', countries);
+                
+                if (!countries || countries.length === 0) {
+                  return (
+                    <Card className="p-8 text-center">
+                      <CardContent>
+                        <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Country Recommendations Available</h3>
+                        <p className="text-gray-600">
+                          Unable to display country recommendations. Please try refreshing the page or contact support.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  );
+                }
+                
+                return countries.map((country: CountryRecommendation, index: number) => (
                   <Card key={index} className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300">
                     <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50 border-b">
                       <div className="flex items-center justify-between">
