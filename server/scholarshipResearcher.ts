@@ -118,7 +118,10 @@ Ensure all information is current, accurate, and directly sourced from official 
       if (!content) {
         throw new Error('No content received from OpenAI');
       }
-      parsedResponse = JSON.parse(content);
+      
+      // Clean the content to remove code blocks
+      const cleanedContent = content.replace(/```json\s*/, '').replace(/```\s*$/, '').trim();
+      parsedResponse = JSON.parse(cleanedContent);
     } catch (parseError) {
       console.error('Error parsing OpenAI response:', parseError);
       // Fallback to structured response

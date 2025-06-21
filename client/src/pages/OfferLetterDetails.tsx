@@ -1,9 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { toast } from '@/hooks/use-toast';
 import { 
   Building, 
   GraduationCap, 
@@ -19,7 +20,11 @@ import {
   BookOpen,
   Home,
   Plane,
-  ArrowLeft
+  ArrowLeft,
+  Search,
+  Award,
+  ExternalLink,
+  Loader2
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Link } from 'wouter';
@@ -141,7 +146,8 @@ function highlightImportantTerms(text: string): JSX.Element {
 
 export default function OfferLetterDetails() {
   const { id } = useParams();
-  
+  const queryClient = useQueryClient();
+
   const { data: offerLetter, isLoading, error } = useQuery({
     queryKey: ['/api/offer-letter-info', id],
     queryFn: async () => {
@@ -153,6 +159,60 @@ export default function OfferLetterDetails() {
     },
     enabled: !!id,
   });
+
+  // Query for scholarships
+  const { data: scholarshipsData, isLoading: scholarshipsLoading } = useQuery({
+    queryKey: ['/api/scholarships/my-research'],
+    enabled: !!offerLetter?.institutionName,
+  });
+
+  // Mutation for scholarship research
+  const scholarshipMutation = useMutation({
+    mutationFn: async (searchData: { institutionName: string; programName: string; programLevel: string }) => {
+      const response = await fetch('/api/scholarships/research', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(searchData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to research scholarships');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/scholarships/my-research'] });
+      toast({
+        title: "Scholarship Research Completed",
+        description: "Found new scholarships for this institution",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Research Failed", 
+        description: error instanceof Error ? error.message : "Failed to research scholarships",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleScholarshipResearch = () => {
+    if (offerLetter?.institutionName && offerLetter?.programName) {
+      scholarshipMutation.mutate({
+        institutionName: offerLetter.institutionName,
+        programName: offerLetter.programName,
+        programLevel: offerLetter.courseLevel || 'Bachelor',
+      });
+    }
+  };
+
+  // Filter scholarships for this institution
+  const relevantScholarships = scholarshipsData?.researchGroups?.find(
+    (group: any) => group.groupName.toLowerCase().includes(offerLetter?.institutionName?.toLowerCase() || '')
+  )?.scholarships || [];
 
   if (isLoading) {
     return (
