@@ -362,9 +362,9 @@ export default function AdminAppointments() {
                     <TableRow key={appointment.id}>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{appointment.fullName}</div>
+                          <div className="font-medium break-words overflow-hidden">{appointment.fullName}</div>
                           {appointment.user && (
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-gray-600 break-words overflow-hidden">
                               @{appointment.user.username}
                             </div>
                           )}
@@ -373,29 +373,29 @@ export default function AdminAppointments() {
                       <TableCell>
                         <div className="space-y-1">
                           <div className="flex items-center text-sm">
-                            <Mail className="h-3 w-3 mr-1" />
-                            {appointment.email}
+                            <Mail className="h-3 w-3 mr-1 flex-shrink-0" />
+                            <span className="break-words overflow-hidden">{appointment.email}</span>
                           </div>
                           <div className="flex items-center text-sm text-gray-600">
-                            <Phone className="h-3 w-3 mr-1" />
-                            {appointment.phoneNumber}
+                            <Phone className="h-3 w-3 mr-1 flex-shrink-0" />
+                            <span className="break-words overflow-hidden">{appointment.phoneNumber}</span>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
                           <div className="flex items-center text-sm">
-                            <Calendar className="h-3 w-3 mr-1" />
-                            {format(new Date(appointment.preferredDate), "MMM dd, yyyy")}
+                            <Calendar className="h-3 w-3 mr-1 flex-shrink-0" />
+                            <span className="break-words overflow-hidden">{format(new Date(appointment.preferredDate), "MMM dd, yyyy")}</span>
                           </div>
                           <div className="flex items-center text-sm text-gray-600">
-                            <Clock className="h-3 w-3 mr-1" />
-                            {appointment.preferredTime}
+                            <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+                            <span className="break-words overflow-hidden">{appointment.preferredTime}</span>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm">
+                        <div className="text-sm break-words overflow-hidden">
                           {appointment.consultationType}
                         </div>
                       </TableCell>
@@ -455,21 +455,21 @@ export default function AdminAppointments() {
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <Label className="text-sm font-medium">Client Name</Label>
-                            <p className="text-sm text-gray-600">{selectedAppointment.fullName}</p>
+                            <p className="text-sm text-gray-600 break-words overflow-hidden">{selectedAppointment.fullName}</p>
                           </div>
                           <div>
                             <Label className="text-sm font-medium">Consultation Type</Label>
-                            <p className="text-sm text-gray-600">{selectedAppointment.consultationType}</p>
+                            <p className="text-sm text-gray-600 break-words overflow-hidden">{selectedAppointment.consultationType}</p>
                           </div>
                           <div>
                             <Label className="text-sm font-medium">Preferred Date</Label>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 break-words overflow-hidden">
                               {format(new Date(selectedAppointment.preferredDate), "PPP")}
                             </p>
                           </div>
                           <div>
                             <Label className="text-sm font-medium">Preferred Time</Label>
-                            <p className="text-sm text-gray-600">{selectedAppointment.preferredTime}</p>
+                            <p className="text-sm text-gray-600 break-words overflow-hidden">{selectedAppointment.preferredTime}</p>
                           </div>
                           <div>
                             <Label className="text-sm font-medium">Status</Label>
@@ -496,7 +496,7 @@ export default function AdminAppointments() {
                         <div>
                           <h3 className="text-lg font-semibold mb-3">Message</h3>
                           <div className="bg-gray-50 p-4 rounded-lg">
-                            <p className="text-sm text-gray-700">{selectedAppointment.message}</p>
+                            <p className="text-sm text-gray-700 break-words overflow-hidden">{selectedAppointment.message}</p>
                           </div>
                         </div>
                       )}
@@ -513,11 +513,11 @@ export default function AdminAppointments() {
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <Label className="text-sm font-medium">Email</Label>
-                            <p className="text-sm text-gray-600">{selectedAppointment.email}</p>
+                            <p className="text-sm text-gray-600 break-words overflow-hidden">{selectedAppointment.email}</p>
                           </div>
                           <div>
                             <Label className="text-sm font-medium">Phone Number</Label>
-                            <p className="text-sm text-gray-600">{selectedAppointment.phoneNumber}</p>
+                            <p className="text-sm text-gray-600 break-words overflow-hidden">{selectedAppointment.phoneNumber}</p>
                           </div>
                         </div>
                       </div>
@@ -531,21 +531,21 @@ export default function AdminAppointments() {
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <Label className="text-sm font-medium">Username</Label>
-                              <p className="text-sm text-gray-600">@{selectedAppointment.user.username}</p>
+                              <p className="text-sm text-gray-600 break-words overflow-hidden">@{selectedAppointment.user.username}</p>
                             </div>
                             <div>
                               <Label className="text-sm font-medium">Full Name</Label>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-gray-600 break-words overflow-hidden">
                                 {selectedAppointment.user.firstName} {selectedAppointment.user.lastName}
                               </p>
                             </div>
                             <div>
                               <Label className="text-sm font-medium">Account Email</Label>
-                              <p className="text-sm text-gray-600">{selectedAppointment.user.email}</p>
+                              <p className="text-sm text-gray-600 break-words overflow-hidden">{selectedAppointment.user.email}</p>
                             </div>
                             <div>
                               <Label className="text-sm font-medium">Location</Label>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-gray-600 break-words overflow-hidden">
                                 {selectedAppointment.user.city}, {selectedAppointment.user.country}
                               </p>
                             </div>
