@@ -287,6 +287,30 @@ export default function AdminOfferLetterDetails() {
 
         {/* Content Grid */}
         <div className="grid gap-6">
+          {/* File Information */}
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <FileText className="h-5 w-5 flex-shrink-0" />
+                File Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InfoItem 
+                  icon={FileText} 
+                  label="File Name" 
+                  value={offerLetter.fileName} 
+                />
+                <InfoItem 
+                  icon={FileText} 
+                  label="File Size" 
+                  value={offerLetter.fileSize ? `${(offerLetter.fileSize / 1024).toFixed(2)} KB` : null} 
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Student Information */}
           <Card>
             <CardHeader className="pb-4">
@@ -308,34 +332,9 @@ export default function AdminOfferLetterDetails() {
                   value={offerLetter.studentId} 
                 />
                 <InfoItem 
-                  icon={Mail} 
-                  label="Student Email" 
-                  value={offerLetter.studentEmail} 
-                />
-                <InfoItem 
-                  icon={Phone} 
-                  label="Student Phone" 
-                  value={offerLetter.studentPhone} 
-                />
-                <InfoItem 
-                  icon={MapPin} 
-                  label="Student Address" 
-                  value={offerLetter.studentAddress} 
-                />
-                <InfoItem 
-                  icon={Calendar} 
-                  label="Date of Birth" 
-                  value={offerLetter.dateOfBirth} 
-                />
-                <InfoItem 
-                  icon={Globe} 
-                  label="Nationality" 
-                  value={offerLetter.nationality} 
-                />
-                <InfoItem 
                   icon={FileText} 
-                  label="Passport Number" 
-                  value={offerLetter.passportNumber} 
+                  label="Application Number" 
+                  value={offerLetter.applicationNumber} 
                 />
               </div>
             </CardContent>
@@ -358,11 +357,6 @@ export default function AdminOfferLetterDetails() {
                 />
                 <InfoItem 
                   icon={MapPin} 
-                  label="Campus" 
-                  value={offerLetter.campus} 
-                />
-                <InfoItem 
-                  icon={MapPin} 
                   label="Institution Address" 
                   value={offerLetter.institutionAddress} 
                 />
@@ -381,53 +375,33 @@ export default function AdminOfferLetterDetails() {
                   label="Institution Website" 
                   value={offerLetter.institutionWebsite} 
                 />
-                <InfoItem 
-                  icon={Award} 
-                  label="CRICOS Code" 
-                  value={offerLetter.cricosCode} 
-                />
-                <InfoItem 
-                  icon={FileText} 
-                  label="Institution Code" 
-                  value={offerLetter.institutionCode} 
-                />
               </div>
             </CardContent>
           </Card>
 
-          {/* Course Information */}
+          {/* Program Information */}
           <Card>
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <GraduationCap className="h-5 w-5 flex-shrink-0" />
-                Course Information
+                Program Information
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InfoItem 
                   icon={BookOpen} 
-                  label="Course Name" 
+                  label="Program Name" 
                   value={offerLetter.programName} 
                 />
                 <InfoItem 
-                  icon={FileText} 
-                  label="Course Code" 
-                  value={offerLetter.courseCode} 
-                />
-                <InfoItem 
                   icon={Award} 
-                  label="Course Level" 
+                  label="Program Level" 
                   value={offerLetter.programLevel} 
                 />
                 <InfoItem 
-                  icon={BookOpen} 
-                  label="Field of Study" 
-                  value={offerLetter.fieldOfStudy} 
-                />
-                <InfoItem 
                   icon={Clock} 
-                  label="Course Duration" 
+                  label="Program Duration" 
                   value={offerLetter.programDuration} 
                 />
                 <InfoItem 
@@ -439,11 +413,6 @@ export default function AdminOfferLetterDetails() {
                   icon={MapPin} 
                   label="Campus Location" 
                   value={offerLetter.campusLocation} 
-                />
-                <InfoItem 
-                  icon={Calendar} 
-                  label="Intake" 
-                  value={offerLetter.intake} 
                 />
               </div>
             </CardContent>
@@ -461,38 +430,23 @@ export default function AdminOfferLetterDetails() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InfoItem 
                   icon={Calendar} 
-                  label="Commencement Date" 
+                  label="Start Date" 
                   value={offerLetter.startDate} 
                 />
                 <InfoItem 
                   icon={Calendar} 
-                  label="Completion Date" 
+                  label="End Date" 
                   value={offerLetter.endDate} 
                 />
                 <InfoItem 
-                  icon={Calendar} 
-                  label="Expected Graduation" 
-                  value={offerLetter.expectedGraduation} 
-                />
-                <InfoItem 
                   icon={Clock} 
-                  label="Enrollment Deadline" 
-                  value={offerLetter.enrollmentDeadline} 
+                  label="Application Deadline" 
+                  value={offerLetter.applicationDeadline} 
                 />
                 <InfoItem 
                   icon={Clock} 
                   label="Acceptance Deadline" 
                   value={offerLetter.acceptanceDeadline} 
-                />
-                <InfoItem 
-                  icon={Calendar} 
-                  label="Orientation Date" 
-                  value={offerLetter.orientationDate} 
-                />
-                <InfoItem 
-                  icon={Calendar} 
-                  label="Census Date" 
-                  value={offerLetter.censusDate} 
                 />
               </div>
             </CardContent>
@@ -512,7 +466,7 @@ export default function AdminOfferLetterDetails() {
                 <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                    <span className="font-medium text-blue-800 break-words overflow-hidden text-wrap">Tuition Fees</span>
+                    <span className="font-medium text-blue-800 break-words overflow-hidden text-wrap">Tuition Fee</span>
                   </div>
                   <div className="text-lg font-bold text-blue-900 break-words overflow-hidden text-wrap">
                     {offerLetter.tuitionFee || 'Not specified'}
@@ -542,7 +496,7 @@ export default function AdminOfferLetterDetails() {
                 <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <Award className="h-4 w-4 text-purple-600 flex-shrink-0" />
-                    <span className="font-medium text-purple-800 break-words overflow-hidden text-wrap">Total Course Fee</span>
+                    <span className="font-medium text-purple-800 break-words overflow-hidden text-wrap">Total Cost</span>
                   </div>
                   <div className="text-lg font-bold text-purple-900 break-words overflow-hidden text-wrap">
                     {offerLetter.totalCost || 'Not specified'}
@@ -553,34 +507,9 @@ export default function AdminOfferLetterDetails() {
               {/* Additional Financial Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InfoItem 
-                  icon={DollarSign} 
-                  label="Fees Per Year" 
-                  value={offerLetter.feesPerYear} 
-                />
-                <InfoItem 
                   icon={Calendar} 
-                  label="Fees Per Semester" 
-                  value={offerLetter.feesPerSemester} 
-                />
-                <InfoItem 
-                  icon={FileText} 
-                  label="Payment Methods" 
-                  value={offerLetter.paymentMethods} 
-                />
-                <InfoItem 
-                  icon={Clock} 
-                  label="Refund Policy" 
-                  value={offerLetter.refundPolicy} 
-                />
-                <InfoItem 
-                  icon={DollarSign} 
-                  label="Additional Fees" 
-                  value={offerLetter.additionalFees} 
-                />
-                <InfoItem 
-                  icon={Award} 
-                  label="Scholarship Info" 
-                  value={offerLetter.scholarshipInfo} 
+                  label="Payment Schedule" 
+                  value={offerLetter.paymentSchedule} 
                 />
               </div>
             </CardContent>
@@ -611,143 +540,28 @@ export default function AdminOfferLetterDetails() {
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2 break-words overflow-hidden text-wrap">Additional Requirements</h4>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-2 break-words overflow-hidden text-wrap">Document Requirements</h4>
                   <div className="bg-gray-50 p-4 rounded-lg border break-words overflow-hidden text-wrap">
-                    {formatRequirementsText(offerLetter.additionalRequirements)}
+                    {formatRequirementsText(offerLetter.documentRequirements)}
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Terms & Conditions */}
+          {/* Extracted Text */}
           <Card>
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <FileText className="h-5 w-5 flex-shrink-0" />
-                Terms & Conditions
+                Extracted Text
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2 break-words overflow-hidden text-wrap">Enrollment Conditions</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg border break-words overflow-hidden text-wrap">
-                    {formatRequirementsText(offerLetter.enrollmentConditions)}
-                  </div>
+            <CardContent>
+              <div className="bg-gray-50 p-4 rounded-lg border max-h-96 overflow-y-auto">
+                <div className="text-sm break-words overflow-hidden text-wrap whitespace-pre-wrap">
+                  {offerLetter.extractedText || 'No text extracted'}
                 </div>
-
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2 break-words overflow-hidden text-wrap">Terms & Conditions</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg border break-words overflow-hidden text-wrap">
-                    {formatRequirementsText(offerLetter.termsConditions)}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2 break-words overflow-hidden text-wrap">Important Notes</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg border break-words overflow-hidden text-wrap">
-                    {formatRequirementsText(offerLetter.importantNotes)}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Contact Information */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Phone className="h-5 w-5 flex-shrink-0" />
-                Contact Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoItem 
-                  icon={User} 
-                  label="Admissions Contact" 
-                  value={offerLetter.admissionsContact} 
-                />
-                <InfoItem 
-                  icon={Mail} 
-                  label="Admissions Email" 
-                  value={offerLetter.admissionsEmail} 
-                />
-                <InfoItem 
-                  icon={Phone} 
-                  label="Admissions Phone" 
-                  value={offerLetter.admissionsPhone} 
-                />
-                <InfoItem 
-                  icon={User} 
-                  label="Student Services Contact" 
-                  value={offerLetter.studentServicesContact} 
-                />
-                <InfoItem 
-                  icon={Globe} 
-                  label="International Office Contact" 
-                  value={offerLetter.internationalOfficeContact} 
-                />
-                <InfoItem 
-                  icon={Phone} 
-                  label="Emergency Contact" 
-                  value={offerLetter.emergencyContact} 
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Additional Information */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <FileText className="h-5 w-5 flex-shrink-0" />
-                Additional Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoItem 
-                  icon={Plane} 
-                  label="Visa Information" 
-                  value={offerLetter.visaInformation} 
-                />
-                <InfoItem 
-                  icon={Home} 
-                  label="Accommodation Info" 
-                  value={offerLetter.accommodationInfo} 
-                />
-                <InfoItem 
-                  icon={Calendar} 
-                  label="Orientation Info" 
-                  value={offerLetter.orientationInfo} 
-                />
-                <InfoItem 
-                  icon={FileText} 
-                  label="Additional Notes" 
-                  value={offerLetter.additionalNotes} 
-                />
-                <InfoItem 
-                  icon={FileText} 
-                  label="Attachments" 
-                  value={offerLetter.attachments} 
-                />
-                <InfoItem 
-                  icon={BookOpen} 
-                  label="Previous Education" 
-                  value={offerLetter.previousEducation} 
-                />
-                <InfoItem 
-                  icon={User} 
-                  label="Work Experience" 
-                  value={offerLetter.workExperience} 
-                />
-                <InfoItem 
-                  icon={FileText} 
-                  label="Special Considerations" 
-                  value={offerLetter.specialConsiderations} 
-                />
               </div>
             </CardContent>
           </Card>
