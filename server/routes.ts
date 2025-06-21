@@ -1880,19 +1880,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requestData
       );
 
-      // Save suggestion to database
+      // Save enhanced suggestion to database
       const suggestion = await storage.createStudyDestinationSuggestion({
         userId: user.id,
-        suggestedCountries: analysis.topRecommendations,
-        matchScore: analysis.overallMatchScore,
-        reasoning: analysis.executiveSummary,
+        executiveSummary: analysis.executiveSummary,
+        overallMatchScore: analysis.overallMatchScore,
         keyFactors: analysis.keyFactors,
-        recommendations: {
-          personalizedInsights: analysis.personalizedInsights,
-          nextSteps: analysis.nextSteps,
-          budgetOptimization: analysis.budgetOptimization,
-          timeline: analysis.timeline
-        },
+        topRecommendations: analysis.topRecommendations,
+        intelligentAlternatives: (analysis as any).intelligentAlternatives || null,
+        personalizedInsights: analysis.personalizedInsights,
+        nextSteps: analysis.nextSteps,
+        budgetOptimization: analysis.budgetOptimization,
+        timeline: analysis.timeline,
+        pathwayPrograms: analysis.pathwayPrograms || null,
+        disclaimer: "This AI-generated analysis is for informational purposes only. Please consult with licensed education counsellors and migration agents for personalized advice.",
+        tokensUsed,
+        processingTime,
         isActive: true
       });
 

@@ -102,6 +102,21 @@ interface DestinationSuggestionResponse {
     application: string;
     decisionMaking: string;
   };
+  intelligentAlternatives?: Array<{
+    country: string;
+    whyBetter: string;
+    keyBenefits: string[];
+    matchScore: number;
+    costAdvantage?: string;
+  }>;
+  pathwayPrograms?: Array<{
+    type: string;
+    description: string;
+    duration: string;
+    cost: string;
+    entryRequirements: string[];
+    pathwayTo: string;
+  }>;
 }
 
 /**

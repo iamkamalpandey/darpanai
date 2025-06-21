@@ -45,6 +45,7 @@ const AdminDocumentChecklists = lazy(() => import("@/pages/admin-document-checkl
 const AdminFeedback = lazy(() => import("@/pages/admin-feedback"));
 const AdminOfferLetterAnalysisView = lazy(() => import("@/pages/AdminOfferLetterAnalysisView"));
 const StudyDestinationSuggestions = lazy(() => import("@/pages/StudyDestinationSuggestions"));
+const DestinationSuggestionDetail = lazy(() => import("@/pages/DestinationSuggestionDetail"));
 const EnhancedUserProfile = lazy(() => import("@/pages/EnhancedUserProfile"));
 const ProfileEdit = lazy(() => import("@/pages/ProfileEdit"));
 const ProfilePageRedesign = lazy(() => import("@/components/ProfilePageRedesign"));
@@ -136,7 +137,7 @@ function Router() {
       <Route path="/destination-suggestions/:id">
         <UserProtectedRoute path="/destination-suggestions/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <StudyDestinationSuggestions />
+            <DestinationSuggestionDetail />
           </Suspense>
         )} />
       </Route>
