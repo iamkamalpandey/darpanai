@@ -115,6 +115,28 @@ interface DestinationSuggestion {
     optional: string[];
   };
   disclaimer?: string;
+  // Top-level comprehensive analysis sections
+  budgetOptimization?: {
+    costSavingStrategies: string[];
+    scholarshipOpportunities: string[];
+    financialPlanningTips: string[];
+  };
+  timeline?: {
+    preparation: string;
+    application: string;
+    decisionMaking: string;
+  };
+  nextSteps?: {
+    immediate: string[];
+    shortTerm: string[];
+    longTerm: string[];
+  };
+  personalizedInsights?: {
+    strengthsAnalysis: string[];
+    improvementAreas: string[];
+    strategicRecommendations: string[];
+  };
+  // Legacy nested structure for backward compatibility
   recommendations: {
     personalizedInsights: {
       strengthsAnalysis: string[];
@@ -679,62 +701,166 @@ export default function StudyDestinationSuggestions() {
                   </div>
                 </TabsContent>
                 
-                <TabsContent value="budget" className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="font-semibold text-green-700 mb-3 flex items-center gap-2">
-                        <DollarSign className="h-4 w-4" />
-                        Cost-Saving Strategies
-                      </h3>
-                      <ul className="space-y-2">
-                        {(latestSuggestion.recommendations?.budgetOptimization?.costSavingStrategies || []).map((strategy: any, index: number) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-gray-700">{strategy}</span>
-                          </li>
-                        ))}
-                      </ul>
+                <TabsContent value="budget" className="space-y-6">
+                  {/* Cost-Saving Strategies */}
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                    <h3 className="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
+                      <DollarSign className="h-5 w-5" />
+                      Cost-Saving Strategies
+                    </h3>
+                    <div className="space-y-3">
+                      {(latestSuggestion.budgetOptimization?.costSavingStrategies || latestSuggestion.recommendations?.budgetOptimization?.costSavingStrategies || []).map((strategy: any, index: number) => (
+                        <div key={index} className="bg-white p-4 rounded-lg border border-green-100">
+                          <div className="flex items-start gap-3">
+                            <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                            <p className="text-gray-800 font-medium">{strategy}</p>
+                          </div>
+                        </div>
+                      ))}
+                      {(latestSuggestion.budgetOptimization?.costSavingStrategies || latestSuggestion.recommendations?.budgetOptimization?.costSavingStrategies || []).length === 0 && (
+                        <div className="bg-white p-4 rounded-lg border border-green-100 text-center">
+                          <p className="text-gray-500">No cost-saving strategies available in current analysis</p>
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-blue-700 mb-3 flex items-center gap-2">
-                        <GraduationCap className="h-4 w-4" />
-                        Scholarship Opportunities
-                      </h3>
-                      <ul className="space-y-2">
-                        {(latestSuggestion.recommendations?.budgetOptimization?.scholarshipOpportunities || []).map((scholarship: any, index: number) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <Star className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-gray-700">{scholarship}</span>
-                          </li>
-                        ))}
-                      </ul>
+                  </div>
+
+                  {/* Scholarship Opportunities */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                    <h3 className="text-xl font-bold text-blue-700 mb-4 flex items-center gap-2">
+                      <GraduationCap className="h-5 w-5" />
+                      Scholarship Opportunities
+                    </h3>
+                    <div className="space-y-3">
+                      {(latestSuggestion.budgetOptimization?.scholarshipOpportunities || latestSuggestion.recommendations?.budgetOptimization?.scholarshipOpportunities || []).map((scholarship: any, index: number) => (
+                        <div key={index} className="bg-white p-4 rounded-lg border border-blue-100">
+                          <div className="flex items-start gap-3">
+                            <Star className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                            <p className="text-gray-800 font-medium">{scholarship}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Financial Planning Tips */}
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                    <h3 className="text-xl font-bold text-purple-700 mb-4 flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      Financial Planning Tips
+                    </h3>
+                    <div className="space-y-3">
+                      {(latestSuggestion.budgetOptimization?.financialPlanningTips || latestSuggestion.recommendations?.budgetOptimization?.financialPlanningTips || []).map((tip: any, index: number) => (
+                        <div key={index} className="bg-white p-4 rounded-lg border border-purple-100">
+                          <div className="flex items-start gap-3">
+                            <Info className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                            <p className="text-gray-800 font-medium">{tip}</p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </TabsContent>
                 
-                <TabsContent value="timeline" className="space-y-4">
-                  <div className="space-y-6">
+                <TabsContent value="timeline" className="space-y-6">
+                  {/* Application Timeline */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+                    <h3 className="text-xl font-bold text-blue-800 mb-6 flex items-center gap-2">
+                      <Clock className="h-5 w-5" />
+                      Application Timeline
+                    </h3>
+                    
                     <div className="grid md:grid-cols-3 gap-6">
-                      <div className="text-center">
-                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <Clock className="h-6 w-6 text-blue-600" />
+                      <div className="bg-white p-4 rounded-lg border border-blue-100">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-sm font-bold text-blue-600">1</span>
+                          </div>
+                          <h4 className="font-semibold text-blue-700">Preparation Phase</h4>
                         </div>
-                        <h3 className="font-semibold text-blue-700 mb-2">Preparation</h3>
-                        <p className="text-sm text-gray-600">{latestSuggestion.recommendations?.timeline?.preparation || 'Not specified'}</p>
+                        <p className="text-sm text-gray-700 mb-2">
+                          <strong>Duration:</strong> {latestSuggestion.timeline?.preparation || latestSuggestion.recommendations?.timeline?.preparation || '6-12 months'}
+                        </p>
+                        <div className="space-y-1">
+                          {(latestSuggestion.actionPlan?.required || latestSuggestion.recommendations?.nextSteps?.immediate || []).slice(0, 3).map((item: any, index: number) => (
+                            <div key={index} className="flex items-start gap-2">
+                              <CheckCircle className="h-3 w-3 text-green-600 mt-1 flex-shrink-0" />
+                              <span className="text-xs text-gray-600">{item}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="text-center">
-                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <GraduationCap className="h-6 w-6 text-green-600" />
+
+                      <div className="bg-white p-4 rounded-lg border border-green-100">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <span className="text-sm font-bold text-green-600">2</span>
+                          </div>
+                          <h4 className="font-semibold text-green-700">Application Phase</h4>
                         </div>
-                        <h3 className="font-semibold text-green-700 mb-2">Application</h3>
-                        <p className="text-sm text-gray-600">{latestSuggestion.recommendations?.timeline?.application || 'Not specified'}</p>
+                        <p className="text-sm text-gray-700 mb-2">
+                          <strong>Duration:</strong> {latestSuggestion.timeline?.application || latestSuggestion.recommendations?.timeline?.application || '3-6 months'}
+                        </p>
+                        <div className="space-y-1">
+                          {(latestSuggestion.actionPlan?.timeline || latestSuggestion.recommendations?.nextSteps?.shortTerm || []).slice(0, 3).map((item: any, index: number) => (
+                            <div key={index} className="flex items-start gap-2">
+                              <GraduationCap className="h-3 w-3 text-blue-600 mt-1 flex-shrink-0" />
+                              <span className="text-xs text-gray-600">{item}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="text-center">
-                        <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <Target className="h-6 w-6 text-purple-600" />
+
+                      <div className="bg-white p-4 rounded-lg border border-purple-100">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                            <span className="text-sm font-bold text-purple-600">3</span>
+                          </div>
+                          <h4 className="font-semibold text-purple-700">Decision Phase</h4>
                         </div>
-                        <h3 className="font-semibold text-purple-700 mb-2">Decision Making</h3>
-                        <p className="text-sm text-gray-600">{latestSuggestion.recommendations?.timeline?.decisionMaking || 'Not specified'}</p>
+                        <p className="text-sm text-gray-700 mb-2">
+                          <strong>Duration:</strong> {latestSuggestion.timeline?.decisionMaking || latestSuggestion.recommendations?.timeline?.decisionMaking || '2-3 months'}
+                        </p>
+                        <div className="space-y-1">
+                          {(latestSuggestion.actionPlan?.optional || latestSuggestion.recommendations?.nextSteps?.longTerm || []).slice(0, 3).map((item: any, index: number) => (
+                            <div key={index} className="flex items-start gap-2">
+                              <Target className="h-3 w-3 text-purple-600 mt-1 flex-shrink-0" />
+                              <span className="text-xs text-gray-600">{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quarterly Action Plan */}
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                    <h3 className="text-xl font-bold text-orange-800 mb-4 flex items-center gap-2">
+                      <Settings className="h-5 w-5" />
+                      Quarterly Action Plan
+                    </h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-orange-700">Q4 2024 - Immediate Actions</h4>
+                        {(latestSuggestion.recommendations?.nextSteps?.immediate || []).map((step: any, index: number) => (
+                          <div key={index} className="bg-white p-3 rounded border border-orange-100">
+                            <div className="flex items-start gap-2">
+                              <span className="text-orange-600 font-bold text-sm">{index + 1}.</span>
+                              <span className="text-sm text-gray-700">{step}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="space-y-3">
+                        <h4 className="font-semibold text-orange-700">Q1-Q2 2025 - Strategic Steps</h4>
+                        {(latestSuggestion.recommendations?.nextSteps?.shortTerm || []).map((step: any, index: number) => (
+                          <div key={index} className="bg-white p-3 rounded border border-orange-100">
+                            <div className="flex items-start gap-2">
+                              <span className="text-orange-600 font-bold text-sm">{index + 1}.</span>
+                              <span className="text-sm text-gray-700">{step}</span>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
