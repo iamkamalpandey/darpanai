@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";
 import { registerRoutes } from "./routes";
+import { setupOfferLetterRoutes } from "./offerLetterRoutesNew";
 import { setupVite, serveStatic, log } from "./vite";
 import { pool } from "./db";
 
