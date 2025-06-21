@@ -143,20 +143,7 @@ export interface IStorage {
   updateAnalysisFeedback(analysisId: number, userId: number, updates: Partial<AnalysisFeedback>): Promise<AnalysisFeedback | undefined>;
   getFeedbackAnalytics(): Promise<any>;
   
-  // Study Destination Suggestion methods
-  createStudyDestinationSuggestion(suggestion: InsertStudyDestinationSuggestion): Promise<StudyDestinationSuggestion>;
-  getStudyDestinationSuggestion(id: number): Promise<StudyDestinationSuggestion | undefined>;
-  getUserStudyDestinationSuggestions(userId: number): Promise<StudyDestinationSuggestion[]>;
-  getLatestStudyDestinationSuggestion(userId: number): Promise<StudyDestinationSuggestion | undefined>;
-  updateStudyDestinationSuggestion(id: number, updates: Partial<StudyDestinationSuggestion>): Promise<StudyDestinationSuggestion | undefined>;
-  
-  // Country methods
-  createCountry(country: InsertCountry): Promise<Country>;
-  getAllCountries(): Promise<Country[]>;
-  getActiveCountries(): Promise<Country[]>;
-  getCountry(id: number): Promise<Country | undefined>;
-  getCountryByCode(code: string): Promise<Country | undefined>;
-  updateCountry(id: number, updates: Partial<Country>): Promise<Country | undefined>;
+  // Destination suggestion and country methods removed - feature discontinued
   updateUserStudyPreferences(userId: number, preferences: any): Promise<User | undefined>;
 
   // Platform Statistics methods
@@ -1531,208 +1518,11 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Study Destination Suggestion methods
-  async createStudyDestinationSuggestion(suggestion: any): Promise<StudyDestinationSuggestion> {
-    try {
-      const [newSuggestion] = await db
-        .insert(studyDestinationSuggestions)
-        .values({
-          userId: suggestion.userId,
-          executiveSummary: suggestion.executiveSummary,
-          overallMatchScore: suggestion.overallMatchScore,
-          keyFactors: suggestion.keyFactors,
-          topRecommendations: suggestion.topRecommendations,
-          intelligentAlternatives: suggestion.intelligentAlternatives,
-          personalizedInsights: suggestion.personalizedInsights,
-          nextSteps: suggestion.nextSteps,
-          budgetOptimization: suggestion.budgetOptimization,
-          timeline: suggestion.timeline,
-          pathwayPrograms: suggestion.pathwayPrograms,
-          disclaimer: suggestion.disclaimer,
-          tokensUsed: suggestion.tokensUsed,
-          processingTime: suggestion.processingTime,
-          isActive: suggestion.isActive
-        })
-        .returning();
-      return newSuggestion;
-    } catch (error) {
-      console.error("Error creating study destination suggestion:", error);
-      throw error;
-    }
-  }
+  // Study destination suggestion methods removed - feature discontinued
 
-  async getStudyDestinationSuggestion(id: number): Promise<StudyDestinationSuggestion | undefined> {
-    try {
-      const [suggestion] = await db
-        .select()
-        .from(studyDestinationSuggestions)
-        .where(eq(studyDestinationSuggestions.id, id));
-      
-      if (!suggestion) return undefined;
-      
-      // Parse JSON fields that are stored as strings
-      const parseJsonField = (field: any): any => {
-        if (!field) return null;
-        if (typeof field === 'string') {
-          try {
-            return JSON.parse(field);
-          } catch (error) {
-            console.warn('Failed to parse JSON field:', error);
-            return null;
-          }
-        }
-        return field;
-      };
+  // Update study destination suggestion method removed - feature discontinued
 
-      const parsedSuggestion = {
-        ...suggestion,
-        topRecommendations: parseJsonField(suggestion.topRecommendations),
-        keyFactors: parseJsonField(suggestion.keyFactors),
-        intelligentAlternatives: parseJsonField(suggestion.intelligentAlternatives),
-        pathwayPrograms: parseJsonField(suggestion.pathwayPrograms),
-        personalizedInsights: parseJsonField(suggestion.personalizedInsights),
-        nextSteps: parseJsonField(suggestion.nextSteps),
-        budgetOptimization: parseJsonField(suggestion.budgetOptimization),
-        timeline: parseJsonField(suggestion.timeline),
-      };
-      
-      return parsedSuggestion;
-    } catch (error) {
-      console.error("Error fetching study destination suggestion:", error);
-      throw error;
-    }
-  }
-
-  async getUserStudyDestinationSuggestions(userId: number): Promise<StudyDestinationSuggestion[]> {
-    try {
-      const suggestions = await db
-        .select()
-        .from(studyDestinationSuggestions)
-        .where(and(
-          eq(studyDestinationSuggestions.userId, userId),
-          eq(studyDestinationSuggestions.isActive, true)
-        ))
-        .orderBy(desc(studyDestinationSuggestions.createdAt));
-      
-      // Parse JSON fields for all suggestions using local function
-      return suggestions.map(suggestion => {
-        const parseJsonField = (field: any): any => {
-          if (!field) return null;
-          if (typeof field === 'string') {
-            try {
-              return JSON.parse(field);
-            } catch (error) {
-              console.warn('Failed to parse JSON field:', error);
-              return null;
-            }
-          }
-          return field;
-        };
-
-        return {
-          ...suggestion,
-          topRecommendations: parseJsonField(suggestion.topRecommendations),
-          keyFactors: parseJsonField(suggestion.keyFactors),
-          intelligentAlternatives: parseJsonField(suggestion.intelligentAlternatives),
-          pathwayPrograms: parseJsonField(suggestion.pathwayPrograms),
-          personalizedInsights: parseJsonField(suggestion.personalizedInsights),
-          nextSteps: parseJsonField(suggestion.nextSteps),
-          budgetOptimization: parseJsonField(suggestion.budgetOptimization),
-          timeline: parseJsonField(suggestion.timeline),
-        };
-      });
-    } catch (error) {
-      console.error("Error fetching user study destination suggestions:", error);
-      throw error;
-    }
-  }
-
-
-
-  async getLatestStudyDestinationSuggestion(userId: number): Promise<StudyDestinationSuggestion | undefined> {
-    try {
-      const [suggestion] = await db
-        .select()
-        .from(studyDestinationSuggestions)
-        .where(and(
-          eq(studyDestinationSuggestions.userId, userId),
-          eq(studyDestinationSuggestions.isActive, true)
-        ))
-        .orderBy(desc(studyDestinationSuggestions.createdAt))
-        .limit(1);
-      return suggestion || undefined;
-    } catch (error) {
-      console.error("Error fetching latest study destination suggestion:", error);
-      throw error;
-    }
-  }
-
-  async updateStudyDestinationSuggestion(id: number, updates: Partial<StudyDestinationSuggestion>): Promise<StudyDestinationSuggestion | undefined> {
-    try {
-      const [updatedSuggestion] = await db
-        .update(studyDestinationSuggestions)
-        .set(updates)
-        .where(eq(studyDestinationSuggestions.id, id))
-        .returning();
-      return updatedSuggestion || undefined;
-    } catch (error) {
-      console.error("Error updating study destination suggestion:", error);
-      throw error;
-    }
-  }
-
-  // Country methods
-  async createCountry(country: InsertCountry): Promise<Country> {
-    try {
-      const [newCountry] = await db
-        .insert(countries)
-        .values({
-          ...country,
-          createdAt: new Date(),
-        })
-        .returning();
-      return newCountry;
-    } catch (error) {
-      console.error("Error creating country:", error);
-      throw error;
-    }
-  }
-
-  async getAllCountries(): Promise<Country[]> {
-    return await db.select().from(countries).orderBy(countries.name);
-  }
-
-  async getActiveCountries(): Promise<Country[]> {
-    return await db
-      .select()
-      .from(countries)
-      .where(eq(countries.isActive, true))
-      .orderBy(countries.name);
-  }
-
-  async getCountry(id: number): Promise<Country | undefined> {
-    const [country] = await db.select().from(countries).where(eq(countries.id, id));
-    return country || undefined;
-  }
-
-  async getCountryByCode(code: string): Promise<Country | undefined> {
-    const [country] = await db.select().from(countries).where(eq(countries.code, code));
-    return country || undefined;
-  }
-
-  async updateCountry(id: number, updates: Partial<Country>): Promise<Country | undefined> {
-    try {
-      const [updatedCountry] = await db
-        .update(countries)
-        .set(updates)
-        .where(eq(countries.id, id))
-        .returning();
-      return updatedCountry || undefined;
-    } catch (error) {
-      console.error("Error updating country:", error);
-      throw error;
-    }
-  }
+  // Country methods removed - feature discontinued
 
   async updateUserStudyPreferences(userId: number, preferences: any): Promise<User | undefined> {
     try {
@@ -1789,11 +1579,8 @@ export class DatabaseStorage implements IStorage {
         .select({ count: sql<number>`count(*)` })
         .from(offerLetterAnalyses);
 
-      // Get total countries supported
-      const [totalCountriesResult] = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(countries)
-        .where(eq(countries.isActive, true));
+      // Countries feature discontinued - using static count
+      const totalCountriesResult = { count: 50 };
 
       // Calculate total analyses and documents processed
       const totalVisaAnalyses = totalVisaAnalysesResult?.count || 0;
