@@ -137,16 +137,20 @@ export async function generateDestinationSuggestions(
     console.log(`Destination analysis completed: ${tokensUsed} tokens used, ${processingTime}ms processing time`);
     
     const firstContent = response.content[0];
-    const analysisContent = firstContent && 'text' in firstContent ? firstContent.text : '';
+    let analysisContent = firstContent && 'text' in firstContent ? firstContent.text : '';
     if (!analysisContent) {
       throw new Error('No analysis content received from Claude');
     }
+
+    // Clean up Claude's response by removing markdown code blocks
+    analysisContent = analysisContent.replace(/```json\s*|\s*```/g, '').trim();
 
     let analysis: DestinationSuggestionResponse;
     try {
       analysis = JSON.parse(analysisContent);
     } catch (parseError) {
       console.error('Failed to parse Claude response:', parseError);
+      console.error('Raw response content:', analysisContent.substring(0, 500));
       throw new Error('Invalid response format from AI analysis');
     }
 

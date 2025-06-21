@@ -97,15 +97,46 @@ export const users = pgTable("users", {
   dropout: boolean("dropout").default(false),
 });
 
-// Study Destination Suggestions
+// Enhanced Study Destination Suggestions with comprehensive analysis
 export const studyDestinationSuggestions = pgTable("study_destination_suggestions", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
-  suggestedCountries: jsonb("suggested_countries").notNull(), // Array of country objects with details
-  matchScore: integer("match_score").notNull(), // 0-100 percentage match
-  reasoning: text("reasoning").notNull(),
+  
+  // Executive Summary & Overall Analysis
+  executiveSummary: text("executive_summary").notNull(),
+  overallMatchScore: integer("overall_match_score").notNull(), // 0-100 percentage match
   keyFactors: text("key_factors").array().notNull(),
-  recommendations: jsonb("recommendations").notNull(), // Detailed recommendations per country
+  
+  // Top Country Recommendations (structured JSONB)
+  topRecommendations: jsonb("top_recommendations").notNull(), // Array of CountryRecommendation objects
+  
+  // Intelligent Alternatives Analysis
+  intelligentAlternatives: jsonb("intelligent_alternatives"), // Smart alternatives beyond user preferences
+  
+  // Personalized Insights
+  personalizedInsights: jsonb("personalized_insights").notNull(), // strengths, improvements, strategic recommendations
+  
+  // Action Plans & Next Steps
+  nextSteps: jsonb("next_steps").notNull(), // immediate, short-term, long-term actions
+  
+  // Budget Optimization & Financial Planning
+  budgetOptimization: jsonb("budget_optimization").notNull(), // cost-saving, scholarships, financial tips
+  
+  // Timeline & Planning
+  timeline: jsonb("timeline").notNull(), // preparation, application, decision phases
+  
+  // Analysis Metadata
+  tokensUsed: integer("tokens_used").default(0),
+  processingTime: integer("processing_time").default(0), // milliseconds
+  analysisVersion: text("analysis_version").default("claude-sonnet-4").notNull(),
+  
+  // Pathway Programs Analysis
+  pathwayPrograms: jsonb("pathway_programs"), // Foundation courses, TAFE, 2+2 programs
+  
+  // Professional Disclaimer & Compliance
+  disclaimer: text("disclaimer"),
+  
+  // Status & Timestamps
   createdAt: timestamp("created_at").defaultNow().notNull(),
   isActive: boolean("is_active").default(true).notNull(),
 });
@@ -550,6 +581,93 @@ export type InsertStudyDestinationSuggestion = typeof studyDestinationSuggestion
 
 export type Country = typeof countries.$inferSelect;
 export type InsertCountry = typeof countries.$inferInsert;
+
+// Enhanced destination analysis validation schemas
+export const countryRecommendationSchema = z.object({
+  country: z.string(),
+  countryCode: z.string(),
+  matchScore: z.number().min(0).max(100),
+  ranking: z.number(),
+  reasons: z.array(z.string()),
+  advantages: z.array(z.string()),
+  challenges: z.array(z.string()),
+  estimatedCosts: z.object({
+    tuitionRange: z.string(),
+    livingCosts: z.string(),
+    totalAnnualCost: z.string(),
+  }),
+  topUniversities: z.array(z.string()),
+  visaRequirements: z.object({
+    difficulty: z.string(),
+    processingTime: z.string(),
+    workPermit: z.string(),
+  }),
+  careerProspects: z.object({
+    jobMarket: z.string(),
+    averageSalary: z.string(),
+    growthOpportunities: z.string(),
+  }),
+  culturalFit: z.object({
+    languageBarrier: z.string(),
+    culturalAdaptation: z.string(),
+    internationalStudentSupport: z.string(),
+  }),
+});
+
+export const intelligentAlternativeSchema = z.object({
+  country: z.string(),
+  whyBetter: z.string(),
+  keyBenefits: z.array(z.string()),
+  matchScore: z.number().min(0).max(100),
+  costAdvantage: z.string().optional(),
+});
+
+export const personalizedInsightsSchema = z.object({
+  strengthsAnalysis: z.array(z.string()),
+  improvementAreas: z.array(z.string()),
+  strategicRecommendations: z.array(z.string()),
+});
+
+export const nextStepsSchema = z.object({
+  immediate: z.array(z.string()),
+  shortTerm: z.array(z.string()),
+  longTerm: z.array(z.string()),
+});
+
+export const budgetOptimizationSchema = z.object({
+  costSavingStrategies: z.array(z.string()),
+  scholarshipOpportunities: z.array(z.string()),
+  financialPlanningTips: z.array(z.string()),
+});
+
+export const timelineSchema = z.object({
+  preparation: z.string(),
+  application: z.string(),
+  decisionMaking: z.string(),
+});
+
+export const pathwayProgramSchema = z.object({
+  type: z.string(), // foundation, diploma, tafe, 2+2
+  description: z.string(),
+  duration: z.string(),
+  cost: z.string(),
+  entryRequirements: z.array(z.string()),
+  pathwayTo: z.string(),
+});
+
+// Complete destination suggestion response schema
+export const destinationSuggestionResponseSchema = z.object({
+  executiveSummary: z.string(),
+  overallMatchScore: z.number().min(0).max(100),
+  topRecommendations: z.array(countryRecommendationSchema),
+  keyFactors: z.array(z.string()),
+  personalizedInsights: personalizedInsightsSchema,
+  nextSteps: nextStepsSchema,
+  budgetOptimization: budgetOptimizationSchema,
+  timeline: timelineSchema,
+  intelligentAlternatives: z.array(intelligentAlternativeSchema).optional(),
+  pathwayPrograms: z.array(pathwayProgramSchema).optional(),
+});
 
 // Study destination suggestion schemas
 export const insertStudyDestinationSuggestionSchema = createInsertSchema(studyDestinationSuggestions).omit({
