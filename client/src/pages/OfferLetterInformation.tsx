@@ -39,7 +39,7 @@ export default function OfferLetterInformation() {
     queryKey: ['/api/offer-letter-information'],
   });
 
-  const filteredOfferLetters = offerLetters.filter((letter: OfferLetterInfo) =>
+  const filteredOfferLetters = (offerLetters as OfferLetterInfo[]).filter((letter: OfferLetterInfo) =>
     letter.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     letter.institutionName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     letter.courseName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -226,7 +226,7 @@ export default function OfferLetterInformation() {
         {/* Offer Letters Grid */}
         {filteredOfferLetters.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredOfferLetters.map((letter: OfferLetterInfo) => (
+            {(filteredOfferLetters as OfferLetterInfo[]).map((letter: OfferLetterInfo) => (
               <Card key={letter.id} className="hover:shadow-lg transition-shadow duration-200">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
