@@ -1306,11 +1306,11 @@ export class DatabaseStorage implements IStorage {
           fileName: offerLetterInfo.fileName,
           fileSize: offerLetterInfo.fileSize,
           institutionName: offerLetterInfo.institutionName,
-          programName: offerLetterInfo.programName,
+          courseName: offerLetterInfo.courseName,
           studentName: offerLetterInfo.studentName,
-          tuitionFees: offerLetterInfo.tuitionFee,
-          totalCost: offerLetterInfo.totalCost,
-          commencementDate: offerLetterInfo.startDate,
+          totalTuitionFees: offerLetterInfo.totalTuitionFees,
+          totalFeeDue: offerLetterInfo.totalFeeDue,
+          courseStartDate: offerLetterInfo.courseStartDate,
           createdAt: offerLetterInfo.createdAt,
           username: users.username,
           firstName: users.firstName,
@@ -1372,6 +1372,164 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error fetching COE info by ID:", error);
       return undefined;
+    }
+  }
+
+  async getOfferLetterInfoById(id: number): Promise<any | undefined> {
+    try {
+      const [result] = await db
+        .select()
+        .from(offerLetterInfo)
+        .where(eq(offerLetterInfo.id, id));
+      return result || undefined;
+    } catch (error) {
+      console.error("Error fetching offer letter info by ID:", error);
+      return undefined;
+    }
+  }
+
+  async saveOfferLetterInformation(data: any): Promise<any> {
+    try {
+      const [savedInfo] = await db
+        .insert(offerLetterInfo)
+        .values({
+          userId: data.userId,
+          fileName: data.fileName,
+          fileSize: data.fileSize,
+          extractedText: data.extractedText,
+          
+          // Institution Information
+          institutionName: data.institutionName || null,
+          tradingAs: data.tradingAs || null,
+          institutionAddress: data.institutionAddress || null,
+          institutionPhone: data.institutionPhone || null,
+          institutionEmail: data.institutionEmail || null,
+          institutionWebsite: data.institutionWebsite || null,
+          providerId: data.providerId || null,
+          cricosProviderCode: data.cricosProviderCode || null,
+          abn: data.abn || null,
+          
+          // Student Information
+          studentName: data.studentName || null,
+          studentId: data.studentId || null,
+          dateOfBirth: data.dateOfBirth || null,
+          gender: data.gender || null,
+          citizenship: data.citizenship || null,
+          maritalStatus: data.maritalStatus || null,
+          homeAddress: data.homeAddress || null,
+          contactNumber: data.contactNumber || null,
+          emailAddress: data.emailAddress || null,
+          correspondenceAddress: data.correspondenceAddress || null,
+          passportNumber: data.passportNumber || null,
+          passportExpiryDate: data.passportExpiryDate || null,
+          agentDetails: data.agentDetails || null,
+          
+          // Course Information
+          courseName: data.courseName || null,
+          courseSpecialization: data.courseSpecialization || null,
+          courseLevel: data.courseLevel || null,
+          cricosCode: data.cricosCode || null,
+          courseDuration: data.courseDuration || null,
+          numberOfUnits: data.numberOfUnits || null,
+          creditPoints: data.creditPoints || null,
+          orientationDate: data.orientationDate || null,
+          courseStartDate: data.courseStartDate || null,
+          courseEndDate: data.courseEndDate || null,
+          studyMode: data.studyMode || null,
+          campusLocation: data.campusLocation || null,
+          
+          // Financial Information
+          tuitionFeePerUnit: data.tuitionFeePerUnit || null,
+          upfrontFeeForCoe: data.upfrontFeeForCoe || null,
+          totalTuitionFees: data.totalTuitionFees || null,
+          enrollmentFee: data.enrollmentFee || null,
+          materialFee: data.materialFee || null,
+          totalFeeDue: data.totalFeeDue || null,
+          paymentSchedule: data.paymentSchedule || null,
+          scholarshipAmount: data.scholarshipAmount || null,
+          scholarshipDetails: data.scholarshipDetails || null,
+          
+          // Payment Information
+          paymentMethods: data.paymentMethods || null,
+          bankDetails: data.bankDetails || null,
+          creditCardPaymentLink: data.creditCardPaymentLink || null,
+          paymentReference: data.paymentReference || null,
+          
+          // All other comprehensive fields
+          offerConditions: data.offerConditions || null,
+          genuineStudentRequirement: data.genuineStudentRequirement || null,
+          minimumEntryRequirements: data.minimumEntryRequirements || null,
+          academicPrerequisites: data.academicPrerequisites || null,
+          englishLanguageRequirements: data.englishLanguageRequirements || null,
+          documentationRequired: data.documentationRequired || null,
+          creditTransferDetails: data.creditTransferDetails || null,
+          unitsPerYear: data.unitsPerYear || null,
+          yearlyBreakdown: data.yearlyBreakdown || null,
+          fullTimeStudyRequirement: data.fullTimeStudyRequirement || null,
+          attendanceRequirements: data.attendanceRequirements || null,
+          academicProgressRequirements: data.academicProgressRequirements || null,
+          otherFeesAndCosts: data.otherFeesAndCosts || null,
+          estimatedLivingCosts: data.estimatedLivingCosts || null,
+          accommodationCosts: data.accommodationCosts || null,
+          additionalCharges: data.additionalCharges || null,
+          studentSupportServices: data.studentSupportServices || null,
+          specialNeedsSupport: data.specialNeedsSupport || null,
+          airportPickup: data.airportPickup || null,
+          accommodationAssistance: data.accommodationAssistance || null,
+          visaAdvice: data.visaAdvice || null,
+          orientationProgram: data.orientationProgram || null,
+          refundPolicy: data.refundPolicy || null,
+          refundConditions: data.refundConditions || null,
+          withdrawalPolicy: data.withdrawalPolicy || null,
+          transferPolicy: data.transferPolicy || null,
+          appealProcedures: data.appealProcedures || null,
+          grievanceProcedures: data.grievanceProcedures || null,
+          studentCodeOfConduct: data.studentCodeOfConduct || null,
+          esosLegislation: data.esosLegislation || null,
+          privacyPolicy: data.privacyPolicy || null,
+          studentRights: data.studentRights || null,
+          tuitionProtectionScheme: data.tuitionProtectionScheme || null,
+          defermentPolicy: data.defermentPolicy || null,
+          suspensionPolicy: data.suspensionPolicy || null,
+          oshcRequirement: data.oshcRequirement || null,
+          healthInsuranceDetails: data.healthInsuranceDetails || null,
+          medicalRequirements: data.medicalRequirements || null,
+          visaRequirements: data.visaRequirements || null,
+          studentVisaConditions: data.studentVisaConditions || null,
+          workRights: data.workRights || null,
+          dependentsInformation: data.dependentsInformation || null,
+          schoolAgedDependents: data.schoolAgedDependents || null,
+          laptopRequirement: data.laptopRequirement || null,
+          textbookCosts: data.textbookCosts || null,
+          libraryAccess: data.libraryAccess || null,
+          technologyRequirements: data.technologyRequirements || null,
+          admissionsOfficer: data.admissionsOfficer || null,
+          admissionsEmail: data.admissionsEmail || null,
+          studentServicesContact: data.studentServicesContact || null,
+          emergencyContacts: data.emergencyContacts || null,
+          qualitySystemsManager: data.qualitySystemsManager || null,
+          acceptanceDeadline: data.acceptanceDeadline || null,
+          studentDeclaration: data.studentDeclaration || null,
+          declarationRequirements: data.declarationRequirements || null,
+          signatureRequirements: data.signatureRequirements || null,
+          returnInstructions: data.returnInstructions || null,
+          applicationId: data.applicationId || null,
+          offerDate: data.offerDate || null,
+          offerVersion: data.offerVersion || null,
+          pageCount: data.pageCount || null,
+          documentStatus: data.documentStatus || null,
+          
+          // Processing metadata
+          tokensUsed: data.tokensUsed || 0,
+          processingTime: data.processingTime || 0,
+        })
+        .returning();
+      
+      console.log(`Successfully saved comprehensive offer letter information with ID: ${savedInfo.id}`);
+      return savedInfo;
+    } catch (error) {
+      console.error("Error saving offer letter information:", error);
+      throw error;
     }
   }
 
