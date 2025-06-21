@@ -356,7 +356,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
   const queryClient = useQueryClient();
 
   // Fetch user stats for quota checking
-  const { data: userStats } = useQuery({
+  const { data: userStats } = useQuery<{ remainingAnalyses: number; maxAnalyses: number; analysisCount: number }>({
     queryKey: ['/api/user/stats'],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -1694,7 +1694,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
             </div>
             <Button
               onClick={handleAnalyze}
-              disabled={!selectedFile || analyzeMutation.isPending || (userStats?.remainingAnalyses <= 0)}
+              disabled={!selectedFile || analyzeMutation.isPending || (userStats && 'remainingAnalyses' in userStats && userStats.remainingAnalyses <= 0)}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
               {analyzeMutation.isPending ? (
