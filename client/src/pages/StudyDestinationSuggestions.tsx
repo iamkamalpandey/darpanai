@@ -614,7 +614,7 @@ export default function StudyDestinationSuggestions() {
                             <CardContent className="p-4">
                               <div className="flex items-start gap-3">
                                 <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                                  <Lightbulb className="h-4 w-4 text-orange-600" />
+                                  <Target className="h-4 w-4 text-orange-600" />
                                 </div>
                                 <div className="flex-1">
                                   <h4 className="font-semibold text-lg text-orange-900 mb-2">{alternative.country}</h4>
@@ -640,7 +640,7 @@ export default function StudyDestinationSuggestions() {
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <Lightbulb className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+                      <Target className="h-12 w-12 mx-auto text-gray-400 mb-3" />
                       <p className="text-gray-600">No intelligent alternatives identified for your current recommendations.</p>
                     </div>
                   )}
@@ -844,6 +844,53 @@ export default function StudyDestinationSuggestions() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Professional Disclaimer */}
+        <Card className="max-w-6xl mx-auto border-amber-200 bg-amber-50">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2 text-amber-800">
+              <AlertTriangle className="h-5 w-5" />
+              Important Professional Disclaimer
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 space-y-4 text-sm text-amber-900">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold mb-2">📋 Information Purpose Only</h4>
+                <p className="mb-3">
+                  These AI-generated destination suggestions are for informational purposes only and should not be 
+                  considered as professional advice for your final study abroad decisions.
+                </p>
+                
+                <h4 className="font-semibold mb-2">🎓 Professional Consultation Required</h4>
+                <p>
+                  Always consult with licensed education counsellors, migration agents, and academic advisors 
+                  before making final decisions about study destinations, university applications, and visa processes.
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold mb-2">⚖️ Liability Limitation</h4>
+                <p className="mb-3">
+                  Darpan Intelligence and its analysis tools are not responsible for any financial, academic, 
+                  or other losses that may result from decisions based on these recommendations.
+                </p>
+                
+                <h4 className="font-semibold mb-2">🔄 Dynamic Information</h4>
+                <p>
+                  University requirements, visa policies, scholarship availability, and costs change frequently. 
+                  Always verify current information with official sources before proceeding.
+                </p>
+              </div>
+            </div>
+            
+            <div className="border-t border-amber-200 pt-4 mt-4">
+              <p className="text-center font-medium">
+                Use these suggestions as a starting point for your research, but make informed decisions with professional guidance.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
