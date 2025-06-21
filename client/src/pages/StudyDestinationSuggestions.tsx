@@ -510,7 +510,7 @@ export default function StudyDestinationSuggestions() {
                               </div>
                               <div>
                                 <h3 className="font-semibold text-lg">{country.country}</h3>
-                                <p className="text-sm text-gray-600">{country.estimatedCosts.totalAnnualCost}</p>
+                                <p className="text-sm text-gray-600">{country.financialBreakdown?.totalAnnualCost || country.estimatedCosts?.totalAnnualCost || 'Cost not specified'}</p>
                               </div>
                             </div>
                             <Badge variant="outline" className={getMatchScoreColor(country.matchScore)}>
@@ -522,7 +522,7 @@ export default function StudyDestinationSuggestions() {
                             <div>
                               <h4 className="font-medium text-green-700 mb-1">Advantages</h4>
                               <ul className="space-y-1">
-                                {country.advantages.slice(0, 2).map((advantage, i) => (
+                                {(country.uniqueAdvantages || country.advantages || []).slice(0, 2).map((advantage, i) => (
                                   <li key={i} className="flex items-start gap-2">
                                     <CheckCircle className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
                                     <span className="text-gray-700">{advantage}</span>
@@ -533,7 +533,7 @@ export default function StudyDestinationSuggestions() {
                             <div>
                               <h4 className="font-medium text-blue-700 mb-1">Top Universities</h4>
                               <ul className="space-y-1">
-                                {country.topUniversities.slice(0, 2).map((university, i) => (
+                                {((country.topUniversities as string[]) || []).slice(0, 2).map((university, i) => (
                                   <li key={i} className="text-gray-700">• {university}</li>
                                 ))}
                               </ul>
