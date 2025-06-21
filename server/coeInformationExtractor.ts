@@ -174,7 +174,13 @@ IMPORTANT:
       ]
     });
 
-    const responseText = response.content[0].text;
+    // Handle the response content properly
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response type from Anthropic API');
+    }
+    
+    const responseText = content.text;
     
     // Try to extract JSON from the response
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
@@ -187,6 +193,7 @@ IMPORTANT:
     return extractedData;
   } catch (error) {
     console.error('Error extracting COE information:', error);
-    throw new Error(`Failed to extract COE information: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    throw new Error(`Failed to extract COE information: ${errorMessage}`);
   }
 }

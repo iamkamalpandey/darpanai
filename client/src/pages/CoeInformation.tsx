@@ -13,10 +13,16 @@ import { format } from 'date-fns';
 interface CoeDocument {
   id: number;
   fileName: string;
-  institutionName: string | null;
+  coeNumber: string | null;
+  providerName: string | null;
   courseName: string | null;
-  studentName: string | null;
-  commencementDate: string | null;
+  courseLevel: string | null;
+  familyName: string | null;
+  givenNames: string | null;
+  courseStartDate: string | null;
+  courseEndDate: string | null;
+  totalTuitionFee: string | null;
+  scholarshipInfo: string | null;
   createdAt: string;
 }
 
@@ -205,10 +211,10 @@ export default function CoeInformation() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {doc.institutionName && (
+                    {doc.providerName && (
                       <div className="flex items-center gap-2 text-sm">
                         <Building className="h-4 w-4 text-muted-foreground" />
-                        <span className="line-clamp-1">{doc.institutionName}</span>
+                        <span className="line-clamp-1">{doc.providerName}</span>
                       </div>
                     )}
                     
@@ -219,17 +225,17 @@ export default function CoeInformation() {
                       </div>
                     )}
                     
-                    {doc.studentName && (
+                    {(doc.familyName || doc.givenNames) && (
                       <div className="flex items-center gap-2 text-sm">
                         <User className="h-4 w-4 text-muted-foreground" />
-                        <span className="line-clamp-1">{doc.studentName}</span>
+                        <span className="line-clamp-1">{`${doc.givenNames || ''} ${doc.familyName || ''}`.trim()}</span>
                       </div>
                     )}
                     
-                    {doc.commencementDate && (
+                    {doc.courseStartDate && (
                       <div className="flex items-center gap-2 text-sm">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span>Starts: {doc.commencementDate}</span>
+                        <span>Starts: {format(new Date(doc.courseStartDate), 'MMM dd, yyyy')}</span>
                       </div>
                     )}
                     

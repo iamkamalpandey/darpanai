@@ -2,7 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import { db } from './db';
 import { coeInformation } from '@shared/coeSchema';
-import { extractCoeInformation } from './coeExtractor';
+import { extractCoeInformation } from './coeInformationExtractor';
 import { eq } from 'drizzle-orm';
 import Tesseract from 'tesseract.js';
 
@@ -97,10 +97,16 @@ router.get('/', async (req, res) => {
       .select({
         id: coeInformation.id,
         fileName: coeInformation.fileName,
-        institutionName: coeInformation.institutionName,
+        coeNumber: coeInformation.coeNumber,
+        providerName: coeInformation.providerName,
         courseName: coeInformation.courseName,
-        studentName: coeInformation.studentName,
-        commencementDate: coeInformation.commencementDate,
+        courseLevel: coeInformation.courseLevel,
+        familyName: coeInformation.familyName,
+        givenNames: coeInformation.givenNames,
+        courseStartDate: coeInformation.courseStartDate,
+        courseEndDate: coeInformation.courseEndDate,
+        totalTuitionFee: coeInformation.totalTuitionFee,
+        scholarshipInfo: coeInformation.scholarshipInfo,
         createdAt: coeInformation.createdAt,
       })
       .from(coeInformation)
