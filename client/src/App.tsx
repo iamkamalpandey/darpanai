@@ -48,7 +48,7 @@ const AdminDocumentChecklists = lazy(() => import("@/pages/admin-document-checkl
 const AdminFeedback = lazy(() => import("@/pages/admin-feedback"));
 const AdminOfferLetterAnalysisView = lazy(() => import("@/pages/AdminOfferLetterAnalysisView"));
 const AdminInformationReports = lazy(() => import("@/pages/admin/InformationReports"));
-const AdminOfferLetterDetails = lazy(() => import("@/pages/admin/OfferLetterDetails"));
+const AdminOfferLetterDetails = lazy(() => import("@/pages/admin/AdminOfferLetterDetails"));
 const AdminCoeDetails = lazy(() => import("@/pages/admin/CoeDetailsNew"));
 const StudyDestinationSuggestions = lazy(() => import("@/pages/StudyDestinationSuggestions"));
 const DestinationSuggestionDetail = lazy(() => import("@/pages/DestinationSuggestionDetail"));
@@ -61,7 +61,6 @@ const OfferLetterDetails = lazy(() => import("@/pages/OfferLetterDetails"));
 const CoeInformation = lazy(() => import("@/pages/CoeInformation"));
 const CoeDetails = lazy(() => import("@/pages/CoeDetailsNew"));
 const UserCoeDetails = lazy(() => import("@/pages/UserCoeDetails"));
-const AdminOfferLetterDetailsAdmin = lazy(() => import("@/pages/admin/OfferLetterDetailsAdmin"));
 const AdminOfferLetterInfo = lazy(() => import("@/pages/admin/AdminOfferLetterInfo"));
 const UserAdminCoeDetails = lazy(() => import("@/pages/UserAdminCoeDetails"));
 
@@ -444,7 +443,7 @@ function Router() {
       <Route path="/admin/offer-letter-info/:id">
         <AdminProtectedRoute path="/admin/offer-letter-info/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <AdminOfferLetterDetailsAdmin />
+            <AdminOfferLetterDetails />
           </Suspense>
         )} />
       </Route>
