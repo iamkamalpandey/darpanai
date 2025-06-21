@@ -158,20 +158,24 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   {item.isSubmenu ? (
                     <div>
                       <button
-                        onClick={() => setResourcesOpen(!resourcesOpen)}
+                        onClick={() => {
+                          if (item.label === 'Resources Management') {
+                            setResourcesOpen(!resourcesOpen);
+                          }
+                        }}
                         className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                       >
                         <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-gray-500">
                           {item.icon}
                         </span>
                         <span className="truncate flex-1 text-left">{item.label}</span>
-                        {resourcesOpen ? (
+                        {(item.label === 'Resources Management' && resourcesOpen) ? (
                           <ChevronDown className="h-4 w-4 text-gray-400" />
                         ) : (
                           <ChevronRight className="h-4 w-4 text-gray-400" />
                         )}
                       </button>
-                      {resourcesOpen && item.submenuItems && (
+                      {(item.label === 'Resources Management' && resourcesOpen) && item.submenuItems && (
                         <div className="ml-8 mt-1 space-y-1">
                           {item.submenuItems.map((subItem) => (
                             <div key={subItem.href} onClick={() => setSidebarOpen(false)}>
@@ -259,20 +263,24 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   {item.isSubmenu ? (
                     <div>
                       <button
-                        onClick={() => setResourcesOpen(!resourcesOpen)}
+                        onClick={() => {
+                          if (item.label === 'Resources Management') {
+                            setResourcesOpen(!resourcesOpen);
+                          }
+                        }}
                         className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                       >
                         <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-gray-500">
                           {item.icon}
                         </span>
                         <span className="truncate flex-1 text-left">{item.label}</span>
-                        {resourcesOpen ? (
+                        {(item.label === 'Resources Management' && resourcesOpen) ? (
                           <ChevronDown className="h-4 w-4 text-gray-400" />
                         ) : (
                           <ChevronRight className="h-4 w-4 text-gray-400" />
                         )}
                       </button>
-                      {resourcesOpen && item.submenuItems && (
+                      {(item.label === 'Resources Management' && resourcesOpen) && item.submenuItems && (
                         <div className="ml-8 mt-1 space-y-1">
                           {item.submenuItems.map((subItem) => (
                             <AdminSidebarItem 
