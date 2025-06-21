@@ -372,24 +372,40 @@ export default function InformationReports() {
   return (
     <AdminLayout>
       <div className="container mx-auto p-6 space-y-6">
-        {/* Header */}
+        {/* Header with Analytics */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Information Reports</h1>
             <p className="text-muted-foreground">View and manage all offer letter and COE information</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="bg-blue-50 text-blue-700">
-              {(offerLetters?.length || 0) + (coeInfo?.length || 0)} Total Documents
-            </Badge>
+          <div className="flex items-center gap-3">
+            <div className="grid grid-cols-3 gap-2">
+              <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                <FileText className="h-3 w-3 mr-1" />
+                {offerLetters?.length || 0} Offer Letters
+              </Badge>
+              <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">
+                <Shield className="h-3 w-3 mr-1" />
+                {coeInfo?.length || 0} COE Documents
+              </Badge>
+              <Badge variant="secondary" className="bg-purple-50 text-purple-700 border-purple-200">
+                <BarChart3 className="h-3 w-3 mr-1" />
+                {(offerLetters?.length || 0) + (coeInfo?.length || 0)} Total
+              </Badge>
+            </div>
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export Data
+            </Button>
           </div>
         </div>
 
-        {/* Search and Filter */}
+        {/* Advanced Search and Filters */}
         <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4">
-              <div className="relative flex-1 max-w-md">
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              {/* Search Bar */}
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
                   placeholder="Search by file name, institution, program, or student..."
@@ -398,7 +414,111 @@ export default function InformationReports() {
                   className="pl-10"
                 />
               </div>
-              <Filter className="h-4 w-4 text-gray-400" />
+
+              {/* Filter Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                {/* Date Range Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Date Range</label>
+                  <Select value={dateFilter} onValueChange={(value) => setDateFilter(value as any)}>
+                    <SelectTrigger>
+                      <CalendarRange className="h-4 w-4 mr-2" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Time</SelectItem>
+                      <SelectItem value="7days">Last 7 Days</SelectItem>
+                      <SelectItem value="30days">Last 30 Days</SelectItem>
+                      <SelectItem value="90days">Last 90 Days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Status Filter (for COE) */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Status</label>
+                  <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as any)}>
+                    <SelectTrigger>
+                      <Shield className="h-4 w-4 mr-2" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Institution Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Institution</label>
+                  <div className="relative">
+                    <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Filter by institution..."
+                      value={institutionFilter}
+                      onChange={(e) => setInstitutionFilter(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                {/* Sort By */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Sort By</label>
+                  <Select value={sortBy} onValueChange={(value) => setSortBy(value as any)}>
+                    <SelectTrigger>
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="date">Date</SelectItem>
+                      <SelectItem value="name">File Name</SelectItem>
+                      <SelectItem value="institution">Institution</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Sort Order */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Order</label>
+                  <Select value={sortOrder} onValueChange={(value) => setSortOrder(value as any)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="desc">Newest First</SelectItem>
+                      <SelectItem value="asc">Oldest First</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Filter Summary */}
+              <div className="flex items-center justify-between pt-2 border-t">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Filter className="h-4 w-4" />
+                  <span>
+                    Showing {filteredOfferLetters.length + filteredCoeInfo.length} of {(offerLetters?.length || 0) + (coeInfo?.length || 0)} documents
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setDateFilter('all');
+                    setStatusFilter('all');
+                    setInstitutionFilter('');
+                    setSortBy('date');
+                    setSortOrder('desc');
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
