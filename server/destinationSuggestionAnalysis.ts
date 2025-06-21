@@ -210,8 +210,8 @@ export async function generateDestinationSuggestions(
     
     const response = await anthropic.messages.create({
       model: DEFAULT_MODEL_STR, // "claude-sonnet-4-20250514"
-      max_tokens: 4000,
-      system: "You are an expert international education consultant and study abroad advisor with deep knowledge of global education systems, visa requirements, cost structures, and career outcomes. Provide comprehensive, personalized study destination recommendations based on detailed analysis. Always respond with valid JSON format.",
+      max_tokens: 6000,
+      system: "You are a senior international education strategist and migration consultant with 15+ years of experience in global education systems, visa requirements, scholarship matrices, and career outcomes. Provide extremely detailed, highly personalized study destination recommendations with comprehensive strategic analysis, authentic 2025 cost data, and actionable implementation plans. Focus on depth, specificity, and strategic insights tailored to this individual student's profile. Always respond with valid JSON format.",
       messages: [
         {
           role: "user",
@@ -335,31 +335,31 @@ Australia | USA | Canada | UK | Denmark | New Zealand | Netherlands | UAE | Germ
 - Academic Performance: ${requestData.academicPerformance || 'Not provided'}
 - Additional Notes: ${requestData.additionalContext || 'Not provided'}
 
-## 📘 Analysis Requirements:
-1. Provide personalized, well-scored, data-driven study destination suggestions
-2. Consider pathway programs, foundation courses, and TAFE options
-3. Analyze financial feasibility including scholarships and ROI
-4. Evaluate IELTS requirements and alternative English pathways
-5. Assess career prospects and post-study migration opportunities
-6. Include intelligent alternatives beyond user's preferred countries
-7. Provide actionable recommendations with specific timelines
+## 📘 ADVANCED ANALYSIS REQUIREMENTS:
+1. **DEEP PERSONALIZATION**: Provide highly detailed, profile-specific recommendations with comprehensive reasoning for each suggestion
+2. **COMPREHENSIVE COST ANALYSIS**: Include 2025 authentic costs, hidden expenses, scholarship opportunities, and ROI calculations
+3. **PATHWAY INTELLIGENCE**: Analyze foundation programs, TAFE options, 2+2 programs, and bridge courses with specific entry requirements
+4. **STRATEGIC CAREER MAPPING**: Detailed industry analysis, salary projections, networking opportunities, and long-term career trajectory
+5. **VISA SUCCESS OPTIMIZATION**: Country-specific success rates for user's nationality, documentation strategies, and timeline optimization
+6. **INTELLIGENT ALTERNATIVES**: AI-powered alternative destinations with detailed cost-benefit analysis and strategic advantages
+7. **ACTIONABLE IMPLEMENTATION**: Step-by-step timelines, university targeting strategies, and preparation roadmaps
 
 ## 📘 Response Format (JSON):
 
 ### 🔹 Executive Summary
 Provide top 3 destinations with score, key fit reason, and confidence level.
 
-### 🔹 Detailed Country Analysis
-For each destination, include:
-- **Score**: X/10 (using weighted scoring matrix)
-- **Entry Options**: Direct, Foundation, TAFE, 2+2, Pathway programs
-- **Academic Fit**: Entry requirements, program alignment, intake deadlines
-- **Financial Breakdown**: Tuition, living cost, scholarships, total vs budget
-- **Language Fit**: IELTS needed? Waivers? Bridging accepted?
-- **Visa Landscape**: Success rates for user nationality, documentation complexity
-- **Career Intelligence**: Post-study work, job market in user field, PR potential
-- **Unique Advantages**: Diaspora, safety, cost of living, climate, culture
-- **Risks & Recommendations**: Specific advice for improvement
+### 🔹 COMPREHENSIVE DESTINATION ANALYSIS
+For each destination, provide EXTENSIVE detail including:
+- **Strategic Match Score**: X/10 with detailed weighted analysis (Academic 25%, Financial 30%, Language 15%, Career 20%, Visa 10%)
+- **Multiple Entry Pathways**: Direct admission, Foundation programs, TAFE pathways, 2+2 transfers, English bridge programs with specific requirements
+- **Deep Academic Assessment**: Detailed program alignment, university rankings, research opportunities, faculty expertise, industry connections
+- **Comprehensive Financial Intelligence**: 2025 tuition by program level, living costs by city, hidden expenses, scholarship matrices, work-study earnings potential
+- **Language Strategy Optimization**: IELTS alternatives, university waivers, English support programs, pathway progression
+- **Visa Success Intelligence**: Nationality-specific approval rates, documentation strategies, processing timelines, work permit details
+- **Advanced Career Trajectory**: Industry demand forecasts, salary progression maps, networking ecosystems, alumni outcomes, PR pathways
+- **Cultural & Lifestyle Integration**: Community support, climate adaptation, safety metrics, quality of life indicators
+- **Strategic Risk Assessment**: Potential challenges with mitigation strategies and improvement recommendations
 
 ### 🔹 AI Intelligent Alternatives
 Show 2-3 countries user didn't select but are better matches based on:
@@ -384,11 +384,11 @@ REQUIRED JSON STRUCTURE:
         "intakeDeadlines": "Key dates"
       },
       "financialBreakdown": {
-        "tuitionRange": "$20,000 - $40,000 per year",
-        "livingCosts": "$15,000 - $25,000 per year",
-        "totalAnnualCost": "$35,000 - $65,000",
-        "scholarships": "Available opportunities",
-        "budgetFit": "How it matches user budget"
+        "tuitionRange": "Detailed 2025 program-specific fees with breakdown by degree level",
+        "livingCosts": "City-specific monthly expenses including accommodation, food, transport, utilities",
+        "totalAnnualCost": "Complete investment including hidden costs (visa, insurance, travel, books)",
+        "scholarships": "Specific scholarship opportunities this student qualifies for with amounts and requirements",
+        "budgetFit": "Detailed analysis of affordability including work-study earnings and cost optimization strategies"
       },
       "languageFit": {
         "ieltsRequired": "6.5 overall",
@@ -402,10 +402,10 @@ REQUIRED JSON STRUCTURE:
         "workPermit": "20 hours/week during studies"
       },
       "careerIntelligence": {
-        "jobMarket": "Industry-specific demand",
-        "averageSalary": "$60,000 - $80,000",
-        "prPotential": "Pathway opportunities",
-        "postStudyWork": "Work rights details"
+        "jobMarket": "Comprehensive industry analysis with demand forecasts, growth sectors, and job availability in user's field",
+        "averageSalary": "Detailed salary progression from entry-level to senior positions with 5-year earning projections",
+        "prPotential": "Specific permanent residency pathways, point systems, processing times, and success rates for this field",
+        "postStudyWork": "Complete work rights breakdown including duration, restrictions, employer sponsorship opportunities"
       },
       "uniqueAdvantages": ["Advantage 1", "Advantage 2", "Advantage 3"],
       "risksAndRecommendations": ["Risk/Recommendation 1", "Risk/Recommendation 2"]
@@ -420,9 +420,9 @@ REQUIRED JSON STRUCTURE:
   ],
   "keyFactors": ["Critical factor 1", "Critical factor 2", "Critical factor 3"],
   "personalizedInsights": {
-    "strengthsAnalysis": ["Current strength 1", "Current strength 2"],
-    "improvementAreas": ["Area to improve 1", "Area to improve 2"],
-    "strategicRecommendations": ["Strategic advice 1", "Strategic advice 2"]
+    "strengthsAnalysis": ["Detailed analysis of user's competitive advantages including academic credentials, work experience, language skills, and unique qualifications that enhance admission prospects"],
+    "improvementAreas": ["Specific areas requiring enhancement with actionable improvement strategies, timeline for development, and impact on admission success"],
+    "strategicRecommendations": ["Comprehensive strategic guidance including application optimization, profile enhancement, scholarship targeting, and long-term career positioning"]
   },
   "actionPlan": {
     "applyTo": ["Recommended universities/colleges"],
@@ -431,9 +431,9 @@ REQUIRED JSON STRUCTURE:
     "optional": ["Additional recommendations"]
   },
   "budgetOptimization": {
-    "costSavingStrategies": ["Strategy 1", "Strategy 2", "Strategy 3"],
-    "scholarshipOpportunities": ["Scholarship type 1", "Scholarship type 2"],
-    "financialPlanningTips": ["Tip 1", "Tip 2", "Tip 3"]
+    "costSavingStrategies": ["Detailed cost reduction strategies including shared accommodation options, meal planning, transportation discounts, textbook alternatives, and part-time work opportunities with specific earning potential"],
+    "scholarshipOpportunities": ["Comprehensive scholarship analysis with specific programs this student qualifies for, application requirements, deadlines, award amounts, and success strategies"],
+    "financialPlanningTips": ["Advanced financial planning including budget allocation, emergency fund planning, currency management, tax implications, and long-term investment strategies for international students"]
   },
   "timeline": {
     "preparation": "6-12 months for research and preparation",

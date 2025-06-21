@@ -559,7 +559,7 @@ export default function StudyDestinationSuggestions() {
                               </div>
                             </div>
                             <Badge variant="outline" className={getMatchScoreColor(country.matchScore)}>
-                              {country.matchScore}% Match
+                              {Math.round(country.matchScore * 10)}% Match
                             </Badge>
                           </div>
                           
