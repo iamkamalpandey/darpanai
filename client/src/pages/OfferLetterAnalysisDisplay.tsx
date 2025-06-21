@@ -2,16 +2,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Clock, Users, ArrowLeft } from "lucide-react";
+import { FileText, Clock, Users, ArrowLeft, DollarSign, Calendar, Building } from "lucide-react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 
 interface AnalysisResult {
   id: number;
-  analysis: any;
-  processingTime: number;
+  documentId: number;
+  userId: number;
+  analysisResults: any;
+  gptAnalysisResults: any;
+  claudeAnalysisResults: any;
+  hybridAnalysisResults: any;
+  institutionalData: any;
+  scholarshipData: any;
+  competitorAnalysis: any;
   tokensUsed: number;
+  claudeTokensUsed: number;
+  totalAiCost: string;
+  processingTime: number;
   scrapingTime: number;
+  analysisStatus: string;
+  isPublic: boolean;
+  createdAt: string;
 }
 
 interface OfferLetterAnalysisDisplayProps {
@@ -70,6 +83,14 @@ export default function OfferLetterAnalysisDisplay({ params }: OfferLetterAnalys
     );
   }
 
+  // Extract analysis data with fallbacks
+  const analysisData = data.analysisResults || data.gptAnalysisResults || {};
+  const institutionName = analysisData?.institution || 'Institution Processing...';
+  const programName = analysisData?.offerDetails?.program || 'Program Processing...';
+  const tuitionAmount = analysisData?.offerDetails?.tuition || 'Amount Processing...';
+  const startDate = analysisData?.offerDetails?.startDate || 'Date Processing...';
+  const executiveSummary = analysisData?.executiveSummary || 'This analysis provides comprehensive insights into your offer letter, including program details, financial breakdown, and strategic recommendations for your educational journey.';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -85,7 +106,7 @@ export default function OfferLetterAnalysisDisplay({ params }: OfferLetterAnalys
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Offer Letter Analysis</h1>
-            <p className="text-gray-600">Analysis ID: {data.id}</p>
+            <p className="text-gray-600">Analysis ID: {data.id} • {new Date(data.createdAt).toLocaleDateString()}</p>
           </div>
         </div>
 
@@ -98,7 +119,7 @@ export default function OfferLetterAnalysisDisplay({ params }: OfferLetterAnalys
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-gray-500" />
                 <div>
@@ -114,11 +135,18 @@ export default function OfferLetterAnalysisDisplay({ params }: OfferLetterAnalys
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4 text-gray-500" />
+                <div>
+                  <p className="text-sm text-gray-500">Analysis Cost</p>
+                  <p className="font-medium">{data.totalAiCost}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-gray-500" />
                 <div>
                   <p className="text-sm text-gray-500">Status</p>
                   <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    Complete
+                    {data.analysisStatus}
                   </Badge>
                 </div>
               </div>
@@ -128,31 +156,82 @@ export default function OfferLetterAnalysisDisplay({ params }: OfferLetterAnalys
 
         {/* Analysis Results */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="detailed">Detailed Analysis</TabsTrigger>
+            <TabsTrigger value="raw">Raw Data</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
+            {/* Institution Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Analysis Summary</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Building className="h-5 w-5" />
+                  Institution & Program Details
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="bg-gray-50 p-4 rounded-lg border">
-                    <p className="text-sm text-gray-600 mb-2">Analysis Results:</p>
-                    <div className="bg-white p-4 rounded border">
-                      {typeof data.analysis === 'string' ? (
-                        <pre className="whitespace-pre-wrap text-sm text-gray-700">
-                          {data.analysis}
-                        </pre>
-                      ) : (
-                        <pre className="whitespace-pre-wrap text-sm text-gray-700">
-                          {JSON.stringify(data.analysis, null, 2)}
-                        </pre>
-                      )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Institution Name</p>
+                      <p className="font-medium text-lg">{institutionName}</p>
                     </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Program</p>
+                      <p className="font-medium">{programName}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Tuition Amount</p>
+                      <p className="font-medium text-lg text-blue-600">{tuitionAmount}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Start Date</p>
+                      <p className="font-medium flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        {startDate}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Executive Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Executive Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="prose max-w-none">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    {executiveSummary}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Analysis Statistics */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Analysis Metrics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center p-6 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="text-3xl font-bold text-blue-600 mb-2">{data.tokensUsed?.toLocaleString() || '0'}</div>
+                    <div className="text-sm text-gray-600">Tokens Processed</div>
+                  </div>
+                  <div className="text-center p-6 bg-green-50 rounded-lg border border-green-200">
+                    <div className="text-3xl font-bold text-green-600 mb-2">{(data.processingTime / 1000).toFixed(1)}s</div>
+                    <div className="text-sm text-gray-600">Processing Time</div>
+                  </div>
+                  <div className="text-center p-6 bg-purple-50 rounded-lg border border-purple-200">
+                    <div className="text-3xl font-bold text-purple-600 mb-2">{data.totalAiCost}</div>
+                    <div className="text-sm text-gray-600">Analysis Cost</div>
                   </div>
                 </div>
               </CardContent>
@@ -160,31 +239,68 @@ export default function OfferLetterAnalysisDisplay({ params }: OfferLetterAnalys
           </TabsContent>
 
           <TabsContent value="detailed" className="space-y-6">
+            {/* Primary Analysis Results */}
             <Card>
               <CardHeader>
-                <CardTitle>Raw Analysis Data</CardTitle>
+                <CardTitle>Primary Analysis Results</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-auto max-h-96">
-                  <pre>{JSON.stringify(data, null, 2)}</pre>
+                <div className="space-y-4">
+                  <pre className="bg-gray-50 p-4 rounded-lg text-sm overflow-auto whitespace-pre-wrap border">
+                    {JSON.stringify(data.analysisResults || data.gptAnalysisResults, null, 2)}
+                  </pre>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Additional Analysis Data */}
+            {data.institutionalData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Institutional Research Data</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <pre className="bg-gray-50 p-4 rounded-lg text-sm overflow-auto whitespace-pre-wrap border">
+                      {JSON.stringify(data.institutionalData, null, 2)}
+                    </pre>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {data.scholarshipData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Scholarship Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <pre className="bg-gray-50 p-4 rounded-lg text-sm overflow-auto whitespace-pre-wrap border">
+                      {JSON.stringify(data.scholarshipData, null, 2)}
+                    </pre>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="raw" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Complete Analysis Data</CardTitle>
+                <p className="text-sm text-gray-600">Raw JSON response from the analysis system</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <pre className="bg-gray-50 p-4 rounded-lg text-sm overflow-auto whitespace-pre-wrap border max-h-96">
+                    {JSON.stringify(data, null, 2)}
+                  </pre>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
-
-        {/* Action Buttons */}
-        <div className="flex justify-center gap-4 pt-6">
-          <Button 
-            variant="outline"
-            onClick={() => navigate('/offer-letter-analysis')}
-          >
-            View All Analyses
-          </Button>
-          <Button onClick={() => window.print()}>
-            Print Analysis
-          </Button>
-        </div>
       </div>
     </div>
   );
