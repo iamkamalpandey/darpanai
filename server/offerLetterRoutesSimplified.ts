@@ -2,7 +2,9 @@ import { Request, Response } from 'express';
 import multer from 'multer';
 import { offerLetterStorage } from './offerLetterStorage';
 import { extractTextFromPdf } from './fileProcessing';
-import OpenAI from 'openai';
+import { extractDocumentData, performOfferLetterAnalysis } from './offerLetterAnalysisEngine';
+
+
 
 // Configure multer for file uploads
 const upload = multer({
@@ -124,72 +126,3 @@ export function setupOfferLetterRoutesSimplified(app: any) {
   console.log('✓ Separated offer letter architecture routes registered successfully');
 }
 
-// Helper function to extract basic information from text
-function extractInstitutionName(text: string): string | undefined {
-  const patterns = [
-    /(?:University|College|Institute|School)\s+of\s+[\w\s]+/i,
-    /[\w\s]+\s+(?:University|College|Institute|School)/i
-  ];
-  
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match) return match[0].trim();
-  }
-  return undefined;
-}
-
-function extractStudentName(text: string): string | undefined {
-  const patterns = [
-    /Dear\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/,
-    /Student\s+Name:\s*([A-Z][a-z]+\s+[A-Z][a-z]+)/
-  ];
-  
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match) return match[1].trim();
-  }
-  return undefined;
-}
-
-function extractProgramName(text: string): string | undefined {
-  const patterns = [
-    /Program:\s*(.+?)(?:\n|$)/,
-    /Course:\s*(.+?)(?:\n|$)/,
-    /Bachelor of\s+[\w\s]+/i,
-    /Master of\s+[\w\s]+/i
-  ];
-  
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match) return match[1]?.trim() || match[0].trim();
-  }
-  return undefined;
-}
-
-function extractTuitionAmount(text: string): string | undefined {
-  const patterns = [
-    /\$[\d,]+\.?\d*\s*(?:per\s+year|annually)/i,
-    /Tuition:\s*\$[\d,]+/i,
-    /Fee:\s*\$[\d,]+/i
-  ];
-  
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match) return match[0].trim();
-  }
-  return undefined;
-}
-
-function extractStartDate(text: string): string | undefined {
-  const patterns = [
-    /Start\s+Date:\s*(.+?)(?:\n|$)/i,
-    /Commencement:\s*(.+?)(?:\n|$)/i,
-    /(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}/
-  ];
-  
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match) return match[1]?.trim() || match[0].trim();
-  }
-  return undefined;
-}
