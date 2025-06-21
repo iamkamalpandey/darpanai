@@ -244,12 +244,39 @@ export default function CoeDetailsNew() {
                 <InfoItem 
                   label="Date of Birth" 
                   value={(() => {
-                    try {
-                      const date = new Date(coe.dateOfBirth);
-                      return isNaN(date.getTime()) ? coe.dateOfBirth : format(date, 'MMMM dd, yyyy');
-                    } catch {
-                      return coe.dateOfBirth;
+                    if (!coe.dateOfBirth) return null;
+                    
+                    // Handle DD/MM/YYYY format from extracted documents
+                    const dateStr = coe.dateOfBirth.toString();
+                    
+                    // Try parsing DD/MM/YYYY format
+                    if (dateStr.includes('/')) {
+                      const parts = dateStr.split('/');
+                      if (parts.length === 3) {
+                        const [day, month, year] = parts;
+                        const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                        try {
+                          const date = new Date(isoDate);
+                          if (!isNaN(date.getTime())) {
+                            return format(date, 'MMMM dd, yyyy');
+                          }
+                        } catch {
+                          // Fall through to return original string
+                        }
+                      }
                     }
+                    
+                    // Try standard date parsing
+                    try {
+                      const date = new Date(dateStr);
+                      if (!isNaN(date.getTime())) {
+                        return format(date, 'MMMM dd, yyyy');
+                      }
+                    } catch {
+                      // Fall through to return original string
+                    }
+                    
+                    return dateStr;
                   })()} 
                   icon={Calendar} 
                 />
@@ -294,12 +321,37 @@ export default function CoeDetailsNew() {
                 <InfoItem 
                   label="Course Start Date" 
                   value={(() => {
-                    try {
-                      const date = new Date(coe.courseStartDate);
-                      return isNaN(date.getTime()) ? coe.courseStartDate : format(date, 'MMMM dd, yyyy');
-                    } catch {
-                      return coe.courseStartDate;
+                    if (!coe.courseStartDate) return null;
+                    
+                    const dateStr = coe.courseStartDate.toString();
+                    
+                    // Handle DD/MM/YYYY format from extracted documents
+                    if (dateStr.includes('/')) {
+                      const parts = dateStr.split('/');
+                      if (parts.length === 3) {
+                        const [day, month, year] = parts;
+                        const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                        try {
+                          const date = new Date(isoDate);
+                          if (!isNaN(date.getTime())) {
+                            return format(date, 'MMMM dd, yyyy');
+                          }
+                        } catch {
+                          // Fall through to return original string
+                        }
+                      }
                     }
+                    
+                    try {
+                      const date = new Date(dateStr);
+                      if (!isNaN(date.getTime())) {
+                        return format(date, 'MMMM dd, yyyy');
+                      }
+                    } catch {
+                      // Fall through to return original string
+                    }
+                    
+                    return dateStr;
                   })()} 
                   icon={Calendar} 
                 />
@@ -308,12 +360,37 @@ export default function CoeDetailsNew() {
                 <InfoItem 
                   label="Course End Date" 
                   value={(() => {
-                    try {
-                      const date = new Date(coe.courseEndDate);
-                      return isNaN(date.getTime()) ? coe.courseEndDate : format(date, 'MMMM dd, yyyy');
-                    } catch {
-                      return coe.courseEndDate;
+                    if (!coe.courseEndDate) return null;
+                    
+                    const dateStr = coe.courseEndDate.toString();
+                    
+                    // Handle DD/MM/YYYY format from extracted documents
+                    if (dateStr.includes('/')) {
+                      const parts = dateStr.split('/');
+                      if (parts.length === 3) {
+                        const [day, month, year] = parts;
+                        const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                        try {
+                          const date = new Date(isoDate);
+                          if (!isNaN(date.getTime())) {
+                            return format(date, 'MMMM dd, yyyy');
+                          }
+                        } catch {
+                          // Fall through to return original string
+                        }
+                      }
                     }
+                    
+                    try {
+                      const date = new Date(dateStr);
+                      if (!isNaN(date.getTime())) {
+                        return format(date, 'MMMM dd, yyyy');
+                      }
+                    } catch {
+                      // Fall through to return original string
+                    }
+                    
+                    return dateStr;
                   })()} 
                   icon={Calendar} 
                 />
@@ -353,14 +430,76 @@ export default function CoeDetailsNew() {
                 {coe.oshcStartDate && (
                   <InfoItem 
                     label="OSHC Start Date" 
-                    value={format(new Date(coe.oshcStartDate), 'MMMM dd, yyyy')} 
+                    value={(() => {
+                      if (!coe.oshcStartDate) return null;
+                      
+                      const dateStr = coe.oshcStartDate.toString();
+                      
+                      if (dateStr.includes('/')) {
+                        const parts = dateStr.split('/');
+                        if (parts.length === 3) {
+                          const [day, month, year] = parts;
+                          const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                          try {
+                            const date = new Date(isoDate);
+                            if (!isNaN(date.getTime())) {
+                              return format(date, 'MMMM dd, yyyy');
+                            }
+                          } catch {
+                            // Fall through to return original string
+                          }
+                        }
+                      }
+                      
+                      try {
+                        const date = new Date(dateStr);
+                        if (!isNaN(date.getTime())) {
+                          return format(date, 'MMMM dd, yyyy');
+                        }
+                      } catch {
+                        // Fall through to return original string
+                      }
+                      
+                      return dateStr;
+                    })()} 
                     icon={Calendar} 
                   />
                 )}
                 {coe.oshcEndDate && (
                   <InfoItem 
                     label="OSHC End Date" 
-                    value={format(new Date(coe.oshcEndDate), 'MMMM dd, yyyy')} 
+                    value={(() => {
+                      if (!coe.oshcEndDate) return null;
+                      
+                      const dateStr = coe.oshcEndDate.toString();
+                      
+                      if (dateStr.includes('/')) {
+                        const parts = dateStr.split('/');
+                        if (parts.length === 3) {
+                          const [day, month, year] = parts;
+                          const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                          try {
+                            const date = new Date(isoDate);
+                            if (!isNaN(date.getTime())) {
+                              return format(date, 'MMMM dd, yyyy');
+                            }
+                          } catch {
+                            // Fall through to return original string
+                          }
+                        }
+                      }
+                      
+                      try {
+                        const date = new Date(dateStr);
+                        if (!isNaN(date.getTime())) {
+                          return format(date, 'MMMM dd, yyyy');
+                        }
+                      } catch {
+                        // Fall through to return original string
+                      }
+                      
+                      return dateStr;
+                    })()} 
                     icon={Calendar} 
                   />
                 )}
@@ -383,7 +522,38 @@ export default function CoeDetailsNew() {
                 {coe.englishTestDate && (
                   <InfoItem 
                     label="Test Date" 
-                    value={format(new Date(coe.englishTestDate), 'MMMM dd, yyyy')} 
+                    value={(() => {
+                      if (!coe.englishTestDate) return null;
+                      
+                      const dateStr = coe.englishTestDate.toString();
+                      
+                      if (dateStr.includes('/')) {
+                        const parts = dateStr.split('/');
+                        if (parts.length === 3) {
+                          const [day, month, year] = parts;
+                          const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                          try {
+                            const date = new Date(isoDate);
+                            if (!isNaN(date.getTime())) {
+                              return format(date, 'MMMM dd, yyyy');
+                            }
+                          } catch {
+                            // Fall through to return original string
+                          }
+                        }
+                      }
+                      
+                      try {
+                        const date = new Date(dateStr);
+                        if (!isNaN(date.getTime())) {
+                          return format(date, 'MMMM dd, yyyy');
+                        }
+                      } catch {
+                        // Fall through to return original string
+                      }
+                      
+                      return dateStr;
+                    })()} 
                     icon={Calendar} 
                   />
                 )}

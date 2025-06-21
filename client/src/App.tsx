@@ -443,7 +443,7 @@ function Router() {
       <Route path="/admin/offer-letter-info/:id">
         <AdminProtectedRoute path="/admin/offer-letter-info/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <AdminOfferLetterDetails />
+            <AdminOfferLetterDetailsAdmin />
           </Suspense>
         )} />
       </Route>
