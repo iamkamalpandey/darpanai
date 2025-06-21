@@ -90,6 +90,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         { icon: <GraduationCap size={18} />, label: 'Offer Letter Analysis', href: '/offer-letter-analysis' },
       ]
     },
+    { icon: <FileText size={20} />, label: 'Offer Letter Info', href: '/offer-letter-info' },
     { icon: <MapPin size={20} />, label: 'Personalized Destination Analysis', href: '/personalized-destination-analysis' },
 
     { icon: <Calendar size={20} />, label: 'Appointments', href: '/consultations' },

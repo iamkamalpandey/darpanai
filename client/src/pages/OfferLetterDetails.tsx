@@ -24,7 +24,7 @@ import {
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Link } from 'wouter';
 
-export function OfferLetterDetails() {
+export default function OfferLetterDetails() {
   const { id } = useParams();
   
   const { data: offerLetter, isLoading, error } = useQuery({

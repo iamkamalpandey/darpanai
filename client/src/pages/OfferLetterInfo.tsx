@@ -8,14 +8,14 @@ import { useToast } from '@/hooks/use-toast';
 import { Upload, FileText, Building, GraduationCap, DollarSign, Calendar, Phone, Mail, Globe } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 
-export function OfferLetterInfo() {
+export default function OfferLetterInfo() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch offer letter list
-  const { data: offerLetters = [], isLoading } = useQuery({
+  const { data: offerLetters = [], isLoading } = useQuery<any[]>({
     queryKey: ['/api/offer-letter-info'],
     enabled: true,
   });
