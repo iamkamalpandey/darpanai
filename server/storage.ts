@@ -1532,13 +1532,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Study Destination Suggestion methods
-  async createStudyDestinationSuggestion(suggestion: InsertStudyDestinationSuggestion): Promise<StudyDestinationSuggestion> {
+  async createStudyDestinationSuggestion(suggestion: any): Promise<StudyDestinationSuggestion> {
     try {
       const [newSuggestion] = await db
         .insert(studyDestinationSuggestions)
         .values({
-          ...suggestion,
-          createdAt: new Date(),
+          userId: suggestion.userId,
+          executiveSummary: suggestion.executiveSummary,
+          overallMatchScore: suggestion.overallMatchScore,
+          keyFactors: suggestion.keyFactors,
+          topRecommendations: suggestion.topRecommendations,
+          intelligentAlternatives: suggestion.intelligentAlternatives,
+          personalizedInsights: suggestion.personalizedInsights,
+          nextSteps: suggestion.nextSteps,
+          budgetOptimization: suggestion.budgetOptimization,
+          timeline: suggestion.timeline,
+          pathwayPrograms: suggestion.pathwayPrograms,
+          disclaimer: suggestion.disclaimer,
+          tokensUsed: suggestion.tokensUsed,
+          processingTime: suggestion.processingTime,
+          isActive: suggestion.isActive
         })
         .returning();
       return newSuggestion;

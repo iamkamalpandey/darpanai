@@ -1892,7 +1892,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         nextSteps: analysis.nextSteps,
         budgetOptimization: analysis.budgetOptimization,
         timeline: analysis.timeline,
-        pathwayPrograms: analysis.pathwayPrograms || null,
+        pathwayPrograms: (analysis as any).pathwayPrograms || null,
         disclaimer: "This AI-generated analysis is for informational purposes only. Please consult with licensed education counsellors and migration agents for personalized advice.",
         tokensUsed,
         processingTime,
@@ -1954,7 +1954,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: 'Access denied' });
       }
       
-      return res.status(200).json(suggestion);
+      // Transform database structure to frontend-compatible format
+      const transformedSuggestion = {
+        id: suggestion.id,
+        userId: suggestion.userId,
+        suggestedCountries: suggestion.topRecommendations || [],
+        matchScore: suggestion.overallMatchScore,
+        reasoning: suggestion.executiveSummary,
+        keyFactors: suggestion.keyFactors || [],
+        intelligentAlternatives: suggestion.intelligentAlternatives || [],
+        pathwayPrograms: suggestion.pathwayPrograms || [],
+        disclaimer: suggestion.disclaimer,
+        recommendations: {
+          personalizedInsights: suggestion.personalizedInsights || {
+            strengthsAnalysis: [],
+            improvementAreas: [],
+            strategicRecommendations: []
+          },
+          nextSteps: suggestion.nextSteps || {
+            immediate: [],
+            shortTerm: [],
+            longTerm: []
+          },
+          budgetOptimization: suggestion.budgetOptimization || {
+            costSavingStrategies: [],
+            scholarshipOpportunities: [],
+            financialPlanningTips: []
+          },
+          timeline: suggestion.timeline || {
+            preparation: '',
+            application: '',
+            decisionMaking: ''
+          }
+        },
+        createdAt: suggestion.createdAt
+      };
+      
+      return res.status(200).json(transformedSuggestion);
     } catch (error) {
       console.error('Error fetching destination suggestion:', error);
       return res.status(500).json({ error: 'Failed to fetch destination suggestion' });
