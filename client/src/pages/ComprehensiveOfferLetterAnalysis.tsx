@@ -531,16 +531,8 @@ export default function ComprehensiveOfferLetterAnalysis() {
               </div>
               <div className="flex gap-4 text-sm text-gray-600">
                 <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  {selectedAnalysis.processingTime}s processing
-                </div>
-                <div className="flex items-center gap-1">
-                  <Brain className="h-4 w-4" />
-                  {selectedAnalysis.tokensUsed} tokens
-                </div>
-                <div className="flex items-center gap-1">
-                  <Globe className="h-4 w-4" />
-                  {selectedAnalysis.scrapingTime}s research
+                  <FileText className="h-4 w-4" />
+                  Analysis Complete
                 </div>
               </div>
             </div>
@@ -865,8 +857,8 @@ export default function ComprehensiveOfferLetterAnalysis() {
                     <p className="text-gray-700">Analysis Complete</p>
                   </div>
                   <div>
-                    <Label className="font-medium">Processing Time</Label>
-                    <p className="text-gray-700">{selectedAnalysis.processingTime}ms</p>
+                    <Label className="font-medium">Analysis Status</Label>
+                    <p className="text-gray-700">Complete</p>
                   </div>
                 </div>
               </CardContent>

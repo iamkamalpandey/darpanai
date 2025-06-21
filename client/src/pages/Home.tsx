@@ -149,12 +149,12 @@ export default function Home() {
               <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
                 <CardContent className="p-6 text-center">
                   <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Clock className="w-6 h-6 text-white" />
+                    <Shield className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900">
-                    {platformStats?.averageProcessingTime || "2-5 min"}
+                    100%
                   </h3>
-                  <p className="text-gray-600">Avg Processing Time</p>
+                  <p className="text-gray-600">Success Rate</p>
                 </CardContent>
               </Card>
             </div>

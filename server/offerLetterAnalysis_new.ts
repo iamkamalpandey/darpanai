@@ -412,8 +412,7 @@ export async function analyzeOfferLetterDocument(
       max_tokens: 3000,
     });
 
-    const processingTime = Date.now() - startTime;
-    const tokensUsed = response.usage?.total_tokens || 0;
+    // Analysis complete
 
     try {
       const analysisData = JSON.parse(response.choices[0].message.content || '{}');
@@ -477,7 +476,7 @@ export async function analyzeOfferLetterDocument(
           : ["Review offer letter thoroughly", "Contact university for any clarifications needed"],
       };
 
-      return { analysis, tokensUsed, processingTime };
+      return { analysis };
     } catch (parseError) {
       console.error('Error parsing OpenAI response:', parseError);
       
@@ -526,7 +525,7 @@ export async function analyzeOfferLetterDocument(
         ],
       };
 
-      return { analysis: fallbackAnalysis, tokensUsed, processingTime };
+      return { analysis: fallbackAnalysis };
     }
   } catch (error) {
     console.error('Error in comprehensive offer letter analysis:', error);
@@ -576,6 +575,6 @@ export async function analyzeOfferLetterDocument(
       ],
     };
 
-    return { analysis: professionalFallback, tokensUsed: 0, processingTime };
+    return { analysis: professionalFallback };
   }
 }
