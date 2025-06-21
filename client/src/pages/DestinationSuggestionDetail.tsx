@@ -196,7 +196,7 @@ export default function DestinationSuggestionDetail() {
           {/* Recommended Countries Tab */}
           <TabsContent value="countries" className="space-y-4">
             <div className="grid gap-4">
-              {(suggestion.recommendations?.personalizedInsights?.profileStrengths || suggestion.analysisData?.topRecommendations || []).map((country: any, index: number) => (
+              {(suggestion.analysisData?.topRecommendations || suggestion.topRecommendations || []).map((country: any, index: number) => (
                 <Card key={index}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -258,7 +258,7 @@ export default function DestinationSuggestionDetail() {
           {/* Target Universities Tab */}
           <TabsContent value="universities" className="space-y-4">
             <div className="grid gap-4">
-              {(suggestion.recommendations?.personalizedInsights?.profileStrengths || suggestion.analysisData?.topRecommendations || []).map((country: any, countryIndex: number) => (
+              {(suggestion.analysisData?.topRecommendations || suggestion.topRecommendations || []).map((country: any, countryIndex: number) => (
                 <Card key={countryIndex}>
                   <CardHeader>
                     <CardTitle className="flex items-center">

@@ -294,8 +294,8 @@ You are an elite international education strategist with 15+ years experience he
 - Budget: ${userProfile.budgetRange || 'Not specified'}
 - English: ${englishScore}
 - Employment: ${userProfile.currentEmploymentStatus || 'Not specified'}
-- Work Experience: ${userProfile.workExperienceYears || 'Not specified'} years
-- Funding: ${userProfile.fundingSource || 'Not specified'}
+- Work Experience: ${userProfile.currentEmploymentStatus || 'Not specified'} status
+- Funding: ${userProfile.budgetRange || 'Not specified'}
 
 ## QUALIFICATION-BASED RECOMMENDATIONS FRAMEWORK
 
