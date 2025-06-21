@@ -154,7 +154,7 @@ function ScholarshipCard({ scholarship }: { scholarship: Scholarship }) {
               variant="outline" 
               size="sm" 
               className="flex-1"
-              onClick={() => window.open(scholarship.scholarshipUrl, '_blank')}
+              onClick={() => scholarship.scholarshipUrl && window.open(scholarship.scholarshipUrl, '_blank')}
             >
               <ExternalLink className="w-4 h-4 mr-2" />
               View Details
