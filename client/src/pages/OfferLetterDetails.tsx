@@ -209,8 +209,8 @@ export default function OfferLetterDetails() {
     }
   };
 
-  // Filter scholarships for this institution
-  const relevantScholarships = (scholarshipsData as any)?.researchGroups?.find(
+  // Filter scholarships for this institution  
+  const relevantScholarships = scholarshipsData?.researchGroups?.find(
     (group: any) => group.groupName.toLowerCase().includes(offerLetter?.institutionName?.toLowerCase() || '')
   )?.scholarships || [];
 
