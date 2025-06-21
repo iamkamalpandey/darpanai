@@ -257,7 +257,7 @@ export async function generateDestinationSuggestions(
     console.error('Error in destination suggestion analysis:', error);
     
     // Provide comprehensive fallback analysis
-    const fallbackAnalysis = createFallbackAnalysis(userProfile, requestData);
+    const fallbackAnalysis = generateFallbackAnalysis(userProfile, requestData);
     
     return {
       analysis: fallbackAnalysis,
@@ -564,8 +564,8 @@ function transformToNewStructure(
     return transformedAnalysis;
   }
 
-  // Legacy structure fallback
-  const transformedAnalysis: DestinationSuggestionResponse = {
+  // Legacy structure fallback with improved defaults
+  const legacyData = {
     executiveSummary: analysis.executiveSummary || `Based on ${userProfile.firstName}'s profile, comprehensive analysis completed.`,
     overallMatchScore: analysis.overallMatchScore || 75,
     topRecommendations: (analysis.topRecommendations || []).map((country: any, index: number) => ({
@@ -617,7 +617,7 @@ function transformToNewStructure(
         returnOnInvestment: 'ROI typically achieved within 5-7 years'
       },
       culturalAlignment: {
-        languageSupport: country.culturalFit?.languageBarrier || 'English-speaking environment with support',
+        languageSupport: 'English-speaking environment with support',
         communityPresence: 'Strong international student community',
         culturalAdaptation: country.culturalFit?.culturalAdaptation || 'Moderate adaptation period expected',
         supportSystems: country.culturalFit?.internationalStudentSupport || 'Comprehensive student support services'
@@ -711,7 +711,7 @@ function transformToNewStructure(
     })) || []
   };
 
-  return transformedAnalysis;
+  return legacyData;
 }
 
 /**
