@@ -61,6 +61,7 @@ const ProfilePageRedesign = lazy(() => import("@/components/ProfilePageRedesign"
 const OfferLetterInfo = lazy(() => import("@/pages/OfferLetterInfo"));
 const OfferLetterDetails = lazy(() => import("@/pages/OfferLetterDetails"));
 const OfferLetterInformation = lazy(() => import("@/pages/OfferLetterInformation"));
+const OfferLetterAnalysisRevamped = lazy(() => import("@/pages/OfferLetterAnalysisRevamped"));
 const OfferLetterDetailsNew = lazy(() => import("@/pages/OfferLetterDetailsNew"));
 const CoeInformation = lazy(() => import("@/pages/CoeInformation"));
 const CoeDetails = lazy(() => import("@/pages/CoeDetailsNew"));
@@ -225,7 +226,7 @@ function Router() {
       <Route path="/offer-letter-information">
         <UserProtectedRoute path="/offer-letter-information" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <OfferLetterInformation />
+            <OfferLetterAnalysisRevamped />
           </Suspense>
         )} />
       </Route>

@@ -523,11 +523,11 @@ export class DatabaseStorage implements IStorage {
           .orderBy(desc(enrollmentAnalyses.createdAt))
           .limit(1),
         
-        // Offer letter analyses
-        db.select({ createdAt: offerLetterAnalyses.createdAt })
-          .from(offerLetterAnalyses)
-          .where(eq(offerLetterAnalyses.userId, userId))
-          .orderBy(desc(offerLetterAnalyses.createdAt))
+        // Offer letter information
+        db.select({ createdAt: offerLetterInfo.createdAt })
+          .from(offerLetterInfo)
+          .where(eq(offerLetterInfo.userId, userId))
+          .orderBy(desc(offerLetterInfo.createdAt))
           .limit(1)
       ]);
 
@@ -535,7 +535,8 @@ export class DatabaseStorage implements IStorage {
       const allDates = recentAnalyses
         .flat()
         .filter(result => result.createdAt)
-        .map(result => new Date(result.createdAt))
+        .map(result => result.createdAt ? new Date(result.createdAt) : null)
+        .filter((date): date is Date => date !== null)
         .sort((a, b) => b.getTime() - a.getTime());
 
       return allDates.length > 0 ? allDates[0].toISOString() : null;
@@ -1840,10 +1841,10 @@ export class DatabaseStorage implements IStorage {
         .select({ count: sql<number>`count(*)` })
         .from(enrollmentAnalyses);
 
-      // Get total offer letter analyses
+      // Get total offer letter information
       const [totalOfferLetterAnalysesResult] = await db
         .select({ count: sql<number>`count(*)` })
-        .from(offerLetterAnalyses);
+        .from(offerLetterInfo);
 
       // Countries feature discontinued - using static count
       const totalCountriesResult = { count: 50 };
