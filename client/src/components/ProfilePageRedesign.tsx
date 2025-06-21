@@ -194,12 +194,45 @@ const employmentInfoSchema = z.object({
 
 
 
+// Function to calculate test validity based on test type
+const calculateTestExpiry = (testDate: string, testType: string): string => {
+  const date = new Date(testDate);
+  let validityYears = 2; // Default validity for most tests
+  
+  switch (testType) {
+    case 'IELTS':
+    case 'PTE':
+    case 'Duolingo':
+      validityYears = 2;
+      break;
+    case 'TOEFL':
+      validityYears = 2;
+      break;
+    case 'GRE':
+    case 'GMAT':
+      validityYears = 5;
+      break;
+    case 'SAT':
+    case 'ACT':
+      validityYears = 5;
+      break;
+  }
+  
+  date.setFullYear(date.getFullYear() + validityYears);
+  return date.toISOString().split('T')[0];
+};
+
+// Function to check if test is still valid
+const isTestValid = (testDate: string, testType: string): boolean => {
+  const expiryDate = new Date(calculateTestExpiry(testDate, testType));
+  return new Date() <= expiryDate;
+};
+
 const languageProficiencySchema = z.object({
   englishProficiencyTests: z.array(z.object({
     testType: z.enum(['IELTS', 'TOEFL', 'PTE', 'Duolingo']),
     overallScore: z.string().min(1, 'Overall score is required'),
     testDate: z.string().min(1, 'Test date is required'),
-    expiryDate: z.string().optional(),
     listening: z.string().optional(),
     reading: z.string().optional(),
     writing: z.string().optional(),
@@ -214,17 +247,17 @@ const languageProficiencySchema = z.object({
 
 type ProfileSection = 'personal' | 'academic' | 'study' | 'financial' | 'employment' | 'language';
 
-// Profile completion calculation
+// Profile completion calculation (excluding language as it's not compulsory)
 const calculateProfileCompletion = (user: any) => {
-  if (!user) return { percentage: 0, completedSections: 0, totalSections: 6 };
+  if (!user) return { percentage: 0, completedSections: 0, totalSections: 5 };
 
   const sections = {
     personal: !!(user.firstName && user.lastName && user.phoneNumber && user.nationality),
     academic: !!(user.highestQualification && user.highestInstitution && user.graduationYear),
     study: !!(user.interestedCourse && user.fieldOfStudy && user.preferredIntake && user.budgetRange && user.preferredCountries?.length),
     financial: !!(user.fundingSource && user.estimatedBudget),
-    employment: !!(user.currentEmploymentStatus),
-    language: !!(user.englishProficiencyTests?.length || user.standardizedTests?.length)
+    employment: !!(user.currentEmploymentStatus)
+    // Note: language section removed from completion calculation as it's optional
   };
 
   const completedSections = Object.values(sections).filter(Boolean).length;
@@ -1936,151 +1969,195 @@ const ProfilePageRedesign: React.FC = () => {
           onEdit={() => setEditingSection('language')}
         >
           {editingSection === 'language' ? (
-            <div className="space-y-6">
-              <div className="border rounded-lg p-4">
-                <h4 className="font-medium mb-4">English Proficiency Test</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium">Test Type</Label>
-                    <Select 
-                      value={user?.englishProficiencyTests?.[0]?.testType || ''} 
-                      onValueChange={(value) => {
-                        const currentTest = user?.englishProficiencyTests?.[0] || {};
-                        const updatedTest = { ...currentTest, testType: value };
-                        updateProfileMutation.mutate({
-                          englishProficiencyTests: [updatedTest]
-                        });
+            <Form {...languageForm}>
+              <form onSubmit={languageForm.handleSubmit(onLanguageSubmit)} className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium">English Proficiency Tests</h4>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const currentTests = languageForm.getValues('englishProficiencyTests') || [];
+                        languageForm.setValue('englishProficiencyTests', [
+                          ...currentTests,
+                          {
+                            testType: 'IELTS',
+                            overallScore: '',
+                            testDate: '',
+                            reading: '',
+                            writing: '',
+                            speaking: '',
+                            listening: ''
+                          }
+                        ]);
                       }}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select test type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="IELTS">IELTS</SelectItem>
-                        <SelectItem value="TOEFL">TOEFL</SelectItem>
-                        <SelectItem value="PTE">PTE Academic</SelectItem>
-                        <SelectItem value="Duolingo">Duolingo English Test</SelectItem>
-                        <SelectItem value="Cambridge">Cambridge English</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      Add Test
+                    </Button>
                   </div>
-                  <div>
-                    <Label className="text-sm font-medium">Overall Score</Label>
-                    <Input 
-                      value={user?.englishProficiencyTests?.[0]?.overallScore || ''} 
-                      onChange={(e) => {
-                        const currentTest = user?.englishProficiencyTests?.[0] || {};
-                        const updatedTest = { ...currentTest, overallScore: e.target.value };
-                        updateProfileMutation.mutate({
-                          englishProficiencyTests: [updatedTest]
-                        });
-                      }}
-                      placeholder="Overall score" 
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Test Date</Label>
-                    <Input 
-                      type="date" 
-                      value={user?.englishProficiencyTests?.[0]?.testDate || ''} 
-                      onChange={(e) => {
-                        const currentTest = user?.englishProficiencyTests?.[0] || {};
-                        const updatedTest = { ...currentTest, testDate: e.target.value };
-                        updateProfileMutation.mutate({
-                          englishProficiencyTests: [updatedTest]
-                        });
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Reading Score</Label>
-                    <Input 
-                      value={user?.englishProficiencyTests?.[0]?.reading || ''} 
-                      onChange={(e) => {
-                        const currentTest = user?.englishProficiencyTests?.[0] || {};
-                        const updatedTest = { ...currentTest, reading: e.target.value };
-                        updateProfileMutation.mutate({
-                          englishProficiencyTests: [updatedTest]
-                        });
-                      }}
-                      placeholder="Reading score" 
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Writing Score</Label>
-                    <Input 
-                      value={user?.englishProficiencyTests?.[0]?.writing || ''} 
-                      onChange={(e) => {
-                        const currentTest = user?.englishProficiencyTests?.[0] || {};
-                        const updatedTest = { ...currentTest, writing: e.target.value };
-                        updateProfileMutation.mutate({
-                          englishProficiencyTests: [updatedTest]
-                        });
-                      }}
-                      placeholder="Writing score" 
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Speaking Score</Label>
-                    <Input 
-                      value={user?.englishProficiencyTests?.[0]?.speaking || ''} 
-                      onChange={(e) => {
-                        const currentTest = user?.englishProficiencyTests?.[0] || {};
-                        const updatedTest = { ...currentTest, speaking: e.target.value };
-                        updateProfileMutation.mutate({
-                          englishProficiencyTests: [updatedTest]
-                        });
-                      }}
-                      placeholder="Speaking score" 
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Listening Score</Label>
-                    <Input 
-                      value={user?.englishProficiencyTests?.[0]?.listening || ''} 
-                      onChange={(e) => {
-                        const currentTest = user?.englishProficiencyTests?.[0] || {};
-                        const updatedTest = { ...currentTest, listening: e.target.value };
-                        updateProfileMutation.mutate({
-                          englishProficiencyTests: [updatedTest]
-                        });
-                      }}
-                      placeholder="Listening score" 
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Expiry Date</Label>
-                    <Input 
-                      type="date" 
-                      value={user?.englishProficiencyTests?.[0]?.expiryDate || ''} 
-                      onChange={(e) => {
-                        const currentTest = user?.englishProficiencyTests?.[0] || {};
-                        const updatedTest = { ...currentTest, expiryDate: e.target.value };
-                        updateProfileMutation.mutate({
-                          englishProficiencyTests: [updatedTest]
-                        });
-                      }}
-                    />
-                  </div>
+                  
+                  {languageForm.watch('englishProficiencyTests')?.map((test, index) => (
+                    <div key={index} className="border rounded-lg p-4 space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h5 className="font-medium">Test #{index + 1}</h5>
+                        {index > 0 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const currentTests = languageForm.getValues('englishProficiencyTests') || [];
+                              const updatedTests = currentTests.filter((_, i) => i !== index);
+                              languageForm.setValue('englishProficiencyTests', updatedTests);
+                            }}
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <FormField
+                          control={languageForm.control}
+                          name={`englishProficiencyTests.${index}.testType`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Test Type *</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value || ''}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select test type" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="IELTS">IELTS</SelectItem>
+                                  <SelectItem value="TOEFL">TOEFL</SelectItem>
+                                  <SelectItem value="PTE">PTE Academic</SelectItem>
+                                  <SelectItem value="Duolingo">Duolingo English Test</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={languageForm.control}
+                          name={`englishProficiencyTests.${index}.overallScore`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Overall Score *</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Enter overall score" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={languageForm.control}
+                          name={`englishProficiencyTests.${index}.testDate`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Test Date *</FormLabel>
+                              <FormControl>
+                                <Input {...field} type="date" />
+                              </FormControl>
+                              <FormDescription>
+                                {field.value && test.testType && (
+                                  <>
+                                    Valid until: {calculateTestExpiry(field.value, test.testType)}
+                                    {!isTestValid(field.value, test.testType) && (
+                                      <span className="text-red-500 ml-2">(Expired)</span>
+                                    )}
+                                  </>
+                                )}
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <FormField
+                          control={languageForm.control}
+                          name={`englishProficiencyTests.${index}.reading`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Reading</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Reading score" />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={languageForm.control}
+                          name={`englishProficiencyTests.${index}.writing`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Writing</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Writing score" />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={languageForm.control}
+                          name={`englishProficiencyTests.${index}.speaking`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Speaking</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Speaking score" />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={languageForm.control}
+                          name={`englishProficiencyTests.${index}.listening`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Listening</FormLabel>
+                              <FormControl>
+                                <Input {...field} placeholder="Listening score" />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setEditingSection(null)}
-                >
-                  <X className="w-4 h-4 mr-1" />
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => setEditingSection(null)}
-                >
-                  <Save className="w-4 h-4 mr-1" />
-                  Save Changes
-                </Button>
-              </div>
-            </div>
+                
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditingSection(null)}
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={updateProfileMutation.isPending}
+                  >
+                    <Save className="w-4 h-4 mr-1" />
+                    Save Changes
+                  </Button>
+                </div>
+              </form>
+            </Form>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {user?.englishProficiencyTests?.[0] ? (
