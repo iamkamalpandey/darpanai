@@ -855,35 +855,29 @@ export default function ComprehensiveOfferLetterAnalysis() {
               </Card>
             </div>
 
-            {/* Schedule Information */}
+            {/* Offer Details Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Important Dates</CardTitle>
+                <CardTitle>Offer Details</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {analysis.courseDetails.schedule.startDate && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {analysis.offerDetails?.program && (
+                    <div>
+                      <Label className="font-medium">Program</Label>
+                      <p className="text-gray-700">{analysis.offerDetails.program}</p>
+                    </div>
+                  )}
+                  {analysis.offerDetails?.tuition && (
+                    <div>
+                      <Label className="font-medium">Tuition</Label>
+                      <p className="text-gray-700">{analysis.offerDetails.tuition}</p>
+                    </div>
+                  )}
+                  {analysis.offerDetails?.startDate && (
                     <div>
                       <Label className="font-medium">Start Date</Label>
-                      <p className="text-gray-700">{analysis.courseDetails.schedule.startDate}</p>
-                    </div>
-                  )}
-                  {analysis.courseDetails.schedule.endDate && (
-                    <div>
-                      <Label className="font-medium">End Date</Label>
-                      <p className="text-gray-700">{analysis.courseDetails.schedule.endDate}</p>
-                    </div>
-                  )}
-                  {analysis.courseDetails.schedule.orientationDate && (
-                    <div>
-                      <Label className="font-medium">Orientation</Label>
-                      <p className="text-gray-700">{analysis.courseDetails.schedule.orientationDate}</p>
-                    </div>
-                  )}
-                  {analysis.courseDetails.schedule.studyPeriods && (
-                    <div>
-                      <Label className="font-medium">Study Periods</Label>
-                      <p className="text-gray-700">{analysis.courseDetails.schedule.studyPeriods}</p>
+                      <p className="text-gray-700">{analysis.offerDetails.startDate}</p>
                     </div>
                   )}
                 </div>
