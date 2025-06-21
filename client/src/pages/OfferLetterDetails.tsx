@@ -455,11 +455,20 @@ export default function OfferLetterDetails() {
                   <div>
                     {formatRequirementsText(offerLetter.academicRequirements)}
                     <div className="mt-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200">
-                      <p className="text-xs text-blue-700 font-medium mb-2">What this means:</p>
+                      <p className="text-xs text-blue-700 font-medium mb-2">What these documents are:</p>
                       <ul className="text-xs text-blue-600 space-y-1">
-                        <li>• <strong>Certification of Completion:</strong> Your official diploma certificate</li>
-                        <li>• <strong>Year 12 Documents:</strong> High school transcripts and certificates</li>
-                        <li>• <strong>Original:</strong> Certified copies or official documents from the institution</li>
+                        {offerLetter.academicRequirements?.includes('Diploma of Community Service') && (
+                          <li>• <strong>Diploma of Community Service:</strong> Completion certificate from your community service program</li>
+                        )}
+                        {offerLetter.academicRequirements?.includes('Year 12') && (
+                          <li>• <strong>Year 12 Academic Documents:</strong> High school completion certificates and transcripts</li>
+                        )}
+                        {offerLetter.academicRequirements?.includes('Original') && (
+                          <li>• <strong>Original documents:</strong> Certified copies or official documents from the issuing institution</li>
+                        )}
+                        {offerLetter.academicRequirements?.includes('SMIC') && (
+                          <li>• <strong>From SMIC:</strong> Documents must be obtained from Sydney Metropolitan Institute of TAFE</li>
+                        )}
                       </ul>
                     </div>
                   </div>
