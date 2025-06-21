@@ -279,9 +279,9 @@ function buildDestinationAnalysisPrompt(
   const englishScore = englishTest ? `${englishTest.testType}: ${englishTest.overallScore}` : 'Not provided';
   
   return `
-# STRATEGIC STUDY DESTINATION ANALYSIS
+# STRATEGIC STUDY DESTINATION ANALYSIS - IDP LIVE APP METHODOLOGY
 
-You are an elite international education strategist. Analyze this student's complete profile and provide genuinely insightful, personalized destination recommendations. Focus on meaningful analysis over templates.
+You are an elite international education strategist with 15+ years experience helping students actually apply to universities. Provide genuine, personalized analysis that eliminates templated responses and focuses on practical application assistance.
 
 ## STUDENT PROFILE ANALYSIS
 
@@ -294,30 +294,77 @@ You are an elite international education strategist. Analyze this student's comp
 - Budget: ${userProfile.budgetRange || 'Not specified'}
 - English: ${englishScore}
 - Employment: ${userProfile.currentEmploymentStatus || 'Not specified'}
+- Work Experience: ${userProfile.workExperienceYears || 'Not specified'} years
+- Funding: ${userProfile.fundingSource || 'Not specified'}
 
-## ANALYSIS REQUIREMENTS
+## QUALIFICATION-BASED RECOMMENDATIONS FRAMEWORK
 
-1. **Profile Assessment**: Analyze strengths, weaknesses, and opportunities based on this specific profile
-2. **Strategic Country Matching**: Recommend 3-4 countries with genuine reasoning based on profile fit
-3. **Scholarship Intelligence**: Identify major scholarships this student actually qualifies for
-4. **Realistic Pathways**: Analyze entry routes including foundation programs if needed
-5. **Financial Reality**: Authentic cost analysis and funding strategies
+**CRITICAL**: Only recommend programs that are a logical step ahead:
+- **Bachelor's holders**: Recommend Master's programs (NOT diplomas/foundations)
+- **Diploma holders**: Recommend Bachelor's programs
+- **High School**: Recommend Foundation/Diploma programs
+- **Master's holders**: Recommend MBA/PhD programs only
 
-## CRITICAL ANALYSIS POINTS
+## HONEST COMPETITIVENESS ASSESSMENT REQUIRED
 
-- Why does each country make sense for THIS student specifically?
-- What are the realistic admission prospects given their profile?
-- Which scholarships are they genuinely competitive for?
-- What pathway (direct entry, foundation, etc.) is most suitable?
-- What are the genuine challenges and how to address them?
+Provide genuine evaluation of:
+1. **Academic Position**: How competitive is this profile for target programs?
+2. **Admission Reality**: What are realistic admission chances?
+3. **Profile Gaps**: What needs improvement for stronger applications?
+4. **Scholarship Viability**: Which scholarships can they realistically compete for?
 
-## ANALYSIS APPROACH
+## QUARTERLY ACTION PLAN ALIGNMENT (2025 ADMISSION CYCLES)
 
-**Profile Strengths Analysis**: What makes this student competitive?
-**Profile Challenges**: What obstacles need addressing?
-**Strategic Fit Assessment**: Which countries align with their profile reality?
-**Scholarship Qualification**: Which major scholarships match their background?
-**Pathway Strategy**: Direct entry vs foundation/bridging programs
+**Q1 (Jan-Mar 2025)**: Winter intake deadlines, Fall 2025 early applications
+- USA: Spring 2025 deadlines (Jan 15), Fall 2025 early applications
+- Canada: Winter 2025 intake applications, Fall 2025 preparations
+- UK: January UCAS deadline, Spring intake applications
+- Australia: Semester 1 2025 late applications
+
+**Q2 (Apr-Jun 2025)**: Summer intake applications, Fall 2025 main deadlines
+- USA: Summer session applications, Fall 2025 regular deadlines
+- Canada: Summer 2025 intake, Fall 2025 main application period
+- UK: Clearing preparation, September intake final applications
+- Australia: Semester 2 2025 applications, scholarship deadlines
+
+**Q3 (Jul-Sep 2025)**: Fall enrollment, visa applications
+- USA: Fall 2025 enrollment confirmations, visa applications
+- Canada: Fall 2025 final preparations, accommodation booking
+- UK: September 2025 enrollment, Clearing process
+- Australia: Semester 2 enrollment, Spring 2026 early applications
+
+**Q4 (Oct-Dec 2025)**: Next year planning, early applications
+- USA: Spring 2026 applications, Fall 2026 early admission deadlines
+- Canada: Winter 2026 applications, Fall 2026 early preparations
+- UK: UCAS applications for 2026 entry, early decision deadlines
+- Australia: 2026 academic year applications open
+
+## PRACTICAL APPLICATION FOCUS (IDP LIVE METHODOLOGY)
+
+Focus on helping students actually apply:
+1. **Specific Universities**: Name actual institutions they can apply to
+2. **Realistic Requirements**: What they need to meet admission criteria
+3. **Application Procedures**: Exact steps to apply
+4. **Scholarship Applications**: Specific scholarships with deadlines
+5. **Profile Improvement**: Actionable steps to strengthen applications
+
+## REALISTIC SCHOLARSHIP MATCHING
+
+Only include scholarships the student actually qualifies for:
+- Academic performance requirements
+- Nationality eligibility
+- Financial need criteria
+- Field of study alignment
+- Qualification level appropriateness
+
+## BUDGET ANALYSIS WITH AUTHENTIC 2025 COSTS
+
+Provide realistic cost breakdowns:
+- Tuition fees (actual 2025 rates)
+- Living expenses (authentic local costs)
+- Scholarship opportunities (real eligibility criteria)
+- Total investment analysis
+- ROI projections based on career outcomes
 **Financial Viability**: Realistic cost assessment and funding options
 
 ## REQUIRED ANALYSIS STRUCTURE
