@@ -649,21 +649,48 @@ function generateFallbackAnalysis(
         scholarshipPotential: "$5,000 - $25,000 for qualifying students",
         workStudyEarnings: "$300/week (20 hours maximum)"
       },
-      topUniversities: ["Harvard University", "MIT", "Stanford University"],
-      visaRequirements: {
-        difficulty: "Moderate to High",
-        processingTime: "6-12 weeks",
-        workPermit: "On-campus work allowed, OPT available"
+      targetedUniversities: [
+        {
+          name: "Harvard University",
+          ranking: "Top 1 globally",
+          programSpecific: "World-renowned across all disciplines",
+          admissionRequirements: "GPA 3.9+, SAT 1500+, TOEFL 100+",
+          scholarshipAvailable: "Need-based aid up to full tuition"
+        },
+        {
+          name: "MIT",
+          ranking: "Top 3 globally",
+          programSpecific: "Leading in STEM fields",
+          admissionRequirements: "GPA 3.8+, SAT 1520+, TOEFL 100+",
+          scholarshipAvailable: "Merit scholarships available"
+        },
+        {
+          name: "Stanford University",
+          ranking: "Top 5 globally",
+          programSpecific: "Excellence in technology and innovation",
+          admissionRequirements: "GPA 3.9+, SAT 1500+, TOEFL 100+",
+          scholarshipAvailable: "Knight-Hennessy Scholars Program"
+        }
+      ],
+      personalizedVisaGuidance: {
+        successRate: "75-85% for qualified applicants",
+        specificRequirements: ["F-1 visa application", "I-20 form", "Financial proof", "SEVIS fee"],
+        timelineForUser: "3-4 months before program start",
+        workRights: "On-campus work allowed, OPT/CPT available",
+        postStudyOptions: "OPT for 12-36 months, H-1B pathway available"
       },
-      careerProspects: {
-        jobMarket: "Excellent in tech, finance, healthcare",
-        averageSalary: "$50,000 - $120,000",
-        growthOpportunities: "Outstanding with top global companies"
+      careerPathway: {
+        industryDemand: "High demand in tech, finance, healthcare sectors",
+        salaryExpectations: "$50,000 - $120,000 starting salary",
+        careerProgression: "Rapid advancement opportunities with top companies",
+        networkingOpportunities: "Alumni networks, industry connections",
+        returnOnInvestment: "ROI typically achieved within 3-5 years"
       },
-      culturalFit: {
-        languageBarrier: "Low for English speakers",
-        culturalAdaptation: "Diverse and welcoming environment",
-        internationalStudentSupport: "Excellent support services"
+      culturalAlignment: {
+        languageSupport: "English-speaking environment, ESL support available",
+        communityPresence: "Large international student communities",
+        culturalAdaptation: "Diverse and inclusive environment",
+        supportSystems: "Comprehensive international student services"
       }
     },
     {
@@ -671,29 +698,70 @@ function generateFallbackAnalysis(
       countryCode: "CA", 
       matchScore: 82,
       ranking: 2,
-      reasons: ["Affordable quality education", "Welcoming immigration policies", "Safe environment"],
-      advantages: ["Post-graduation work permit", "Pathway to permanent residence", "Lower costs than US"],
-      challenges: ["Cold climate in most regions", "Competitive admissions"],
-      estimatedCosts: {
-        tuitionRange: "$15,000 - $35,000 per year",
-        livingCosts: "$12,000 - $20,000 per year",
-        totalAnnualCost: "$27,000 - $55,000"
+      personalizedReasons: ["Affordable quality education", "Welcoming immigration policies", "Safe environment"],
+      specificAdvantages: ["Post-graduation work permit", "Pathway to permanent residence", "Lower costs than US"],
+      potentialChallenges: ["Cold climate in most regions", "Competitive admissions"],
+      detailedCostBreakdown: {
+        tuitionFees: {
+          bachelors: "$15,000 - $25,000 CAD",
+          masters: "$20,000 - $35,000 CAD", 
+          phd: "$7,000 - $15,000 CAD",
+          specificProgram: "$18,000 - $30,000 CAD for your field"
+        },
+        livingExpenses: {
+          accommodation: "$8,000-12,000/year",
+          food: "$3,000-4,500/year", 
+          transportation: "$1,200-2,000/year",
+          personalExpenses: "$2,000-3,000/year",
+          healthInsurance: "$600-1,200/year",
+          totalMonthly: "$1,200-1,900/month"
+        },
+        totalAnnualInvestment: "$27,000 - $55,000 CAD",
+        scholarshipPotential: "$2,000 - $15,000 for qualifying students",
+        workStudyEarnings: "$400/week (20 hours maximum)"
       },
-      topUniversities: ["University of Toronto", "McGill University", "UBC"],
-      visaRequirements: {
-        difficulty: "Moderate",
-        processingTime: "4-8 weeks",
-        workPermit: "20 hours/week during studies"
+      targetedUniversities: [
+        {
+          name: "University of Toronto",
+          ranking: "Top 5 in Canada",
+          programSpecific: "Strong research opportunities",
+          admissionRequirements: "GPA 3.7+, IELTS 6.5+",
+          scholarshipAvailable: "Merit scholarships up to $10,000 CAD"
+        },
+        {
+          name: "McGill University",
+          ranking: "Top 3 in Canada",
+          programSpecific: "Bilingual environment advantage",
+          admissionRequirements: "GPA 3.5+, IELTS 6.5+",
+          scholarshipAvailable: "International scholarships available"
+        },
+        {
+          name: "University of British Columbia",
+          ranking: "Top 10 globally",
+          programSpecific: "Beautiful campus, diverse programs",
+          admissionRequirements: "GPA 3.6+, IELTS 6.5+",
+          scholarshipAvailable: "UBC International Scholarships"
+        }
+      ],
+      personalizedVisaGuidance: {
+        successRate: "85-90% for qualified applicants",
+        specificRequirements: ["Study permit application", "Letter of acceptance", "Financial proof", "Medical exam if required"],
+        timelineForUser: "2-3 months before program start",
+        workRights: "20 hours/week during studies, full-time during breaks",
+        postStudyOptions: "Post-graduation work permit for 1-3 years, PR pathway available"
       },
-      careerProspects: {
-        jobMarket: "Strong in natural resources, tech, healthcare",
-        averageSalary: "$45,000 - $75,000 CAD",
-        growthOpportunities: "Good with immigration opportunities"
+      careerPathway: {
+        industryDemand: "Strong demand in natural resources, tech, healthcare",
+        salaryExpectations: "$45,000 - $75,000 CAD starting salary",
+        careerProgression: "Good advancement with immigration opportunities",
+        networkingOpportunities: "Professional associations, alumni networks",
+        returnOnInvestment: "ROI typically achieved within 4-6 years"
       },
-      culturalFit: {
-        languageBarrier: "Low - English and French",
+      culturalAlignment: {
+        languageSupport: "English and French environments, ESL support",
+        communityPresence: "Large international student communities",
         culturalAdaptation: "Very welcoming to international students",
-        internationalStudentSupport: "Excellent government and university support"
+        supportSystems: "Excellent government and university support"
       }
     }
   ];
@@ -704,9 +772,10 @@ function generateFallbackAnalysis(
     topRecommendations: commonDestinations,
     keyFactors: ["Academic reputation", "Cost of education", "Post-study work opportunities", "Cultural compatibility", "Immigration policies"],
     personalizedInsights: {
-      strengthsAnalysis: ["Strong motivation for international education", "Clear academic goals"],
-      improvementAreas: ["Financial planning", "Language preparation if needed"],
-      strategicRecommendations: ["Focus on countries with favorable immigration policies", "Research scholarship opportunities early", "Consider cost of living alongside tuition"]
+      profileStrengths: ["Strong motivation for international education", "Clear academic goals"],
+      specificImprovementAreas: ["Financial planning", "Language preparation if needed"],
+      tailoredStrategicActions: ["Focus on countries with favorable immigration policies", "Research scholarship opportunities early", "Consider cost of living alongside tuition"],
+      uniqueOpportunities: ["Pathway programs for lower English scores", "Merit scholarships for academic excellence", "Work-study opportunities"]
     },
     nextSteps: {
       immediate: ["Research specific programs in recommended countries", "Assess financial requirements", "Check language proficiency requirements"],
