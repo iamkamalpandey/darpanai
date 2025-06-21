@@ -760,25 +760,25 @@ export default function ComprehensiveOfferLetterAnalysis() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {analysis.institutionDetails.registrations.cricos && (
+                  {analysis.institutionDetails?.registrations?.cricos && (
                     <div>
                       <Label className="font-medium">CRICOS</Label>
                       <p className="text-gray-700">{analysis.institutionDetails.registrations.cricos}</p>
                     </div>
                   )}
-                  {analysis.institutionDetails.registrations.providerId && (
+                  {analysis.institutionDetails?.registrations?.providerId && (
                     <div>
                       <Label className="font-medium">Provider ID</Label>
                       <p className="text-gray-700">{analysis.institutionDetails.registrations.providerId}</p>
                     </div>
                   )}
-                  {analysis.institutionDetails.registrations.abn && (
+                  {analysis.institutionDetails?.registrations?.abn && (
                     <div>
                       <Label className="font-medium">ABN</Label>
                       <p className="text-gray-700">{analysis.institutionDetails.registrations.abn}</p>
                     </div>
                   )}
-                  {analysis.institutionDetails.registrations.accreditation && (
+                  {analysis.institutionDetails?.registrations?.accreditation && (
                     <div>
                       <Label className="font-medium">Accreditation</Label>
                       <p className="text-gray-700">{analysis.institutionDetails.registrations.accreditation}</p>
@@ -799,21 +799,21 @@ export default function ComprehensiveOfferLetterAnalysis() {
                 <CardContent className="space-y-4">
                   <div>
                     <Label className="font-medium">Program Name</Label>
-                    <p className="text-gray-700">{analysis.courseDetails.program.name}</p>
+                    <p className="text-gray-700">{analysis.courseDetails?.program?.name || 'Not specified'}</p>
                   </div>
                   <div>
                     <Label className="font-medium">Level</Label>
-                    <p className="text-gray-700">{analysis.courseDetails.program.level}</p>
+                    <p className="text-gray-700">{analysis.courseDetails?.program?.level || 'Not specified'}</p>
                   </div>
                   <div>
                     <Label className="font-medium">Field of Study</Label>
-                    <p className="text-gray-700">{analysis.courseDetails.program.field}</p>
+                    <p className="text-gray-700">{analysis.courseDetails?.program?.field || 'Not specified'}</p>
                   </div>
                   <div>
                     <Label className="font-medium">Study Mode</Label>
-                    <p className="text-gray-700">{analysis.courseDetails.program.mode}</p>
+                    <p className="text-gray-700">{analysis.courseDetails?.program?.mode || 'Not specified'}</p>
                   </div>
-                  {analysis.courseDetails.program.specialization && (
+                  {analysis.courseDetails?.program?.specialization && (
                     <div>
                       <Label className="font-medium">Specialization</Label>
                       <p className="text-gray-700">{analysis.courseDetails.program.specialization}</p>
@@ -827,25 +827,25 @@ export default function ComprehensiveOfferLetterAnalysis() {
                   <CardTitle>Course Structure</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {analysis.courseDetails.duration.years && (
+                  {analysis.courseDetails?.duration?.years && (
                     <div>
                       <Label className="font-medium">Duration</Label>
                       <p className="text-gray-700">{analysis.courseDetails.duration.years}</p>
                     </div>
                   )}
-                  {analysis.courseDetails.duration.totalWeeks && (
+                  {analysis.courseDetails?.duration?.totalWeeks && (
                     <div>
                       <Label className="font-medium">Total Weeks</Label>
                       <p className="text-gray-700">{analysis.courseDetails.duration.totalWeeks}</p>
                     </div>
                   )}
-                  {analysis.courseDetails.duration.unitsTotal && (
+                  {analysis.courseDetails?.duration?.unitsTotal && (
                     <div>
                       <Label className="font-medium">Total Units</Label>
                       <p className="text-gray-700">{analysis.courseDetails.duration.unitsTotal}</p>
                     </div>
                   )}
-                  {analysis.courseDetails.structure.unitsPerYear && (
+                  {analysis.courseDetails?.structure?.unitsPerYear && (
                     <div>
                       <Label className="font-medium">Units Per Year</Label>
                       <p className="text-gray-700">{analysis.courseDetails.structure.unitsPerYear}</p>
@@ -1202,7 +1202,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {analysis.offerConditions.visa.map((requirement, index) => (
+                      {analysis.offerConditions?.visa?.map((requirement, index) => (
                         <div key={index} className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                           <p className="text-gray-800 mb-2">{requirement.requirement}</p>
                           {requirement.authority && (
@@ -1221,14 +1221,16 @@ export default function ComprehensiveOfferLetterAnalysis() {
                             </p>
                           )}
                         </div>
-                      ))}
+                      )) || (
+                        <p className="text-sm text-gray-600">No visa requirements data available</p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
               )}
 
               {/* English Language Requirements */}
-              {analysis.offerConditions.english.length > 0 && (
+              {analysis.offerConditions?.english?.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -1238,10 +1240,10 @@ export default function ComprehensiveOfferLetterAnalysis() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {analysis.offerConditions.english.map((requirement, index) => (
+                      {analysis.offerConditions?.english?.map((requirement, index) => (
                         <div key={index} className="p-4 bg-green-50 rounded-lg border border-green-200">
                           <p className="text-gray-800 mb-2">{requirement.requirement}</p>
-                          {requirement.acceptedTests.length > 0 && (
+                          {requirement.acceptedTests?.length > 0 && (
                             <div className="mb-2">
                               <Label className="font-medium text-sm">Accepted Tests:</Label>
                               <div className="flex flex-wrap gap-1 mt-1">
@@ -1264,7 +1266,9 @@ export default function ComprehensiveOfferLetterAnalysis() {
                             </p>
                           )}
                         </div>
-                      ))}
+                      )) || (
+                        <p className="text-sm text-gray-600">No English language requirements data available</p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -1277,19 +1281,19 @@ export default function ComprehensiveOfferLetterAnalysis() {
                 <CardTitle>Student Visa Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {analysis.complianceRequirements.studentVisa.subclass && (
+                {analysis.complianceRequirements?.studentVisa?.subclass && (
                   <div>
                     <Label className="font-medium">Visa Subclass</Label>
                     <p className="text-gray-700">{analysis.complianceRequirements.studentVisa.subclass}</p>
                   </div>
                 )}
-                {analysis.complianceRequirements.studentVisa.workRights && (
+                {analysis.complianceRequirements?.studentVisa?.workRights && (
                   <div>
                     <Label className="font-medium">Work Rights</Label>
                     <p className="text-gray-700">{analysis.complianceRequirements.studentVisa.workRights}</p>
                   </div>
                 )}
-                {analysis.complianceRequirements.studentVisa.conditions.length > 0 && (
+                {analysis.complianceRequirements?.studentVisa?.conditions?.length > 0 && (
                   <div>
                     <Label className="font-medium">Visa Conditions</Label>
                     <ul className="list-disc list-inside text-gray-700 space-y-1">
@@ -1408,7 +1412,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
             </Card>
 
             {/* Competitor Analysis */}
-            {analysis.competitorAnalysis.similarInstitutions.length > 0 && (
+            {analysis.competitorAnalysis?.similarInstitutions?.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -1435,7 +1439,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
                           )}
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                          {competitor.advantages.length > 0 && (
+                          {competitor.advantages?.length > 0 && (
                             <div>
                               <Label className="font-medium text-green-700">Advantages</Label>
                               <ul className="list-disc list-inside text-gray-600 space-y-1">
@@ -1445,7 +1449,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
                               </ul>
                             </div>
                           )}
-                          {competitor.disadvantages.length > 0 && (
+                          {competitor.disadvantages?.length > 0 && (
                             <div>
                               <Label className="font-medium text-red-700">Disadvantages</Label>
                               <ul className="list-disc list-inside text-gray-600 space-y-1">
