@@ -56,6 +56,7 @@ interface AdminLayoutProps {
 export function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [informationReportsOpen, setInformationReportsOpen] = useState(false);
   const [location] = useLocation();
   
   const { data: user } = useQuery({
