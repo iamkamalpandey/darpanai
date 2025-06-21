@@ -284,7 +284,7 @@ export default function OfferLetterInformation() {
         )}
 
         {/* No Results */}
-        {searchTerm && filteredOfferLetters.length === 0 && offerLetters.length > 0 && (
+        {searchTerm && filteredOfferLetters.length === 0 && (offerLetters as OfferLetterInfo[]).length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
             <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
