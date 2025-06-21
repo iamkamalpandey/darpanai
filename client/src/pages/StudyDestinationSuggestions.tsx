@@ -229,10 +229,10 @@ export default function StudyDestinationSuggestions() {
       queryClient.invalidateQueries({ queryKey: ['/api/destination-suggestions'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/stats'] });
       
-      // Navigate to the new suggestion
+      // Navigate to the personalized destination analysis
       if (data.suggestionId) {
         setTimeout(() => {
-          setLocation(`/destination-suggestions/${data.suggestionId}`);
+          setLocation(`/personalized-destination-analysis/${data.suggestionId}`);
         }, 1500);
       }
       
@@ -613,7 +613,7 @@ export default function StudyDestinationSuggestions() {
                   
                   <div className="text-center pt-4">
                     <Button
-                      onClick={() => setLocation(`/destination-suggestions/${latestSuggestion.id}`)}
+                      onClick={() => setLocation(`/personalized-destination-analysis/${latestSuggestion.id}`)}
                       variant="outline"
                       className="w-full"
                     >
