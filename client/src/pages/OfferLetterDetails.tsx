@@ -1,10 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { toast } from '@/hooks/use-toast';
 import { 
   Building, 
   GraduationCap, 
@@ -146,7 +145,6 @@ function highlightImportantTerms(text: string): JSX.Element {
 
 export default function OfferLetterDetails() {
   const { id } = useParams();
-  const queryClient = useQueryClient();
 
   const { data: offerLetter, isLoading, error } = useQuery({
     queryKey: ['/api/offer-letter-info', id],
@@ -160,59 +158,7 @@ export default function OfferLetterDetails() {
     enabled: !!id,
   });
 
-  // Query for scholarships
-  const { data: scholarshipsData, isLoading: scholarshipsLoading } = useQuery({
-    queryKey: ['/api/scholarships/my-research'],
-    enabled: !!offerLetter?.institutionName,
-  });
 
-  // Mutation for scholarship research
-  const scholarshipMutation = useMutation({
-    mutationFn: async (searchData: { institutionName: string; programName: string; programLevel: string }) => {
-      const response = await fetch('/api/scholarships/research', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(searchData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to research scholarships');
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/scholarships/my-research'] });
-      toast({
-        title: "Scholarship Research Completed",
-        description: "Found new scholarships for this institution",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Research Failed", 
-        description: error instanceof Error ? error.message : "Failed to research scholarships",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleScholarshipResearch = () => {
-    if (offerLetter?.institutionName && offerLetter?.programName) {
-      scholarshipMutation.mutate({
-        institutionName: offerLetter.institutionName,
-        programName: offerLetter.programName,
-        programLevel: offerLetter.courseLevel || 'Bachelor',
-      });
-    }
-  };
-
-  // Filter scholarships for this institution  
-  const relevantScholarships = scholarshipsData?.researchGroups?.find(
-    (group: any) => group.groupName.toLowerCase().includes(offerLetter?.institutionName?.toLowerCase() || '')
-  )?.scholarships || [];
 
   if (isLoading) {
     return (
@@ -625,108 +571,7 @@ export default function OfferLetterDetails() {
           </CardContent>
         </Card>
 
-        {/* Scholarship Research Section */}
-        <Card className="border-l-4 border-l-blue-500">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-blue-500" />
-                Scholarship Opportunities
-              </CardTitle>
-              <Button
-                onClick={handleScholarshipResearch}
-                disabled={scholarshipMutation.isPending || !offerLetter?.institutionName}
-                size="sm"
-                variant="outline"
-              >
-                {scholarshipMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Researching...
-                  </>
-                ) : (
-                  <>
-                    <Search className="h-4 w-4 mr-2" />
-                    Research Scholarships
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {scholarshipsLoading ? (
-              <div className="text-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-500" />
-                <p className="text-muted-foreground">Loading scholarships...</p>
-              </div>
-            ) : relevantScholarships.length > 0 ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Badge variant="secondary">{relevantScholarships.length} scholarships found</Badge>
-                  <span className="text-sm text-muted-foreground">for {offerLetter?.institutionName}</span>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {relevantScholarships.slice(0, 4).map((scholarship: any) => (
-                    <div key={scholarship.id} className="border rounded-lg p-4 bg-blue-50">
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-semibold text-sm text-blue-900">{scholarship.scholarshipName}</h4>
-                        {scholarship.availableFunds && (
-                          <Badge variant="outline" className="text-green-700 border-green-200">
-                            {scholarship.availableFunds}
-                          </Badge>
-                        )}
-                      </div>
-                      {scholarship.description && (
-                        <p className="text-xs text-blue-700 mb-3 line-clamp-2">{scholarship.description}</p>
-                      )}
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-2">
-                          {scholarship.applicationDeadline && (
-                            <div className="flex items-center gap-1 text-blue-600">
-                              <Calendar className="h-3 w-3" />
-                              <span>{scholarship.applicationDeadline ? new Date(scholarship.applicationDeadline).toLocaleDateString() : 'Not specified'}</span>
-                            </div>
-                          )}
-                        </div>
-                        {scholarship.applicationUrl && (
-                          <a
-                            href={scholarship.applicationUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
-                          >
-                            <ExternalLink className="h-3 w-3" />
-                            Apply
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {relevantScholarships.length > 4 && (
-                  <div className="text-center">
-                    <p className="text-sm text-muted-foreground">
-                      Showing 4 of {relevantScholarships.length} scholarships. 
-                      <Button variant="link" size="sm" className="p-0 ml-1 h-auto">
-                        View all scholarships
-                      </Button>
-                    </p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Award className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-4">
-                  No scholarships found for {offerLetter?.institutionName || 'this institution'}
-                </p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Click "Research Scholarships" to find available funding opportunities
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+
 
       </div>
     </DashboardLayout>
