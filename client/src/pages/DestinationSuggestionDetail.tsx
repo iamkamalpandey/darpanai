@@ -161,11 +161,11 @@ export default function DestinationSuggestionDetail() {
             </Button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Study Destination Analysis</h1>
-              <p className="text-gray-600">Generated on {new Date(suggestion.createdAt).toLocaleDateString()}</p>
+              <p className="text-gray-600">Generated on {suggestion.createdAt ? new Date(suggestion.createdAt).toLocaleDateString() : 'Recent'}</p>
             </div>
           </div>
           <Badge variant="secondary" className="text-lg px-3 py-1">
-            Overall Match: {suggestion.overallMatchScore}%
+            Overall Match: {suggestion.overallMatchScore || suggestion.analysisData?.overallMatchScore || 'N/A'}%
           </Badge>
         </div>
 
@@ -196,127 +196,146 @@ export default function DestinationSuggestionDetail() {
           {/* Recommended Countries Tab */}
           <TabsContent value="countries" className="space-y-4">
             <div className="grid gap-4">
-              {(suggestion.analysisData?.topRecommendations || suggestion.topRecommendations || []).map((country: any, index: number) => (
-                <Card key={index}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <MapPin className="w-5 h-5 text-blue-600" />
-                        <div>
-                          <CardTitle>{country.country || `Country ${index + 1}`}</CardTitle>
-                          <CardDescription>Match Score: {country.matchScore || 85}%</CardDescription>
+              {/* Handle suggested countries array from API */}
+              {suggestion.suggestedCountries && suggestion.suggestedCountries.length > 0 ? (
+                suggestion.suggestedCountries.map((countryName: string, index: number) => {
+                  // Find matching detailed data if available
+                  const countryData = (suggestion.analysisData?.topRecommendations || []).find((c: any) => 
+                    c.country === countryName
+                  ) || {};
+                  
+                  return (
+                    <Card key={index}>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <MapPin className="w-5 h-5 text-blue-600" />
+                            <div>
+                              <CardTitle>{countryName}</CardTitle>
+                              <CardDescription>Match Score: {countryData.matchScore || '85'}%</CardDescription>
+                            </div>
+                          </div>
+                          <Badge variant="default">Rank #{index + 1}</Badge>
                         </div>
-                      </div>
-                      <Badge variant="default">Rank #{country.ranking || index + 1}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Personalized Reasons */}
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <h4 className="font-semibold text-blue-700 mb-2 flex items-center">
-                        <Star className="w-4 h-4 mr-1" />
-                        Why This Country Fits Your Profile
-                      </h4>
-                      <ul className="text-gray-700 space-y-1">
-                        {(country.personalizedReasons || ['Strategic fit for your academic and financial profile']).map((reason: string, i: number) => (
-                          <li key={i}>• {reason}</li>
-                        ))}
-                      </ul>
-                    </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* Personalized Reasons */}
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <h4 className="font-semibold text-blue-700 mb-2 flex items-center">
+                            <Star className="w-4 h-4 mr-1" />
+                            Why This Country Fits Your Profile
+                          </h4>
+                          <ul className="text-gray-700 space-y-1">
+                            {countryData.personalizedReasons ? countryData.personalizedReasons.map((reason: string, i: number) => (
+                              <li key={i}>• {reason}</li>
+                            )) : (
+                              <li>• Strategic fit for your academic and financial profile based on comprehensive analysis</li>
+                            )}
+                          </ul>
+                        </div>
 
-                    {/* Cost Information */}
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="font-semibold text-gray-700 mb-2 flex items-center">
-                        <DollarSign className="w-4 h-4 mr-1" />
-                        Estimated Costs
-                      </h4>
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-500">Tuition (Program):</span>
-                          <div className="font-medium">{country.detailedCostBreakdown?.tuitionFees?.specificProgram || 'Cost information available upon analysis'}</div>
+                        {/* Cost Information */}
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h4 className="font-semibold text-gray-700 mb-2 flex items-center">
+                            <DollarSign className="w-4 h-4 mr-1" />
+                            Estimated Costs
+                          </h4>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-500">Tuition Range:</span>
+                              <div className="font-medium">Detailed cost analysis available</div>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Living Expenses:</span>
+                              <div className="font-medium">Country-specific estimates</div>
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-gray-500">Living Expenses:</span>
-                          <div className="font-medium">{country.detailedCostBreakdown?.livingExpenses?.totalMonthly || 'Living cost estimates available'}</div>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Total Investment:</span>
-                          <div className="font-medium text-blue-600">{country.detailedCostBreakdown?.totalAnnualInvestment || 'Total cost calculated upon analysis'}</div>
-                        </div>
-                        <div>
-                          <span className="text-gray-500">Scholarship Potential:</span>
-                          <div className="font-medium text-green-600">{country.detailedCostBreakdown?.scholarshipPotential || 'Scholarship opportunities available'}</div>
-                        </div>
-                      </div>
-                    </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              ) : (
+                <Card>
+                  <CardContent className="pt-6">
+                    <p className="text-gray-500 text-center">No country recommendations available. Please generate a new analysis.</p>
                   </CardContent>
                 </Card>
-              ))}
+              )}
             </div>
           </TabsContent>
 
           {/* Target Universities Tab */}
           <TabsContent value="universities" className="space-y-4">
             <div className="grid gap-4">
-              {(suggestion.analysisData?.topRecommendations || suggestion.topRecommendations || []).map((country: any, countryIndex: number) => (
-                <Card key={countryIndex}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <BookOpen className="w-5 h-5 mr-2" />
-                      {country.country || `Country ${countryIndex + 1}`} - Target Universities
-                    </CardTitle>
-                    <CardDescription>
-                      Specific universities you can apply to with realistic admission prospects
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {(country.targetedUniversities || []).map((university: any, uniIndex: number) => (
-                      <div key={uniIndex} className="border rounded-lg p-4 space-y-3">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-semibold text-lg">{university.name}</h4>
-                            <p className="text-sm text-gray-600">{university.ranking}</p>
+              {suggestion.suggestedCountries && suggestion.suggestedCountries.length > 0 ? (
+                suggestion.suggestedCountries.map((countryName: string, countryIndex: number) => {
+                  const countryData = (suggestion.analysisData?.topRecommendations || []).find((c: any) => 
+                    c.country === countryName
+                  ) || {};
+                  
+                  return (
+                    <Card key={countryIndex}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center">
+                          <BookOpen className="w-5 h-5 mr-2" />
+                          {countryName} - Target Universities
+                        </CardTitle>
+                        <CardDescription>
+                          University recommendations based on your academic profile and field of study
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {countryData.targetedUniversities && countryData.targetedUniversities.length > 0 ? (
+                          countryData.targetedUniversities.map((university: any, uniIndex: number) => (
+                            <div key={uniIndex} className="border rounded-lg p-4 space-y-3">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-semibold text-lg">{university.name}</h4>
+                                  <p className="text-sm text-gray-600">{university.ranking}</p>
+                                </div>
+                                <Badge variant="outline" className="ml-2">
+                                  Good Match
+                                </Badge>
+                              </div>
+                              
+                              <div className="grid md:grid-cols-2 gap-4">
+                                <div>
+                                  <h5 className="font-medium text-blue-700 mb-2">Program Details</h5>
+                                  <p className="text-sm text-gray-700">{university.programSpecific}</p>
+                                </div>
+                                <div>
+                                  <h5 className="font-medium text-green-700 mb-2">Entry Requirements</h5>
+                                  <p className="text-sm text-gray-700">{university.admissionRequirements}</p>
+                                </div>
+                              </div>
+                              
+                              <div className="bg-gray-50 p-3 rounded">
+                                <h5 className="font-medium text-purple-700 mb-1">Available Scholarships</h5>
+                                <p className="text-sm text-gray-700">{university.scholarshipAvailable}</p>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-8 bg-gray-50 rounded-lg">
+                            <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                            <h3 className="font-medium text-gray-700 mb-2">University Research Available</h3>
+                            <p className="text-sm text-gray-500">
+                              Detailed university recommendations for {countryName} will be provided based on your specific field of study and academic qualifications.
+                            </p>
                           </div>
-                          <Badge variant="outline" className="ml-2">
-                            Match Score: High
-                          </Badge>
-                        </div>
-                        
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div>
-                            <h5 className="font-medium text-blue-700 mb-2">Program Details</h5>
-                            <p className="text-sm text-gray-700">{university.programSpecific}</p>
-                          </div>
-                          <div>
-                            <h5 className="font-medium text-green-700 mb-2">Entry Requirements</h5>
-                            <p className="text-sm text-gray-700">{university.admissionRequirements}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="bg-gray-50 p-3 rounded">
-                          <h5 className="font-medium text-purple-700 mb-1">Available Scholarships</h5>
-                          <p className="text-sm text-gray-700">{university.scholarshipAvailable}</p>
-                        </div>
-                        
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <span className="text-gray-500">Tuition Fee:</span>
-                            <div className="font-medium">{country.detailedCostBreakdown?.tuitionFees?.specificProgram || 'Contact university'}</div>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">Application Deadline:</span>
-                            <div className="font-medium text-red-600">Check university website</div>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">Intake Period:</span>
-                            <div className="font-medium text-blue-600">Fall/Spring</div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              ) : (
+                <Card>
+                  <CardContent className="pt-6">
+                    <p className="text-gray-500 text-center">No university data available. Please generate a new analysis.</p>
                   </CardContent>
                 </Card>
-              ))}
+              )}
             </div>
           </TabsContent>
 
