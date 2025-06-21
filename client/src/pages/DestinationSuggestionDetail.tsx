@@ -12,26 +12,76 @@ interface CountryRecommendation {
   countryCode: string;
   matchScore: number;
   ranking: number;
-  reasons: string[];
-  advantages: string[];
-  challenges: string[];
-  estimatedCosts: {
+  personalizedReasons?: string[];
+  specificAdvantages?: string[];
+  potentialChallenges?: string[];
+  detailedCostBreakdown?: {
+    tuitionFees?: {
+      bachelors?: string;
+      masters?: string;
+      phd?: string;
+      specificProgram?: string;
+    };
+    livingExpenses?: {
+      accommodation?: string;
+      food?: string;
+      transportation?: string;
+      personalExpenses?: string;
+      healthInsurance?: string;
+      totalMonthly?: string;
+    };
+    totalAnnualInvestment?: string;
+    scholarshipPotential?: string;
+    workStudyEarnings?: string;
+  };
+  targetedUniversities?: Array<{
+    name: string;
+    ranking: string;
+    programSpecific: string;
+    admissionRequirements: string;
+    scholarshipAvailable: string;
+  }>;
+  personalizedVisaGuidance?: {
+    successRate: string;
+    specificRequirements: string[];
+    timelineForUser: string;
+    workRights: string;
+    postStudyOptions: string;
+  };
+  careerPathway?: {
+    industryDemand: string;
+    salaryExpectations: string;
+    careerProgression: string;
+    networkingOpportunities: string;
+    returnOnInvestment: string;
+  };
+  culturalAlignment?: {
+    languageSupport: string;
+    communityPresence: string;
+    culturalAdaptation: string;
+    supportSystems: string;
+  };
+  // Legacy fields for backward compatibility
+  reasons?: string[];
+  advantages?: string[];
+  challenges?: string[];
+  estimatedCosts?: {
     tuitionRange: string;
     livingCosts: string;
     totalAnnualCost: string;
   };
-  topUniversities: string[];
-  visaRequirements: {
+  topUniversities?: string[];
+  visaRequirements?: {
     difficulty: string;
     processingTime: string;
     workPermit: string;
   };
-  careerProspects: {
+  careerProspects?: {
     jobMarket: string;
     averageSalary: string;
     growthOpportunities: string;
   };
-  culturalFit: {
+  culturalFit?: {
     languageBarrier: string;
     culturalAdaptation: string;
     internationalStudentSupport: string;
@@ -213,16 +263,20 @@ export default function DestinationSuggestionDetail() {
                     </h4>
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>
-                        <span className="text-gray-500">Tuition:</span>
-                        <div className="font-medium">{country.estimatedCosts?.tuitionRange || 'Not specified'}</div>
+                        <span className="text-gray-500">Tuition (Program):</span>
+                        <div className="font-medium">{country.detailedCostBreakdown?.tuitionFees?.specificProgram || country.estimatedCosts?.tuitionRange || 'Cost information available upon analysis'}</div>
                       </div>
                       <div>
-                        <span className="text-gray-500">Living:</span>
-                        <div className="font-medium">{country.estimatedCosts?.livingCosts || 'Not specified'}</div>
+                        <span className="text-gray-500">Living Expenses:</span>
+                        <div className="font-medium">{country.detailedCostBreakdown?.livingExpenses?.totalMonthly || country.estimatedCosts?.livingCosts || 'Living cost estimates available'}</div>
                       </div>
                       <div>
-                        <span className="text-gray-500">Total Annual:</span>
-                        <div className="font-medium">{country.estimatedCosts?.totalAnnualCost || 'Not specified'}</div>
+                        <span className="text-gray-500">Total Investment:</span>
+                        <div className="font-medium text-blue-600">{country.detailedCostBreakdown?.totalAnnualInvestment || country.estimatedCosts?.totalAnnualCost || 'Total cost calculated upon analysis'}</div>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Scholarship Potential:</span>
+                        <div className="font-medium text-green-600">{country.detailedCostBreakdown?.scholarshipPotential || 'Scholarship opportunities available'}</div>
                       </div>
                     </div>
                   </div>
