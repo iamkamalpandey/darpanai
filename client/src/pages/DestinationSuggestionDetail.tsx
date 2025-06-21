@@ -354,48 +354,100 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
               </Card>
 
-              {/* Major Scholarships */}
-              {(suggestion.recommendations?.financialStrategy?.targetedScholarships || []).map((scholarship: any, index: number) => (
-                <Card key={index}>
-                  <CardHeader>
-                    <CardTitle className="text-blue-700">
-                      {typeof scholarship === 'string' ? scholarship : scholarship.scholarshipName || `Scholarship Opportunity ${index + 1}`}
-                    </CardTitle>
-                    <CardDescription>
-                      {typeof scholarship === 'object' && scholarship.provider ? `Provided by ${scholarship.provider}` : 'Merit-based opportunity'}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid md:grid-cols-3 gap-4">
-                      <div className="bg-green-50 p-3 rounded-lg">
-                        <h5 className="font-medium text-green-700 mb-1">Scholarship Value</h5>
-                        <p className="text-sm text-gray-700">
-                          {typeof scholarship === 'object' ? scholarship.amount || 'Value varies' : 'Merit-based award'}
+              {/* Check for scholarship data or show country-based opportunities */}
+              {suggestion.recommendations?.financialStrategy?.targetedScholarships && 
+               suggestion.recommendations.financialStrategy.targetedScholarships.length > 0 ? (
+                suggestion.recommendations.financialStrategy.targetedScholarships.map((scholarship: any, index: number) => (
+                  <Card key={index}>
+                    <CardHeader>
+                      <CardTitle className="text-blue-700">
+                        {typeof scholarship === 'string' ? scholarship : scholarship.scholarshipName || `Scholarship Opportunity ${index + 1}`}
+                      </CardTitle>
+                      <CardDescription>
+                        {typeof scholarship === 'object' && scholarship.provider ? `Provided by ${scholarship.provider}` : 'Merit-based opportunity'}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid md:grid-cols-3 gap-4">
+                        <div className="bg-green-50 p-3 rounded-lg">
+                          <h5 className="font-medium text-green-700 mb-1">Scholarship Value</h5>
+                          <p className="text-sm text-gray-700">
+                            {typeof scholarship === 'object' ? scholarship.amount || 'Value varies' : 'Merit-based award'}
+                          </p>
+                        </div>
+                        <div className="bg-blue-50 p-3 rounded-lg">
+                          <h5 className="font-medium text-blue-700 mb-1">Your Match</h5>
+                          <p className="text-sm text-gray-700">
+                            {typeof scholarship === 'object' ? scholarship.competitiveness || 'Good match' : 'Eligible based on profile'}
+                          </p>
+                        </div>
+                        <div className="bg-purple-50 p-3 rounded-lg">
+                          <h5 className="font-medium text-purple-700 mb-1">Application Status</h5>
+                          <p className="text-sm text-gray-700">Research application deadlines</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                /* Show country-based scholarship opportunities */
+                suggestion.suggestedCountries && suggestion.suggestedCountries.length > 0 ? (
+                  suggestion.suggestedCountries.map((countryName: string, countryIndex: number) => (
+                    <Card key={`country-${countryIndex}`}>
+                      <CardHeader>
+                        <CardTitle className="text-orange-700">
+                          {countryName} - Scholarship Opportunities
+                        </CardTitle>
+                        <CardDescription>
+                          Financial aid opportunities for international students in {countryName}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="bg-orange-50 p-3 rounded-lg">
+                            <h5 className="font-medium text-orange-700 mb-1">Available Funding</h5>
+                            <p className="text-sm text-gray-700">
+                              Government scholarships, university merit awards, and private foundation funding available for qualified international students.
+                            </p>
+                          </div>
+                          <div className="grid md:grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <h6 className="font-medium text-gray-700 mb-1">Funding Sources:</h6>
+                              <ul className="text-gray-600 space-y-1">
+                                <li>• Government scholarships</li>
+                                <li>• University merit awards</li>
+                                <li>• Private foundations</li>
+                                <li>• Industry-specific grants</li>
+                              </ul>
+                            </div>
+                            <div>
+                              <h6 className="font-medium text-gray-700 mb-1">Typical Benefits:</h6>
+                              <ul className="text-gray-600 space-y-1">
+                                <li>• 15-75% tuition reduction</li>
+                                <li>• Living expense support</li>
+                                <li>• Research assistantships</li>
+                                <li>• Work-study opportunities</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="text-center py-8">
+                        <Star className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                        <h3 className="font-medium text-gray-700 mb-2">Scholarship Research Available</h3>
+                        <p className="text-sm text-gray-500">
+                          Generate a new analysis to receive personalized scholarship matching based on your academic profile and destination preferences.
                         </p>
                       </div>
-                      <div className="bg-blue-50 p-3 rounded-lg">
-                        <h5 className="font-medium text-blue-700 mb-1">Your Match</h5>
-                        <p className="text-sm text-gray-700">
-                          {typeof scholarship === 'object' ? scholarship.competitiveness || 'Good match' : 'Eligible based on profile'}
-                        </p>
-                      </div>
-                      <div className="bg-purple-50 p-3 rounded-lg">
-                        <h5 className="font-medium text-purple-700 mb-1">Application Status</h5>
-                        <p className="text-sm text-gray-700">
-                          {typeof scholarship === 'object' ? 'Check deadline' : 'Open for applications'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {typeof scholarship === 'object' && scholarship.eligibility && (
-                      <div className="bg-gray-50 p-3 rounded">
-                        <h5 className="font-medium text-gray-700 mb-2">Why You Qualify</h5>
-                        <p className="text-sm text-gray-600">{scholarship.eligibility}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                )
+              )}
             </div>
           </TabsContent>
 
