@@ -135,7 +135,7 @@ export function setupOfferLetterInfoRoutes(app: any) {
     }
   });
 
-  // Admin route - get all offer letter information
+  // Admin route - get all offer letter information with user details
   app.get('/api/admin/offer-letter-info', async (req: Request, res: Response) => {
     try {
       const user = req.user as any;
@@ -144,7 +144,7 @@ export function setupOfferLetterInfoRoutes(app: any) {
         return res.status(403).json({ error: 'Admin access required' });
       }
 
-      const allInfo = await offerLetterInfoStorage.getAllOfferLetterInfo();
+      const allInfo = await offerLetterInfoStorage.getAllOfferLetterInfoWithUsers();
       res.json(allInfo);
 
     } catch (error) {
