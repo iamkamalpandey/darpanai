@@ -106,7 +106,7 @@ function ScholarshipCard({ scholarship }: { scholarship: Scholarship }) {
               <span className="text-sm font-medium text-blue-800">Deadline</span>
             </div>
             <div className="text-sm font-semibold text-blue-700">
-              {formatDate(scholarship.applicationDeadline)}
+              {scholarship.applicationDeadline ? formatDate(scholarship.applicationDeadline) : 'Not specified'}
             </div>
           </div>
         </div>
