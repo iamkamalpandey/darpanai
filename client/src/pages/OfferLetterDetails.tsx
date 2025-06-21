@@ -647,10 +647,10 @@ function InfoItem({
   if (!value) {
     return (
       <div className="flex items-start gap-3">
-        <div className="text-muted-foreground mt-0.5">{icon}</div>
-        <div className="flex-1">
-          <div className="text-sm font-medium text-muted-foreground">{label}</div>
-          <div className="text-sm text-muted-foreground">Not specified</div>
+        <div className="text-muted-foreground mt-0.5 flex-shrink-0">{icon}</div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-medium text-muted-foreground break-words overflow-hidden">{label}</div>
+          <div className="text-sm text-muted-foreground break-words overflow-hidden">Not specified</div>
         </div>
       </div>
     );

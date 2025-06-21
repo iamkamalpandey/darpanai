@@ -185,7 +185,7 @@ export default function CoeDetails() {
                   Back
                 </Button>
               </Link>
-              <h1 className="text-2xl font-bold">{coe.fileName}</h1>
+              <h1 className="text-2xl font-bold break-words overflow-hidden">{coe.fileName}</h1>
             </div>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <span>Uploaded: {format(new Date(coe.createdAt), 'MMMM dd, yyyy')}</span>
@@ -209,31 +209,31 @@ export default function CoeDetails() {
               {coe.studentName && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Student Name</label>
-                  <p className="font-medium">{coe.studentName}</p>
+                  <p className="font-medium break-words overflow-hidden">{coe.studentName}</p>
                 </div>
               )}
               {coe.studentId && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Student ID</label>
-                  <p className="font-medium">{coe.studentId}</p>
+                  <p className="font-medium break-words overflow-hidden">{coe.studentId}</p>
                 </div>
               )}
               {coe.dateOfBirth && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Date of Birth</label>
-                  <p>{highlightImportantTerms(coe.dateOfBirth)}</p>
+                  <p className="break-words overflow-hidden">{highlightImportantTerms(coe.dateOfBirth)}</p>
                 </div>
               )}
               {coe.nationality && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Nationality</label>
-                  <p>{coe.nationality}</p>
+                  <p className="break-words overflow-hidden">{coe.nationality}</p>
                 </div>
               )}
               {coe.passportNumber && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Passport Number</label>
-                  <p className="font-mono">{coe.passportNumber}</p>
+                  <p className="font-mono break-words overflow-hidden">{coe.passportNumber}</p>
                 </div>
               )}
             </CardContent>
@@ -251,27 +251,27 @@ export default function CoeDetails() {
               {coe.institutionName && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Institution Name</label>
-                  <p className="font-medium">{coe.institutionName}</p>
+                  <p className="font-medium break-words overflow-hidden">{coe.institutionName}</p>
                 </div>
               )}
               {coe.cricosCode && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">CRICOS Code</label>
-                  <p className="font-mono">{highlightImportantTerms(coe.cricosCode)}</p>
+                  <p className="font-mono break-words overflow-hidden">{highlightImportantTerms(coe.cricosCode)}</p>
                 </div>
               )}
               {coe.institutionCode && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Institution Code</label>
-                  <p className="font-mono">{coe.institutionCode}</p>
+                  <p className="font-mono break-words overflow-hidden">{coe.institutionCode}</p>
                 </div>
               )}
               {coe.institutionAddress && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Address</label>
                   <p className="flex items-start gap-2">
-                    <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                    {coe.institutionAddress}
+                    <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                    <span className="break-words overflow-hidden">{coe.institutionAddress}</span>
                   </p>
                 </div>
               )}
@@ -279,8 +279,8 @@ export default function CoeDetails() {
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Phone</label>
                   <p className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    {coe.institutionPhone}
+                    <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="break-words overflow-hidden">{coe.institutionPhone}</span>
                   </p>
                 </div>
               )}
@@ -288,8 +288,8 @@ export default function CoeDetails() {
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Email</label>
                   <p className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    {coe.institutionEmail}
+                    <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="break-words overflow-hidden">{coe.institutionEmail}</span>
                   </p>
                 </div>
               )}
@@ -308,48 +308,48 @@ export default function CoeDetails() {
               {coe.courseName && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Course Name</label>
-                  <p className="font-medium">{coe.courseName}</p>
+                  <p className="font-medium break-words overflow-hidden">{coe.courseName}</p>
                 </div>
               )}
               {coe.courseCode && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Course Code</label>
-                  <p className="font-mono">{coe.courseCode}</p>
+                  <p className="font-mono break-words overflow-hidden">{coe.courseCode}</p>
                 </div>
               )}
               {coe.courseLevel && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Course Level</label>
-                  <Badge variant="secondary">{coe.courseLevel}</Badge>
+                  <Badge variant="secondary" className="break-words overflow-hidden">{coe.courseLevel}</Badge>
                 </div>
               )}
               {coe.fieldOfStudy && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Field of Study</label>
-                  <p>{coe.fieldOfStudy}</p>
+                  <p className="break-words overflow-hidden">{coe.fieldOfStudy}</p>
                 </div>
               )}
               {coe.courseDuration && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Duration</label>
                   <p className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    {coe.courseDuration}
+                    <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="break-words overflow-hidden">{coe.courseDuration}</span>
                   </p>
                 </div>
               )}
               {coe.studyMode && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Study Mode</label>
-                  <Badge variant="outline">{coe.studyMode}</Badge>
+                  <Badge variant="outline" className="break-words overflow-hidden">{coe.studyMode}</Badge>
                 </div>
               )}
               {coe.campusLocation && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Campus Location</label>
                   <p className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    {coe.campusLocation}
+                    <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="break-words overflow-hidden">{coe.campusLocation}</span>
                   </p>
                 </div>
               )}
