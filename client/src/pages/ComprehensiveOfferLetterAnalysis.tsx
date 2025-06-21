@@ -577,12 +577,14 @@ export default function ComprehensiveOfferLetterAnalysis() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {analysis.strategicAnalysis.strengths.slice(0, 3).map((strength, index) => (
+                  {analysis.strategicAnalysis?.strengths?.slice(0, 3)?.map((strength, index) => (
                     <div key={index} className="p-2 bg-white rounded border-l-4 border-green-400">
                       <p className="font-medium text-sm">{strength.category}</p>
                       <p className="text-sm text-gray-600">{strength.strength}</p>
                     </div>
-                  ))}
+                  )) || (
+                    <p className="text-sm text-gray-600">No strengths data available</p>
+                  )}
                 </CardContent>
               </Card>
 
@@ -594,7 +596,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {analysis.strategicAnalysis.concerns.slice(0, 3).map((concern, index) => (
+                  {analysis.strategicAnalysis?.concerns?.slice(0, 3)?.map((concern, index) => (
                     <div key={index} className="p-2 bg-white rounded border-l-4 border-yellow-400">
                       <div className="flex justify-between items-start">
                         <p className="font-medium text-sm">{concern.category}</p>
@@ -602,7 +604,9 @@ export default function ComprehensiveOfferLetterAnalysis() {
                       </div>
                       <p className="text-sm text-gray-600">{concern.concern}</p>
                     </div>
-                  ))}
+                  )) || (
+                    <p className="text-sm text-gray-600">No concerns data available</p>
+                  )}
                 </CardContent>
               </Card>
 
@@ -614,12 +618,14 @@ export default function ComprehensiveOfferLetterAnalysis() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {analysis.strategicAnalysis.opportunities.slice(0, 3).map((opportunity, index) => (
+                  {analysis.strategicAnalysis?.opportunities?.slice(0, 3)?.map((opportunity, index) => (
                     <div key={index} className="p-2 bg-white rounded border-l-4 border-blue-400">
                       <p className="font-medium text-sm">{opportunity.opportunity}</p>
                       <p className="text-sm text-gray-600">{opportunity.benefit}</p>
                     </div>
-                  ))}
+                  )) || (
+                    <p className="text-sm text-gray-600">No opportunities data available</p>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -637,25 +643,25 @@ export default function ComprehensiveOfferLetterAnalysis() {
                   <div className="text-center p-4 bg-gray-50 rounded">
                     <p className="text-sm text-gray-600">Total Fees</p>
                     <p className="text-xl font-bold text-gray-800">
-                      {analysis.financialBreakdown.tuitionFees.totalFees || 'Not specified'}
+                      {analysis.financialBreakdown?.tuitionFees?.totalFees || 'Not specified'}
                     </p>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded">
                     <p className="text-sm text-gray-600">Currency</p>
                     <p className="text-xl font-bold text-gray-800">
-                      {analysis.financialBreakdown.tuitionFees.currency || 'Not specified'}
+                      {analysis.financialBreakdown?.tuitionFees?.currency || 'Not specified'}
                     </p>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded">
                     <p className="text-sm text-gray-600">Duration</p>
                     <p className="text-xl font-bold text-gray-800">
-                      {analysis.courseDetails.duration.years || analysis.courseDetails.duration.totalWeeks || 'Not specified'}
+                      {analysis.courseDetails?.duration?.years || analysis.courseDetails?.duration?.totalWeeks || 'Not specified'}
                     </p>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded">
                     <p className="text-sm text-gray-600">Available Scholarships</p>
                     <p className="text-xl font-bold text-gray-800">
-                      {analysis.availableScholarships.length}
+                      {analysis.availableScholarships?.length || 0}
                     </p>
                   </div>
                 </div>
@@ -697,9 +703,9 @@ export default function ComprehensiveOfferLetterAnalysis() {
                   <div>
                     <Label className="font-medium">Address</Label>
                     <p className="text-gray-700">
-                      {analysis.institutionDetails.address.street}, {analysis.institutionDetails.address.city},
-                      {analysis.institutionDetails.address.state} {analysis.institutionDetails.address.postalCode},
-                      {analysis.institutionDetails.address.country}
+                      {analysis.institutionDetails?.address?.street}, {analysis.institutionDetails?.address?.city},
+                      {analysis.institutionDetails?.address?.state} {analysis.institutionDetails?.address?.postalCode},
+                      {analysis.institutionDetails?.address?.country}
                     </p>
                   </div>
                 </CardContent>
@@ -713,19 +719,19 @@ export default function ComprehensiveOfferLetterAnalysis() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {analysis.institutionalResearch.rankings.global && (
+                  {analysis.institutionalResearch?.rankings?.global && (
                     <div>
                       <Label className="font-medium">Global Ranking</Label>
                       <p className="text-gray-700">{analysis.institutionalResearch.rankings.global}</p>
                     </div>
                   )}
-                  {analysis.institutionalResearch.rankings.national && (
+                  {analysis.institutionalResearch?.rankings?.national && (
                     <div>
                       <Label className="font-medium">National Ranking</Label>
                       <p className="text-gray-700">{analysis.institutionalResearch.rankings.national}</p>
                     </div>
                   )}
-                  {analysis.institutionalResearch.careerOutcomes.employmentRate && (
+                  {analysis.institutionalResearch?.careerOutcomes?.employmentRate && (
                     <div>
                       <Label className="font-medium">Employment Rate</Label>
                       <p className="text-gray-700">{analysis.institutionalResearch.careerOutcomes.employmentRate}</p>
@@ -734,11 +740,13 @@ export default function ComprehensiveOfferLetterAnalysis() {
                   <div>
                     <Label className="font-medium">Student Services</Label>
                     <div className="flex flex-wrap gap-2 mt-1">
-                      {analysis.institutionalResearch.facilities.studentServices.slice(0, 6).map((service, index) => (
+                      {analysis.institutionalResearch?.facilities?.studentServices?.slice(0, 6)?.map((service, index) => (
                         <Badge key={index} variant="secondary" className="text-xs">
                           {service}
                         </Badge>
-                      ))}
+                      )) || (
+                        <span className="text-sm text-gray-600">No services data available</span>
+                      )}
                     </div>
                   </div>
                 </CardContent>
