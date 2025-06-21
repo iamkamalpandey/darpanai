@@ -202,67 +202,52 @@ export async function generateDestinationSuggestions(
   requestData: DestinationSuggestionRequest
 ): Promise<{ analysis: DestinationSuggestionResponse; tokensUsed: number; processingTime: number }> {
   const startTime = Date.now();
-  
+
   try {
     const prompt = buildDestinationAnalysisPrompt(userProfile, requestData);
-    
-    console.log(`Starting AI destination analysis for user: ${userProfile.firstName} ${userProfile.lastName}`);
     
     const response = await anthropic.messages.create({
       model: DEFAULT_MODEL_STR, // "claude-sonnet-4-20250514"
       max_tokens: 8000,
-      system: "You are a senior international education strategist and migration consultant with 15+ years of experience in global education systems, visa requirements, scholarship matrices, and career outcomes. Provide extremely detailed, highly personalized study destination recommendations with comprehensive strategic analysis, authentic 2025 cost data, and actionable implementation plans. Focus on depth, specificity, and strategic insights tailored to this individual student's profile. Always respond with valid JSON format.",
+      system: "You are an expert international education consultant providing personalized study destination recommendations. Provide comprehensive, actionable analysis based on the student's specific profile.",
       messages: [
         {
-          role: "user",
+          role: 'user',
           content: prompt
         }
-      ],
-      temperature: 0.7,
+      ]
     });
 
-    const tokensUsed = response.usage?.input_tokens + response.usage?.output_tokens || 0;
-    const processingTime = Date.now() - startTime;
-    
-    console.log(`Destination analysis completed: ${tokensUsed} tokens used, ${processingTime}ms processing time`);
-    
-    const firstContent = response.content[0];
-    let analysisContent = firstContent && 'text' in firstContent ? firstContent.text : '';
-    if (!analysisContent) {
-      throw new Error('No analysis content received from Claude');
+    const content = response.content[0];
+    if (content.type !== 'text') {
+      throw new Error('Unexpected response type from Anthropic API');
     }
-
-    // Clean up Claude's response by removing markdown code blocks
-    analysisContent = analysisContent.replace(/```json\s*|\s*```/g, '').trim();
 
     let analysis: DestinationSuggestionResponse;
     try {
-      analysis = JSON.parse(analysisContent);
-    } catch (parseError) {
-      console.error('Failed to parse Claude response:', parseError);
-      console.error('Raw response content:', analysisContent.substring(0, 500));
-      throw new Error('Invalid response format from AI analysis');
+      analysis = JSON.parse(content.text);
+    } catch (error) {
+      console.error('Failed to parse Anthropic response:', error);
+      analysis = generateFallbackAnalysis(userProfile, requestData);
     }
 
-    // Transform analysis to match new enhanced structure
-    const transformedAnalysis = transformToNewStructure(analysis, userProfile);
-    
+    const processingTime = Date.now() - startTime;
+    const tokensUsed = response.usage.input_tokens + response.usage.output_tokens;
+
     return {
-      analysis: transformedAnalysis,
+      analysis,
       tokensUsed,
       processingTime
     };
-    
+
   } catch (error) {
-    console.error('Error in destination suggestion analysis:', error);
-    
-    // Provide comprehensive fallback analysis
-    const fallbackAnalysis = generateFallbackAnalysis(userProfile, requestData);
+    console.error('Error generating destination suggestions:', error);
+    const processingTime = Date.now() - startTime;
     
     return {
-      analysis: fallbackAnalysis,
+      analysis: generateFallbackAnalysis(userProfile, requestData),
       tokensUsed: 0,
-      processingTime: Date.now() - startTime
+      processingTime
     };
   }
 }
@@ -274,684 +259,34 @@ function buildDestinationAnalysisPrompt(
   userProfile: UserProfile,
   requestData: DestinationSuggestionRequest
 ): string {
-  // Get user's English proficiency details
-  const englishTest = userProfile.englishProficiencyTests?.[0];
-  const englishScore = englishTest ? `${englishTest.testType}: ${englishTest.overallScore}` : 'Not provided';
-  
-  return `
-# STRATEGIC STUDY DESTINATION ANALYSIS - IDP LIVE APP METHODOLOGY
+  return `Analyze this student's profile and provide personalized study destination recommendations:
 
-You are an elite international education strategist with 15+ years experience helping students actually apply to universities. Provide genuine, personalized analysis that eliminates templated responses and focuses on practical application assistance.
+STUDENT PROFILE:
+- Name: ${userProfile.firstName} ${userProfile.lastName}
+- Nationality: ${userProfile.nationality || 'Not specified'}
+- Current Country: ${userProfile.country || 'Not specified'}
+- Highest Qualification: ${userProfile.highestQualification || 'Not specified'}
+- Institution: ${userProfile.highestInstitution || 'Not specified'}
+- GPA: ${userProfile.highestGpa || 'Not specified'}
+- Graduation Year: ${userProfile.graduationYear || 'Not specified'}
+- Interested Course: ${userProfile.interestedCourse || 'Not specified'}
+- Field of Study: ${userProfile.fieldOfStudy || 'Not specified'}
+- Preferred Intake: ${userProfile.preferredIntake || 'Not specified'}
+- Budget Range: ${userProfile.budgetRange || 'Not specified'}
+- Preferred Countries: ${userProfile.preferredCountries?.join(', ') || 'Not specified'}
+- Employment Status: ${userProfile.currentEmploymentStatus || 'Not specified'}
+- English Tests: ${JSON.stringify(userProfile.englishProficiencyTests || [])}
 
-## STUDENT PROFILE ANALYSIS
-
-**${userProfile.firstName} ${userProfile.lastName}** - ${userProfile.nationality || 'Nationality not specified'} National
-- Age: ${userProfile.dateOfBirth ? Math.floor((Date.now() - new Date(userProfile.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 'Not provided'} years
-- Academic: ${userProfile.highestQualification || 'Not specified'} from ${userProfile.highestInstitution || 'Not specified'}
-- Performance: ${userProfile.highestGpa || 'Not specified'} GPA, graduated ${userProfile.graduationYear || 'Not specified'}
-- Gap: ${userProfile.graduationYear ? new Date().getFullYear() - userProfile.graduationYear : 'Not calculated'} years since graduation
-- Field Interest: ${userProfile.fieldOfStudy || 'Not specified'}
-- Budget: ${userProfile.budgetRange || 'Not specified'}
-- English: ${englishScore}
-- Employment: ${userProfile.currentEmploymentStatus || 'Not specified'}
-- Work Experience: ${userProfile.currentEmploymentStatus || 'Not specified'} status
-- Funding: ${userProfile.budgetRange || 'Not specified'}
-
-## QUALIFICATION-BASED RECOMMENDATIONS FRAMEWORK
-
-**CRITICAL**: Only recommend programs that are a logical step ahead:
-- **Bachelor's holders**: Recommend Master's programs (NOT diplomas/foundations)
-- **Diploma holders**: Recommend Bachelor's programs
-- **High School**: Recommend Foundation/Diploma programs
-- **Master's holders**: Recommend MBA/PhD programs only
-
-## HONEST COMPETITIVENESS ASSESSMENT REQUIRED
-
-Provide genuine evaluation of:
-1. **Academic Position**: How competitive is this profile for target programs?
-2. **Admission Reality**: What are realistic admission chances?
-3. **Profile Gaps**: What needs improvement for stronger applications?
-4. **Scholarship Viability**: Which scholarships can they realistically compete for?
-
-## QUARTERLY ACTION PLAN ALIGNMENT (2025 ADMISSION CYCLES)
-
-**Q1 (Jan-Mar 2025)**: Winter intake deadlines, Fall 2025 early applications
-- USA: Spring 2025 deadlines (Jan 15), Fall 2025 early applications
-- Canada: Winter 2025 intake applications, Fall 2025 preparations
-- UK: January UCAS deadline, Spring intake applications
-- Australia: Semester 1 2025 late applications
-
-**Q2 (Apr-Jun 2025)**: Summer intake applications, Fall 2025 main deadlines
-- USA: Summer session applications, Fall 2025 regular deadlines
-- Canada: Summer 2025 intake, Fall 2025 main application period
-- UK: Clearing preparation, September intake final applications
-- Australia: Semester 2 2025 applications, scholarship deadlines
-
-**Q3 (Jul-Sep 2025)**: Fall enrollment, visa applications
-- USA: Fall 2025 enrollment confirmations, visa applications
-- Canada: Fall 2025 final preparations, accommodation booking
-- UK: September 2025 enrollment, Clearing process
-- Australia: Semester 2 enrollment, Spring 2026 early applications
-
-**Q4 (Oct-Dec 2025)**: Next year planning, early applications
-- USA: Spring 2026 applications, Fall 2026 early admission deadlines
-- Canada: Winter 2026 applications, Fall 2026 early preparations
-- UK: UCAS applications for 2026 entry, early decision deadlines
-- Australia: 2026 academic year applications open
-
-## PERSONALIZED ANALYSIS REQUIREMENTS
-
-**NO GENERIC RESPONSES - Every recommendation must be specifically tailored to THIS student's profile**
-
-### 1. COUNTRY RECOMMENDATIONS (TOP 4-6 COUNTRIES)
-For each country, provide detailed analysis:
-
-**Match Score Calculation (0-100):**
-- Academic Fit (25%): How well do admission requirements match their qualifications?
-- Financial Viability (30%): Can they afford the total costs within their budget?
-- Language Requirements (15%): Do their English scores meet program requirements?
-- Career ROI (20%): Job market demand and salary potential in their field
-- Visa Success (10%): Approval rates for their nationality and profile
-
-**Personalized Reasoning:** Explain WHY this country suits THIS specific student based on:
-- Their academic background (qualification, GPA, institution reputation)
-- Their financial situation and stated budget range
-- Their career goals and field of study interest
-- Their nationality and visa considerations
-- Their language proficiency and test scores
-- Their work experience and employment status
-
-**University-Specific Recommendations:**
-- List 3-5 universities that specifically match their profile
-- Compare admission requirements vs. student's actual qualifications
-- Specify available programs in their exact field of interest
-- Detail scholarship opportunities they qualify for with amounts and deadlines
-
-**Detailed Cost Analysis:**
-- Tuition fees for their specific program level (Bachelor's/Master's/PhD)
-- Living costs by city with monthly breakdown
-- Work-study earning potential (legal hours + realistic hourly wages)
-- Total annual investment required
-- Net cost after scholarships and work earnings
-
-**Visa & Immigration Analysis:**
-- Success rates specific to their nationality
-- Document requirements for their profile
-- Processing timelines for their country
-- Work rights during study period
-- Post-study work visa eligibility
-- Permanent residence pathway viability
-
-**Career Prospects for Their Field:**
-- Job market demand in their specific field of study
-- Starting salary ranges for international graduates
-- Career progression opportunities
-- Industry networking and placement support
-- Return on investment calculations
-
-### 2. INTELLIGENT ALTERNATIVES
-Suggest 2-3 countries that might be better matches than their stated preferences, with detailed explanations of why these alternatives could be superior choices.
-
-### 3. SCHOLARSHIP MATCHING
-List specific scholarships they qualify for:
-- Scholarship name and provider
-- Award amount and coverage
-- Eligibility criteria vs. their profile
-- Application deadlines and procedures
-- Competitiveness assessment
-- Application strategy recommendations
-
-### 4. QUARTERLY ACTION PLAN
-Create a detailed 12-month roadmap aligned with actual university admission cycles:
-- Q1 2025: Immediate actions and early application deadlines
-- Q2 2025: Main application period and test preparations
-- Q3 2025: Enrollment confirmations and visa applications
-- Q4 2025: Next year planning and early applications
-
-Each quarter should include:
-- Specific deadlines and milestones
-- Required documents and preparations
-- Test scheduling and score improvement strategies
-- Financial planning and scholarship applications
-- Profile enhancement activities
-
-## PRACTICAL APPLICATION FOCUS (IDP LIVE METHODOLOGY)
-
-Focus on helping students actually apply:
-1. **Specific Universities**: Name actual institutions they can realistically apply to
-2. **Realistic Requirements**: What they need to meet admission criteria
-3. **Application Procedures**: Exact steps to apply with deadlines
-4. **Scholarship Applications**: Specific scholarships with eligibility match
-5. **Profile Improvement**: Actionable steps to strengthen their applications
-
-## RESPONSE FORMAT REQUIREMENTS
-
-Respond with valid JSON in the following structure:
-
-{
-  "executiveSummary": "Comprehensive 2-3 paragraph summary explaining the analysis approach, key findings, and recommended strategy for this specific student",
-  "overallMatchScore": 85,
-  "topRecommendations": [
-    {
-      "country": "Canada",
-      "countryCode": "CA",
-      "matchScore": 92,
-      "ranking": 1,
-      "personalizedReasons": [
-        "Your engineering degree from [Institution] aligns perfectly with Canada's Express Entry system",
-        "Your IELTS score of X meets requirements for all target universities",
-        "Your budget of $X covers tuition and living costs with potential for part-time work"
-      ],
-      "specificAdvantages": [
-        "Post-graduation work permit for 3 years with your Master's degree",
-        "Express Entry pathway to permanent residence within 2-3 years",
-        "Strong job market in your field with average salaries of CAD $X"
-      ],
-      "potentialChallenges": [
-        "Competitive admission for top-tier universities",
-        "Winter climate adaptation required",
-        "Higher living costs in major cities like Toronto/Vancouver"
-      ],
-      "detailedCostBreakdown": {
-        "tuitionFees": {
-          "masters": "CAD $15,000-25,000/year",
-          "bachelors": "CAD $12,000-20,000/year",
-          "specificProgram": "CAD $18,000/year for Computer Science"
-        },
-        "livingExpenses": {
-          "totalMonthly": "CAD $1,200-1,800",
-          "accommodation": "CAD $600-1,000",
-          "food": "CAD $300-500",
-          "transportation": "CAD $100-150"
-        },
-        "scholarshipPotential": "CAD $2,000-8,000/year",
-        "workStudyEarnings": "CAD $800-1,200/month (20 hours/week)"
-      },
-      "targetedUniversities": [
-        {
-          "name": "University of Toronto",
-          "ranking": "QS Ranking #21 globally",
-          "programSpecific": "Master of Engineering in Computer Science",
-          "scholarshipAvailable": "International Student Awards up to CAD $5,000",
-          "admissionRequirements": "3.3+ GPA, IELTS 6.5+, relevant work experience"
-        }
-      ],
-      "personalizedVisaGuidance": {
-        "workRights": "20 hours/week during studies, unlimited during breaks",
-        "successRate": "95% approval rate for students from your country",
-        "timelineForUser": "6-8 weeks processing with your profile",
-        "postStudyOptions": "3-year PGWP, eligible for Express Entry after 1 year"
-      },
-      "careerPathway": {
-        "industryDemand": "High demand with 15% job growth projected",
-        "salaryExpectations": "Starting CAD $65,000, experienced CAD $85,000+",
-        "careerProgression": "Team Lead (3-5 years), Senior Manager (5-8 years)",
-        "returnOnInvestment": "Break-even within 3-4 years post-graduation"
-      }
-    }
-  ],
-  "keyFactors": [
-    "Strong academic profile suitable for competitive programs",
-    "Adequate English proficiency for most target universities",
-    "Realistic budget expectations for quality education"
-  ],
-  "personalizedInsights": {
-    "strengthsAnalysis": [
-      "Your engineering background provides strong foundation",
-      "Work experience enhances admission competitiveness",
-      "English proficiency meets most program requirements"
-    ],
-    "improvementAreas": [
-      "Consider retaking IELTS for higher scores if targeting top universities",
-      "Gain additional certifications in your field to strengthen profile"
-    ],
-    "strategicRecommendations": [
-      "Apply to 6-8 universities across different ranking tiers",
-      "Start scholarship applications 6 months before program start"
-    ]
-  },
-  "nextSteps": {
-    "immediate": [
-      "Complete university research and shortlist 6-8 institutions",
-      "Prepare required documents (transcripts, SOP, LORs)"
-    ],
-    "shortTerm": [
-      "Submit university applications by February 2025 deadlines",
-      "Apply for scholarships and financial aid"
-    ],
-    "longTerm": [
-      "Secure accommodation and prepare for departure",
-      "Complete visa application process"
-    ]
-  },
-  "budgetOptimization": {
-    "costSavingStrategies": [
-      "Consider smaller cities for lower living costs",
-      "Apply for graduate assistantships"
-    ],
-    "scholarshipOpportunities": [
-      "Merit-based scholarships for academic excellence",
-      "Country-specific scholarships for your nationality"
-    ],
-    "financialPlanningTips": [
-      "Budget for first-year expenses before part-time work income",
-      "Consider education loans with favorable terms"
-    ]
-  },
-  "timeline": {
-    "preparation": "3-6 months for document preparation and applications",
-    "application": "4-6 months for university application processing",
-    "decisionMaking": "2-3 months for visa processing and departure preparation"
-  },
-  "intelligentAlternatives": [
-    {
-      "country": "Germany",
-      "whyBetter": "Lower tuition costs and strong engineering programs",
-      "keyBenefits": ["Low tuition fees", "Strong industry connections", "EU work opportunities"],
-      "matchScore": 88,
-      "costAdvantage": "50% lower total costs compared to preferred countries"
-    }
-  ],
-  "pathwayPrograms": [
-    {
-      "type": "Foundation Program",
-      "description": "Academic preparation for direct entry",
-      "duration": "6-12 months",
-      "cost": "$8,000-15,000",
-      "entryRequirements": ["High school completion", "IELTS 5.5+"],
-      "pathwayTo": "Direct entry to Bachelor's programs"
-    }
-  ]
-}
+ADDITIONAL CONTEXT:
+- User Preferences: ${JSON.stringify(requestData.userPreferences)}
+- Current Education: ${requestData.currentEducation || 'Not specified'}
+- Academic Performance: ${requestData.academicPerformance || 'Not specified'}
+- Work Experience: ${requestData.workExperience || 'Not specified'}
+- Additional Context: ${requestData.additionalContext || 'Not specified'}
 
 **CRITICAL**: Every field must contain specific, personalized information based on the student's actual profile. No generic placeholders or templated responses allowed.
 
 Respond with valid JSON matching the DestinationSuggestionResponse interface structure.`;
-}
-          ]
-        }
-      ],
-      "livingCosts": {
-        "accommodation": "Monthly cost range",
-        "food": "Monthly estimate",
-        "transport": "Monthly cost",
-        "total": "Monthly total"
-      },
-      "visaRequirements": {
-        "processingTime": "Timeline",
-        "successRate": "For their nationality",
-        "workRights": "Part-time work allowance"
-      },
-      "postStudyOpportunities": {
-        "workVisa": "Post-study work visa duration",
-        "prPathway": "Path to permanent residency",
-        "averageSalary": "Starting salary in their field"
-      }
-    }
-  ],
-  "smartAlternatives": [
-    {
-      "country": "Alternative option they didn't consider",
-      "whyBetter": "Specific advantages for their situation",
-      "keyBenefits": ["Lower IELTS requirement", "More affordable", "Better PR chances"]
-    }
-  ],
-  "majorScholarships": [
-    {
-      "name": "Scholarship name",
-      "provider": "University/Government",
-      "amount": "Value",
-      "eligibility": "Requirements they meet",
-      "competitiveness": "Their realistic chances",
-      "applicationProcess": "How to apply",
-      "deadline": "When to apply"
-    }
-  ],
-  "quarterlyActionPlan": {
-    "Q1_JanMar": {
-      "admissionCycle": "Which countries have application deadlines this quarter",
-      "keyActions": ["Specific actions for January-March admission cycle"],
-      "deadlines": ["Critical dates and university application deadlines"],
-      "preparations": ["Documents and tests to complete this quarter"]
-    },
-    "Q2_AprJun": {
-      "admissionCycle": "Application periods and intake preparations",
-      "keyActions": ["Actions for April-June period"],
-      "deadlines": ["Spring/Summer intake deadlines"],
-      "preparations": ["Visa applications and enrollment confirmations"]
-    },
-    "Q3_JulSep": {
-      "admissionCycle": "Fall intake applications and preparations",
-      "keyActions": ["July-September critical actions"],
-      "deadlines": ["Fall semester application deadlines"],
-      "preparations": ["Final preparations for September intake"]
-    },
-    "Q4_OctDec": {
-      "admissionCycle": "Next year planning and early applications",
-      "keyActions": ["October-December strategic actions"],
-      "deadlines": ["Early admission deadlines for next year"],
-      "preparations": ["Portfolio building and test preparations"]
-    }
-  },
-  "budgetPlanning": {
-    "totalCostEstimate": "Complete cost for their top choice",
-    "fundingOptions": ["Scholarships", "Education loans", "Family support"],
-    "costSavingTips": ["Practical ways to reduce expenses"]
-  }
-}
-
-**ANALYSIS MANDATES:**
-- **QUARTERLY ACTION FOCUS**: Provide specific quarterly action plans based on actual admission cycles (Q1: Jan-Mar, Q2: Apr-Jun, Q3: Jul-Sep, Q4: Oct-Dec)
-- **ADMISSION CYCLE ALIGNMENT**: Match recommendations to upcoming intake periods - Fall 2025, Spring 2026, etc.
-- **COUNTRY-SPECIFIC TIMELINES**: Each country has different application deadlines - provide accurate timing for each recommendation
-- **GENUINE INSIGHTS**: No templates - every recommendation must be specific to this student's actual profile
-- **AUTHENTIC DATA**: Use real 2025 tuition fees, living costs, and scholarship amounts from official sources
-- **ACTIONABLE GUIDANCE**: Focus on what they should actually DO - which universities to apply to, which scholarships to target
-- **HONEST ASSESSMENT**: Be realistic about their chances and challenges - don't oversell prospects
-
-Focus on quarterly planning that aligns with actual university admission cycles and helps students take concrete steps toward applications.
-`;
-}
-
-/**
- * Transform analysis to new simplified structure focused on actionable insights
- */
-function transformToNewStructure(
-  analysis: any,
-  userProfile: UserProfile
-): DestinationSuggestionResponse {
-  // Handle new simplified structure
-  if (analysis.profileAssessment && analysis.recommendedCountries) {
-    // New structure - transform to legacy format for frontend compatibility
-    const transformedAnalysis: DestinationSuggestionResponse = {
-      executiveSummary: `Profile Assessment: ${analysis.profileAssessment.academicStrength || 'Assessment completed'}. ${analysis.profileAssessment.majorChallenges || 'Challenges identified'}. ${analysis.profileAssessment.overallReadiness || 'Readiness evaluated'}.`,
-      overallMatchScore: analysis.recommendedCountries?.[0]?.matchScore || 75,
-      topRecommendations: (analysis.recommendedCountries || []).map((country: any, index: number) => ({
-        country: country.country || 'Country Name',
-        countryCode: country.country?.substring(0, 2).toUpperCase() || 'CC',
-        matchScore: country.matchScore || 75,
-        ranking: index + 1,
-        personalizedReasons: [country.whyThisCountry || 'Strategic fit identified'],
-        specificAdvantages: country.keyBenefits || [],
-        potentialChallenges: [],
-        detailedCostBreakdown: {
-          tuitionFees: {
-            bachelors: country.bestUniversities?.[0]?.tuitionFee || 'Not specified',
-            masters: country.bestUniversities?.[0]?.tuitionFee || 'Not specified',
-            phd: 'Contact university',
-            specificProgram: country.bestUniversities?.[0]?.tuitionFee || 'Not specified'
-          },
-          livingExpenses: {
-            accommodation: country.livingCosts?.accommodation || 'Not specified',
-            food: country.livingCosts?.food || 'Not specified',
-            transportation: country.livingCosts?.transport || 'Not specified',
-            personalExpenses: 'Varies',
-            healthInsurance: 'Required',
-            totalMonthly: country.livingCosts?.total || 'Not specified'
-          },
-          totalAnnualInvestment: 'Calculate based on program',
-          scholarshipPotential: country.bestUniversities?.[0]?.scholarships?.[0]?.amount || 'Available',
-          workStudyEarnings: country.visaRequirements?.workRights || 'Part-time allowed'
-        },
-        targetedUniversities: (country.bestUniversities || []).map((uni: any) => ({
-          name: uni.name || 'University Name',
-          ranking: 'Top ranked',
-          programSpecific: uni.program || 'Program available',
-          admissionRequirements: uni.entryRequirements || 'Standard requirements',
-          scholarshipAvailable: uni.scholarships?.[0]?.name || 'Merit-based available'
-        })),
-        personalizedVisaGuidance: {
-          successRate: country.visaRequirements?.successRate || 'Good',
-          specificRequirements: ['Standard visa requirements'],
-          timelineForUser: country.visaRequirements?.processingTime || '4-8 weeks',
-          workRights: country.visaRequirements?.workRights || 'Part-time allowed',
-          postStudyOptions: country.postStudyOpportunities?.workVisa || 'Available'
-        },
-        careerPathway: {
-          industryDemand: 'Strong demand',
-          salaryExpectations: country.postStudyOpportunities?.averageSalary || 'Competitive',
-          careerProgression: 'Excellent opportunities',
-          networkingOpportunities: 'Extensive',
-          returnOnInvestment: 'Positive'
-        },
-        culturalAlignment: {
-          languageSupport: 'English speaking',
-          communityPresence: 'Strong international community',
-          culturalAdaptation: 'Moderate',
-          supportSystems: 'University support available'
-        }
-      })),
-      keyFactors: ['Academic fit', 'Financial viability', 'Visa requirements'],
-      personalizedInsights: {
-        profileStrengths: [analysis.profileAssessment?.competitiveAdvantages || 'Strong academic background'],
-        specificImprovementAreas: [analysis.profileAssessment?.majorChallenges || 'Areas for improvement identified'],
-        tailoredStrategicActions: analysis.actionPlan?.immediate || ['Prepare application documents'],
-        uniqueOpportunities: ['Scholarship opportunities', 'Career advancement']
-      },
-      actionPlan: {
-        immediateActions: (analysis.quarterlyActionPlan?.Q1_JanMar?.keyActions || analysis.actionPlan?.immediate || []).map((action: string) => ({
-          action: action,
-          deadline: '30 days',
-          priority: 'High',
-          specificSteps: [action],
-          resources: ['University websites', 'Application portals']
-        })),
-        shortTermGoals: (analysis.quarterlyActionPlan?.Q2_AprJun?.keyActions || analysis.actionPlan?.shortTerm || []).map((goal: string) => ({
-          goal: goal,
-          timeline: '3-6 months',
-          milestones: [goal],
-          requirements: ['Documentation'],
-          successMetrics: ['Application submitted']
-        })),
-        longTermStrategy: (analysis.quarterlyActionPlan?.Q4_OctDec?.keyActions || analysis.actionPlan?.longTerm || []).map((strategy: string) => ({
-          objective: strategy,
-          timeframe: '6+ months',
-          keyActivities: [strategy],
-          dependencies: ['Admission results'],
-          expectedOutcomes: ['University acceptance']
-        }))
-      },
-      financialStrategy: {
-        personalizedBudgetPlan: {
-          totalInvestmentRequired: analysis.budgetPlanning?.totalCostEstimate || 'Calculate based on program',
-          fundingGapAnalysis: 'Based on available funds',
-          cashflowProjection: analysis.budgetPlanning?.fundingOptions || []
-        },
-        targetedScholarships: (analysis.majorScholarships || []).map((scholarship: any) => ({
-          scholarshipName: scholarship.name || 'Merit Scholarship',
-          provider: scholarship.provider || 'University',
-          amount: scholarship.amount || 'Varies',
-          eligibilityMatch: scholarship.eligibility || 'Good match',
-          applicationDeadline: scholarship.deadline || 'Check university website',
-          competitiveness: scholarship.competitiveness || 'Competitive',
-          applicationStrategy: [scholarship.applicationProcess || 'Apply through university portal']
-        })),
-        costOptimizationStrategies: (analysis.budgetPlanning?.costSavingTips || []).map((tip: string) => ({
-          strategy: tip,
-          potentialSavings: 'Varies',
-          implementationSteps: [tip],
-          timeline: 'Ongoing'
-        }))
-      },
-      personlizedTimeline: {
-        preparationPhase: {
-          duration: '3-6 months',
-          keyMilestones: analysis.actionPlan?.shortTerm || [],
-          criticalDeadlines: ['Application deadlines']
-        },
-        applicationPhase: {
-          duration: '2-4 months',
-          applicationWindows: ['Fall/Spring intake'],
-          documentsRequired: ['Transcripts', 'English test', 'SOP']
-        },
-        decisionPhase: {
-          duration: '2-3 months',
-          evaluationCriteria: ['University ranking', 'Cost', 'Location'],
-          finalSteps: ['Accept offer', 'Apply for visa']
-        }
-      },
-      intelligentAlternatives: (analysis.smartAlternatives || []).map((alt: any) => ({
-        country: alt.country || 'Alternative Country',
-        whyBetterForUser: alt.whyBetter || 'Better fit',
-        specificBenefits: alt.keyBenefits || [],
-        matchScore: 70,
-        costAdvantage: 'More affordable',
-        personalizedRationale: alt.whyBetter || 'Strategic advantage'
-      })),
-      pathwayPrograms: []
-    };
-
-    return transformedAnalysis;
-  }
-
-  // Legacy structure fallback with improved defaults
-  const legacyData = {
-    executiveSummary: analysis.executiveSummary || `Based on ${userProfile.firstName}'s profile, comprehensive analysis completed.`,
-    overallMatchScore: analysis.overallMatchScore || 75,
-    topRecommendations: (analysis.topRecommendations || []).map((country: any, index: number) => ({
-      country: country.country || 'Country Name',
-      countryCode: country.countryCode || 'CC',
-      matchScore: country.matchScore || 75,
-      ranking: index + 1,
-      personalizedReasons: country.personalizedReasons || country.reasons || ['Strategic fit identified'],
-      specificAdvantages: country.specificAdvantages || country.advantages || ['Quality education system'],
-      potentialChallenges: country.potentialChallenges || country.challenges || ['Visa requirements'],
-      detailedCostBreakdown: {
-        tuitionFees: {
-          bachelors: '$25,000 - $35,000 AUD/year',
-          masters: '$30,000 - $45,000 AUD/year', 
-          phd: '$28,000 - $42,000 AUD/year',
-          specificProgram: country.estimatedCosts?.tuitionRange || `$32,000 AUD/year for ${userProfile.fieldOfStudy || 'target program'}`
-        },
-        livingExpenses: {
-          accommodation: '$200-350/week',
-          food: '$100-150/week',
-          transportation: '$150/month',
-          personalExpenses: '$200/month',
-          healthInsurance: '$650/year',
-          totalMonthly: '$1,800-2,200/month'
-        },
-        totalAnnualInvestment: country.estimatedCosts?.totalAnnualCost || '$55,000 - $70,000 AUD',
-        scholarshipPotential: '$5,000 - $15,000 available for qualifying students',
-        workStudyEarnings: '$400/week (20 hours maximum)'
-      },
-      targetedUniversities: (country.topUniversities || ['Top universities']).slice(0,3).map((uni: string) => ({
-        name: uni,
-        ranking: 'QS Top 500',
-        programSpecific: `${userProfile.fieldOfStudy || 'Relevant programs'} available`,
-        admissionRequirements: 'GPA 3.0+, IELTS 6.5+',
-        scholarshipAvailable: 'Merit scholarships up to $15,000'
-      })),
-      personalizedVisaGuidance: {
-        successRate: country.visaRequirements?.difficulty || '85% approval rate for qualified applicants',
-        specificRequirements: ['Financial evidence', 'Academic transcripts', 'English proficiency'],
-        timelineForUser: country.visaRequirements?.processingTime || '6-8 weeks processing',
-        workRights: country.visaRequirements?.workPermit || '20 hours/week during studies',
-        postStudyOptions: '2-year post-study work visa with PR pathway'
-      },
-      careerPathway: {
-        industryDemand: country.careerProspects?.jobMarket || `Growing demand for ${userProfile.fieldOfStudy || 'this field'}`,
-        salaryExpectations: country.careerProspects?.averageSalary || '$55,000 - $75,000 starting salary',
-        careerProgression: country.careerProspects?.growthOpportunities || 'Strong career advancement opportunities',
-        networkingOpportunities: 'Professional associations and industry connections',
-        returnOnInvestment: 'ROI typically achieved within 5-7 years'
-      },
-      culturalAlignment: {
-        languageSupport: 'English-speaking environment with support',
-        communityPresence: 'Strong international student community',
-        culturalAdaptation: country.culturalFit?.culturalAdaptation || 'Moderate adaptation period expected',
-        supportSystems: country.culturalFit?.internationalStudentSupport || 'Comprehensive student support services'
-      }
-    })),
-    keyFactors: analysis.keyFactors || ['Academic compatibility', 'Financial feasibility', 'Career prospects'],
-    personalizedInsights: {
-      profileStrengths: analysis.personalizedInsights?.profileStrengths || analysis.personalizedInsights?.strengthsAnalysis || [`${userProfile.firstName} has strong academic credentials in ${userProfile.fieldOfStudy || 'their field'}`],
-      specificImprovementAreas: analysis.personalizedInsights?.specificImprovementAreas || analysis.personalizedInsights?.improvementAreas || ['English proficiency enhancement may be beneficial'],
-      tailoredStrategicActions: analysis.personalizedInsights?.tailoredStrategicActions || analysis.personalizedInsights?.strategicRecommendations || ['Focus on universities with strong programs in your field'],
-      uniqueOpportunities: analysis.personalizedInsights?.uniqueOpportunities || [`Leverage ${userProfile.nationality || 'your'} background for specific opportunities`]
-    },
-    actionPlan: {
-      immediateActions: (analysis.nextSteps?.immediate || ['Research target universities', 'Prepare application documents']).map((action: string) => ({
-        action,
-        deadline: 'Within 2-4 weeks',
-        priority: 'High',
-        specificSteps: ['Research requirements', 'Gather documents'],
-        resources: ['University websites', 'Official guides']
-      })),
-      shortTermGoals: (analysis.nextSteps?.shortTerm || ['Submit applications', 'Apply for scholarships']).map((goal: string) => ({
-        goal,
-        timeline: '3-6 months',
-        milestones: ['Application submitted', 'Interviews completed'],
-        requirements: ['Complete application', 'Meet deadlines'],
-        successMetrics: ['Acceptance received', 'Scholarship awarded']
-      })),
-      longTermStrategy: (analysis.nextSteps?.longTerm || ['Complete studies', 'Career development']).map((objective: string) => ({
-        objective,
-        timeframe: '2-4 years',
-        keyActivities: ['Academic excellence', 'Industry networking'],
-        dependencies: ['Visa approval', 'Financial planning'],
-        expectedOutcomes: ['Degree completion', 'Career placement']
-      }))
-    },
-    financialStrategy: {
-      personalizedBudgetPlan: {
-        totalInvestmentRequired: `$60,000 - $80,000 for ${userProfile.interestedCourse || 'target program'}`,
-        fundingGapAnalysis: `Based on ${userProfile.budgetRange || 'stated budget'}, evaluate funding options`,
-        cashflowProjection: ['Year 1: $40,000', 'Year 2: $35,000']
-      },
-      targetedScholarships: (analysis.budgetOptimization?.scholarshipOpportunities || ['Merit scholarships available']).map((scholarship: string) => ({
-        scholarshipName: scholarship,
-        provider: 'University/Government',
-        amount: '$5,000 - $15,000 annually',
-        eligibilityMatch: '75% compatibility',
-        applicationDeadline: 'March 31, 2025',
-        competitiveness: 'Medium competition',
-        applicationStrategy: ['Strong academic record', 'Compelling personal statement']
-      })),
-      costOptimizationStrategies: (analysis.budgetOptimization?.costSavingStrategies || ['Research affordable housing options']).map((strategy: string) => ({
-        strategy,
-        potentialSavings: '$5,000 - $10,000 annually',
-        implementationSteps: ['Research options', 'Apply early'],
-        timeline: '2-3 months to implement'
-      }))
-    },
-    personlizedTimeline: {
-      preparationPhase: {
-        duration: `4-6 months based on ${userProfile.firstName}'s current status`,
-        keyMilestones: ['English test completion', 'Document preparation'],
-        criticalDeadlines: ['Application deadlines', 'Scholarship deadlines']
-      },
-      applicationPhase: {
-        duration: `4-6 months for ${userProfile.preferredIntake || 'target intake'}`,
-        applicationWindows: ['October - February for Fall intake'],
-        documentsRequired: ['Academic transcripts', 'English proficiency', 'Statement of purpose']
-      },
-      decisionPhase: {
-        duration: '2-3 months for final decisions',
-        evaluationCriteria: ['University ranking', 'Financial aid', 'Location preferences'],
-        finalSteps: ['Accept offer', 'Visa application', 'Pre-departure preparation']
-      }
-    },
-    intelligentAlternatives: analysis.intelligentAlternatives?.map((alt: any) => ({
-      country: alt.country,
-      whyBetterForUser: alt.whyBetterForUser || alt.whyBetter || `Better alignment with ${userProfile.firstName}'s profile`,
-      specificBenefits: alt.specificBenefits || alt.keyBenefits || ['Cost advantages', 'Visa benefits'],
-      matchScore: alt.matchScore || 80,
-      costAdvantage: alt.costAdvantage || '$8,000 - $12,000 annual savings',
-      personalizedRationale: alt.personalizedRationale || `Specifically suited for ${userProfile.fieldOfStudy || 'your field'}`
-    })) || [],
-    pathwayPrograms: analysis.pathwayPrograms?.map((program: any) => ({
-      programType: program.programType || program.type || 'Foundation Program',
-      description: program.description || 'Pathway to degree program',
-      duration: program.duration || '1 year',
-      costDetails: program.costDetails || program.cost || '$25,000 total',
-      specificEntryRequirements: program.specificEntryRequirements || program.entryRequirements || ['High school completion'],
-      pathwayToProgram: program.pathwayToProgram || program.pathwayTo || `Direct entry to ${userProfile.interestedCourse || 'target degree'}`,
-      suitabilityForUser: program.suitabilityForUser || `Excellent fit for ${userProfile.firstName}'s academic background`
-    })) || []
-  };
-
-  return legacyData;
 }
 
 /**
@@ -961,269 +296,167 @@ function generateFallbackAnalysis(
   userProfile: UserProfile,
   requestData: DestinationSuggestionRequest
 ): DestinationSuggestionResponse {
-  const commonDestinations: CountryRecommendation[] = [
-    {
-      country: "United States",
-      countryCode: "US",
-      matchScore: 85,
-      ranking: 1,
-      personalizedReasons: ["World-renowned universities", "Diverse academic programs", "Strong research opportunities"],
-      specificAdvantages: ["Extensive scholarship options", "Post-study work opportunities", "Global recognition"],
-      potentialChallenges: ["High costs", "Complex visa process"],
-      detailedCostBreakdown: {
-        tuitionFees: {
-          bachelors: "$25,000 - $45,000 USD/year",
-          masters: "$30,000 - $60,000 USD/year",
-          phd: "$25,000 - $50,000 USD/year",
-          specificProgram: `$35,000 USD/year for ${userProfile.fieldOfStudy || 'target program'}`
-        },
-        livingExpenses: {
-          accommodation: "$600-1,200/month",
-          food: "$300-500/month",
-          transportation: "$100-200/month",
-          personalExpenses: "$200-400/month",
-          healthInsurance: "$2,000-3,000/year",
-          totalMonthly: "$1,500-2,500/month"
-        },
-        totalAnnualInvestment: "$55,000 - $90,000 USD",
-        scholarshipPotential: "$5,000 - $25,000 for qualifying students",
-        workStudyEarnings: "$300/week (20 hours maximum)"
-      },
-      targetedUniversities: [
-        {
-          name: "Harvard University",
-          ranking: "Top 1 globally",
-          programSpecific: "World-renowned across all disciplines",
-          admissionRequirements: "GPA 3.9+, SAT 1500+, TOEFL 100+",
-          scholarshipAvailable: "Need-based aid up to full tuition"
-        },
-        {
-          name: "MIT",
-          ranking: "Top 3 globally",
-          programSpecific: "Leading in STEM fields",
-          admissionRequirements: "GPA 3.8+, SAT 1520+, TOEFL 100+",
-          scholarshipAvailable: "Merit scholarships available"
-        },
-        {
-          name: "Stanford University",
-          ranking: "Top 5 globally",
-          programSpecific: "Excellence in technology and innovation",
-          admissionRequirements: "GPA 3.9+, SAT 1500+, TOEFL 100+",
-          scholarshipAvailable: "Knight-Hennessy Scholars Program"
-        }
-      ],
-      personalizedVisaGuidance: {
-        successRate: "75-85% for qualified applicants",
-        specificRequirements: ["F-1 visa application", "I-20 form", "Financial proof", "SEVIS fee"],
-        timelineForUser: "3-4 months before program start",
-        workRights: "On-campus work allowed, OPT/CPT available",
-        postStudyOptions: "OPT for 12-36 months, H-1B pathway available"
-      },
-      careerPathway: {
-        industryDemand: "High demand in tech, finance, healthcare sectors",
-        salaryExpectations: "$50,000 - $120,000 starting salary",
-        careerProgression: "Rapid advancement opportunities with top companies",
-        networkingOpportunities: "Alumni networks, industry connections",
-        returnOnInvestment: "ROI typically achieved within 3-5 years"
-      },
-      culturalAlignment: {
-        languageSupport: "English-speaking environment, ESL support available",
-        communityPresence: "Large international student communities",
-        culturalAdaptation: "Diverse and inclusive environment",
-        supportSystems: "Comprehensive international student services"
-      }
-    },
-    {
-      country: "Canada",
-      countryCode: "CA", 
-      matchScore: 82,
-      ranking: 2,
-      personalizedReasons: ["Affordable quality education", "Welcoming immigration policies", "Safe environment"],
-      specificAdvantages: ["Post-graduation work permit", "Pathway to permanent residence", "Lower costs than US"],
-      potentialChallenges: ["Cold climate in most regions", "Competitive admissions"],
-      detailedCostBreakdown: {
-        tuitionFees: {
-          bachelors: "$15,000 - $25,000 CAD",
-          masters: "$20,000 - $35,000 CAD", 
-          phd: "$7,000 - $15,000 CAD",
-          specificProgram: "$18,000 - $30,000 CAD for your field"
-        },
-        livingExpenses: {
-          accommodation: "$8,000-12,000/year",
-          food: "$3,000-4,500/year", 
-          transportation: "$1,200-2,000/year",
-          personalExpenses: "$2,000-3,000/year",
-          healthInsurance: "$600-1,200/year",
-          totalMonthly: "$1,200-1,900/month"
-        },
-        totalAnnualInvestment: "$27,000 - $55,000 CAD",
-        scholarshipPotential: "$2,000 - $15,000 for qualifying students",
-        workStudyEarnings: "$400/week (20 hours maximum)"
-      },
-      targetedUniversities: [
-        {
-          name: "University of Toronto",
-          ranking: "Top 5 in Canada",
-          programSpecific: "Strong research opportunities",
-          admissionRequirements: "GPA 3.7+, IELTS 6.5+",
-          scholarshipAvailable: "Merit scholarships up to $10,000 CAD"
-        },
-        {
-          name: "McGill University",
-          ranking: "Top 3 in Canada",
-          programSpecific: "Bilingual environment advantage",
-          admissionRequirements: "GPA 3.5+, IELTS 6.5+",
-          scholarshipAvailable: "International scholarships available"
-        },
-        {
-          name: "University of British Columbia",
-          ranking: "Top 10 globally",
-          programSpecific: "Beautiful campus, diverse programs",
-          admissionRequirements: "GPA 3.6+, IELTS 6.5+",
-          scholarshipAvailable: "UBC International Scholarships"
-        }
-      ],
-      personalizedVisaGuidance: {
-        successRate: "85-90% for qualified applicants",
-        specificRequirements: ["Study permit application", "Letter of acceptance", "Financial proof", "Medical exam if required"],
-        timelineForUser: "2-3 months before program start",
-        workRights: "20 hours/week during studies, full-time during breaks",
-        postStudyOptions: "Post-graduation work permit for 1-3 years, PR pathway available"
-      },
-      careerPathway: {
-        industryDemand: "Strong demand in natural resources, tech, healthcare",
-        salaryExpectations: "$45,000 - $75,000 CAD starting salary",
-        careerProgression: "Good advancement with immigration opportunities",
-        networkingOpportunities: "Professional associations, alumni networks",
-        returnOnInvestment: "ROI typically achieved within 4-6 years"
-      },
-      culturalAlignment: {
-        languageSupport: "English and French environments, ESL support",
-        communityPresence: "Large international student communities",
-        culturalAdaptation: "Very welcoming to international students",
-        supportSystems: "Excellent government and university support"
-      }
-    }
-  ];
-
   return {
-    executiveSummary: `Based on your profile from ${userProfile.country}, we recommend exploring primarily English-speaking destinations with strong academic reputations and career opportunities.`,
-    overallMatchScore: 78,
-    topRecommendations: commonDestinations,
-    keyFactors: ["Academic reputation", "Cost of education", "Post-study work opportunities", "Cultural compatibility", "Immigration policies"],
+    executiveSummary: "Based on your academic profile and preferences, we've identified potential study destinations that align with your goals.",
+    overallMatchScore: 75,
+    topRecommendations: [
+      {
+        country: "Canada",
+        countryCode: "CA",
+        matchScore: 85,
+        ranking: 1,
+        personalizedReasons: ["Strong education system", "Post-study work opportunities"],
+        specificAdvantages: ["Pathway to permanent residency", "Diverse academic programs"],
+        potentialChallenges: ["Winter weather conditions", "Competitive admission process"],
+        detailedCostBreakdown: {
+          tuitionFees: {
+            bachelors: "CAD 25,000-35,000 per year",
+            masters: "CAD 30,000-45,000 per year",
+            phd: "CAD 25,000-40,000 per year",
+            specificProgram: "CAD 30,000 per year"
+          },
+          livingExpenses: {
+            accommodation: "CAD 800-1,500 per month",
+            food: "CAD 300-500 per month",
+            transportation: "CAD 100-150 per month",
+            personalExpenses: "CAD 200-300 per month",
+            healthInsurance: "CAD 500-800 per year",
+            totalMonthly: "CAD 1,400-2,450 per month"
+          },
+          totalAnnualInvestment: "CAD 42,000-65,000 per year",
+          scholarshipPotential: "Merit-based scholarships available",
+          workStudyEarnings: "CAD 1,000-2,000 per month (part-time)"
+        },
+        targetedUniversities: [
+          {
+            name: "University of Toronto",
+            ranking: "Top 25 globally",
+            programSpecific: "Computer Science, Engineering",
+            admissionRequirements: "IELTS 6.5+, Strong academics",
+            scholarshipAvailable: "Merit scholarships up to CAD 10,000"
+          }
+        ],
+        personalizedVisaGuidance: {
+          successRate: "High approval rate for students",
+          specificRequirements: ["Study permit", "Financial proof", "Health insurance"],
+          timelineForUser: "3-4 months processing",
+          workRights: "20 hours/week during studies",
+          postStudyOptions: "3-year post-graduation work permit"
+        },
+        careerPathway: {
+          industryDemand: "High demand in technology sector",
+          salaryExpectations: "CAD 60,000-80,000 starting salary",
+          careerProgression: "Strong career advancement opportunities",
+          networkingOpportunities: "Active alumni networks",
+          returnOnInvestment: "Positive ROI within 3-5 years"
+        },
+        culturalAlignment: {
+          languageSupport: "English-speaking environment",
+          communityPresence: "Large international student community",
+          culturalAdaptation: "Multicultural society",
+          supportSystems: "University support services available"
+        }
+      }
+    ],
+    keyFactors: ["Academic compatibility", "Financial feasibility", "Career prospects"],
     personalizedInsights: {
-      profileStrengths: ["Strong motivation for international education", "Clear academic goals"],
-      specificImprovementAreas: ["Financial planning", "Language preparation if needed"],
-      tailoredStrategicActions: ["Focus on countries with favorable immigration policies", "Research scholarship opportunities early", "Consider cost of living alongside tuition"],
-      uniqueOpportunities: ["Pathway programs for lower English scores", "Merit scholarships for academic excellence", "Work-study opportunities"]
+      profileStrengths: ["Strong academic background", "Clear career goals"],
+      specificImprovementAreas: ["Language proficiency", "Financial planning"],
+      tailoredStrategicActions: ["Improve IELTS score", "Research scholarships"],
+      uniqueOpportunities: ["Early application advantages", "Scholarship eligibility"]
     },
     actionPlan: {
       immediateActions: [
         {
-          action: "Research specific programs in recommended countries",
-          deadline: "Within 2 weeks",
+          action: "Complete English proficiency test",
+          deadline: "Within 2 months",
           priority: "High",
-          specificSteps: ["Visit university websites", "Compare program requirements", "Note application deadlines"],
-          resources: ["University websites", "Program brochures", "Admission counselors"]
-        },
-        {
-          action: "Assess financial requirements and funding options",
-          deadline: "Within 1 week",
-          priority: "High",
-          specificSteps: ["Calculate total costs", "Evaluate funding options", "Review scholarship opportunities"],
-          resources: ["Cost calculators", "Financial aid offices", "Scholarship databases"]
+          specificSteps: ["Register for IELTS", "Prepare study materials", "Schedule test"],
+          resources: ["IELTS preparation courses", "Practice tests"]
         }
       ],
       shortTermGoals: [
         {
-          goal: "Complete language proficiency and standardized tests",
-          timeline: "1-3 months",
-          milestones: ["Register for tests", "Prepare and study", "Take tests", "Receive scores"],
-          requirements: ["Test registration", "Study materials", "Test fees"],
-          successMetrics: ["Achieve required scores", "Meet university requirements"]
-        },
-        {
-          goal: "Prepare comprehensive application packages",
-          timeline: "2-4 months",
-          milestones: ["Gather transcripts", "Write essays", "Obtain recommendations", "Complete applications"],
-          requirements: ["Official transcripts", "Letters of recommendation", "Personal statements"],
-          successMetrics: ["Complete application packages", "Submit before deadlines"]
+          goal: "Submit university applications",
+          timeline: "3-6 months",
+          milestones: ["Complete applications", "Submit documents"],
+          requirements: ["Transcripts", "Letters of recommendation"],
+          successMetrics: ["Application submission", "Acknowledgment receipt"]
         }
       ],
       longTermStrategy: [
         {
-          objective: "Secure university admissions and funding",
-          timeframe: "4-8 months",
-          keyActivities: ["Submit applications", "Follow up with universities", "Apply for scholarships"],
-          dependencies: ["Completed documents", "Test scores", "Application fees"],
-          expectedOutcomes: ["University admissions", "Scholarship awards", "Program confirmations"]
-        },
-        {
-          objective: "Complete visa process and prepare for departure",
+          objective: "Secure admission and visa",
           timeframe: "6-12 months",
-          keyActivities: ["Apply for visas", "Arrange accommodation", "Plan travel"],
-          dependencies: ["Admission letters", "Financial documentation", "Visa requirements"],
-          expectedOutcomes: ["Visa approval", "Confirmed housing", "Ready for studies"]
+          keyActivities: ["Interview preparation", "Visa application"],
+          dependencies: ["University acceptance", "Financial documentation"],
+          expectedOutcomes: ["Study permit approval", "Program enrollment"]
         }
       ]
     },
     financialStrategy: {
       personalizedBudgetPlan: {
-        totalInvestmentRequired: "$40,000 - $70,000 annually",
-        fundingGapAnalysis: "Identify gaps between available funds and total costs",
-        cashflowProjection: ["Year 1: $40,000-50,000", "Year 2: $42,000-52,000", "Total investment: $80,000-100,000"]
+        totalInvestmentRequired: "CAD 150,000-200,000 total program cost",
+        fundingGapAnalysis: "Identify scholarship and work opportunities",
+        cashflowProjection: ["Year 1: CAD 50,000", "Year 2: CAD 45,000"]
       },
       targetedScholarships: [
         {
-          scholarshipName: "Government Merit Scholarships",
-          provider: "Various government agencies",
-          amount: "$5,000 - $15,000",
-          eligibilityMatch: "Strong academic record required",
-          applicationDeadline: "Varies by country",
-          competitiveness: "High",
-          applicationStrategy: ["Research early", "Prepare strong essays", "Obtain strong recommendations"]
-        },
-        {
-          scholarshipName: "University Merit Awards",
-          provider: "Individual universities",
-          amount: "$2,000 - $10,000",
-          eligibilityMatch: "Based on academic performance",
-          applicationDeadline: "With university application",
+          scholarshipName: "International Student Merit Award",
+          provider: "University",
+          amount: "CAD 10,000",
+          eligibilityMatch: "High academic performance",
+          applicationDeadline: "March 15, 2025",
           competitiveness: "Moderate",
-          applicationStrategy: ["Apply to multiple universities", "Highlight unique achievements", "Submit early applications"]
+          applicationStrategy: ["Strong academic record", "Compelling essay"]
         }
       ],
       costOptimizationStrategies: [
         {
-          strategy: "Choose public universities over private institutions",
-          potentialSavings: "$10,000 - $20,000 annually",
-          implementationSteps: ["Research public university options", "Compare program quality", "Apply to top public institutions"],
-          timeline: "During application phase"
-        },
-        {
-          strategy: "Consider smaller cities for lower living costs",
-          potentialSavings: "$5,000 - $10,000 annually",
-          implementationSteps: ["Research cost of living", "Explore housing options", "Consider transportation costs"],
-          timeline: "Before final university selection"
+          strategy: "Part-time work during studies",
+          potentialSavings: "CAD 15,000-20,000 per year",
+          implementationSteps: ["Obtain work permit", "Find suitable employment"],
+          timeline: "After program start"
         }
       ]
     },
     personlizedTimeline: {
       preparationPhase: {
-        duration: "6-12 months for comprehensive research and preparation",
-        keyMilestones: ["Research completed", "Tests scheduled", "Documents gathered"],
-        criticalDeadlines: ["Test registration", "Application deadlines", "Scholarship deadlines"]
+        duration: "3-6 months",
+        keyMilestones: ["Test preparation", "Document collection"],
+        criticalDeadlines: ["Application deadlines", "Test dates"]
       },
       applicationPhase: {
-        duration: "4-6 months for applications and documentation",
-        applicationWindows: ["Fall intake: January-March", "Spring intake: August-October"],
-        documentsRequired: ["Transcripts", "Test scores", "Essays", "Recommendations"]
+        duration: "2-4 months",
+        applicationWindows: ["Fall intake: January-March", "Winter intake: September-November"],
+        documentsRequired: ["Transcripts", "Test scores", "Essays"]
       },
       decisionPhase: {
-        duration: "2-4 months for university selection and visa processing",
-        evaluationCriteria: ["Program quality", "Financial aid", "Location preferences"],
-        finalSteps: ["Accept offers", "Apply for visa", "Arrange accommodation"]
+        duration: "2-3 months",
+        evaluationCriteria: ["Program fit", "Financial feasibility"],
+        finalSteps: ["Accept offer", "Apply for visa"]
       }
-    }
+    },
+    intelligentAlternatives: [
+      {
+        country: "Australia",
+        whyBetterForUser: "Similar education quality with different climate",
+        specificBenefits: ["Year-round pleasant weather", "Strong job market"],
+        matchScore: 80,
+        costAdvantage: "Similar costs with better work opportunities",
+        personalizedRationale: "May suit your preferences for warmer climate"
+      }
+    ],
+    pathwayPrograms: [
+      {
+        programType: "Foundation Program",
+        description: "Academic preparation for university entry",
+        duration: "1 year",
+        costDetails: "CAD 15,000-20,000",
+        specificEntryRequirements: ["High school completion", "IELTS 5.5+"],
+        pathwayToProgram: "Direct entry to undergraduate programs",
+        suitabilityForUser: "Good option if additional preparation needed"
+      }
+    ]
   };
 }
