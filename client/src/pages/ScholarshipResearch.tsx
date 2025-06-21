@@ -383,10 +383,10 @@ export default function ScholarshipResearch() {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-gray-900">
-                Scholarships for {currentResearch.institutionName}
+                Scholarship Research Results
               </h2>
               <Badge variant="outline" className="text-sm">
-                {currentResearch.scholarshipCount} scholarships found
+                {currentResearch.scholarships.length} scholarships found
               </Badge>
             </div>
             
