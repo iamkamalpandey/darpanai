@@ -147,34 +147,39 @@ export default function StudyDestinationSuggestions() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Get user stats for quota checking
+  // Get user stats for aggregate usage tracking
   const { data: userStats } = useQuery<UserStats>({
     queryKey: ['/api/user/stats'],
     staleTime: 5 * 60 * 1000,
   });
 
-  // Get profile completion status
+  // Get profile completion status - REQUIRED for destination suggestions
   const { data: profileStatus, isLoading: profileLoading } = useQuery<{
     isComplete: boolean;
     completionPercentage: number;
     missingFields?: string[];
   }>({
     queryKey: ['/api/user/profile-completion'],
-    staleTime: 5 * 60 * 1000,
+    staleTime: 1 * 60 * 1000, // Fresher data for profile status
   });
 
-  // Get user's destination suggestions (only if profile is complete)
+  // Get user's destination suggestions (ONLY if profile is 100% complete)
   const { data: suggestions = [], isLoading } = useQuery<DestinationSuggestion[]>({
     queryKey: ['/api/destination-suggestions'],
     staleTime: 5 * 60 * 1000,
-    enabled: profileStatus?.isComplete === true,
+    enabled: profileStatus?.isComplete === true && profileStatus?.completionPercentage === 100,
   });
 
   const generateSuggestionsMutation = useMutation({
     mutationFn: async (requestData: any) => {
-      // Check profile completion before generating suggestions
-      if (!profileStatus?.isComplete) {
-        throw new Error('Please complete your profile before generating suggestions');
+      // Strict profile completion enforcement
+      if (!profileStatus?.isComplete || profileStatus?.completionPercentage !== 100) {
+        throw new Error(`Profile must be 100% complete to generate AI destination suggestions. Current completion: ${profileStatus?.completionPercentage || 0}%`);
+      }
+
+      // Check usage quota against aggregate analysis count
+      if (userStats && userStats.analysisCount >= userStats.maxAnalyses) {
+        throw new Error(`You have reached your analysis limit (${userStats.maxAnalyses}). Please upgrade your plan to continue.`);
       }
 
       const response = await fetch('/api/destination-suggestions/generate', {
@@ -233,7 +238,8 @@ export default function StudyDestinationSuggestions() {
     generateSuggestionsMutation.mutate(requestData);
   };
 
-  const canGenerate = userStats && userStats.remainingAnalyses > 0;
+  // Check if user can generate based on aggregate usage and profile completion
+  const canGenerate = userStats && userStats.remainingAnalyses > 0 && profileStatus?.isComplete && profileStatus?.completionPercentage === 100;
   const latestSuggestion = suggestions[0];
 
   const getMatchScoreColor = (score: number) => {
@@ -416,8 +422,31 @@ export default function StudyDestinationSuggestions() {
                 </div>
               </div>
 
+              {/* Usage Statistics & Quota Display */}
+              <div className="bg-white rounded-lg border border-purple-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-sm text-purple-900">Analysis Usage (Aggregate)</h4>
+                  <Badge variant="outline" className="text-purple-700 border-purple-200">
+                    {userStats ? `${userStats.remainingAnalyses} remaining` : 'Loading...'}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600">Total Analyses Used</span>
+                    <span className="font-medium">{userStats?.analysisCount || 0} / {userStats?.maxAnalyses || 0}</span>
+                  </div>
+                  <Progress 
+                    value={userStats ? (userStats.analysisCount / userStats.maxAnalyses) * 100 : 0} 
+                    className="w-full h-2" 
+                  />
+                  <p className="text-xs text-gray-500">
+                    Includes all document analyses (Visa, COE, Offer Letter) and AI destination suggestions
+                  </p>
+                </div>
+              </div>
+
               {/* Quota Warning */}
-              {!canGenerate && userStats && (
+              {!canGenerate && userStats && userStats.remainingAnalyses <= 0 && (
                 <Alert className="border-red-200 bg-red-50">
                   <AlertTriangle className="h-4 w-4 text-red-600" />
                   <AlertDescription className="text-red-800">
@@ -440,11 +469,11 @@ export default function StudyDestinationSuggestions() {
               )}
 
               {/* Generate Button */}
-              <div className="pt-2">
+              <div className="pt-2 space-y-3">
                 <Button
                   onClick={handleGenerateSuggestions}
                   disabled={!canGenerate || isGenerating}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white disabled:bg-gray-400"
                   size="lg"
                 >
                   {isGenerating ? (
@@ -459,6 +488,21 @@ export default function StudyDestinationSuggestions() {
                     </>
                   )}
                 </Button>
+                
+                {/* Button Status Info */}
+                {!canGenerate && !isGenerating && (
+                  <div className="text-center space-y-1">
+                    {!profileStatus?.isComplete ? (
+                      <p className="text-xs text-red-600">
+                        Profile must be 100% complete to generate suggestions
+                      </p>
+                    ) : userStats?.remainingAnalyses === 0 ? (
+                      <p className="text-xs text-red-600">
+                        Analysis quota exceeded. Contact support to upgrade.
+                      </p>
+                    ) : null}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -491,8 +535,9 @@ export default function StudyDestinationSuggestions() {
             
             <CardContent className="p-6">
               <Tabs defaultValue="countries" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="countries">Top Countries</TabsTrigger>
+                  <TabsTrigger value="alternatives">Smart Alternatives</TabsTrigger>
                   <TabsTrigger value="insights">Insights</TabsTrigger>
                   <TabsTrigger value="budget">Budget</TabsTrigger>
                   <TabsTrigger value="timeline">Timeline</TabsTrigger>
@@ -553,6 +598,52 @@ export default function StudyDestinationSuggestions() {
                       View Complete Analysis
                     </Button>
                   </div>
+                </TabsContent>
+
+                <TabsContent value="alternatives" className="space-y-4">
+                  {latestSuggestion.intelligentAlternatives && latestSuggestion.intelligentAlternatives.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="text-center">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">🎯 Smart Alternative Destinations</h3>
+                        <p className="text-sm text-gray-600">AI-recommended alternatives that might be better matches for your profile</p>
+                      </div>
+                      
+                      <div className="grid gap-4">
+                        {latestSuggestion.intelligentAlternatives.map((alternative, index) => (
+                          <Card key={index} className="border-2 border-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50">
+                            <CardContent className="p-4">
+                              <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                                  <Lightbulb className="h-4 w-4 text-orange-600" />
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-lg text-orange-900 mb-2">{alternative.country}</h4>
+                                  <p className="text-sm text-orange-800 mb-3">{alternative.whyBetter}</p>
+                                  
+                                  <div className="space-y-2">
+                                    <h5 className="font-medium text-orange-700">Key Benefits:</h5>
+                                    <ul className="space-y-1">
+                                      {alternative.keyBenefits.map((benefit, i) => (
+                                        <li key={i} className="flex items-start gap-2">
+                                          <CheckCircle className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+                                          <span className="text-sm text-gray-700">{benefit}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Lightbulb className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+                      <p className="text-gray-600">No intelligent alternatives identified for your current recommendations.</p>
+                    </div>
+                  )}
                 </TabsContent>
                 
                 <TabsContent value="insights" className="space-y-4">
