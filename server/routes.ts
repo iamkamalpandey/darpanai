@@ -2856,6 +2856,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin Information Reports API Routes
+  // Get all offer letter information (admin only)
+  app.get('/api/admin/offer-letter-info', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const cacheKey = 'admin:offer-letter-info';
+      const cached = getCachedData(cacheKey);
+      if (cached) {
+        return res.json(cached);
+      }
+
+      const offerLetterInfo = await storage.getAllOfferLetterInfo();
+      setCacheData(cacheKey, offerLetterInfo, 30); // Cache for 30 minutes
+      res.json(offerLetterInfo);
+    } catch (error) {
+      console.error('Error fetching admin offer letter info:', error);
+      res.status(500).json({ error: 'Failed to fetch offer letter information' });
+    }
+  });
+
+  // Get all COE information (admin only)
+  app.get('/api/admin/coe-info', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const cacheKey = 'admin:coe-info';
+      const cached = getCachedData(cacheKey);
+      if (cached) {
+        return res.json(cached);
+      }
+
+      const coeInfo = await storage.getAllCoeInfo();
+      setCacheData(cacheKey, coeInfo, 30); // Cache for 30 minutes
+      res.json(coeInfo);
+    } catch (error) {
+      console.error('Error fetching admin COE info:', error);
+      res.status(500).json({ error: 'Failed to fetch COE information' });
+    }
+  });
+
   // Analysis Feedback API Routes
   // Submit feedback for an analysis
   app.post('/api/analyses/:id/feedback', requireAuth, async (req: Request, res: Response) => {

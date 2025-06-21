@@ -14,6 +14,8 @@ import {
   type AnalysisFeedback, type InsertAnalysisFeedback,
   type OfferLetterAnalysis, type InsertOfferLetterAnalysis
 } from "@shared/schema";
+import { offerLetterInformation } from "@shared/offerLetterSchema";
+import { coeInformation } from "@shared/coeSchema";
 import { db } from "./db";
 import { eq, desc, and, isNull, isNotNull, sql, or, gt } from "drizzle-orm";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
@@ -1286,6 +1288,69 @@ export class DatabaseStorage implements IStorage {
       return analyses;
     } catch (error) {
       console.error("Error fetching all offer letter analyses with users:", error);
+      return [];
+    }
+  }
+
+  // Admin access methods for Information Reports
+  async getAllOfferLetterInfo(): Promise<any[]> {
+    try {
+      const { offerLetterInformation } = await import('@shared/offerLetterSchema');
+      const results = await db
+        .select({
+          id: offerLetterInformation.id,
+          userId: offerLetterInformation.userId,
+          fileName: offerLetterInformation.fileName,
+          fileSize: offerLetterInformation.fileSize,
+          institutionName: offerLetterInformation.institutionName,
+          programName: offerLetterInformation.programName,
+          studentName: offerLetterInformation.studentName,
+          tuitionFees: offerLetterInformation.tuitionFees,
+          totalCost: offerLetterInformation.totalCost,
+          commencementDate: offerLetterInformation.commencementDate,
+          createdAt: offerLetterInformation.createdAt,
+          username: users.username,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+        })
+        .from(offerLetterInformation)
+        .leftJoin(users, eq(offerLetterInformation.userId, users.id))
+        .orderBy(desc(offerLetterInformation.createdAt));
+      return results;
+    } catch (error) {
+      console.error("Error fetching all offer letter info:", error);
+      return [];
+    }
+  }
+
+  async getAllCoeInfo(): Promise<any[]> {
+    try {
+      const { coeInformation } = await import('@shared/coeSchema');
+      const results = await db
+        .select({
+          id: coeInformation.id,
+          userId: coeInformation.userId,
+          fileName: coeInformation.fileName,
+          fileSize: coeInformation.fileSize,
+          studentName: coeInformation.studentName,
+          institutionName: coeInformation.institutionName,
+          courseName: coeInformation.courseName,
+          tuitionFees: coeInformation.tuitionFees,
+          commencementDate: coeInformation.commencementDate,
+          enrollmentStatus: coeInformation.enrollmentStatus,
+          createdAt: coeInformation.createdAt,
+          username: users.username,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+        })
+        .from(coeInformation)
+        .leftJoin(users, eq(coeInformation.userId, users.id))
+        .orderBy(desc(coeInformation.createdAt));
+      return results;
+    } catch (error) {
+      console.error("Error fetching all COE info:", error);
       return [];
     }
   }
