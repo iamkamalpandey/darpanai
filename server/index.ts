@@ -194,6 +194,11 @@ function setupGracefulShutdown(server: any) {
     const { setupOfferLetterInfoRoutes } = await import('./offerLetterInfoRoutes');
     setupOfferLetterInfoRoutes(app);
     
+    // Register scholarship research routes
+    const { scholarshipRoutes } = await import('./scholarshipRoutes');
+    app.use('/api/scholarships', scholarshipRoutes);
+    logWithLevel('✓ Scholarship research routes registered successfully');
+    
     // Step 5: Setup error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
