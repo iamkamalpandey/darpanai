@@ -130,6 +130,20 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 21, 2025 - Complete AI Destination Suggestion Feature Removal & Coming Soon Page Implementation:**
+- ✓ Successfully removed AI destination suggestion system completely per user request to simplify platform focus
+- ✓ Dropped study_destination_suggestions database table and all related schema definitions, types, and validation schemas
+- ✓ Removed all destination suggestion storage methods, API routes, and endpoints (/api/destination-suggestions/*)
+- ✓ Cleaned up server/destinationSuggestionAnalysis.ts file and removed all Anthropic integration for destination suggestions
+- ✓ Replaced StudyDestinationSuggestions.tsx and PersonalizedDestinationAnalysis.tsx with professional coming soon pages
+- ✓ Updated DashboardLayout navigation to remove AI Destination Suggestions link
+- ✓ Created comprehensive coming soon pages with feature previews, development timelines, and alternative CTA buttons
+- ✓ Fixed all compilation errors caused by removed database references and missing types
+- ✓ Maintained platform branding while focusing on core consultation and document analysis services
+- ✓ Applied modern UI design with construction icons, timeline displays, and professional messaging for discontinued features
+- ✓ Implemented proper error handling for removed functionality while preserving existing document analysis capabilities
+- ✓ Successfully simplified platform architecture by removing complex AI destination suggestion system
+
 **June 21, 2025 - Complete Destination Analysis Page Reconstruction & Critical Data Retrieval System Fix:**
 - ✓ Completely rebuilt destination analysis page from scratch based on reference design and implementation guide
 - ✓ Fixed critical data structure issues causing "No Country Recommendations Available" by updating component to handle structured CountryRecommendation objects from API
