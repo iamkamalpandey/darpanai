@@ -133,6 +133,13 @@ function Router() {
           </Suspense>
         )} />
       </Route>
+      <Route path="/destination-suggestions/:id">
+        <UserProtectedRoute path="/destination-suggestions/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <StudyDestinationSuggestions />
+          </Suspense>
+        )} />
+      </Route>
 
       <Route path="/profile">
         <UserProtectedRoute path="/profile" component={() => (
