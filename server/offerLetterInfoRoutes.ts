@@ -200,6 +200,44 @@ export function setupOfferLetterInfoRoutes(app: any) {
     }
   });
 
+  // Delete offer letter information
+  app.delete('/api/offer-letter-information/:id', async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const user = req.user as any;
+
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid offer letter ID' });
+      }
+
+      // Check if offer letter exists and belongs to user (unless admin)
+      const existingInfo = await offerLetterInfoStorage.getOfferLetterInfoById(id);
+      if (!existingInfo) {
+        return res.status(404).json({ error: 'Offer letter information not found' });
+      }
+
+      if (user.role !== 'admin' && existingInfo.userId !== user.id) {
+        return res.status(403).json({ error: 'Not authorized to delete this offer letter' });
+      }
+
+      // Delete the offer letter information
+      await offerLetterInfoStorage.deleteOfferLetterInfo(id);
+
+      res.json({ success: true, message: 'Offer letter information deleted successfully' });
+
+    } catch (error) {
+      console.error('Error deleting offer letter information:', error);
+      res.status(500).json({ 
+        error: 'Failed to delete offer letter information',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Admin route - get all COE information for admin dashboard
   app.get('/api/admin/coe-information', async (req: Request, res: Response) => {
     try {
@@ -217,4 +255,6 @@ export function setupOfferLetterInfoRoutes(app: any) {
       res.status(500).json({ error: 'Failed to fetch COE information' });
     }
   });
+
+  console.log('✓ Separated offer letter architecture routes registered successfully');
 }

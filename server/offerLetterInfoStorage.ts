@@ -31,6 +31,12 @@ export class OfferLetterInfoStorage {
       .from(offerLetterInfo)
       .orderBy(offerLetterInfo.createdAt);
   }
+
+  async deleteOfferLetterInfo(id: number): Promise<void> {
+    await db
+      .delete(offerLetterInfo)
+      .where(eq(offerLetterInfo.id, id));
+  }
 }
 
 export const offerLetterInfoStorage = new OfferLetterInfoStorage();
