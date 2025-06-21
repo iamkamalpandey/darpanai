@@ -468,49 +468,32 @@ export type LoginUser = z.infer<typeof loginUserSchema>;
 export type Analysis = typeof analyses.$inferSelect;
 export type InsertAnalysis = z.infer<typeof insertAnalysisSchema>;
 
+// Offer Letter Document types and schemas - Raw document storage
+export type OfferLetterDocument = typeof offerLetterDocuments.$inferSelect;
+export type InsertOfferLetterDocument = typeof offerLetterDocuments.$inferInsert;
+
+export const insertOfferLetterDocumentSchema = createInsertSchema(offerLetterDocuments).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Offer Letter Analysis types and schemas - Separate analysis processing  
 export type OfferLetterAnalysis = typeof offerLetterAnalyses.$inferSelect;
 export type InsertOfferLetterAnalysis = typeof offerLetterAnalyses.$inferInsert;
 
-// Offer Letter Analysis schemas
 export const insertOfferLetterAnalysisSchema = createInsertSchema(offerLetterAnalyses).omit({
   id: true,
   createdAt: true,
 });
 
 export const offerLetterAnalysisResponseSchema = z.object({
-  universityInfo: z.object({
-    name: z.string(),
-    location: z.string(),
-    program: z.string(),
-    tuition: z.string(),
-    duration: z.string(),
-  }),
-  profileAnalysis: z.object({
-    academicStanding: z.string(),
-    gpa: z.string(),
-    financialStatus: z.string(),
-    relevantSkills: z.array(z.string()),
-    strengths: z.array(z.string()),
-    weaknesses: z.array(z.string()),
-  }),
-  scholarshipOpportunities: z.array(z.object({
-    name: z.string(),
-    amount: z.string(),
-    criteria: z.array(z.string()),
-    applicationDeadline: z.string(),
-    applicationProcess: z.string(),
-    sourceUrl: z.string(),
-  })),
-  costSavingStrategies: z.array(z.object({
-    strategy: z.string(),
-    description: z.string(),
-    potentialSavings: z.string(),
-    implementationSteps: z.array(z.string()),
-    timeline: z.string(),
-    difficulty: z.enum(['Low', 'Medium', 'High']),
-  })),
-  recommendations: z.array(z.string()),
-  nextSteps: z.array(z.string()),
+  id: z.number(),
+  documentId: z.number(),
+  fileName: z.string(),
+  fileSize: z.number(),
+  analysisDate: z.date(),
+  analysisResults: z.any(),
+  createdAt: z.date()
 });
 
 export type Appointment = typeof appointments.$inferSelect;
