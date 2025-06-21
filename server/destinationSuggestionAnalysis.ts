@@ -390,10 +390,31 @@ Based on proven IDP Live app methodology, provide practical recommendations focu
       "deadline": "When to apply"
     }
   ],
-  "actionPlan": {
-    "immediate": ["Specific actions for next 30 days"],
-    "shortTerm": ["Key milestones for 3-6 months"],
-    "longTerm": ["Strategic goals for 6+ months"]
+  "quarterlyActionPlan": {
+    "Q1_JanMar": {
+      "admissionCycle": "Which countries have application deadlines this quarter",
+      "keyActions": ["Specific actions for January-March admission cycle"],
+      "deadlines": ["Critical dates and university application deadlines"],
+      "preparations": ["Documents and tests to complete this quarter"]
+    },
+    "Q2_AprJun": {
+      "admissionCycle": "Application periods and intake preparations",
+      "keyActions": ["Actions for April-June period"],
+      "deadlines": ["Spring/Summer intake deadlines"],
+      "preparations": ["Visa applications and enrollment confirmations"]
+    },
+    "Q3_JulSep": {
+      "admissionCycle": "Fall intake applications and preparations",
+      "keyActions": ["July-September critical actions"],
+      "deadlines": ["Fall semester application deadlines"],
+      "preparations": ["Final preparations for September intake"]
+    },
+    "Q4_OctDec": {
+      "admissionCycle": "Next year planning and early applications",
+      "keyActions": ["October-December strategic actions"],
+      "deadlines": ["Early admission deadlines for next year"],
+      "preparations": ["Portfolio building and test preparations"]
+    }
   },
   "budgetPlanning": {
     "totalCostEstimate": "Complete cost for their top choice",
@@ -403,13 +424,15 @@ Based on proven IDP Live app methodology, provide practical recommendations focu
 }
 
 **ANALYSIS MANDATES:**
-- **GENUINE INSIGHTS**: No templates or generic advice - every recommendation must be specific to this student's actual profile
+- **QUARTERLY ACTION FOCUS**: Provide specific quarterly action plans based on actual admission cycles (Q1: Jan-Mar, Q2: Apr-Jun, Q3: Jul-Sep, Q4: Oct-Dec)
+- **ADMISSION CYCLE ALIGNMENT**: Match recommendations to upcoming intake periods - Fall 2025, Spring 2026, etc.
+- **COUNTRY-SPECIFIC TIMELINES**: Each country has different application deadlines - provide accurate timing for each recommendation
+- **GENUINE INSIGHTS**: No templates - every recommendation must be specific to this student's actual profile
 - **AUTHENTIC DATA**: Use real 2025 tuition fees, living costs, and scholarship amounts from official sources
 - **ACTIONABLE GUIDANCE**: Focus on what they should actually DO - which universities to apply to, which scholarships to target
 - **HONEST ASSESSMENT**: Be realistic about their chances and challenges - don't oversell prospects
-- **PRACTICAL FOCUS**: Help them move from analysis to actual applications
 
-Focus on helping this student take concrete steps toward university applications.
+Focus on quarterly planning that aligns with actual university admission cycles and helps students take concrete steps toward applications.
 `;
 }
 
@@ -489,21 +512,21 @@ function transformToNewStructure(
         uniqueOpportunities: ['Scholarship opportunities', 'Career advancement']
       },
       actionPlan: {
-        immediateActions: (analysis.actionPlan?.immediate || []).map((action: string) => ({
+        immediateActions: (analysis.quarterlyActionPlan?.Q1_JanMar?.keyActions || analysis.actionPlan?.immediate || []).map((action: string) => ({
           action: action,
           deadline: '30 days',
           priority: 'High',
           specificSteps: [action],
           resources: ['University websites', 'Application portals']
         })),
-        shortTermGoals: (analysis.actionPlan?.shortTerm || []).map((goal: string) => ({
+        shortTermGoals: (analysis.quarterlyActionPlan?.Q2_AprJun?.keyActions || analysis.actionPlan?.shortTerm || []).map((goal: string) => ({
           goal: goal,
           timeline: '3-6 months',
           milestones: [goal],
           requirements: ['Documentation'],
           successMetrics: ['Application submitted']
         })),
-        longTermStrategy: (analysis.actionPlan?.longTerm || []).map((strategy: string) => ({
+        longTermStrategy: (analysis.quarterlyActionPlan?.Q4_OctDec?.keyActions || analysis.actionPlan?.longTerm || []).map((strategy: string) => ({
           objective: strategy,
           timeframe: '6+ months',
           keyActivities: [strategy],

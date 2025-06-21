@@ -244,12 +244,13 @@ export default function DestinationSuggestionDetail() {
 
         {/* Main Content */}
         <Tabs defaultValue="countries" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="countries">Top Countries</TabsTrigger>
             <TabsTrigger value="insights">Insights</TabsTrigger>
             <TabsTrigger value="budget">Budget</TabsTrigger>
             <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="next-steps">Next Steps</TabsTrigger>
+            <TabsTrigger value="alternatives">Alternatives</TabsTrigger>
           </TabsList>
 
           {/* Top Countries Tab */}
@@ -506,12 +507,165 @@ export default function DestinationSuggestionDetail() {
             </div>
           </TabsContent>
 
-          {/* Next Steps Tab */}
+          {/* Next Steps Tab - Quarterly Action Plan */}
           <TabsContent value="next-steps" className="space-y-4">
             <div className="grid gap-4">
+              {/* Quarterly Action Plan Header */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-red-700">Immediate Actions</CardTitle>
+                  <CardTitle className="flex items-center">
+                    <Calendar className="w-5 h-5 mr-2" />
+                    Quarterly Action Plan - Admission Cycles
+                  </CardTitle>
+                  <CardDescription>
+                    Strategic planning aligned with university application deadlines and intake periods
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              {/* Q1: January - March */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-blue-700">Q1: January - March 2025</CardTitle>
+                  <CardDescription>Winter Application Cycle & Spring Intake Preparations</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="font-semibold text-blue-700 mb-2">Key Admission Cycles</h4>
+                      <ul className="text-sm text-gray-700 space-y-1">
+                        <li>• USA: Spring 2025 deadlines (Jan 15), Fall 2025 early applications</li>
+                        <li>• Canada: Winter 2025 intake applications, Fall 2025 preparations</li>
+                        <li>• UK: January UCAS deadline, Spring intake applications</li>
+                        <li>• Australia: Semester 1 2025 late applications</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="font-semibold">Critical Actions</h4>
+                      {(suggestion.recommendations?.actionPlan?.immediateActions || []).slice(0, 3).map((step: any, i: number) => (
+                        <div key={i} className="flex items-start bg-gray-50 p-3 rounded">
+                          <span className="text-red-500 mr-2 font-bold">•</span>
+                          <div>
+                            <span className="text-gray-700">{typeof step === 'string' ? step : step.action}</span>
+                            <div className="text-xs text-gray-500 mt-1">Priority: High | Deadline: Within 30 days</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Q2: April - June */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-green-700">Q2: April - June 2025</CardTitle>
+                  <CardDescription>Summer Intake Applications & Fall Preparations</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h4 className="font-semibold text-green-700 mb-2">Key Admission Cycles</h4>
+                      <ul className="text-sm text-gray-700 space-y-1">
+                        <li>• USA: Summer session applications, Fall 2025 regular deadlines</li>
+                        <li>• Canada: Summer 2025 intake, Fall 2025 main application period</li>
+                        <li>• UK: Clearing preparation, September intake final applications</li>
+                        <li>• Australia: Semester 2 2025 applications, scholarship deadlines</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="font-semibold">Strategic Goals</h4>
+                      {(suggestion.recommendations?.actionPlan?.shortTermGoals || []).slice(0, 3).map((goal: any, i: number) => (
+                        <div key={i} className="flex items-start bg-gray-50 p-3 rounded">
+                          <span className="text-green-500 mr-2 font-bold">•</span>
+                          <div>
+                            <span className="text-gray-700">{typeof goal === 'string' ? goal : goal.goal}</span>
+                            <div className="text-xs text-gray-500 mt-1">Timeline: 3-6 months | Focus: Applications</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Q3: July - September */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-orange-700">Q3: July - September 2025</CardTitle>
+                  <CardDescription>Fall Intake Final Preparations & Decision Making</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="bg-orange-50 p-4 rounded-lg">
+                      <h4 className="font-semibold text-orange-700 mb-2">Key Admission Cycles</h4>
+                      <ul className="text-sm text-gray-700 space-y-1">
+                        <li>• USA: Fall 2025 enrollment confirmations, visa applications</li>
+                        <li>• Canada: Fall 2025 final preparations, accommodation booking</li>
+                        <li>• UK: September 2025 enrollment, Clearing process</li>
+                        <li>• Australia: Semester 2 enrollment, Spring 2026 early applications</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="font-semibold">Final Preparations</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-start bg-gray-50 p-3 rounded">
+                          <span className="text-orange-500 mr-2 font-bold">•</span>
+                          <div>
+                            <span className="text-gray-700">Visa application submission and interview preparation</span>
+                            <div className="text-xs text-gray-500 mt-1">Timeline: July-August | Critical for Fall intake</div>
+                          </div>
+                        </div>
+                        <div className="flex items-start bg-gray-50 p-3 rounded">
+                          <span className="text-orange-500 mr-2 font-bold">•</span>
+                          <div>
+                            <span className="text-gray-700">Accommodation booking and pre-departure planning</span>
+                            <div className="text-xs text-gray-500 mt-1">Timeline: August-September | Essential arrangements</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Q4: October - December */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-purple-700">Q4: October - December 2025</CardTitle>
+                  <CardDescription>Next Year Planning & Early Applications</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <h4 className="font-semibold text-purple-700 mb-2">Key Admission Cycles</h4>
+                      <ul className="text-sm text-gray-700 space-y-1">
+                        <li>• USA: Spring 2026 applications, Fall 2026 early admission deadlines</li>
+                        <li>• Canada: Winter 2026 applications, Fall 2026 early preparations</li>
+                        <li>• UK: UCAS applications for 2026 entry, early decision deadlines</li>
+                        <li>• Australia: 2026 academic year applications open</li>
+                      </ul>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="font-semibold">Long-term Strategy</h4>
+                      {(suggestion.recommendations?.actionPlan?.longTermStrategy || []).slice(0, 3).map((strategy: any, i: number) => (
+                        <div key={i} className="flex items-start bg-gray-50 p-3 rounded">
+                          <span className="text-purple-500 mr-2 font-bold">•</span>
+                          <div>
+                            <span className="text-gray-700">{typeof strategy === 'string' ? strategy : strategy.objective}</span>
+                            <div className="text-xs text-gray-500 mt-1">Timeline: 6+ months | Focus: Strategic planning</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Legacy Immediate Actions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-red-700">Current Priority Actions</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
