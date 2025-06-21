@@ -1930,7 +1930,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user!;
       const suggestions = await storage.getUserStudyDestinationSuggestions(user.id);
       
-      return res.status(200).json(suggestions);
+      // Transform data for frontend compatibility
+      const transformedSuggestions = suggestions.map(suggestion => ({
+        id: suggestion.id,
+        userId: suggestion.userId,
+        suggestedCountries: suggestion.topRecommendations || [],
+        matchScore: suggestion.overallMatchScore,
+        reasoning: suggestion.executiveSummary,
+        keyFactors: suggestion.keyFactors || [],
+        intelligentAlternatives: suggestion.intelligentAlternatives || [],
+        pathwayPrograms: suggestion.pathwayPrograms || [],
+        disclaimer: suggestion.disclaimer,
+        recommendations: {
+          personalizedInsights: suggestion.personalizedInsights || {
+            strengthsAnalysis: [],
+            improvementAreas: [],
+            strategicRecommendations: []
+          },
+          nextSteps: suggestion.nextSteps || {
+            immediate: [],
+            shortTerm: [],
+            longTerm: []
+          },
+          budgetOptimization: suggestion.budgetOptimization || {
+            costSavingStrategies: [],
+            scholarshipOpportunities: [],
+            financialPlanningTips: []
+          },
+          timeline: suggestion.timeline || {
+            preparation: '',
+            application: '',
+            decisionMaking: ''
+          }
+        },
+        createdAt: suggestion.createdAt
+      }));
+      
+      return res.status(200).json(transformedSuggestions);
     } catch (error) {
       console.error('Error fetching destination suggestions:', error);
       return res.status(500).json({ error: 'Failed to fetch destination suggestions' });

@@ -545,7 +545,7 @@ export default function StudyDestinationSuggestions() {
                 
                 <TabsContent value="countries" className="space-y-4">
                   <div className="grid gap-4">
-                    {latestSuggestion.suggestedCountries.slice(0, 3).map((country, index) => (
+                    {(latestSuggestion.suggestedCountries || []).slice(0, 3).map((country, index) => (
                       <Card key={index} className="border border-gray-200">
                         <CardContent className="p-4">
                           <div className="flex justify-between items-start mb-3">
@@ -654,7 +654,7 @@ export default function StudyDestinationSuggestions() {
                         Your Strengths
                       </h3>
                       <ul className="space-y-2">
-                        {latestSuggestion.recommendations.personalizedInsights.strengthsAnalysis.map((strength, index) => (
+                        {(latestSuggestion.recommendations?.personalizedInsights?.strengthsAnalysis || []).map((strength, index) => (
                           <li key={index} className="flex items-start gap-2">
                             <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-gray-700">{strength}</span>
@@ -668,7 +668,7 @@ export default function StudyDestinationSuggestions() {
                         Strategic Recommendations
                       </h3>
                       <ul className="space-y-2">
-                        {latestSuggestion.recommendations.personalizedInsights.strategicRecommendations.map((rec, index) => (
+                        {(latestSuggestion.recommendations?.personalizedInsights?.strategicRecommendations || []).map((rec, index) => (
                           <li key={index} className="flex items-start gap-2">
                             <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-gray-700">{rec}</span>
@@ -687,7 +687,7 @@ export default function StudyDestinationSuggestions() {
                         Cost-Saving Strategies
                       </h3>
                       <ul className="space-y-2">
-                        {latestSuggestion.recommendations.budgetOptimization.costSavingStrategies.map((strategy, index) => (
+                        {(latestSuggestion.recommendations?.budgetOptimization?.costSavingStrategies || []).map((strategy, index) => (
                           <li key={index} className="flex items-start gap-2">
                             <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-gray-700">{strategy}</span>
