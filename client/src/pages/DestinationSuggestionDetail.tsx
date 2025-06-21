@@ -7,14 +7,44 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CustomCTA } from "@/components/CustomCTA";
 
+interface CountryRecommendation {
+  country: string;
+  countryCode?: string;
+  matchScore: number;
+  ranking: number;
+  reasons: string[];
+  advantages?: string[];
+  challenges?: string[];
+  estimatedCosts?: {
+    tuitionRange: string;
+    livingCosts: string;
+    totalAnnualCost: string;
+  };
+  topUniversities?: string[];
+  visaRequirements?: {
+    difficulty: string;
+    processingTime: string;
+    workPermit: string;
+  };
+  careerProspects?: {
+    jobMarket: string;
+    averageSalary: string;
+    growthOpportunities: string;
+  };
+}
+
 interface DestinationSuggestion {
   id: number;
   userId: number;
-  suggestedCountries: string[];
+  suggestedCountries: CountryRecommendation[];
+  matchScore: number;
+  reasoning: string;
+  keyFactors: string[];
+  intelligentAlternatives?: any[];
+  pathwayPrograms?: any[];
+  disclaimer?: string;
   recommendations: any;
-  analysisData: any;
   createdAt: string;
-  updatedAt: string;
 }
 
 export default function DestinationSuggestionDetail() {
@@ -56,11 +86,8 @@ export default function DestinationSuggestionDetail() {
 
   // Calculate overall match percentage
   const getOverallMatch = () => {
-    if (suggestion.analysisData?.overallMatch) {
-      return `${suggestion.analysisData.overallMatch}%`;
-    }
-    if (suggestion.analysisData?.compatibilityScore) {
-      return `${suggestion.analysisData.compatibilityScore}%`;
+    if (suggestion.matchScore) {
+      return `${suggestion.matchScore}%`;
     }
     return "N/A%";
   };
@@ -142,12 +169,7 @@ export default function DestinationSuggestionDetail() {
           <TabsContent value="countries" className="space-y-6">
             <div className="grid gap-6">
               {suggestion.suggestedCountries && suggestion.suggestedCountries.length > 0 ? (
-                suggestion.suggestedCountries.map((countryName: string, index: number) => {
-                  // Find detailed country data if available
-                  const countryDetails = suggestion.analysisData?.countries?.find((c: any) => 
-                    c.name === countryName || c.country === countryName
-                  ) || {};
-
+                suggestion.suggestedCountries.map((country: CountryRecommendation, index: number) => {
                   return (
                     <Card key={index} className="overflow-hidden">
                       <CardHeader>
@@ -155,9 +177,9 @@ export default function DestinationSuggestionDetail() {
                           <div className="flex items-center space-x-3">
                             <MapPin className="w-6 h-6 text-blue-600" />
                             <div>
-                              <CardTitle className="text-xl">{countryName}</CardTitle>
+                              <CardTitle className="text-xl">{country.country}</CardTitle>
                               <CardDescription>
-                                Match Score: {countryDetails.matchScore || '85'}%
+                                Match Score: {country.matchScore}%
                               </CardDescription>
                             </div>
                           </div>
