@@ -443,11 +443,15 @@ REQUIRED JSON STRUCTURE:
   "disclaimer": "⚠️ This recommendation is AI-generated and intended for informational purposes only. It is not a substitute for professional advice. We strongly recommend consulting a licensed education counsellor or migration agent before making any final decisions related to study abroad, visa applications, or financial planning. Darpan Intelligence and its developers are not liable for decisions made solely based on this AI analysis."
 }
 
-**CRITICAL REQUIREMENTS:**
-- Provide detailed, actionable analysis with specific scores (1-10 scale) and recommendations
-- Consider pathway programs, foundation courses, and alternative entry routes for students with lower IELTS scores
-- Include country-specific insights for visa success rates based on user's nationality
-- Focus on ROI and career prospects in the recommended destinations with salary ranges
+**CRITICAL ANALYSIS MANDATES:**
+- **DEPTH REQUIREMENT**: Each recommendation must be 300-500 words with comprehensive strategic analysis, specific data points, and actionable insights
+- **AUTHENTIC DATA**: Use only current 2025 tuition fees, living costs, and salary data from official sources - no placeholder information
+- **PERSONALIZATION**: Every recommendation must be specifically tailored to this student's profile with detailed reasoning for fit
+- **STRATEGIC INTELLIGENCE**: Include advanced insights on scholarship targeting, application timing, visa optimization, and career trajectory planning
+- **IMPLEMENTATION FOCUS**: Provide specific universities to target, exact scholarship programs to apply for, and step-by-step preparation strategies
+- **PATHWAY OPTIMIZATION**: Detailed analysis of foundation programs, TAFE pathways, 2+2 transfers with specific entry requirements and progression routes
+- **FINANCIAL INTELLIGENCE**: ROI calculations, earning potential projections, cost optimization strategies with specific dollar amounts and timelines
+- **RISK MITIGATION**: Identify potential challenges with detailed mitigation strategies and backup plans
 - Suggest intelligent alternatives that user may not have considered but are better matches
 - Be specific with financial figures, university names, timelines, and requirements
 - Use the weighted scoring matrix for objective destination ranking
