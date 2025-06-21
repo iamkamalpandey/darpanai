@@ -279,93 +279,48 @@ function buildDestinationAnalysisPrompt(
   const englishScore = englishTest ? `${englishTest.testType}: ${englishTest.overallScore}` : 'Not provided';
   
   return `
-# PERSONALIZED STUDY DESTINATION ANALYSIS SYSTEM
+# STRATEGIC STUDY DESTINATION ANALYSIS
 
-## ANALYSIS MANDATE
-Provide highly personalized, detailed recommendations with AUTHENTIC cost estimates, specific university targets, and actionable insights tailored to THIS SPECIFIC STUDENT'S profile. Every recommendation must be justified based on the individual's academic background, financial situation, and career goals.
+You are an elite international education strategist. Analyze this student's complete profile and provide genuinely insightful, personalized destination recommendations. Focus on meaningful analysis over templates.
 
-## COST ANALYSIS REQUIREMENTS
-- Provide CURRENT 2025 tuition fees for specific programs at target universities
-- Include detailed living cost breakdowns by city/region
-- Calculate total investment including hidden costs (visa, health insurance, travel)
-- Identify specific scholarship opportunities this student qualifies for
-- Project potential earnings from part-time work (country-specific rules)
+## STUDENT PROFILE ANALYSIS
 
-## GLOBAL STUDY DESTINATIONS ANALYSIS
-Australia | USA | Canada | UK | Denmark | New Zealand | Netherlands | UAE | Germany | Finland | Ireland | Singapore | Sweden | France
+**${userProfile.firstName} ${userProfile.lastName}** - ${userProfile.nationality || 'Nationality not specified'} National
+- Age: ${userProfile.dateOfBirth ? Math.floor((Date.now() - new Date(userProfile.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 'Not provided'} years
+- Academic: ${userProfile.highestQualification || 'Not specified'} from ${userProfile.highestInstitution || 'Not specified'}
+- Performance: ${userProfile.highestGpa || 'Not specified'} GPA, graduated ${userProfile.graduationYear || 'Not specified'}
+- Gap: ${userProfile.graduationYear ? new Date().getFullYear() - userProfile.graduationYear : 'Not calculated'} years since graduation
+- Field Interest: ${userProfile.fieldOfStudy || 'Not specified'}
+- Budget: ${userProfile.budgetRange || 'Not specified'}
+- English: ${englishScore}
+- Employment: ${userProfile.currentEmploymentStatus || 'Not specified'}
 
-## STUDENT PROFILE FOR PERSONALIZED ANALYSIS
+## ANALYSIS REQUIREMENTS
 
-**PERSONAL DETAILS:**
-- Full Name: ${userProfile.firstName} ${userProfile.lastName}
-- Age: ${userProfile.dateOfBirth ? Math.floor((Date.now() - new Date(userProfile.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 'Not provided'} years old
-- Gender: ${userProfile.gender || 'Not specified'}
-- Nationality: ${userProfile.nationality || 'Not specified'}
-- Current Residence: ${userProfile.country || 'Not specified'}
+1. **Profile Assessment**: Analyze strengths, weaknesses, and opportunities based on this specific profile
+2. **Strategic Country Matching**: Recommend 3-4 countries with genuine reasoning based on profile fit
+3. **Scholarship Intelligence**: Identify major scholarships this student actually qualifies for
+4. **Realistic Pathways**: Analyze entry routes including foundation programs if needed
+5. **Financial Reality**: Authentic cost analysis and funding strategies
 
-**ACADEMIC CREDENTIALS:**
-- Current Qualification: ${userProfile.highestQualification || 'Not specified'}
-- Institution: ${userProfile.highestInstitution || 'Not specified'}
-- Graduation: ${userProfile.graduationYear || 'Not specified'}
-- Academic Performance: ${userProfile.highestGpa || 'Not specified'}
-- Study Gap: ${userProfile.graduationYear ? new Date().getFullYear() - userProfile.graduationYear : 'Not calculated'} years
+## CRITICAL ANALYSIS POINTS
 
-**Study Preferences:**
-- Interested Course: ${userProfile.interestedCourse || 'Not specified'}
-- Field of Study: ${userProfile.fieldOfStudy || 'Not specified'}
-- Preferred Intake: ${userProfile.preferredIntake || 'Not specified'}
-- Budget Range: ${userProfile.budgetRange || 'Not specified'}
-- Preferred Countries: ${userProfile.preferredCountries?.join(', ') || 'Not specified'}
+- Why does each country make sense for THIS student specifically?
+- What are the realistic admission prospects given their profile?
+- Which scholarships are they genuinely competitive for?
+- What pathway (direct entry, foundation, etc.) is most suitable?
+- What are the genuine challenges and how to address them?
 
-**Financial Profile:**
-- Funding Source: ${requestData.userPreferences?.fundingSource || 'Not specified'}
-- Estimated Budget: ${requestData.userPreferences?.estimatedBudget || 'Not specified'}
-- Savings Amount: ${requestData.userPreferences?.savingsAmount || 'Not specified'}
+## ANALYSIS APPROACH
 
-**Employment Status:**
-- Current Status: ${userProfile.currentEmploymentStatus || 'Not specified'}
-- Work Experience: ${requestData.workExperience || 'Not provided'}
+**Profile Strengths Analysis**: What makes this student competitive?
+**Profile Challenges**: What obstacles need addressing?
+**Strategic Fit Assessment**: Which countries align with their profile reality?
+**Scholarship Qualification**: Which major scholarships match their background?
+**Pathway Strategy**: Direct entry vs foundation/bridging programs
+**Financial Viability**: Realistic cost assessment and funding options
 
-**Language Proficiency:**
-- English Test: ${englishScore}
-- Test Date: ${englishTest?.testDate || 'Not provided'}
-
-**Additional Context:**
-- Current Education: ${requestData.currentEducation || 'Not provided'}
-- Academic Performance: ${requestData.academicPerformance || 'Not provided'}
-- Additional Notes: ${requestData.additionalContext || 'Not provided'}
-
-## 📘 ADVANCED ANALYSIS REQUIREMENTS:
-1. **DEEP PERSONALIZATION**: Provide highly detailed, profile-specific recommendations with comprehensive reasoning for each suggestion
-2. **COMPREHENSIVE COST ANALYSIS**: Include 2025 authentic costs, hidden expenses, scholarship opportunities, and ROI calculations
-3. **PATHWAY INTELLIGENCE**: Analyze foundation programs, TAFE options, 2+2 programs, and bridge courses with specific entry requirements
-4. **STRATEGIC CAREER MAPPING**: Detailed industry analysis, salary projections, networking opportunities, and long-term career trajectory
-5. **VISA SUCCESS OPTIMIZATION**: Country-specific success rates for user's nationality, documentation strategies, and timeline optimization
-6. **INTELLIGENT ALTERNATIVES**: AI-powered alternative destinations with detailed cost-benefit analysis and strategic advantages
-7. **ACTIONABLE IMPLEMENTATION**: Step-by-step timelines, university targeting strategies, and preparation roadmaps
-
-## 📘 Response Format (JSON):
-
-### 🔹 Executive Summary
-Provide top 3 destinations with score, key fit reason, and confidence level.
-
-### 🔹 COMPREHENSIVE DESTINATION ANALYSIS
-For each destination, provide EXTENSIVE detail including:
-- **Strategic Match Score**: X/10 with detailed weighted analysis (Academic 25%, Financial 30%, Language 15%, Career 20%, Visa 10%)
-- **Multiple Entry Pathways**: Direct admission, Foundation programs, TAFE pathways, 2+2 transfers, English bridge programs with specific requirements
-- **Deep Academic Assessment**: Detailed program alignment, university rankings, research opportunities, faculty expertise, industry connections
-- **Comprehensive Financial Intelligence**: 2025 tuition by program level, living costs by city, hidden expenses, scholarship matrices, work-study earnings potential
-- **Language Strategy Optimization**: IELTS alternatives, university waivers, English support programs, pathway progression
-- **Visa Success Intelligence**: Nationality-specific approval rates, documentation strategies, processing timelines, work permit details
-- **Advanced Career Trajectory**: Industry demand forecasts, salary progression maps, networking ecosystems, alumni outcomes, PR pathways
-- **Cultural & Lifestyle Integration**: Community support, climate adaptation, safety metrics, quality of life indicators
-- **Strategic Risk Assessment**: Potential challenges with mitigation strategies and improvement recommendations
-
-### 🔹 AI Intelligent Alternatives
-Show 2-3 countries user didn't select but are better matches based on:
-- Current profile compatibility
-- Cost-effectiveness or lower IELTS requirements
-- Easier visa and PR potential
+## REQUIRED ANALYSIS STRUCTURE
 
 REQUIRED JSON STRUCTURE:
 {
