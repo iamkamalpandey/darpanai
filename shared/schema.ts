@@ -306,14 +306,33 @@ export const userUpdateViews = pgTable("user_update_views", {
   actionTaken: boolean("action_taken").default(false).notNull(),
 });
 
-// Offer Letter Analysis
-// Comprehensive Offer Letter Analysis with Multi-AI Integration
-export const offerLetterAnalyses = pgTable("offer_letter_analyses", {
+// Offer Letter Documents - Raw document storage
+export const offerLetterDocuments = pgTable("offer_letter_documents", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
   fileName: text("file_name").notNull(),
   fileSize: integer("file_size").notNull(),
   documentText: text("document_text").notNull(),
+  
+  // Basic document metadata extracted directly from text
+  institutionName: text("institution_name"),
+  studentName: text("student_name"),
+  programName: text("program_name"),
+  tuitionAmount: text("tuition_amount"),
+  startDate: text("start_date"),
+  
+  // Document processing status
+  extractionStatus: text("extraction_status").default("pending"), // pending, completed, failed
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  isPublic: boolean("is_public").default(false),
+});
+
+// Offer Letter Analysis Results - Separate table for AI analysis
+export const offerLetterAnalyses = pgTable("offer_letter_analyses", {
+  id: serial("id").primaryKey(),
+  documentId: integer("document_id").references(() => offerLetterDocuments.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
   
   // Multi-AI Analysis Results
   analysisResults: jsonb("analysis_results"), // Combined final analysis
@@ -332,6 +351,9 @@ export const offerLetterAnalyses = pgTable("offer_letter_analyses", {
   totalAiCost: text("total_ai_cost"), // Combined AI processing cost
   processingTime: integer("processing_time"), // Analysis duration in seconds
   scrapingTime: integer("scraping_time"), // Web scraping duration in seconds
+  
+  // Analysis status
+  analysisStatus: text("analysis_status").default("pending"), // pending, processing, completed, failed
   
   // Metadata
   isPublic: boolean("is_public").default(false),
@@ -837,3 +859,5 @@ export type InsertDocumentCategory = z.infer<typeof insertDocumentCategorySchema
 
 export type DocumentType = typeof documentTypes.$inferSelect;
 export type InsertDocumentType = z.infer<typeof insertDocumentTypeSchema>;
+
+
