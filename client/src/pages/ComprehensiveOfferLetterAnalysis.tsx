@@ -363,7 +363,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
 
   // Fetch existing analyses
   const { data: analyses = [], isLoading: analysesLoading } = useQuery<AnalysisListItem[]>({
-    queryKey: ['/api/offer-letter-analyses'],
+    queryKey: ['/api/offer-letter-analyses-new'],
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
@@ -385,7 +385,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
         });
       }, 1000);
 
-      const response = await fetch('/api/offer-letter-analysis', {
+      const response = await fetch('/api/offer-letter-analysis-new', {
         method: 'POST',
         body: formData,
       });
@@ -530,9 +530,9 @@ export default function ComprehensiveOfferLetterAnalysis() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-xl">{analysis.institutionDetails?.name || 'Institution Name Not Available'}</CardTitle>
+                <CardTitle className="text-xl">Offer Letter Analysis Results</CardTitle>
                 <CardDescription className="text-lg font-medium text-gray-700">
-                  {analysis.courseDetails?.program?.name || 'Program Name Not Available'}
+                  Analysis ID: {selectedAnalysis.id}
                 </CardDescription>
               </div>
               <div className="flex gap-4 text-sm text-gray-600">
@@ -872,7 +872,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
                   </div>
                   <div>
                     <Label className="font-medium">Processing Time</Label>
-                    <p className="text-gray-700">{data.processingTime}ms</p>
+                    <p className="text-gray-700">{selectedAnalysis.processingTime}ms</p>
                   </div>
                 </div>
               </CardContent>

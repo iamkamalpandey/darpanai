@@ -131,11 +131,13 @@ function Router() {
         )} />
       </Route>
       <Route path="/offer-letter-analysis/:id">
-        <UserProtectedRoute path="/offer-letter-analysis/:id" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <OfferLetterAnalysisDisplay />
-          </Suspense>
-        )} />
+        {(params) => (
+          <UserProtectedRoute path="/offer-letter-analysis/:id" component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <OfferLetterAnalysisDisplay params={params} />
+            </Suspense>
+          )} />
+        )}
       </Route>
       <Route path="/destination-suggestions">
         <UserProtectedRoute path="/destination-suggestions" component={() => (
