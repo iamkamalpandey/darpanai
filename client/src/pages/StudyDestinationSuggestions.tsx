@@ -37,26 +37,59 @@ interface CountryRecommendation {
   countryCode: string;
   matchScore: number;
   ranking: number;
-  reasons: string[];
-  advantages: string[];
-  challenges: string[];
-  estimatedCosts: {
+  entryOptions?: string[];
+  academicFit?: {
+    entryRequirements: string;
+    programAlignment: string;
+    intakeDeadlines: string;
+  };
+  financialBreakdown?: {
+    tuitionRange: string;
+    livingCosts: string;
+    totalAnnualCost: string;
+    scholarships: string;
+    budgetFit: string;
+  };
+  languageFit?: {
+    ieltsRequired: string;
+    waivers: string;
+    bridgingPrograms: string;
+  };
+  visaLandscape?: {
+    successRate: string;
+    processingTime: string;
+    documentationComplexity: string;
+    workPermit: string;
+  };
+  careerIntelligence?: {
+    jobMarket: string;
+    averageSalary: string;
+    prPotential: string;
+    postStudyWork: string;
+  };
+  uniqueAdvantages?: string[];
+  risksAndRecommendations?: string[];
+  // Legacy fields for backward compatibility
+  reasons?: string[];
+  advantages?: string[];
+  challenges?: string[];
+  estimatedCosts?: {
     tuitionRange: string;
     livingCosts: string;
     totalAnnualCost: string;
   };
-  topUniversities: string[];
-  visaRequirements: {
+  topUniversities?: string[];
+  visaRequirements?: {
     difficulty: string;
     processingTime: string;
     workPermit: string;
   };
-  careerProspects: {
+  careerProspects?: {
     jobMarket: string;
     averageSalary: string;
     growthOpportunities: string;
   };
-  culturalFit: {
+  culturalFit?: {
     languageBarrier: string;
     culturalAdaptation: string;
     internationalStudentSupport: string;
@@ -70,6 +103,18 @@ interface DestinationSuggestion {
   matchScore: number;
   reasoning: string;
   keyFactors: string[];
+  intelligentAlternatives?: Array<{
+    country: string;
+    whyBetter: string;
+    keyBenefits: string[];
+  }>;
+  actionPlan?: {
+    applyTo: string[];
+    required: string[];
+    timeline: string[];
+    optional: string[];
+  };
+  disclaimer?: string;
   recommendations: {
     personalizedInsights: {
       strengthsAnalysis: string[];

@@ -169,80 +169,170 @@ function buildDestinationAnalysisPrompt(
   userProfile: UserProfile,
   requestData: DestinationSuggestionRequest
 ): string {
+  // Get user's English proficiency details
+  const englishTest = userProfile.englishProficiencyTests?.[0];
+  const englishScore = englishTest ? `${englishTest.testType}: ${englishTest.overallScore}` : 'Not provided';
+  
   return `
-Analyze the following student profile and provide comprehensive personalized study destination recommendations in JSON format.
+# 🧠 AI Study Destination Recommendation System (Global Edition)
 
-STUDENT PROFILE:
+## 🎓 System Role
+You are an expert AI-powered study-abroad advisor with access to updated insights on:
+- Global education systems and pathway programs
+- Regional cost variations and scholarship opportunities
+- Visa, PR, and post-study migration policies
+- IELTS and English entry alternatives
+- Career market alignment by country and field
+
+## 🌍 Supported Study Destinations
+🇦🇺 Australia | 🇺🇸 USA | 🇨🇦 Canada | 🇬🇧 UK | 🇩🇰 Denmark | 🇳🇿 New Zealand | 🇳🇱 Netherlands | 🇦🇪 UAE | 🇩🇪 Germany | 🇫🇮 Finland | 🇮🇪 Ireland | 🇸🇬 Singapore | 🇸🇪 Sweden | 🇫🇷 France
+
+## 🔍 AI Recommendation Framework
+
+### Score Destinations (1-10 scale):
+| Metric | Weight | Description |
+|--------|--------|-------------|
+| Academic Compatibility | 25% | Degree recognition, entry route (foundation/TAFE), gap tolerance |
+| Financial Feasibility | 30% | Tuition + living, funding vs budget, scholarships, ROI |
+| Language Alignment | 15% | IELTS requirement vs score, English pathways |
+| Career Prospects & PR | 20% | Work rights, industry match, migration pathways |
+| Visa Probability | 10% | Approval trends, processing time, risk for user profile |
+
+## 👤 Student Profile Analysis:
+
+**Personal Information:**
 - Name: ${userProfile.firstName} ${userProfile.lastName}
+- Date of Birth: ${userProfile.dateOfBirth || 'Not provided'}
+- Gender: ${userProfile.gender || 'Not specified'}
+- Nationality: ${userProfile.nationality || 'Not specified'}
 - Current Country: ${userProfile.country || 'Not specified'}
+
+**Academic Background:**
 - Highest Qualification: ${userProfile.highestQualification || 'Not specified'}
+- Institution: ${userProfile.highestInstitution || 'Not specified'}
+- Graduation Year: ${userProfile.graduationYear || 'Not specified'}
+- GPA/Grade: ${userProfile.highestGpa || 'Not specified'}
+- Academic Gap: ${userProfile.graduationYear ? new Date().getFullYear() - userProfile.graduationYear : 'Not calculated'} years
+
+**Study Preferences:**
+- Interested Course: ${userProfile.interestedCourse || 'Not specified'}
 - Field of Study: ${userProfile.fieldOfStudy || 'Not specified'}
+- Preferred Intake: ${userProfile.preferredIntake || 'Not specified'}
 - Budget Range: ${userProfile.budgetRange || 'Not specified'}
 - Preferred Countries: ${userProfile.preferredCountries?.join(', ') || 'Not specified'}
-- Employment Status: ${userProfile.currentEmploymentStatus || 'Not specified'}
-- English Tests: ${userProfile.englishProficiencyTests?.length || 0} tests recorded
 
-ADDITIONAL CONTEXT:
+**Financial Profile:**
+- Funding Source: ${requestData.userPreferences?.fundingSource || 'Not specified'}
+- Estimated Budget: ${requestData.userPreferences?.estimatedBudget || 'Not specified'}
+- Savings Amount: ${requestData.userPreferences?.savingsAmount || 'Not specified'}
+
+**Employment Status:**
+- Current Status: ${userProfile.currentEmploymentStatus || 'Not specified'}
+- Work Experience: ${requestData.workExperience || 'Not provided'}
+
+**Language Proficiency:**
+- English Test: ${englishScore}
+- Test Date: ${englishTest?.testDate || 'Not provided'}
+
+**Additional Context:**
 - Current Education: ${requestData.currentEducation || 'Not provided'}
 - Academic Performance: ${requestData.academicPerformance || 'Not provided'}
-- Work Experience: ${requestData.workExperience || 'Not provided'}
-- Additional Context: ${requestData.additionalContext || 'Not provided'}
+- Additional Notes: ${requestData.additionalContext || 'Not provided'}
 
-ANALYSIS REQUIREMENTS:
-1. Analyze student profile comprehensively considering all factors
-2. Recommend TOP 5 study destinations with detailed analysis
-3. Provide match scores (0-100) for each destination
-4. Include cost analysis, visa requirements, career prospects
-5. Consider cultural fit and practical considerations
-6. Provide personalized insights and strategic recommendations
-7. Include timeline and budget optimization strategies
+## 📘 Analysis Requirements:
+1. Provide personalized, well-scored, data-driven study destination suggestions
+2. Consider pathway programs, foundation courses, and TAFE options
+3. Analyze financial feasibility including scholarships and ROI
+4. Evaluate IELTS requirements and alternative English pathways
+5. Assess career prospects and post-study migration opportunities
+6. Include intelligent alternatives beyond user's preferred countries
+7. Provide actionable recommendations with specific timelines
 
-RESPONSE FORMAT (JSON):
+## 📘 Response Format (JSON):
+
+### 🔹 Executive Summary
+Provide top 3 destinations with score, key fit reason, and confidence level.
+
+### 🔹 Detailed Country Analysis
+For each destination, include:
+- **Score**: X/10 (using weighted scoring matrix)
+- **Entry Options**: Direct, Foundation, TAFE, 2+2, Pathway programs
+- **Academic Fit**: Entry requirements, program alignment, intake deadlines
+- **Financial Breakdown**: Tuition, living cost, scholarships, total vs budget
+- **Language Fit**: IELTS needed? Waivers? Bridging accepted?
+- **Visa Landscape**: Success rates for user nationality, documentation complexity
+- **Career Intelligence**: Post-study work, job market in user field, PR potential
+- **Unique Advantages**: Diaspora, safety, cost of living, climate, culture
+- **Risks & Recommendations**: Specific advice for improvement
+
+### 🔹 AI Intelligent Alternatives
+Show 2-3 countries user didn't select but are better matches based on:
+- Current profile compatibility
+- Cost-effectiveness or lower IELTS requirements
+- Easier visa and PR potential
+
+REQUIRED JSON STRUCTURE:
 {
-  "executiveSummary": "Comprehensive 2-3 sentence summary of key recommendations",
+  "executiveSummary": "Comprehensive analysis of top 3 destinations with scores and key fit reasons",
   "overallMatchScore": 85,
   "topRecommendations": [
     {
       "country": "Country Name",
       "countryCode": "CC",
-      "matchScore": 92,
+      "matchScore": 8.5,
       "ranking": 1,
-      "reasons": ["Primary reason 1", "Primary reason 2", "Primary reason 3"],
-      "advantages": ["Advantage 1", "Advantage 2", "Advantage 3"],
-      "challenges": ["Challenge 1", "Challenge 2"],
-      "estimatedCosts": {
+      "entryOptions": ["Direct Entry", "Foundation Program", "Pathway"],
+      "academicFit": {
+        "entryRequirements": "Specific requirements",
+        "programAlignment": "How well programs match",
+        "intakeDeadlines": "Key dates"
+      },
+      "financialBreakdown": {
         "tuitionRange": "$20,000 - $40,000 per year",
         "livingCosts": "$15,000 - $25,000 per year",
-        "totalAnnualCost": "$35,000 - $65,000"
+        "totalAnnualCost": "$35,000 - $65,000",
+        "scholarships": "Available opportunities",
+        "budgetFit": "How it matches user budget"
       },
-      "topUniversities": ["University 1", "University 2", "University 3"],
-      "visaRequirements": {
-        "difficulty": "Moderate",
+      "languageFit": {
+        "ieltsRequired": "6.5 overall",
+        "waivers": "Available pathway options",
+        "bridgingPrograms": "English support available"
+      },
+      "visaLandscape": {
+        "successRate": "85% for this nationality",
         "processingTime": "4-8 weeks",
-        "workPermit": "20 hours/week during studies, full-time during breaks"
+        "documentationComplexity": "Moderate",
+        "workPermit": "20 hours/week during studies"
       },
-      "careerProspects": {
-        "jobMarket": "Strong demand in tech and healthcare",
+      "careerIntelligence": {
+        "jobMarket": "Industry-specific demand",
         "averageSalary": "$60,000 - $80,000",
-        "growthOpportunities": "Excellent with multinational companies"
+        "prPotential": "Pathway opportunities",
+        "postStudyWork": "Work rights details"
       },
-      "culturalFit": {
-        "languageBarrier": "Low - English speaking",
-        "culturalAdaptation": "Moderate - multicultural society",
-        "internationalStudentSupport": "Excellent support services"
-      }
+      "uniqueAdvantages": ["Advantage 1", "Advantage 2", "Advantage 3"],
+      "risksAndRecommendations": ["Risk/Recommendation 1", "Risk/Recommendation 2"]
     }
   ],
-  "keyFactors": ["Factor 1", "Factor 2", "Factor 3", "Factor 4", "Factor 5"],
+  "intelligentAlternatives": [
+    {
+      "country": "Alternative Country",
+      "whyBetter": "Specific reasons why this is a better match",
+      "keyBenefits": ["Benefit 1", "Benefit 2", "Benefit 3"]
+    }
+  ],
+  "keyFactors": ["Critical factor 1", "Critical factor 2", "Critical factor 3"],
   "personalizedInsights": {
-    "strengthsAnalysis": ["Strength 1", "Strength 2", "Strength 3"],
-    "improvementAreas": ["Area 1", "Area 2"],
-    "strategicRecommendations": ["Recommendation 1", "Recommendation 2", "Recommendation 3"]
+    "strengthsAnalysis": ["Current strength 1", "Current strength 2"],
+    "improvementAreas": ["Area to improve 1", "Area to improve 2"],
+    "strategicRecommendations": ["Strategic advice 1", "Strategic advice 2"]
   },
-  "nextSteps": {
-    "immediate": ["Step 1", "Step 2", "Step 3"],
-    "shortTerm": ["Step 1", "Step 2", "Step 3"],
-    "longTerm": ["Step 1", "Step 2"]
+  "actionPlan": {
+    "applyTo": ["Recommended universities/colleges"],
+    "required": ["IELTS prep", "Documents needed", "Budget planning"],
+    "timeline": ["Intake deadlines", "Application windows"],
+    "optional": ["Additional recommendations"]
   },
   "budgetOptimization": {
     "costSavingStrategies": ["Strategy 1", "Strategy 2", "Strategy 3"],
@@ -253,10 +343,21 @@ RESPONSE FORMAT (JSON):
     "preparation": "6-12 months for research and preparation",
     "application": "3-6 months for applications and documentation",
     "decisionMaking": "2-3 months for decision and enrollment"
-  }
+  },
+  "disclaimer": "⚠️ This recommendation is AI-generated and intended for informational purposes only. It is not a substitute for professional advice. We strongly recommend consulting a licensed education counsellor or migration agent before making any final decisions related to study abroad, visa applications, or financial planning. Darpan Intelligence and its developers are not liable for decisions made solely based on this AI analysis."
 }
 
-Provide detailed, accurate, and actionable recommendations based on current global education trends, visa policies, and market conditions.
+**CRITICAL REQUIREMENTS:**
+- Provide detailed, actionable analysis with specific scores (1-10 scale) and recommendations
+- Consider pathway programs, foundation courses, and alternative entry routes for students with lower IELTS scores
+- Include country-specific insights for visa success rates based on user's nationality
+- Focus on ROI and career prospects in the recommended destinations with salary ranges
+- Suggest intelligent alternatives that user may not have considered but are better matches
+- Be specific with financial figures, university names, timelines, and requirements
+- Use the weighted scoring matrix for objective destination ranking
+- Provide comprehensive analysis covering all aspects: academic, financial, language, career, visa
+
+Analyze thoroughly and provide comprehensive, personalized recommendations based on current global education trends, visa policies, and market conditions.
 `;
 }
 
