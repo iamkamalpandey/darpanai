@@ -88,7 +88,9 @@ export default function AdminCoeDetails() {
       if (!response.ok) {
         throw new Error('Failed to fetch COE details');
       }
-      return response.json();
+      const data = await response.json();
+      console.log('Admin COE Data:', data);
+      return data;
     },
     enabled: !!id,
   });

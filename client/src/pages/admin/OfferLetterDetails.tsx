@@ -142,7 +142,9 @@ export default function AdminOfferLetterDetails() {
       if (!response.ok) {
         throw new Error('Failed to fetch offer letter details');
       }
-      return response.json();
+      const data = await response.json();
+      console.log('Admin Offer Letter Data:', data);
+      return data;
     },
     enabled: !!id,
   });
@@ -172,6 +174,8 @@ export default function AdminOfferLetterDetails() {
     );
   }
 
+  console.log('Debug - ID:', id, 'Data:', offerLetter, 'Loading:', isLoading, 'Error:', error);
+
   if (error || !offerLetter) {
     return (
       <AdminLayout>
@@ -179,7 +183,10 @@ export default function AdminOfferLetterDetails() {
           <Card>
             <CardContent className="p-6 text-center">
               <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Offer letter not found or access denied</p>
+              <p className="text-muted-foreground">
+                {error ? `Error: ${error.message}` : 'Offer letter not found or access denied'}
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">ID: {id}</p>
               <Button asChild className="mt-4">
                 <Link href="/admin/information-reports">Back to Information Reports</Link>
               </Button>
