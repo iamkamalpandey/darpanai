@@ -7,6 +7,7 @@ import { extractTextFromDocument } from "./fileProcessing";
 import { analyzeRejectionLetter } from "./openai";
 import { analyzeEnrollmentDocument } from "./enrollmentAnalysis";
 import { analyzeOfferLetterComprehensive } from "./offerLetterAnalysis_comprehensive";
+import { setupOfferLetterRoutes } from "./offerLetterRoutes";
 import { extractCoreStudentInfo, type CoreStudentInfo } from "./documentParser";
 import { analysisResponseSchema, professionalApplicationSchema, insertDocumentTemplateSchema, insertEnrollmentAnalysisSchema, insertDocumentCategorySchema, insertDocumentTypeSchema, insertAnalysisFeedbackSchema } from "@shared/schema";
 import { z } from 'zod';

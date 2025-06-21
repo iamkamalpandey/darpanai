@@ -1243,10 +1243,9 @@ export class DatabaseStorage implements IStorage {
       const analyses = await db
         .select({
           id: offerLetterAnalyses.id,
-          filename: offerLetterAnalyses.filename,
-          universityName: offerLetterAnalyses.universityName,
-          program: offerLetterAnalyses.program,
-          tuition: offerLetterAnalyses.tuition,
+          fileName: offerLetterAnalyses.fileName,
+          analysisResults: offerLetterAnalyses.analysisResults,
+          gptAnalysisResults: offerLetterAnalyses.gptAnalysisResults,
           tokensUsed: offerLetterAnalyses.tokensUsed,
           processingTime: offerLetterAnalyses.processingTime,
           createdAt: offerLetterAnalyses.createdAt,

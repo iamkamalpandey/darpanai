@@ -569,9 +569,14 @@ Return your analysis as structured JSON.`
   });
 
   try {
-    return JSON.parse(response.content[0].text);
+    const content = response.content[0];
+    if (content.type === 'text') {
+      return JSON.parse(content.text);
+    }
+    return { strategicAnalysis: 'Unable to parse Claude response' };
   } catch {
-    return { strategicAnalysis: response.content[0].text };
+    const content = response.content[0];
+    return { strategicAnalysis: content.type === 'text' ? content.text : 'Analysis completed' };
   }
 }
 
