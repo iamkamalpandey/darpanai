@@ -1956,6 +1956,89 @@ export default function AdminUsers() {
 
                       <Separator />
 
+                      {/* Language Proficiency */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Language Proficiency</h3>
+                        {selectedUser.englishProficiencyTests && selectedUser.englishProficiencyTests.length > 0 ? (
+                          <div className="space-y-3">
+                            {selectedUser.englishProficiencyTests.map((test: any, index: number) => {
+                              // Calculate test validity
+                              const testDate = new Date(test.testDate);
+                              const validityYears = test.testType === 'GRE' || test.testType === 'GMAT' || test.testType === 'SAT' || test.testType === 'ACT' ? 5 : 2;
+                              const validUntil = new Date(testDate);
+                              validUntil.setFullYear(validUntil.getFullYear() + validityYears);
+                              const isValid = validUntil > new Date();
+
+                              return (
+                                <div key={index} className="border rounded-lg p-3 bg-gray-50">
+                                  <div className="flex justify-between items-start mb-2">
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="outline" className="font-medium">
+                                        {test.testType}
+                                      </Badge>
+                                      <Badge variant={isValid ? "default" : "destructive"} className="text-xs">
+                                        {isValid ? "Valid" : "Expired"}
+                                      </Badge>
+                                    </div>
+                                    <span className="text-lg font-bold text-blue-600">
+                                      {test.overallScore}
+                                    </span>
+                                  </div>
+                                  
+                                  <div className="grid grid-cols-2 gap-2 text-sm">
+                                    <div>
+                                      <Label className="text-xs font-medium text-gray-500">Test Date</Label>
+                                      <p className="text-sm">{format(new Date(test.testDate), "MMM dd, yyyy")}</p>
+                                    </div>
+                                    <div>
+                                      <Label className="text-xs font-medium text-gray-500">Valid Until</Label>
+                                      <p className="text-sm">{format(validUntil, "MMM dd, yyyy")}</p>
+                                    </div>
+                                  </div>
+
+                                  {/* Individual Scores */}
+                                  {(test.reading || test.writing || test.speaking || test.listening) && (
+                                    <div className="mt-2 pt-2 border-t">
+                                      <Label className="text-xs font-medium text-gray-500 mb-1 block">Individual Scores</Label>
+                                      <div className="grid grid-cols-4 gap-2 text-xs">
+                                        {test.reading && (
+                                          <div className="text-center">
+                                            <span className="block font-medium">{test.reading}</span>
+                                            <span className="text-gray-500">Reading</span>
+                                          </div>
+                                        )}
+                                        {test.writing && (
+                                          <div className="text-center">
+                                            <span className="block font-medium">{test.writing}</span>
+                                            <span className="text-gray-500">Writing</span>
+                                          </div>
+                                        )}
+                                        {test.speaking && (
+                                          <div className="text-center">
+                                            <span className="block font-medium">{test.speaking}</span>
+                                            <span className="text-gray-500">Speaking</span>
+                                          </div>
+                                        )}
+                                        {test.listening && (
+                                          <div className="text-center">
+                                            <span className="block font-medium">{test.listening}</span>
+                                            <span className="text-gray-500">Listening</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-600">No English proficiency tests recorded</p>
+                        )}
+                      </div>
+
+                      <Separator />
+
                       {/* Legacy Study Information */}
                       <div>
                         <h3 className="text-lg font-semibold mb-3">Study Information</h3>
@@ -2041,41 +2124,39 @@ export default function AdminUsers() {
                           const analysisIcon = isEnrollmentAnalysis ? '🎓' : '✈️';
                           
                           // Extract key information for display
-                          interface EnrollmentKeyInfo {
-                            institution?: string;
-                            program?: string;
-                            student?: string;
-                            tuition?: string;
-                            startDate?: string;
-                          }
+                          let enrollmentInfo = {
+                            institution: '',
+                            program: '',
+                            student: '',
+                            tuition: '',
+                            startDate: ''
+                          };
 
-                          interface VisaKeyInfo {
-                            visaType?: string;
-                            country?: string;
-                            applicationStatus?: string;
-                            severity?: string;
-                            rejectionCount?: number;
-                          }
-
-                          let keyInfo: EnrollmentKeyInfo | VisaKeyInfo = {};
+                          let visaInfo = {
+                            visaType: '',
+                            country: '',
+                            applicationStatus: '',
+                            severity: '',
+                            rejectionCount: 0
+                          };
                           
                           if (analysis.analysisResults) {
                             if (isEnrollmentAnalysis) {
-                              keyInfo = {
-                                institution: analysis.analysisResults.institutionName || analysis.analysisResults.institution,
-                                program: analysis.analysisResults.programName || analysis.analysisResults.program,
-                                student: analysis.analysisResults.studentName || analysis.analysisResults.studentDetails?.name,
-                                tuition: analysis.analysisResults.tuitionFee || analysis.analysisResults.financialDetails?.tuitionFee,
-                                startDate: analysis.analysisResults.startDate || analysis.analysisResults.courseDetails?.startDate
-                              } as EnrollmentKeyInfo;
+                              enrollmentInfo = {
+                                institution: analysis.analysisResults.institutionName || analysis.analysisResults.institution || '',
+                                program: analysis.analysisResults.programName || analysis.analysisResults.program || '',
+                                student: analysis.analysisResults.studentName || analysis.analysisResults.studentDetails?.name || '',
+                                tuition: analysis.analysisResults.tuitionFee || analysis.analysisResults.financialDetails?.tuitionFee || '',
+                                startDate: analysis.analysisResults.startDate || analysis.analysisResults.courseDetails?.startDate || ''
+                              };
                             } else {
-                              keyInfo = {
-                                visaType: analysis.analysisResults.visaType,
-                                country: analysis.analysisResults.country || analysis.analysisResults.destinationCountry,
-                                applicationStatus: analysis.analysisResults.applicationStatus,
-                                severity: analysis.analysisResults.severity,
+                              visaInfo = {
+                                visaType: analysis.analysisResults.visaType || '',
+                                country: analysis.analysisResults.country || analysis.analysisResults.destinationCountry || '',
+                                applicationStatus: analysis.analysisResults.applicationStatus || '',
+                                severity: analysis.analysisResults.severity || '',
                                 rejectionCount: analysis.analysisResults.rejectionReasons?.length || 0
-                              } as VisaKeyInfo;
+                              };
                             }
                           }
 
@@ -2107,70 +2188,70 @@ export default function AdminUsers() {
                                   {/* Analysis Type Specific Information */}
                                   {isEnrollmentAnalysis ? (
                                     <div className="grid grid-cols-2 gap-3 text-sm">
-                                      {(keyInfo as EnrollmentKeyInfo).institution && (
+                                      {enrollmentInfo.institution && (
                                         <div>
                                           <Label className="text-xs font-medium text-gray-500">Institution</Label>
-                                          <p className="text-sm font-medium">{(keyInfo as EnrollmentKeyInfo).institution}</p>
+                                          <p className="text-sm font-medium">{enrollmentInfo.institution}</p>
                                         </div>
                                       )}
-                                      {(keyInfo as EnrollmentKeyInfo).program && (
+                                      {enrollmentInfo.program && (
                                         <div>
                                           <Label className="text-xs font-medium text-gray-500">Program</Label>
-                                          <p className="text-sm font-medium">{(keyInfo as EnrollmentKeyInfo).program}</p>
+                                          <p className="text-sm font-medium">{enrollmentInfo.program}</p>
                                         </div>
                                       )}
-                                      {(keyInfo as EnrollmentKeyInfo).student && (
+                                      {enrollmentInfo.student && (
                                         <div>
                                           <Label className="text-xs font-medium text-gray-500">Student</Label>
-                                          <p className="text-sm font-medium">{(keyInfo as EnrollmentKeyInfo).student}</p>
+                                          <p className="text-sm font-medium">{enrollmentInfo.student}</p>
                                         </div>
                                       )}
-                                      {(keyInfo as EnrollmentKeyInfo).tuition && (
+                                      {enrollmentInfo.tuition && (
                                         <div>
                                           <Label className="text-xs font-medium text-gray-500">Tuition Fee</Label>
-                                          <p className="text-sm font-medium text-blue-600">{(keyInfo as EnrollmentKeyInfo).tuition}</p>
+                                          <p className="text-sm font-medium text-blue-600">{enrollmentInfo.tuition}</p>
                                         </div>
                                       )}
-                                      {(keyInfo as EnrollmentKeyInfo).startDate && (
+                                      {enrollmentInfo.startDate && (
                                         <div>
                                           <Label className="text-xs font-medium text-gray-500">Start Date</Label>
-                                          <p className="text-sm font-medium">{(keyInfo as EnrollmentKeyInfo).startDate}</p>
+                                          <p className="text-sm font-medium">{enrollmentInfo.startDate}</p>
                                         </div>
                                       )}
                                     </div>
                                   ) : (
                                     <div className="grid grid-cols-2 gap-3 text-sm">
-                                      {(keyInfo as VisaKeyInfo).visaType && (
+                                      {visaInfo.visaType && (
                                         <div>
                                           <Label className="text-xs font-medium text-gray-500">Visa Type</Label>
-                                          <p className="text-sm font-medium">{(keyInfo as VisaKeyInfo).visaType}</p>
+                                          <p className="text-sm font-medium">{visaInfo.visaType}</p>
                                         </div>
                                       )}
-                                      {(keyInfo as VisaKeyInfo).country && (
+                                      {visaInfo.country && (
                                         <div>
                                           <Label className="text-xs font-medium text-gray-500">Country</Label>
-                                          <p className="text-sm font-medium">{(keyInfo as VisaKeyInfo).country}</p>
+                                          <p className="text-sm font-medium">{visaInfo.country}</p>
                                         </div>
                                       )}
-                                      {(keyInfo as VisaKeyInfo).applicationStatus && (
+                                      {visaInfo.applicationStatus && (
                                         <div>
                                           <Label className="text-xs font-medium text-gray-500">Status</Label>
-                                          <Badge variant={(keyInfo as VisaKeyInfo).applicationStatus === 'rejected' ? 'destructive' : 'default'} className="text-xs">
-                                            {(keyInfo as VisaKeyInfo).applicationStatus}
+                                          <Badge variant={visaInfo.applicationStatus === 'rejected' ? 'destructive' : 'default'} className="text-xs">
+                                            {visaInfo.applicationStatus}
                                           </Badge>
                                         </div>
                                       )}
-                                      {(keyInfo as VisaKeyInfo).rejectionCount && (keyInfo as VisaKeyInfo).rejectionCount! > 0 && (
+                                      {visaInfo.rejectionCount > 0 && (
                                         <div>
                                           <Label className="text-xs font-medium text-gray-500">Issues Found</Label>
-                                          <p className="text-sm font-medium text-red-600">{(keyInfo as VisaKeyInfo).rejectionCount} issues</p>
+                                          <p className="text-sm font-medium text-red-600">{visaInfo.rejectionCount} issues</p>
                                         </div>
                                       )}
-                                      {(keyInfo as VisaKeyInfo).severity && (
+                                      {visaInfo.severity && (
                                         <div>
                                           <Label className="text-xs font-medium text-gray-500">Severity</Label>
-                                          <Badge variant={(keyInfo as VisaKeyInfo).severity === 'high' ? 'destructive' : (keyInfo as VisaKeyInfo).severity === 'medium' ? 'default' : 'secondary'} className="text-xs">
-                                            {(keyInfo as VisaKeyInfo).severity}
+                                          <Badge variant={visaInfo.severity === 'high' ? 'destructive' : visaInfo.severity === 'medium' ? 'default' : 'secondary'} className="text-xs">
+                                            {visaInfo.severity}
                                           </Badge>
                                         </div>
                                       )}
