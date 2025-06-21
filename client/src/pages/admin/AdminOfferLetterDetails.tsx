@@ -549,22 +549,7 @@ export default function AdminOfferLetterDetails() {
             </CardContent>
           </Card>
 
-          {/* Extracted Text */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <FileText className="h-5 w-5 flex-shrink-0" />
-                Extracted Text
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-gray-50 p-4 rounded-lg border max-h-96 overflow-y-auto">
-                <div className="text-sm break-words overflow-hidden text-wrap whitespace-pre-wrap">
-                  {offerLetter.extractedText || 'No text extracted'}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+
         </div>
       </div>
     </AdminLayout>
