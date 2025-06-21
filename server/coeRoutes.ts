@@ -4,7 +4,6 @@ import { db } from './db';
 import { coeInformation } from '@shared/coeSchema';
 import { extractCoeInformation } from './coeExtractor';
 import { eq } from 'drizzle-orm';
-import * as pdfParse from 'pdf-parse';
 import Tesseract from 'tesseract.js';
 
 const router = Router();
@@ -29,6 +28,7 @@ const upload = multer({
 // Helper function to extract text from files
 async function extractTextFromFile(file: Express.Multer.File): Promise<string> {
   if (file.mimetype === 'application/pdf') {
+    const pdfParse = (await import('pdf-parse')).default;
     const pdfData = await pdfParse(file.buffer);
     return pdfData.text;
   } else if (file.mimetype.startsWith('image/')) {
