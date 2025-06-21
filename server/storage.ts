@@ -1567,7 +1567,23 @@ export class DatabaseStorage implements IStorage {
         .select()
         .from(studyDestinationSuggestions)
         .where(eq(studyDestinationSuggestions.id, id));
-      return suggestion || undefined;
+      
+      if (!suggestion) return undefined;
+      
+      // Parse JSON fields that are stored as strings
+      const parsedSuggestion = {
+        ...suggestion,
+        topRecommendations: this.parseJsonField(suggestion.topRecommendations),
+        keyFactors: this.parseJsonField(suggestion.keyFactors),
+        intelligentAlternatives: this.parseJsonField(suggestion.intelligentAlternatives),
+        pathwayPrograms: this.parseJsonField(suggestion.pathwayPrograms),
+        personalizedInsights: this.parseJsonField(suggestion.personalizedInsights),
+        nextSteps: this.parseJsonField(suggestion.nextSteps),
+        budgetOptimization: this.parseJsonField(suggestion.budgetOptimization),
+        timeline: this.parseJsonField(suggestion.timeline),
+      };
+      
+      return parsedSuggestion;
     } catch (error) {
       console.error("Error fetching study destination suggestion:", error);
       throw error;
@@ -1576,7 +1592,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUserStudyDestinationSuggestions(userId: number): Promise<StudyDestinationSuggestion[]> {
     try {
-      return await db
+      const suggestions = await db
         .select()
         .from(studyDestinationSuggestions)
         .where(and(
@@ -1584,11 +1600,26 @@ export class DatabaseStorage implements IStorage {
           eq(studyDestinationSuggestions.isActive, true)
         ))
         .orderBy(desc(studyDestinationSuggestions.createdAt));
+      
+      // Parse JSON fields for all suggestions
+      return suggestions.map(suggestion => ({
+        ...suggestion,
+        topRecommendations: this.parseJsonField(suggestion.topRecommendations),
+        keyFactors: this.parseJsonField(suggestion.keyFactors),
+        intelligentAlternatives: this.parseJsonField(suggestion.intelligentAlternatives),
+        pathwayPrograms: this.parseJsonField(suggestion.pathwayPrograms),
+        personalizedInsights: this.parseJsonField(suggestion.personalizedInsights),
+        nextSteps: this.parseJsonField(suggestion.nextSteps),
+        budgetOptimization: this.parseJsonField(suggestion.budgetOptimization),
+        timeline: this.parseJsonField(suggestion.timeline),
+      }));
     } catch (error) {
       console.error("Error fetching user study destination suggestions:", error);
       throw error;
     }
   }
+
+
 
   async getLatestStudyDestinationSuggestion(userId: number): Promise<StudyDestinationSuggestion | undefined> {
     try {
