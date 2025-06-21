@@ -23,7 +23,7 @@ const upload = multer({
 export function setupOfferLetterInfoRoutes(app: any) {
   
   // Upload and extract offer letter information
-  app.post('/api/offer-letter-info', upload.single('document'), async (req: Request, res: Response) => {
+  app.post('/api/offer-letter-information/extract', upload.single('document'), async (req: Request, res: Response) => {
     try {
       const file = req.file;
       const user = req.user as any;
@@ -55,16 +55,61 @@ export function setupOfferLetterInfoRoutes(app: any) {
         return res.status(500).json({ error: extractedInfo.error });
       }
 
-      // Save to database
-      const savedInfo = await offerLetterInfoStorage.saveOfferLetterInfo({
+      // Map extracted fields to database schema
+      const mappedInfo = {
         userId: user.id,
         fileName: file.originalname,
         fileSize: file.size,
         extractedText: documentText,
         tokensUsed,
         processingTime,
-        ...extractedInfo
-      });
+        
+        // Institution Information
+        institutionName: extractedInfo.institutionName,
+        institutionAddress: extractedInfo.institutionAddress,
+        institutionPhone: extractedInfo.institutionPhone,
+        institutionEmail: extractedInfo.institutionEmail,
+        institutionWebsite: extractedInfo.institutionWebsite,
+        
+        // Course Information - Map programName to courseName
+        courseName: extractedInfo.programName,
+        courseLevel: extractedInfo.programLevel,
+        courseDuration: extractedInfo.programDuration,
+        studyMode: extractedInfo.studyMode,
+        campusLocation: extractedInfo.campusLocation,
+        courseStartDate: extractedInfo.startDate,
+        courseEndDate: extractedInfo.endDate,
+        
+        // Student Information
+        studentName: extractedInfo.studentName,
+        studentId: extractedInfo.studentId,
+        
+        // Financial Information
+        totalTuitionFees: extractedInfo.tuitionFee,
+        applicationFee: extractedInfo.applicationFee,
+        depositRequired: extractedInfo.depositRequired,
+        totalCost: extractedInfo.totalCost,
+        paymentSchedule: extractedInfo.paymentSchedule,
+        
+        // Important Dates
+        acceptanceDeadline: extractedInfo.acceptanceDeadline,
+        applicationDeadline: extractedInfo.applicationDeadline,
+        
+        // Requirements
+        academicRequirements: extractedInfo.academicRequirements,
+        englishRequirements: extractedInfo.englishRequirements,
+        documentRequirements: extractedInfo.documentRequirements,
+        
+        // Additional Information
+        scholarshipInfo: extractedInfo.scholarshipInfo,
+        accommodationInfo: extractedInfo.accommodationInfo,
+        visaInfo: extractedInfo.visaInfo,
+        contactPerson: extractedInfo.contactPerson,
+        additionalNotes: extractedInfo.additionalNotes
+      };
+
+      // Save to database
+      const savedInfo = await offerLetterInfoStorage.saveOfferLetterInfo(mappedInfo);
 
       console.log(`Successfully saved offer letter info with ID: ${savedInfo.id}`);
 
@@ -83,7 +128,7 @@ export function setupOfferLetterInfoRoutes(app: any) {
   });
 
   // Get all offer letter information for current user
-  app.get('/api/offer-letter-info', async (req: Request, res: Response) => {
+  app.get('/api/offer-letter-information', async (req: Request, res: Response) => {
     try {
       const user = req.user as any;
 
@@ -98,6 +143,14 @@ export function setupOfferLetterInfoRoutes(app: any) {
         fileName: info.fileName,
         institutionName: info.institutionName,
         courseName: info.courseName,
+        studentName: info.studentName,
+        totalTuitionFees: info.totalTuitionFees,
+        courseStartDate: info.courseStartDate,
+        acceptanceDeadline: info.acceptanceDeadline,
+        courseLevel: info.courseLevel,
+        institutionPhone: info.institutionPhone,
+        institutionEmail: info.institutionEmail,
+        scholarshipAmount: info.scholarshipAmount,
         createdAt: info.createdAt
       })));
 
