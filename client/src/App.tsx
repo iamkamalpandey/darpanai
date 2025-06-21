@@ -51,7 +51,6 @@ const AdminInformationReports = lazy(() => import("@/pages/admin/InformationRepo
 const AdminOfferLetterDetails = lazy(() => import("@/pages/admin/OfferLetterDetails"));
 const AdminCoeDetails = lazy(() => import("@/pages/admin/CoeDetailsNew"));
 const AdminOfferLetterInformation = lazy(() => import("@/pages/AdminOfferLetterInformation"));
-const AdminCoeInformation = lazy(() => import("@/pages/AdminCoeInformation"));
 const StudyDestinationSuggestions = lazy(() => import("@/pages/StudyDestinationSuggestions"));
 const DestinationSuggestionDetail = lazy(() => import("@/pages/DestinationSuggestionDetail"));
 const PersonalizedDestinationAnalysis = lazy(() => import("@/pages/PersonalizedDestinationAnalysis"));
@@ -442,10 +441,10 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      <Route path="/admin/coe-information">
-        <AdminProtectedRoute path="/admin/coe-information" component={() => (
+      <Route path="/admin/information-reports">
+        <AdminProtectedRoute path="/admin/information-reports" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <AdminCoeInformation />
+            <AdminInformationReports />
           </Suspense>
         )} />
       </Route>

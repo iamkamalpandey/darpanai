@@ -1163,138 +1163,29 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Offer Letter Analysis methods
+  // Legacy offer letter analysis methods - deprecated since table was removed
   async saveOfferLetterAnalysis(analysisData: Partial<OfferLetterAnalysis>, userId: number): Promise<OfferLetterAnalysis> {
-    try {
-      // Only use fields that exist in the database schema
-      const processedData = {
-        userId,
-        fileName: analysisData.fileName,
-        fileSize: analysisData.fileSize,
-        documentText: analysisData.documentText,
-        analysisResults: analysisData.analysisResults || {},
-        gptAnalysisResults: analysisData.gptAnalysisResults,
-        claudeAnalysisResults: analysisData.claudeAnalysisResults,
-        hybridAnalysisResults: analysisData.hybridAnalysisResults,
-        institutionalData: analysisData.institutionalData,
-        scholarshipData: analysisData.scholarshipData,
-        competitorAnalysis: analysisData.competitorAnalysis,
-        tokensUsed: analysisData.tokensUsed,
-        claudeTokensUsed: analysisData.claudeTokensUsed,
-        totalAiCost: analysisData.totalAiCost,
-        processingTime: analysisData.processingTime,
-        scrapingTime: analysisData.scrapingTime,
-        isPublic: analysisData.isPublic || false,
-      };
-
-      const [analysis] = await db
-        .insert(offerLetterAnalyses)
-        .values({
-          userId: processedData.userId,
-          fileName: processedData.fileName || '',
-          fileSize: processedData.fileSize || 0,
-          documentText: processedData.documentText || '',
-          analysisResults: processedData.analysisResults,
-          gptAnalysisResults: processedData.gptAnalysisResults,
-          claudeAnalysisResults: processedData.claudeAnalysisResults,
-          hybridAnalysisResults: processedData.hybridAnalysisResults,
-          institutionalData: processedData.institutionalData,
-          scholarshipData: processedData.scholarshipData,
-          competitorAnalysis: processedData.competitorAnalysis,
-          tokensUsed: processedData.tokensUsed,
-          claudeTokensUsed: processedData.claudeTokensUsed,
-          totalAiCost: processedData.totalAiCost,
-          processingTime: processedData.processingTime,
-          scrapingTime: processedData.scrapingTime,
-          isPublic: processedData.isPublic,
-        })
-        .returning();
-      return analysis;
-    } catch (error) {
-      console.error("Error saving offer letter analysis:", error);
-      throw error;
-    }
+    throw new Error("Offer letter analysis table was removed. Use offer letter information system instead.");
   }
 
   async getOfferLetterAnalysesByUser(userId: number): Promise<OfferLetterAnalysis[]> {
-    try {
-      const analyses = await db
-        .select()
-        .from(offerLetterAnalyses)
-        .where(eq(offerLetterAnalyses.userId, userId))
-        .orderBy(desc(offerLetterAnalyses.createdAt));
-      return analyses;
-    } catch (error) {
-      console.error("Error fetching offer letter analyses by user:", error);
-      return [];
-    }
+    // Legacy method - offer letter analysis table was removed
+    return [];
   }
 
   async getOfferLetterAnalysisById(id: number, userId?: number): Promise<OfferLetterAnalysis | null> {
-    try {
-      // If userId is provided, ensure user owns the analysis (unless admin)
-      if (userId) {
-        const user = await this.getUser(userId);
-        if (user?.role !== 'admin') {
-          const [analysis] = await db
-            .select()
-            .from(offerLetterAnalyses)
-            .where(and(eq(offerLetterAnalyses.id, id), eq(offerLetterAnalyses.userId, userId)));
-          return analysis || null;
-        }
-      }
-      
-      const [analysis] = await db
-        .select()
-        .from(offerLetterAnalyses)
-        .where(eq(offerLetterAnalyses.id, id));
-      
-      return analysis || null;
-    } catch (error) {
-      console.error("Error fetching offer letter analysis by ID:", error);
-      return null;
-    }
+    // Legacy method - offer letter analysis table was removed
+    return null;
   }
 
   async getAllOfferLetterAnalyses(): Promise<OfferLetterAnalysis[]> {
-    try {
-      const analyses = await db
-        .select()
-        .from(offerLetterAnalyses)
-        .orderBy(desc(offerLetterAnalyses.createdAt));
-      return analyses;
-    } catch (error) {
-      console.error("Error fetching all offer letter analyses:", error);
-      return [];
-    }
+    // Legacy method - offer letter analysis table was removed
+    return [];
   }
 
   async getAllOfferLetterAnalysesWithUsers(): Promise<any[]> {
-    try {
-      const analyses = await db
-        .select({
-          id: offerLetterAnalyses.id,
-          fileName: offerLetterAnalyses.fileName,
-          analysisResults: offerLetterAnalyses.analysisResults,
-          gptAnalysisResults: offerLetterAnalyses.gptAnalysisResults,
-          tokensUsed: offerLetterAnalyses.tokensUsed,
-          processingTime: offerLetterAnalyses.processingTime,
-          createdAt: offerLetterAnalyses.createdAt,
-          isPublic: offerLetterAnalyses.isPublic,
-          userId: offerLetterAnalyses.userId,
-          username: users.username,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          email: users.email,
-        })
-        .from(offerLetterAnalyses)
-        .leftJoin(users, eq(offerLetterAnalyses.userId, users.id))
-        .orderBy(desc(offerLetterAnalyses.createdAt));
-      return analyses;
-    } catch (error) {
-      console.error("Error fetching all offer letter analyses with users:", error);
-      return [];
-    }
+    // Legacy method - offer letter analysis table was removed
+    return [];
   }
 
   // Admin access methods for Information Reports
