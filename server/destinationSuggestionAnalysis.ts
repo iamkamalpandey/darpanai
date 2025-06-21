@@ -566,58 +566,8 @@ Respond with valid JSON in the following structure:
 
 **CRITICAL**: Every field must contain specific, personalized information based on the student's actual profile. No generic placeholders or templated responses allowed.
 
-Respond with valid JSON matching the destinationSuggestionResponseSchema structure.`;
-
-## REALISTIC SCHOLARSHIP MATCHING
-
-Only include scholarships the student actually qualifies for:
-- Academic performance requirements
-- Nationality eligibility
-- Financial need criteria
-- Field of study alignment
-- Qualification level appropriateness
-
-## BUDGET ANALYSIS WITH AUTHENTIC 2025 COSTS
-
-Provide realistic cost breakdowns:
-- Tuition fees (actual 2025 rates)
-- Living expenses (authentic local costs)
-- Scholarship opportunities (real eligibility criteria)
-- Total investment analysis
-- ROI projections based on career outcomes
-**Financial Viability**: Realistic cost assessment and funding options
-
-## REQUIRED ANALYSIS STRUCTURE
-
-Based on proven IDP Live app methodology, provide practical recommendations focused on actual university applications:
-
-{
-  "profileAssessment": {
-    "academicStrength": "Honest assessment of their academic competitiveness",
-    "majorChallenges": "Key obstacles like IELTS score, budget, academic gaps",
-    "competitiveAdvantages": "What makes them stand out from other applicants",
-    "overallReadiness": "Are they ready to apply now or need preparation?"
-  },
-  "recommendedCountries": [
-    {
-      "country": "Country Name",
-      "matchScore": 78,
-      "whyThisCountry": "Specific reasons this fits their profile - not generic benefits",
-      "bestUniversities": [
-        {
-          "name": "University Name",
-          "program": "Specific program they should apply to",
-          "entryRequirements": "Exact requirements",
-          "tuitionFee": "2025 annual fee",
-          "admissionChance": "High/Medium/Low based on their profile",
-          "applicationDeadline": "Specific dates",
-          "scholarships": [
-            {
-              "name": "Scholarship name",
-              "amount": "Amount or percentage",
-              "eligibility": "Why they qualify",
-              "deadline": "Application deadline"
-            }
+Respond with valid JSON matching the DestinationSuggestionResponse interface structure.`;
+}
           ]
         }
       ],
