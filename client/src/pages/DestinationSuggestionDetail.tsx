@@ -318,6 +318,22 @@ export default function DestinationSuggestionDetail() {
                   </ul>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-purple-700">Financial Planning Tips</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {(suggestion.recommendations?.budgetOptimization?.financialPlanningTips || []).map((tip, i) => (
+                      <li key={i} className="flex items-start">
+                        <span className="text-purple-500 mr-2">💡</span>
+                        <span className="text-gray-700">{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
@@ -360,7 +376,7 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {suggestion.recommendations.nextSteps.immediate.map((step, i) => (
+                    {(suggestion.recommendations?.nextSteps?.immediate || []).map((step, i) => (
                       <li key={i} className="flex items-start">
                         <span className="text-red-500 mr-2">🔥</span>
                         <span className="text-gray-700">{step}</span>
@@ -376,7 +392,7 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {suggestion.recommendations.nextSteps.shortTerm.map((step, i) => (
+                    {(suggestion.recommendations?.nextSteps?.shortTerm || []).map((step, i) => (
                       <li key={i} className="flex items-start">
                         <span className="text-orange-500 mr-2">📅</span>
                         <span className="text-gray-700">{step}</span>
@@ -392,7 +408,7 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {suggestion.recommendations.nextSteps.longTerm.map((step, i) => (
+                    {(suggestion.recommendations?.nextSteps?.longTerm || []).map((step, i) => (
                       <li key={i} className="flex items-start">
                         <span className="text-green-500 mr-2">🎯</span>
                         <span className="text-gray-700">{step}</span>
