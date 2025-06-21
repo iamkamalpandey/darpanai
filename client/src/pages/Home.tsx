@@ -87,9 +87,9 @@ export default function Home() {
     refetchOnMount: false
   });
 
-  // Show profile completion prompt if profile is incomplete (less than 70%)
+  // Show profile completion prompt only if profile is incomplete (less than 100%)
   useEffect(() => {
-    if (completionStatus && !completionStatus.isComplete && completionStatus.completionPercentage < 70) {
+    if (completionStatus && completionStatus.completionPercentage < 100) {
       const timer = setTimeout(() => {
         setShowProfilePrompt(true);
       }, 2000); // Show after 2 seconds of dashboard load

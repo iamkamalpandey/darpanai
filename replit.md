@@ -130,6 +130,20 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 21, 2025 - Complete Multiple English Test System & Automatic Validity Calculation Implementation:**
+- ✓ Removed manual expiry date fields from all English proficiency test forms across the platform
+- ✓ Implemented automatic test validity calculation based on test type: IELTS/PTE/Duolingo (2 years), TOEFL (2 years), GRE/GMAT (5 years), SAT/ACT (5 years)
+- ✓ Built comprehensive multiple English test support system allowing users to add unlimited English proficiency tests
+- ✓ Enhanced language proficiency section with Add Test/Remove Test functionality for managing multiple test records
+- ✓ Created automatic validity status display showing "Valid until" or "Expired on" dates with color-coded badges (green for valid, red for expired)
+- ✓ Updated profile completion calculation to exclude English language tests from required completion percentage since they are optional
+- ✓ Fixed profile completion popup logic to only display when profile is actually incomplete (less than 100% completion)
+- ✓ Enhanced language proficiency display to show all user tests with individual validity status and comprehensive score breakdown
+- ✓ Applied proper TypeScript type safety throughout the multiple test system with comprehensive error handling
+- ✓ Successfully resolved "Never Last Analysis" display issue with proper getLastAnalysisDate method implementation
+- ✓ Maintained admin dashboard access to user profiles with complete edit/view/suspend/active functionality
+- ✓ Applied Google Material Design standards throughout the enhanced language proficiency interface
+
 **June 20, 2025 - Authentic Platform Statistics Implementation & Complete Additional Information Form Fix:**
 - ✓ Replaced all mock/false statistics with authentic database values throughout entire platform (home page, user dashboard, public landing)
 - ✓ Implemented comprehensive getPlatformStatistics() method with real-time database queries for totalAnalyses, totalUsers, totalCountries, documentsProcessed

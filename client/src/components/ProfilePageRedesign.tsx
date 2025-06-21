@@ -633,6 +633,31 @@ const ProfilePageRedesign: React.FC = () => {
     },
   });
 
+  // Update language form when entering edit mode
+  React.useEffect(() => {
+    if (user && editingSection === 'language') {
+      languageForm.reset({
+        englishProficiencyTests: user.englishProficiencyTests || [],
+        standardizedTests: user.standardizedTests || [],
+      });
+    }
+  }, [user, editingSection, languageForm]);
+
+  // Language form submission handler
+  const onLanguageSubmit = (data: any) => {
+    console.log('=== LANGUAGE PROFICIENCY SAVE TEST ===');
+    console.log('Data being saved:', JSON.stringify(data, null, 2));
+    updateProfileMutation.mutate(data, {
+      onSuccess: (response) => {
+        console.log('✓ Language proficiency saved successfully:', response);
+        setEditingSection(null);
+      },
+      onError: (error) => {
+        console.error('✗ Language proficiency save failed:', error);
+      }
+    });
+  };
+
 
   // Check section completion
   const isSectionComplete = (section: ProfileSection): boolean => {
@@ -1998,7 +2023,7 @@ const ProfilePageRedesign: React.FC = () => {
                     </Button>
                   </div>
                   
-                  {languageForm.watch('englishProficiencyTests')?.map((test, index) => (
+                  {languageForm.watch('englishProficiencyTests')?.map((test: any, index: number) => (
                     <div key={index} className="border rounded-lg p-4 space-y-4">
                       <div className="flex justify-between items-center">
                         <h5 className="font-medium">Test #{index + 1}</h5>
@@ -2009,7 +2034,7 @@ const ProfilePageRedesign: React.FC = () => {
                             size="sm"
                             onClick={() => {
                               const currentTests = languageForm.getValues('englishProficiencyTests') || [];
-                              const updatedTests = currentTests.filter((_, i) => i !== index);
+                              const updatedTests = currentTests.filter((_: any, i: number) => i !== index);
                               languageForm.setValue('englishProficiencyTests', updatedTests);
                             }}
                           >
@@ -2159,46 +2184,63 @@ const ProfilePageRedesign: React.FC = () => {
               </form>
             </Form>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {user?.englishProficiencyTests?.[0] ? (
-                <>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <Label className="text-sm font-medium text-gray-600">Test Type</Label>
-                    <p className="text-sm mt-1 font-medium">{user.englishProficiencyTests[0].testType || 'Not provided'}</p>
+            <div className="space-y-6">
+              {user?.englishProficiencyTests && user.englishProficiencyTests.length > 0 ? (
+                user.englishProficiencyTests.map((test: any, index: number) => (
+                  <div key={index} className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="font-medium">English Test #{index + 1}</h4>
+                      {test.testDate && test.testType && (
+                        <div className="text-sm">
+                          {isTestValid(test.testDate, test.testType) ? (
+                            <span className="text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                              Valid until {calculateTestExpiry(test.testDate, test.testType)}
+                            </span>
+                          ) : (
+                            <span className="text-red-600 bg-red-50 px-2 py-1 rounded-full">
+                              Expired on {calculateTestExpiry(test.testDate, test.testType)}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">Test Type</Label>
+                        <p className="text-sm mt-1 font-medium">{test.testType || 'Not provided'}</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">Overall Score</Label>
+                        <p className="text-sm mt-1 font-medium">{test.overallScore || 'Not provided'}</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">Test Date</Label>
+                        <p className="text-sm mt-1 font-medium">{test.testDate || 'Not provided'}</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">Reading</Label>
+                        <p className="text-sm mt-1 font-medium">{test.reading || 'Not provided'}</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">Writing</Label>
+                        <p className="text-sm mt-1 font-medium">{test.writing || 'Not provided'}</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">Speaking</Label>
+                        <p className="text-sm mt-1 font-medium">{test.speaking || 'Not provided'}</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <Label className="text-sm font-medium text-gray-600">Listening</Label>
+                        <p className="text-sm mt-1 font-medium">{test.listening || 'Not provided'}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <Label className="text-sm font-medium text-gray-600">Overall Score</Label>
-                    <p className="text-sm mt-1 font-medium">{user.englishProficiencyTests[0].overallScore || 'Not provided'}</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <Label className="text-sm font-medium text-gray-600">Test Date</Label>
-                    <p className="text-sm mt-1 font-medium">{user.englishProficiencyTests[0].testDate || 'Not provided'}</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <Label className="text-sm font-medium text-gray-600">Expiry Date</Label>
-                    <p className="text-sm mt-1 font-medium">{user.englishProficiencyTests[0].expiryDate || 'Not provided'}</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <Label className="text-sm font-medium text-gray-600">Reading</Label>
-                    <p className="text-sm mt-1 font-medium">{user.englishProficiencyTests[0].reading || 'Not provided'}</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <Label className="text-sm font-medium text-gray-600">Writing</Label>
-                    <p className="text-sm mt-1 font-medium">{user.englishProficiencyTests[0].writing || 'Not provided'}</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <Label className="text-sm font-medium text-gray-600">Speaking</Label>
-                    <p className="text-sm mt-1 font-medium">{user.englishProficiencyTests[0].speaking || 'Not provided'}</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <Label className="text-sm font-medium text-gray-600">Listening</Label>
-                    <p className="text-sm mt-1 font-medium">{user.englishProficiencyTests[0].listening || 'Not provided'}</p>
-                  </div>
-                </>
+                ))
               ) : (
-                <div className="col-span-full text-center text-gray-500 py-8">
+                <div className="text-center text-gray-500 py-8">
                   <Languages className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                  <p>No English proficiency test recorded</p>
+                  <p>No English proficiency tests recorded</p>
                   <p className="text-sm">Click "Edit" to add your test scores</p>
                 </div>
               )}
