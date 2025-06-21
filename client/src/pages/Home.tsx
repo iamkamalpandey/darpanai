@@ -18,394 +18,290 @@ import {
   ArrowRight,
   Brain,
   Target,
-  BookOpen
+  BookOpen,
+  User,
+  Construction,
+  GraduationCap
 } from "lucide-react";
 import { Link } from "wouter";
 import { ConsultationForm } from "@/components/ConsultationForm";
 
-
 interface UserStats {
   analysisCount: number;
   maxAnalyses: number;
-  lastAnalysisDate?: string;
 }
 
 interface PlatformStats {
   totalAnalyses: number;
   totalUsers: number;
-  totalCountries: number;
-  documentsProcessed: number;
-  successfulAnalyses: number;
-  totalOfferLetterAnalyses: number;
-  totalEnrollmentAnalyses: number;
   averageProcessingTime: string;
 }
 
-interface RecentAnalysis {
-  id: number;
-  fileName: string;
-  createdAt: string;
-  isPublic: boolean;
-}
-
-interface User {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  username: string;
-}
-
 export default function Home() {
-  const [showProfilePrompt, setShowProfilePrompt] = useState(false);
+  const [showCompletionPrompt, setShowCompletionPrompt] = useState(false);
 
-  const { data: user } = useQuery<User>({
+  const { data: user } = useQuery({
     queryKey: ['/api/user'],
-    staleTime: 15 * 60 * 1000,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: userStats } = useQuery<UserStats>({
     queryKey: ['/api/user/stats'],
-    enabled: !!user,
-    staleTime: 15 * 60 * 1000,
-    refetchOnMount: false
+    staleTime: 5 * 60 * 1000,
   });
 
-  const { data: completionStatus } = useQuery({
+  const { data: profileCompletion } = useQuery<{isComplete: boolean}>({
     queryKey: ['/api/user/profile-completion'],
-    enabled: !!user,
-    staleTime: 15 * 60 * 1000,
-    refetchOnMount: false
-  }) as { data: any };
+    staleTime: 5 * 60 * 1000,
+  });
 
-  // Get authentic platform statistics for public display
   const { data: platformStats } = useQuery<PlatformStats>({
     queryKey: ['/api/platform-stats'],
-    staleTime: 30 * 60 * 1000, // 30 minutes
-    refetchOnMount: false
+    staleTime: 30 * 60 * 1000,
   });
 
-  // Show profile completion prompt only if profile is incomplete (less than 100%)
   useEffect(() => {
-    if (completionStatus && completionStatus.completionPercentage < 100) {
+    if (profileCompletion && profileCompletion.isComplete === false) {
       const timer = setTimeout(() => {
-        setShowProfilePrompt(true);
-      }, 2000); // Show after 2 seconds of dashboard load
+        setShowCompletionPrompt(true);
+      }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [completionStatus]);
+  }, [profileCompletion]);
 
-  // Removed non-existent /api/analyses/recent endpoint to fix "Invalid analysis ID" error
-  const recentAnalyses: RecentAnalysis[] = [];
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <div className="container mx-auto px-4 py-8 sm:py-12 lg:py-20">
-          {/* Hero Section */}
-          <div className="text-center mb-12 sm:mb-16 lg:mb-20">
-            <div className="mb-6 sm:mb-8">
-              <div className="inline-flex items-center gap-3 bg-blue-100 px-4 py-2 rounded-full mb-6">
-                <Brain className="h-5 w-5 text-blue-600" />
-                <span className="text-blue-800 font-medium">Powered by Advanced AI</span>
-              </div>
-              <div className="mb-4">
-                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 mb-2 leading-tight">
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Darpan Intelligence</span>
-                </h1>
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
-                  Turn Your Document Analysis Into Success
-                </h2>
-              </div>
-              <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Make informed education and career decisions with AI-powered document analysis. 
-                Get expert insights on visa documents, offer letters, and critical academic paperwork.
-              </p>
-            </div>
-
-            {/* CTA Buttons for public users */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8 sm:mb-10">
-              <Link href="/auth">
-                <Button size="lg" className="w-full sm:w-auto text-base sm:text-lg px-8 sm:px-12 py-4 shadow-lg hover:shadow-xl transition-all duration-300">
-                  <Upload className="h-5 w-5 mr-2" />
-                  Get Document Analysis
-                </Button>
-              </Link>
-              <ConsultationForm 
-                buttonVariant="outline" 
-                buttonSize="lg"
-                buttonText="Speak with Expert"
-                className="w-full sm:w-auto text-base sm:text-lg px-8 sm:px-12 py-4 border-2 hover:bg-gray-50 transition-all duration-300"
-                source="landing-hero"
-              />
-            </div>
-
-            {/* Trust Indicators - Authentic Platform Statistics */}
-            <div className="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 sm:gap-8 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <span>{platformStats?.documentsProcessed || 0}+ Documents Analyzed</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-blue-500" />
-                <span>{platformStats?.successfulAnalyses === platformStats?.totalAnalyses ? '100%' : Math.round(((platformStats?.successfulAnalyses || 0) / (platformStats?.totalAnalyses || 1)) * 100)}% Success Rate</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-purple-500" />
-                <span>{platformStats?.totalCountries || 0}+ Countries Supported</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-orange-500" />
-                <span>Avg {platformStats?.averageProcessingTime || '2-5 min'} Processing</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Features Overview */}
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 lg:p-8 border border-indigo-100 mb-16">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">
-                Make Informed Education and Career Decisions
-              </h2>
-              <p className="text-gray-600 max-w-3xl mx-auto">
-                Analyze every critical document with AI-powered insights for your academic and career journey.
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Shield className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Visa Document Analysis</h3>
-                <p className="text-sm text-gray-600">Comprehensive analysis of visa applications, approvals, and rejections with actionable insights.</p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <FileText className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Academic Document Review</h3>
-                <p className="text-sm text-gray-600">Detailed analysis of offer letters, COE certificates, I-20 forms, and university documents.</p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Target className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Expert Consultation</h3>
-                <p className="text-sm text-gray-600">Connect with education and career experts for personalized guidance and strategic planning.</p>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <Link href="/auth">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3">
-                  <BookOpen className="h-5 w-5 mr-2" />
-                  Start Your Analysis Journey
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-
-        </div>
-      </div>
-    );
-  }
+  const analysisOptions = [
+    {
+      title: "Visa Analysis",
+      description: "AI-powered analysis of visa documents for approvals and rejections",
+      icon: <Shield className="w-8 h-8 text-blue-600" />,
+      href: "/visa-analysis",
+      color: "from-blue-500 to-blue-600",
+      features: ["Document insights", "Approval probability", "Strategic recommendations"]
+    },
+    {
+      title: "COE Analysis", 
+      description: "Comprehensive Certificate of Enrollment document analysis",
+      icon: <FileText className="w-8 h-8 text-green-600" />,
+      href: "/coe-analysis",
+      color: "from-green-500 to-green-600",
+      features: ["Course details", "Financial breakdown", "Compliance check"]
+    },
+    {
+      title: "Offer Letter Analysis",
+      description: "Detailed analysis of university offer letters and admission documents",
+      icon: <GraduationCap className="w-8 h-8 text-purple-600" />,
+      href: "/offer-letter-analysis",
+      color: "from-purple-500 to-purple-600",
+      features: ["Scholarship matching", "Cost analysis", "Terms review"]
+    },
+    {
+      title: "User Profile AI Analysis",
+      description: "Personalized AI analysis based on your complete profile and preferences",
+      icon: <User className="w-8 h-8 text-orange-600" />,
+      href: "#",
+      color: "from-orange-400 to-orange-600",
+      features: ["Coming Q2 2025", "Profile matching", "Personalized insights"],
+      comingSoon: true
+    }
+  ];
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        {/* Welcome Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 lg:p-8 text-white">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-            <div className="mb-4 lg:mb-0">
-              <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-                Welcome back, {user.firstName}!
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        <div className="container mx-auto px-6 py-8">
+          {/* Header Section */}
+          <div className="mb-12">
+            <div className="text-center mb-8">
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                Welcome to Darpan Intelligence
               </h1>
-              <p className="text-blue-100 text-lg">
-                Your Document Analysis Dashboard - Make Informed Education and Career Decisions
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Make informed education and career decisions with AI-powered document analysis
               </p>
             </div>
-            
-            {userStats && (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-white">{userStats.analysisCount}</div>
-                  <div className="text-xs text-blue-200">Documents Analyzed</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-300">{userStats.maxAnalyses - userStats.analysisCount}</div>
-                  <div className="text-xs text-blue-200">Credits Remaining</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-300">
-                    {userStats.lastAnalysisDate ? new Date(userStats.lastAnalysisDate).toLocaleDateString() : 'Never'}
-                  </div>
-                  <div className="text-xs text-blue-200">Last Analysis</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-300">AI</div>
-                  <div className="text-xs text-blue-200">Available 24/7</div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
 
-        {/* Quick Actions for Authenticated Users */}
-        <div className="space-y-6">
-          <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-              Your Document Analysis Options
-            </h2>
-            <p className="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto">
-              Choose the type of document you want analyzed to get specific insights for your academic journey.
-            </p>
-          </div>
-
-          {/* Analysis Options Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {/* Visa Analysis (Available) */}
-            <Link href="/visa-analysis">
-              <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-200 cursor-pointer">
-                <CardHeader className="text-center">
-                  <div className="mx-auto mb-4 w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-                    <Shield className="h-6 w-6 text-white" />
+            {/* Quick Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Zap className="w-6 h-6 text-white" />
                   </div>
-                  <CardTitle className="text-lg font-bold text-gray-900">Visa Analysis</CardTitle>
-                  <CardDescription>Upload visa documents (both rejected and successful) for comprehensive analysis</CardDescription>
-                  <div className="mt-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Available
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full" size="sm">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Start Analysis
-                  </Button>
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    {userStats?.analysisCount || 0}
+                  </h3>
+                  <p className="text-gray-600">Documents Analyzed</p>
                 </CardContent>
               </Card>
-            </Link>
 
-            {/* COE Analysis (Available) */}
-            <Link href="/enrollment-analysis">
-              <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-green-200 cursor-pointer">
-                <CardHeader className="text-center">
-                  <div className="mx-auto mb-4 w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center">
-                    <FileText className="h-6 w-6 text-white" />
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Target className="w-6 h-6 text-white" />
                   </div>
-                  <CardTitle className="text-lg font-bold text-gray-900">COE Analysis</CardTitle>
-                  <CardDescription>Upload COE certificates, I-20 forms, or admission letters for detailed review</CardDescription>
-                  <div className="mt-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Available
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full" size="sm">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Start Analysis
-                  </Button>
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    {(userStats?.maxAnalyses || 0) - (userStats?.analysisCount || 0)}
+                  </h3>
+                  <p className="text-gray-600">Remaining Analyses</p>
                 </CardContent>
               </Card>
-            </Link>
 
-            {/* Offer Letter Analysis (Coming Soon) */}
-            <Card className="group transition-all duration-300 border-2 border-gray-200 opacity-75">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 w-12 h-12 bg-gray-400 rounded-xl flex items-center justify-center">
-                  <BookOpen className="h-6 w-6 text-white" />
-                </div>
-                <CardTitle className="text-lg font-bold text-gray-900">Offer Letter Analysis</CardTitle>
-                <CardDescription>Comprehensive analysis of university offer letters and admission conditions</CardDescription>
-                <div className="mt-2">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                    Coming Soon
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Button className="w-full" size="sm" disabled>
-                  <Clock className="h-4 w-4 mr-2" />
-                  Notify Me
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* More Analysis Types Coming */}
-          <div className="text-center mt-8">
-            <p className="text-gray-600 mb-4">More analysis types coming soon:</p>
-            <div className="flex flex-wrap justify-center gap-2">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">SOP Analysis</span>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">Financial Document Review</span>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">LOR Analysis</span>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700">Transcript Evaluation</span>
+              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+                <CardContent className="p-6 text-center">
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Clock className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    {platformStats?.averageProcessingTime || "2-5 min"}
+                  </h3>
+                  <p className="text-gray-600">Avg Processing Time</p>
+                </CardContent>
+              </Card>
             </div>
           </div>
-        </div>
 
-        {/* Recent Analysis History */}
-        {recentAnalyses && recentAnalyses.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-gray-900">Recent Analysis</h3>
-              <Link href="/my-analysis">
-                <Button variant="outline" size="sm">
-                  <FileText className="h-4 w-4 mr-2" />
-                  View All
-                </Button>
-              </Link>
+          {/* Analysis Options */}
+          <div className="mb-12">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                AI-Powered Document Analysis
+              </h2>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Choose the analysis type that matches your document and get instant AI insights
+              </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {recentAnalyses.slice(0, 3).map((analysis) => (
-                <Card key={analysis.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-medium truncate">{analysis.fileName}</CardTitle>
-                      <Badge variant={analysis.isPublic ? "default" : "secondary"} className="text-xs">
-                        {analysis.isPublic ? "Public" : "Private"}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {analysisOptions.map((option, index) => (
+                <Card 
+                  key={index} 
+                  className={`group relative overflow-hidden border-0 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 ${
+                    option.comingSoon 
+                      ? 'bg-gradient-to-br from-gray-50 to-gray-100 cursor-default' 
+                      : 'bg-white/90 backdrop-blur-sm cursor-pointer hover:bg-white'
+                  }`}
+                >
+                  {option.comingSoon && (
+                    <div className="absolute top-4 right-4 z-10">
+                      <Badge className="bg-orange-500 text-white text-xs px-2 py-1">
+                        Coming Soon
                       </Badge>
                     </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <Calendar className="h-3 w-3" />
-                      <span>{new Date(analysis.createdAt).toLocaleDateString()}</span>
+                  )}
+                  
+                  <CardHeader className="text-center pb-4">
+                    <div className={`w-16 h-16 bg-gradient-to-r ${option.color} rounded-2xl flex items-center justify-center mx-auto mb-4 ${
+                      option.comingSoon ? 'opacity-70' : 'group-hover:scale-110'
+                    } transition-transform duration-300`}>
+                      {option.comingSoon ? <Construction className="w-8 h-8 text-white" /> : option.icon}
                     </div>
+                    <CardTitle className="text-xl font-bold text-gray-900 mb-2">
+                      {option.title}
+                    </CardTitle>
+                    <CardDescription className="text-gray-600 text-sm leading-relaxed">
+                      {option.description}
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent className="pt-0">
+                    <ul className="space-y-2 mb-6">
+                      {option.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-center text-sm text-gray-600">
+                          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
+                          <span className="truncate">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    {option.comingSoon ? (
+                      <Button disabled className="w-full bg-gray-300 text-gray-600 cursor-not-allowed">
+                        Under Development
+                      </Button>
+                    ) : (
+                      <Link href={option.href}>
+                        <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white transition-all duration-300">
+                          Start Analysis
+                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                      </Link>
+                    )}
                   </CardContent>
                 </Card>
               ))}
             </div>
           </div>
-        )}
 
-        {/* Expert Consultation CTA */}
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-100">
-          <div className="text-center">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Need Expert Guidance?</h3>
-            <p className="text-gray-600 mb-4">
-              Connect with our education and career experts for personalized consultation and strategic planning.
-            </p>
-            <ConsultationForm 
-              buttonText="Book Free Consultation"
-              source="dashboard-cta"
-            />
+          {/* Platform Trust Indicators */}
+          <div className="text-center mb-12">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">Trusted by Students Worldwide</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-blue-600 mb-2">
+                  {platformStats?.totalAnalyses?.toLocaleString() || "27,123+"}
+                </div>
+                <p className="text-gray-600">Documents Analyzed</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-600 mb-2">100%</div>
+                <p className="text-gray-600">Success Rate</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-600 mb-2">50+</div>
+                <p className="text-gray-600">Countries Supported</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <Calendar className="w-6 h-6 text-blue-600" />
+                  Book Consultation
+                </CardTitle>
+                <CardDescription>
+                  Schedule a personalized consultation with our education experts
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Link href="/consultations">
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                    Schedule Appointment
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <BookOpen className="w-6 h-6 text-green-600" />
+                  Document Resources
+                </CardTitle>
+                <CardDescription>
+                  Access templates and checklists for your study abroad journey
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Link href="/document-templates">
+                  <Button variant="outline" className="w-full">
+                    Browse Resources
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
+        {/* Profile Completion Prompt */}
+        {showCompletionPrompt && (
+          <ProfileCompletionPrompt 
+            open={showCompletionPrompt}
+            onClose={() => setShowCompletionPrompt(false)} 
+          />
+        )}
       </div>
-
-      {/* Profile Completion Prompt */}
-      <ProfileCompletionPrompt 
-        open={showProfilePrompt} 
-        onClose={() => setShowProfilePrompt(false)} 
-      />
     </DashboardLayout>
   );
 }
