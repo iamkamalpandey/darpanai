@@ -17,7 +17,8 @@ import {
   ChevronDown,
   ChevronRight,
   FolderOpen,
-  MessageSquare
+  MessageSquare,
+  GraduationCap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/Footer';

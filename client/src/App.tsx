@@ -50,6 +50,8 @@ const AdminOfferLetterAnalysisView = lazy(() => import("@/pages/AdminOfferLetter
 const AdminInformationReports = lazy(() => import("@/pages/admin/InformationReports"));
 const AdminOfferLetterDetails = lazy(() => import("@/pages/admin/OfferLetterDetails"));
 const AdminCoeDetails = lazy(() => import("@/pages/admin/CoeDetailsNew"));
+const AdminOfferLetterInformation = lazy(() => import("@/pages/AdminOfferLetterInformation"));
+const AdminCoeInformation = lazy(() => import("@/pages/AdminCoeInformation"));
 const StudyDestinationSuggestions = lazy(() => import("@/pages/StudyDestinationSuggestions"));
 const DestinationSuggestionDetail = lazy(() => import("@/pages/DestinationSuggestionDetail"));
 const PersonalizedDestinationAnalysis = lazy(() => import("@/pages/PersonalizedDestinationAnalysis"));
@@ -425,10 +427,24 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      <Route path="/admin/information-reports">
-        <AdminProtectedRoute path="/admin/information-reports" component={() => (
+      <Route path="/admin/offer-letter-information">
+        <AdminProtectedRoute path="/admin/offer-letter-information" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <AdminInformationReports />
+            <AdminOfferLetterInformation />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/offer-letter-details/:id">
+        <AdminProtectedRoute path="/admin/offer-letter-details/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <OfferLetterDetailsNew />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/coe-information">
+        <AdminProtectedRoute path="/admin/coe-information" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminCoeInformation />
           </Suspense>
         )} />
       </Route>
