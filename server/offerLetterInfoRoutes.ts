@@ -63,14 +63,23 @@ export function setupOfferLetterInfoRoutes(app: any) {
         return res.status(500).json({ error: extractedInfo.error });
       }
 
-      // Map extracted fields to database schema - comprehensive mapping for all fields
+      // Sanitize and map extracted fields to database schema
+      const sanitizeTextForInteger = (value: any) => {
+        if (value === null || value === undefined) return null;
+        // If it's a string that contains letters, return null (not a valid integer)
+        if (typeof value === 'string' && /[a-zA-Z]/.test(value)) return null;
+        // Try to parse as integer, return null if invalid
+        const parsed = parseInt(value);
+        return isNaN(parsed) ? null : parsed;
+      };
+
       const mappedInfo = {
         userId: user.id,
         fileName: file.originalname,
         fileSize: file.size,
         extractedText: documentText,
-        tokensUsed,
-        processingTime,
+        tokensUsed: sanitizeTextForInteger(tokensUsed),
+        processingTime: sanitizeTextForInteger(processingTime),
         
         // Institution Information (Provider Details)
         institutionName: extractedInfo.institutionName,
@@ -143,10 +152,8 @@ export function setupOfferLetterInfoRoutes(app: any) {
         // Policies - Map to schema fields
         withdrawalPolicy: extractedInfo.withdrawalPolicy,
         transferPolicy: extractedInfo.transferPolicy,
-        refundPolicy: extractedInfo.refundPolicy,
         
         // Additional Information
-        termsAndConditions: extractedInfo.termsAndConditions,
         importantNotes: extractedInfo.importantNotes,
         additionalInformation: extractedInfo.additionalInformation
       };
