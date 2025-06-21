@@ -122,68 +122,32 @@ export function setupOfferLetterInfoRoutes(app: any) {
         paymentMethods: extractedInfo.paymentMethods,
         refundPolicy: extractedInfo.refundPolicy,
         
-        // Scholarship & Financial Aid
+        // Scholarship & Financial Aid - Map to schema fields
         scholarshipAmount: extractedInfo.scholarshipAmount,
-        scholarshipPercentage: extractedInfo.scholarshipPercentage,
-        scholarshipConditions: extractedInfo.scholarshipConditions,
-        scholarshipDuration: extractedInfo.scholarshipDuration,
-        financialAidInfo: extractedInfo.financialAidInfo,
+        scholarshipDetails: extractedInfo.scholarshipConditions,
         
         // Important Dates & Deadlines
         acceptanceDeadline: extractedInfo.acceptanceDeadline,
-        enrollmentDeadline: extractedInfo.enrollmentDeadline,
-        feePaymentDeadline: extractedInfo.feePaymentDeadline,
-        documentSubmissionDeadline: extractedInfo.documentSubmissionDeadline,
-        orientationDeadline: extractedInfo.orientationDeadline,
         
-        // Academic Requirements
-        academicRequirements: extractedInfo.academicRequirements,
-        englishRequirements: extractedInfo.englishRequirements,
-        ieltsRequirement: extractedInfo.ieltsRequirement,
-        toeflRequirement: extractedInfo.toeflRequirement,
-        pteRequirement: extractedInfo.pteRequirement,
-        documentRequirements: extractedInfo.documentRequirements,
-        healthInsuranceRequirement: extractedInfo.healthInsuranceRequirement,
-        visaRequirements: extractedInfo.visaRequirements,
+        // Academic Requirements - Map to schema fields
+        minimumEntryRequirements: extractedInfo.academicRequirements,
+        englishLanguageRequirements: extractedInfo.englishRequirements,
+        documentationRequired: extractedInfo.documentRequirements,
         
-        // Accommodation & Support
-        accommodationInfo: extractedInfo.accommodationInfo,
-        accommodationFees: extractedInfo.accommodationFees,
-        mealPlanInfo: extractedInfo.mealPlanInfo,
-        transportInfo: extractedInfo.transportInfo,
+        // Support Services - Map to schema fields
+        accommodationAssistance: extractedInfo.accommodationInfo,
+        studentSupportServices: extractedInfo.studentSupportServices,
+        visaAdvice: extractedInfo.visaInfo,
+        orientationProgram: extractedInfo.additionalServices,
         
-        // Contact Information
-        contactPersonName: extractedInfo.contactPersonName,
-        contactPersonTitle: extractedInfo.contactPersonTitle,
-        contactPersonPhone: extractedInfo.contactPersonPhone,
-        contactPersonEmail: extractedInfo.contactPersonEmail,
-        admissionsOfficeContact: extractedInfo.admissionsOfficeContact,
-        internationalOfficeContact: extractedInfo.internationalOfficeContact,
-        
-        // Compliance & Accreditation
-        complianceInfo: extractedInfo.complianceInfo,
-        accreditationInfo: extractedInfo.accreditationInfo,
-        governmentRegistration: extractedInfo.governmentRegistration,
-        qualityAssurance: extractedInfo.qualityAssurance,
-        
-        // Policies
+        // Policies - Map to schema fields
         withdrawalPolicy: extractedInfo.withdrawalPolicy,
         transferPolicy: extractedInfo.transferPolicy,
-        attendancePolicy: extractedInfo.attendancePolicy,
-        academicProgressPolicy: extractedInfo.academicProgressPolicy,
-        disciplinaryPolicy: extractedInfo.disciplinaryPolicy,
-        
-        // Services
-        additionalServices: extractedInfo.additionalServices,
-        studentSupportServices: extractedInfo.studentSupportServices,
-        careerServices: extractedInfo.careerServices,
-        libraryServices: extractedInfo.libraryServices,
-        itServices: extractedInfo.itServices,
+        refundPolicy: extractedInfo.refundPolicy,
         
         // Additional Information
         termsAndConditions: extractedInfo.termsAndConditions,
         importantNotes: extractedInfo.importantNotes,
-        disclaimers: extractedInfo.disclaimers,
         additionalInformation: extractedInfo.additionalInformation
       };
 
