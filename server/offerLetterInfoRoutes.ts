@@ -97,7 +97,7 @@ export function setupOfferLetterInfoRoutes(app: any) {
         id: info.id,
         fileName: info.fileName,
         institutionName: info.institutionName,
-        programName: info.programName,
+        courseName: info.courseName,
         createdAt: info.createdAt
       })));
 

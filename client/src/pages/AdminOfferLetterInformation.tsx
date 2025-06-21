@@ -65,7 +65,7 @@ export default function AdminOfferLetterInformation() {
 
   const uniqueInstitutions = Array.from(
     new Set((offerLetters as OfferLetterInfo[]).map(letter => letter.institutionName).filter(Boolean))
-  );
+  ).filter((institution): institution is string => institution !== null);
 
   if (isLoading) {
     return (
@@ -135,7 +135,7 @@ export default function AdminOfferLetterInformation() {
           >
             <option value="">All Institutions</option>
             {uniqueInstitutions.map((institution) => (
-              <option key={institution} value={institution}>
+              <option key={institution} value={institution || ""}>
                 {institution}
               </option>
             ))}
