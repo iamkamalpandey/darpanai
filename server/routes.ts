@@ -2323,35 +2323,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req as any).user.id;
       const analyses = await storage.getOfferLetterAnalysesByUser(userId);
       
-      // Filter out failed analyses and map successful ones
-      const validAnalyses = analyses.filter(analysis => 
-        analysis.universityName !== 'Analysis Error - Please Try Again'
-      );
-      
-      return res.status(200).json(validAnalyses.map(analysis => ({
+      return res.status(200).json(analyses.map(analysis => ({
         id: analysis.id,
-        fileName: analysis.filename,
+        fileName: analysis.fileName,
         fileSize: analysis.fileSize,
         analysisDate: analysis.createdAt,
-        profileAnalysis: {
-          academicStanding: analysis.academicStanding,
-          gpa: analysis.gpa,
-          financialStatus: analysis.financialStatus,
-          relevantSkills: analysis.relevantSkills || [],
-          strengths: analysis.strengths || [],
-          weaknesses: analysis.weaknesses || [],
-        },
-        universityInfo: {
-          name: analysis.universityName,
-          location: analysis.universityLocation,
-          program: analysis.program,
-          tuition: analysis.tuition,
-          duration: analysis.duration,
-        },
-        scholarshipOpportunities: analysis.scholarshipOpportunities || [],
-        costSavingStrategies: analysis.costSavingStrategies || [],
-        recommendations: analysis.recommendations || [],
-        nextSteps: analysis.nextSteps || [],
+        processingTime: analysis.processingTime,
+        tokensUsed: analysis.tokensUsed,
+        scrapingTime: analysis.scrapingTime,
+        analysis: analysis.hybridAnalysisResults || analysis.gptAnalysisResults || analysis.claudeAnalysisResults || {}
       })));
     } catch (error) {
       console.error('Error fetching offer letter analyses:', error);

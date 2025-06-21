@@ -1674,7 +1674,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
           {uploadProgress > 0 && (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Processing with Multi-AI System</span>
+                <span>Processing with Darpan AI System</span>
                 <span>{uploadProgress.toFixed(0)}%</span>
               </div>
               <Progress value={uploadProgress} className="w-full" />
