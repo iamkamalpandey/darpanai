@@ -240,7 +240,7 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {suggestion.recommendations.personalizedInsights.strengthsAnalysis.map((strength, i) => (
+                    {(suggestion.recommendations?.personalizedInsights?.strengthsAnalysis || []).map((strength, i) => (
                       <li key={i} className="flex items-start">
                         <span className="text-green-500 mr-2">✓</span>
                         <span className="text-gray-700">{strength}</span>
@@ -256,7 +256,7 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {suggestion.recommendations.personalizedInsights.improvementAreas.map((area, i) => (
+                    {(suggestion.recommendations?.personalizedInsights?.improvementAreas || []).map((area, i) => (
                       <li key={i} className="flex items-start">
                         <span className="text-orange-500 mr-2">→</span>
                         <span className="text-gray-700">{area}</span>
@@ -272,7 +272,7 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {suggestion.recommendations.personalizedInsights.strategicRecommendations.map((rec, i) => (
+                    {(suggestion.recommendations?.personalizedInsights?.strategicRecommendations || []).map((rec, i) => (
                       <li key={i} className="flex items-start">
                         <span className="text-blue-500 mr-2">•</span>
                         <span className="text-gray-700">{rec}</span>
@@ -293,7 +293,7 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {suggestion.recommendations.budgetOptimization.costSavingStrategies.map((strategy, i) => (
+                    {(suggestion.recommendations?.budgetOptimization?.costSavingStrategies || []).map((strategy, i) => (
                       <li key={i} className="flex items-start">
                         <span className="text-green-500 mr-2">💰</span>
                         <span className="text-gray-700">{strategy}</span>
@@ -309,7 +309,7 @@ export default function DestinationSuggestionDetail() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {suggestion.recommendations.budgetOptimization.scholarshipOpportunities.map((scholarship, i) => (
+                    {(suggestion.recommendations?.budgetOptimization?.scholarshipOpportunities || []).map((scholarship, i) => (
                       <li key={i} className="flex items-start">
                         <span className="text-blue-500 mr-2">🎓</span>
                         <span className="text-gray-700">{scholarship}</span>
@@ -335,15 +335,15 @@ export default function DestinationSuggestionDetail() {
                   <div className="grid gap-4">
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <h4 className="font-semibold text-blue-700 mb-2">Preparation Phase</h4>
-                      <p className="text-gray-700">{suggestion.recommendations.timeline.preparation}</p>
+                      <p className="text-gray-700">{suggestion.recommendations?.timeline?.preparation || 'Timeline information not available'}</p>
                     </div>
                     <div className="bg-green-50 p-4 rounded-lg">
                       <h4 className="font-semibold text-green-700 mb-2">Application Phase</h4>
-                      <p className="text-gray-700">{suggestion.recommendations.timeline.application}</p>
+                      <p className="text-gray-700">{suggestion.recommendations?.timeline?.application || 'Timeline information not available'}</p>
                     </div>
                     <div className="bg-purple-50 p-4 rounded-lg">
                       <h4 className="font-semibold text-purple-700 mb-2">Decision Making</h4>
-                      <p className="text-gray-700">{suggestion.recommendations.timeline.decisionMaking}</p>
+                      <p className="text-gray-700">{suggestion.recommendations?.timeline?.decisionMaking || 'Timeline information not available'}</p>
                     </div>
                   </div>
                 </CardContent>
