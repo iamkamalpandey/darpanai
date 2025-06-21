@@ -42,6 +42,54 @@ interface UserData {
   analysisCount: number;
   maxAnalyses: number;
   createdAt: string;
+  
+  // Personal Information
+  dateOfBirth?: string | null;
+  gender?: string | null;
+  nationality?: string | null;
+  passportNumber?: string | null;
+  secondaryNumber?: string | null;
+  address?: string | null;
+  
+  // Academic Information
+  highestQualification?: string | null;
+  highestInstitution?: string | null;
+  highestCountry?: string | null;
+  highestGpa?: string | null;
+  graduationYear?: number | string | null;
+  currentAcademicGap?: string | null;
+  educationHistory?: any[] | null;
+  
+  // Study Preferences
+  interestedCourse?: string | null;
+  fieldOfStudy?: string | null;
+  preferredIntake?: string | null;
+  budgetRange?: string | null;
+  preferredCountries?: string[] | null;
+  interestedServices?: string[] | null;
+  partTimeInterest?: boolean | null;
+  accommodationRequired?: boolean | null;
+  hasDependents?: boolean | null;
+  
+  // Employment Information
+  currentEmploymentStatus?: string | null;
+  workExperienceYears?: string | null;
+  jobTitle?: string | null;
+  organizationName?: string | null;
+  fieldOfWork?: string | null;
+  gapReasonIfAny?: string | null;
+  
+  // Financial Information
+  estimatedBudget?: string | null;
+  savingsAmount?: string | null;
+  loanApproval?: string | null;
+  loanAmount?: string | null;
+  sponsorDetails?: string | null;
+  financialDocuments?: boolean | null;
+  
+  // Language Proficiency
+  englishProficiencyTests?: any[] | null;
+  standardizedTests?: any[] | null;
 }
 
 interface AnalysisData {
@@ -52,6 +100,7 @@ interface AnalysisData {
   analysisResults: any;
   createdAt: string;
   isPublic: boolean;
+  documentType?: string;
 }
 
 // Form schemas for user management
@@ -1732,12 +1781,182 @@ export default function AdminUsers() {
                             <Label className="text-sm font-medium">Phone</Label>
                             <p className="text-sm text-gray-600">{selectedUser.phoneNumber}</p>
                           </div>
+                          <div>
+                            <Label className="text-sm font-medium">Date of Birth</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.dateOfBirth || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Gender</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.gender || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Nationality</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.nationality || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Passport Number</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.passportNumber || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Address</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.address || 'Not provided'}</p>
+                          </div>
                         </div>
                       </div>
 
                       <Separator />
 
-                      {/* Study Information */}
+                      {/* Academic Information */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Academic Information</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-sm font-medium">Highest Qualification</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.highestQualification || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Highest Institution</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.highestInstitution || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Institution Country</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.highestCountry || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">GPA/Grade</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.highestGpa || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Graduation Year</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.graduationYear || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Current Academic Gap</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.currentAcademicGap || 'Not provided'}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Study Preferences */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Study Preferences</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-sm font-medium">Interested Course</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.interestedCourse || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Field of Study</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.fieldOfStudy || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Preferred Intake</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.preferredIntake || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Budget Range</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.budgetRange || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Preferred Countries</Label>
+                            <p className="text-sm text-gray-600">
+                              {selectedUser.preferredCountries && selectedUser.preferredCountries.length > 0 
+                                ? selectedUser.preferredCountries.join(', ') 
+                                : 'Not provided'}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Part Time Interest</Label>
+                            <p className="text-sm text-gray-600">
+                              {selectedUser.partTimeInterest !== null ? (selectedUser.partTimeInterest ? 'Yes' : 'No') : 'Not provided'}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Accommodation Required</Label>
+                            <p className="text-sm text-gray-600">
+                              {selectedUser.accommodationRequired !== null ? (selectedUser.accommodationRequired ? 'Yes' : 'No') : 'Not provided'}
+                            </p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Has Dependents</Label>
+                            <p className="text-sm text-gray-600">
+                              {selectedUser.hasDependents !== null ? (selectedUser.hasDependents ? 'Yes' : 'No') : 'Not provided'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Employment Information */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Employment Information</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-sm font-medium">Employment Status</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.currentEmploymentStatus || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Work Experience (Years)</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.workExperienceYears || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Job Title</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.jobTitle || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Organization</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.organizationName || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Field of Work</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.fieldOfWork || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Gap Reason</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.gapReasonIfAny || 'Not provided'}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Financial Information */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">Financial Information</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-sm font-medium">Funding Source</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.fundingSource || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Estimated Budget</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.estimatedBudget || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Savings Amount</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.savingsAmount || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Loan Approval</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.loanApproval || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Loan Amount</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.loanAmount || 'Not provided'}</p>
+                          </div>
+                          <div>
+                            <Label className="text-sm font-medium">Sponsor Details</Label>
+                            <p className="text-sm text-gray-600">{selectedUser.sponsorDetails || 'Not provided'}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      {/* Legacy Study Information */}
                       <div>
                         <h3 className="text-lg font-semibold mb-3">Study Information</h3>
                         <div className="grid grid-cols-2 gap-4">
@@ -1756,10 +1975,6 @@ export default function AdminUsers() {
                           <div>
                             <Label className="text-sm font-medium">Counselling Mode</Label>
                             <p className="text-sm text-gray-600">{selectedUser.counsellingMode}</p>
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium">Funding Source</Label>
-                            <p className="text-sm text-gray-600">{selectedUser.fundingSource}</p>
                           </div>
                           <div>
                             <Label className="text-sm font-medium">Location</Label>
@@ -1815,77 +2030,216 @@ export default function AdminUsers() {
                   <ScrollArea className="h-[500px] pr-4">
                     {userAnalyses.length > 0 ? (
                       <div className="space-y-4">
-                        {userAnalyses.map((analysis) => (
-                          <Card key={analysis.id}>
-                            <CardHeader className="pb-3">
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <CardTitle className="text-base">{analysis.fileName}</CardTitle>
-                                  <CardDescription>
-                                    Analyzed on {format(new Date(analysis.createdAt), "PPP")}
-                                  </CardDescription>
-                                </div>
-                                <Badge variant={analysis.isPublic ? "default" : "secondary"}>
-                                  {analysis.isPublic ? "Public" : "Private"}
-                                </Badge>
-                              </div>
-                            </CardHeader>
-                            <CardContent className="pt-0">
-                              <div className="space-y-3">
-                                {analysis.analysisResults && (
-                                  <div className="space-y-2">
-                                    {analysis.analysisResults.summary && (
-                                      <div>
-                                        <Label className="text-sm font-medium">Summary</Label>
-                                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                                          {analysis.analysisResults.summary}
-                                        </p>
-                                      </div>
-                                    )}
-                                    {analysis.analysisResults.rejectionReasons?.length > 0 && (
-                                      <div>
-                                        <Label className="text-sm font-medium">Rejection Reasons</Label>
-                                        <div className="mt-1 space-y-1">
-                                          {analysis.analysisResults.rejectionReasons.slice(0, 2).map((reason: any, idx: number) => (
-                                            <div key={idx} className="text-sm">
-                                              <span className="font-medium">{reason.title}</span>
-                                              <p className="text-gray-600 text-xs line-clamp-1">{reason.description}</p>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
+                        {userAnalyses.map((analysis) => {
+                          // Determine analysis type and extract relevant details
+                          const isEnrollmentAnalysis = analysis.analysisType === 'enrollment_analysis' || 
+                            (analysis.analysisResults?.institutionName || 
+                             analysis.analysisResults?.programName ||
+                             analysis.analysisResults?.studentName);
+                          
+                          const analysisType = isEnrollmentAnalysis ? 'COE Analysis' : 'Visa Analysis';
+                          const analysisIcon = isEnrollmentAnalysis ? '🎓' : '✈️';
+                          
+                          // Extract key information for display
+                          interface EnrollmentKeyInfo {
+                            institution?: string;
+                            program?: string;
+                            student?: string;
+                            tuition?: string;
+                            startDate?: string;
+                          }
+
+                          interface VisaKeyInfo {
+                            visaType?: string;
+                            country?: string;
+                            applicationStatus?: string;
+                            severity?: string;
+                            rejectionCount?: number;
+                          }
+
+                          let keyInfo: EnrollmentKeyInfo | VisaKeyInfo = {};
+                          
+                          if (analysis.analysisResults) {
+                            if (isEnrollmentAnalysis) {
+                              keyInfo = {
+                                institution: analysis.analysisResults.institutionName || analysis.analysisResults.institution,
+                                program: analysis.analysisResults.programName || analysis.analysisResults.program,
+                                student: analysis.analysisResults.studentName || analysis.analysisResults.studentDetails?.name,
+                                tuition: analysis.analysisResults.tuitionFee || analysis.analysisResults.financialDetails?.tuitionFee,
+                                startDate: analysis.analysisResults.startDate || analysis.analysisResults.courseDetails?.startDate
+                              } as EnrollmentKeyInfo;
+                            } else {
+                              keyInfo = {
+                                visaType: analysis.analysisResults.visaType,
+                                country: analysis.analysisResults.country || analysis.analysisResults.destinationCountry,
+                                applicationStatus: analysis.analysisResults.applicationStatus,
+                                severity: analysis.analysisResults.severity,
+                                rejectionCount: analysis.analysisResults.rejectionReasons?.length || 0
+                              } as VisaKeyInfo;
+                            }
+                          }
+
+                          return (
+                            <Card key={analysis.id} className="border-l-4" style={{
+                              borderLeftColor: isEnrollmentAnalysis ? '#22c55e' : '#3b82f6'
+                            }}>
+                              <CardHeader className="pb-3">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <span className="text-lg">{analysisIcon}</span>
+                                      <Badge variant="outline" className="text-xs">
+                                        {analysisType}
+                                      </Badge>
+                                      <Badge variant={analysis.isPublic ? "default" : "secondary"} className="text-xs">
+                                        {analysis.isPublic ? "Public" : "Private"}
+                                      </Badge>
+                                    </div>
+                                    <CardTitle className="text-base mb-1">{analysis.fileName}</CardTitle>
+                                    <CardDescription className="text-sm">
+                                      Analyzed on {format(new Date(analysis.createdAt), "MMM dd, yyyy 'at' h:mm a")}
+                                    </CardDescription>
                                   </div>
-                                )}
-                                
-                                {/* View Analysis Button */}
-                                <div className="flex justify-end pt-2 border-t">
-                                  <Button 
-                                    size="sm" 
-                                    variant="outline"
-                                    onClick={() => {
-                                      // Admin access to analysis details - use admin routes
-                                      const isEnrollmentAnalysis = analysis.analysisType === 'enrollment_analysis' || 
-                                        (analysis.analysisResults?.institutionName || 
-                                         analysis.analysisResults?.programName ||
-                                         analysis.analysisResults?.studentName);
-                                      
-                                      if (isEnrollmentAnalysis) {
-                                        window.open(`/admin/coe-analysis/${analysis.id}`, '_blank');
-                                      } else {
-                                        window.open(`/admin/visa-analysis/${analysis.id}`, '_blank');
-                                      }
-                                    }}
-                                    className="flex items-center gap-1"
-                                  >
-                                    <Eye className="h-3 w-3" />
-                                    View Analysis
-                                  </Button>
                                 </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                              </CardHeader>
+                              <CardContent className="pt-0">
+                                <div className="space-y-3">
+                                  {/* Analysis Type Specific Information */}
+                                  {isEnrollmentAnalysis ? (
+                                    <div className="grid grid-cols-2 gap-3 text-sm">
+                                      {(keyInfo as EnrollmentKeyInfo).institution && (
+                                        <div>
+                                          <Label className="text-xs font-medium text-gray-500">Institution</Label>
+                                          <p className="text-sm font-medium">{(keyInfo as EnrollmentKeyInfo).institution}</p>
+                                        </div>
+                                      )}
+                                      {(keyInfo as EnrollmentKeyInfo).program && (
+                                        <div>
+                                          <Label className="text-xs font-medium text-gray-500">Program</Label>
+                                          <p className="text-sm font-medium">{(keyInfo as EnrollmentKeyInfo).program}</p>
+                                        </div>
+                                      )}
+                                      {(keyInfo as EnrollmentKeyInfo).student && (
+                                        <div>
+                                          <Label className="text-xs font-medium text-gray-500">Student</Label>
+                                          <p className="text-sm font-medium">{(keyInfo as EnrollmentKeyInfo).student}</p>
+                                        </div>
+                                      )}
+                                      {(keyInfo as EnrollmentKeyInfo).tuition && (
+                                        <div>
+                                          <Label className="text-xs font-medium text-gray-500">Tuition Fee</Label>
+                                          <p className="text-sm font-medium text-blue-600">{(keyInfo as EnrollmentKeyInfo).tuition}</p>
+                                        </div>
+                                      )}
+                                      {(keyInfo as EnrollmentKeyInfo).startDate && (
+                                        <div>
+                                          <Label className="text-xs font-medium text-gray-500">Start Date</Label>
+                                          <p className="text-sm font-medium">{(keyInfo as EnrollmentKeyInfo).startDate}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="grid grid-cols-2 gap-3 text-sm">
+                                      {(keyInfo as VisaKeyInfo).visaType && (
+                                        <div>
+                                          <Label className="text-xs font-medium text-gray-500">Visa Type</Label>
+                                          <p className="text-sm font-medium">{(keyInfo as VisaKeyInfo).visaType}</p>
+                                        </div>
+                                      )}
+                                      {(keyInfo as VisaKeyInfo).country && (
+                                        <div>
+                                          <Label className="text-xs font-medium text-gray-500">Country</Label>
+                                          <p className="text-sm font-medium">{(keyInfo as VisaKeyInfo).country}</p>
+                                        </div>
+                                      )}
+                                      {(keyInfo as VisaKeyInfo).applicationStatus && (
+                                        <div>
+                                          <Label className="text-xs font-medium text-gray-500">Status</Label>
+                                          <Badge variant={(keyInfo as VisaKeyInfo).applicationStatus === 'rejected' ? 'destructive' : 'default'} className="text-xs">
+                                            {(keyInfo as VisaKeyInfo).applicationStatus}
+                                          </Badge>
+                                        </div>
+                                      )}
+                                      {(keyInfo as VisaKeyInfo).rejectionCount && (keyInfo as VisaKeyInfo).rejectionCount! > 0 && (
+                                        <div>
+                                          <Label className="text-xs font-medium text-gray-500">Issues Found</Label>
+                                          <p className="text-sm font-medium text-red-600">{(keyInfo as VisaKeyInfo).rejectionCount} issues</p>
+                                        </div>
+                                      )}
+                                      {(keyInfo as VisaKeyInfo).severity && (
+                                        <div>
+                                          <Label className="text-xs font-medium text-gray-500">Severity</Label>
+                                          <Badge variant={(keyInfo as VisaKeyInfo).severity === 'high' ? 'destructive' : (keyInfo as VisaKeyInfo).severity === 'medium' ? 'default' : 'secondary'} className="text-xs">
+                                            {(keyInfo as VisaKeyInfo).severity}
+                                          </Badge>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {/* Summary if available */}
+                                  {analysis.analysisResults?.summary && (
+                                    <div>
+                                      <Label className="text-xs font-medium text-gray-500">Summary</Label>
+                                      <p className="text-sm text-gray-700 mt-1 line-clamp-2">
+                                        {analysis.analysisResults.summary}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  {/* Key Issues Preview for Visa Analysis */}
+                                  {!isEnrollmentAnalysis && analysis.analysisResults?.rejectionReasons?.length > 0 && (
+                                    <div>
+                                      <Label className="text-xs font-medium text-gray-500">Key Issues</Label>
+                                      <div className="mt-1 space-y-1">
+                                        {analysis.analysisResults.rejectionReasons.slice(0, 2).map((reason: any, idx: number) => (
+                                          <div key={idx} className="text-sm">
+                                            <span className="font-medium text-red-700">{reason.title || reason.category}</span>
+                                            {reason.description && (
+                                              <p className="text-gray-600 text-xs line-clamp-1">{reason.description}</p>
+                                            )}
+                                          </div>
+                                        ))}
+                                        {analysis.analysisResults.rejectionReasons.length > 2 && (
+                                          <p className="text-xs text-gray-500">
+                                            +{analysis.analysisResults.rejectionReasons.length - 2} more issues
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* View Analysis Button */}
+                                  <div className="flex justify-between items-center pt-2 border-t">
+                                    <div className="flex gap-1">
+                                      <Badge variant="outline" className="text-xs px-2 py-1">
+                                        ID: {analysis.id}
+                                      </Badge>
+                                      <Badge variant="outline" className="text-xs px-2 py-1">
+                                        {analysis.documentType || 'Document'}
+                                      </Badge>
+                                    </div>
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline"
+                                      onClick={() => {
+                                        if (isEnrollmentAnalysis) {
+                                          window.open(`/admin/coe-analysis/${analysis.id}`, '_blank');
+                                        } else {
+                                          window.open(`/admin/visa-analysis/${analysis.id}`, '_blank');
+                                        }
+                                      }}
+                                      className="flex items-center gap-1"
+                                    >
+                                      <Eye className="h-3 w-3" />
+                                      View Analysis
+                                    </Button>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="text-center py-12">

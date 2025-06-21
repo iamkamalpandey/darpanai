@@ -809,64 +809,6 @@ const ProfilePageRedesign: React.FC = () => {
         {/* Data Validation Warnings */}
         <DataValidationWarnings user={user} />
 
-        {/* Comprehensive Save Function Test Button */}
-        <Card className="mb-8 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-          <CardHeader>
-            <CardTitle className="text-green-900 flex items-center">
-              <CheckCircle2 className="w-5 h-5 mr-2" />
-              Save Function Testing
-            </CardTitle>
-            <CardDescription className="text-green-700">
-              Test comprehensive save functionality across all profile sections with validation
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              onClick={() => {
-                console.log('=== COMPREHENSIVE SAVE FUNCTION TEST INITIATED ===');
-                console.log('Current user data preview:', {
-                  personal: {
-                    firstName: user?.firstName,
-                    lastName: user?.lastName,
-                    phoneNumber: user?.phoneNumber,
-                    dateOfBirth: user?.dateOfBirth,
-                    nationality: user?.nationality
-                  },
-                  academic: {
-                    highestQualification: user?.highestQualification,
-                    highestInstitution: user?.highestInstitution,
-                    graduationYear: user?.graduationYear
-                  },
-                  study: {
-                    interestedCourse: user?.interestedCourse,
-                    fieldOfStudy: user?.fieldOfStudy,
-                    budgetRange: user?.budgetRange
-                  },
-                  financial: {
-                    fundingSource: user?.fundingSource,
-                    estimatedBudget: user?.estimatedBudget
-                  },
-                  employment: {
-                    currentEmploymentStatus: user?.currentEmploymentStatus
-                  }
-                });
-                
-                // Test data preloading by opening and closing personal section
-                console.log('Testing data preloading functionality...');
-                setEditingSection('personal');
-                setTimeout(() => {
-                  console.log('✓ Personal form preloaded with existing data');
-                  setEditingSection(null);
-                }, 2000);
-              }}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              Test Save Functions & Data Validation
-            </Button>
-          </CardContent>
-        </Card>
-
         {/* Profile Completion Card */}
         <Card className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
           <CardHeader>
