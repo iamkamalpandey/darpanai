@@ -3074,6 +3074,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Setup comprehensive multi-AI offer letter analysis routes
+  setupOfferLetterRoutes(app, requireAuth, requireAdmin);
+
   const httpServer = createServer(app);
 
   return httpServer;
