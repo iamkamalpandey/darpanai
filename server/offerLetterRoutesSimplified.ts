@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import multer from 'multer';
 import { offerLetterStorage } from './offerLetterStorage';
 import { extractTextFromPdf } from './fileProcessing';
+import OpenAI from 'openai';
 
 // Configure multer for file uploads
 const upload = multer({
@@ -26,32 +27,31 @@ export function setupOfferLetterRoutesSimplified(app: any) {
       const documentText = await extractTextFromPdf(file.buffer);
       console.log(`Extracted ${documentText.length} characters from document`);
 
-      // Step 2: Save document to documents table
+      // Step 2: Extract real data from document text
+      const extractedData = extractDocumentData(documentText);
+      
+      // Step 3: Save document to documents table with extracted data
       const document = await offerLetterStorage.saveDocument({
         userId: user.id,
         fileName: file.originalname,
         fileSize: file.size,
         documentText: documentText,
-        institutionName: "Test Institution",
-        programName: "Test Program",
-        studentName: "Test Student",
-        tuitionAmount: "$25,000",
-        startDate: "2025-09-01"
+        institutionName: extractedData.institutionName,
+        programName: extractedData.programName,
+        studentName: extractedData.studentName,
+        tuitionAmount: extractedData.tuitionAmount,
+        startDate: extractedData.startDate
       });
 
-      // Step 3: Create simplified analysis result
+      // Step 4: Perform AI analysis with OpenAI
+      const startTime = Date.now();
+      const aiAnalysis = await performOfferLetterAnalysis(documentText, extractedData);
+      const processingTime = Date.now() - startTime;
+
       const analysisResult = {
-        analysis: {
-          institution: "Test Institution",
-          executiveSummary: "This is a test analysis for the separated architecture implementation.",
-          offerDetails: {
-            program: "Test Program",
-            tuition: "$25,000",
-            startDate: "September 2025"
-          }
-        },
-        tokensUsed: 150,
-        processingTime: 2000
+        analysis: aiAnalysis.analysis,
+        tokensUsed: aiAnalysis.tokensUsed,
+        processingTime: processingTime
       };
 
       // Step 4: Save analysis results to separate table
