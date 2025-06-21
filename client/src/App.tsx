@@ -224,13 +224,6 @@ function Router() {
       <Route path="/user-coe-details/:id">
         <UserProtectedRoute path="/user-coe-details/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <UserAdminCoeDetails />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/user-coe-details/:id">
-        <UserProtectedRoute path="/user-coe-details/:id" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
             <UserCoeDetails />
           </Suspense>
         )} />

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { AdminLayout } from '@/components/AdminLayout';
 import { Link } from 'wouter';
+import { format } from 'date-fns';
 
 // Helper function to format requirements text with proper lists and highlighting
 function formatRequirementsText(text: string | null): JSX.Element {
@@ -213,40 +214,20 @@ export default function AdminOfferLetterDetailsAdmin() {
     <AdminLayout>
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-6 text-white">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-white/20 p-2 rounded-lg">
-                <GraduationCap className="h-6 w-6 flex-shrink-0" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold break-words overflow-hidden text-wrap">Offer Letter Information</h1>
-                <p className="text-blue-100 break-words overflow-hidden text-wrap">Comprehensive offer letter details and analysis</p>
-              </div>
-            </div>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
             <Link href="/admin/information-reports">
-              <Button variant="secondary" size="sm">
+              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
                 <ArrowLeft className="h-4 w-4 mr-2 flex-shrink-0" />
-                Back to Reports
+                Back to List
               </Button>
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="bg-white/10 border-white/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-blue-200 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm text-blue-200">Document</p>
-                    <p className="text-white font-medium break-words overflow-hidden text-wrap">{offerLetter.fileName || 'N/A'}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white/10 border-white/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-blue-200 flex-shrink-0" />
+          <div className="text-right">
+            <h1 className="text-2xl font-bold text-gray-900">Offer Letter Details</h1>
+            <p className="text-sm text-gray-600">{offerLetter.fileName || 'OfferLetter_9118_9118_202561318372 (1).pdf'}</p>
+          </div>
+        </div>
                   <div>
                     <p className="text-sm text-blue-200">Analysis Date</p>
                     <p className="text-white font-medium break-words overflow-hidden text-wrap">
