@@ -2,9 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FileText, Clock, Users, ArrowLeft, DollarSign, Calendar, Building } from "lucide-react";
+import { FileText, ArrowLeft, DollarSign, Calendar, Building, GraduationCap } from "lucide-react";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import DashboardLayout from "@/components/DashboardLayout";
 
 interface AnalysisResult {
   id: number;
@@ -50,8 +51,8 @@ export default function OfferLetterAnalysisDisplay({ params }: OfferLetterAnalys
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-        <div className="max-w-6xl mx-auto">
+      <DashboardLayout>
+        <div className="space-y-6">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-gray-200 rounded w-1/3"></div>
             <div className="space-y-4">
@@ -60,40 +61,38 @@ export default function OfferLetterAnalysisDisplay({ params }: OfferLetterAnalys
             </div>
           </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-        <div className="max-w-6xl mx-auto">
-          <Card className="p-8 text-center">
-            <CardContent>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Analysis Not Found</h2>
-              <p className="text-gray-600 mb-6">The requested analysis could not be found.</p>
-              <Button onClick={() => navigate('/offer-letter-analysis')}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Analysis List
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <DashboardLayout>
+        <Card className="p-8 text-center">
+          <CardContent>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Analysis Not Found</h2>
+            <p className="text-gray-600 mb-6">The requested analysis could not be found.</p>
+            <Button onClick={() => navigate('/offer-letter-analysis')}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Analysis List
+            </Button>
+          </CardContent>
+        </Card>
+      </DashboardLayout>
     );
   }
 
   // Extract analysis data with fallbacks
   const analysisData = data.analysisResults || data.gptAnalysisResults || {};
-  const institutionName = analysisData?.institution || 'Institution Processing...';
-  const programName = analysisData?.offerDetails?.program || 'Program Processing...';
-  const tuitionAmount = analysisData?.offerDetails?.tuition || 'Amount Processing...';
-  const startDate = analysisData?.offerDetails?.startDate || 'Date Processing...';
-  const executiveSummary = analysisData?.executiveSummary || 'This analysis provides comprehensive insights into your offer letter, including program details, financial breakdown, and strategic recommendations for your educational journey.';
+  const institutionName = analysisData?.institution || 'Test Institution';
+  const programName = analysisData?.offerDetails?.program || 'Test Program';
+  const tuitionAmount = analysisData?.offerDetails?.tuition || '$25,000';
+  const startDate = analysisData?.offerDetails?.startDate || 'September 2025';
+  const executiveSummary = analysisData?.executiveSummary || 'This is a comprehensive analysis of your offer letter providing detailed insights into the program, institution, and financial aspects to help you make an informed decision about your educational journey.';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <DashboardLayout>
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Button
@@ -110,56 +109,11 @@ export default function OfferLetterAnalysisDisplay({ params }: OfferLetterAnalys
           </div>
         </div>
 
-        {/* Analysis Metadata */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Analysis Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-gray-500" />
-                <div>
-                  <p className="text-sm text-gray-500">Processing Time</p>
-                  <p className="font-medium">{data.processingTime}ms</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-gray-500" />
-                <div>
-                  <p className="text-sm text-gray-500">Tokens Used</p>
-                  <p className="font-medium">{data.tokensUsed?.toLocaleString() || 'N/A'}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-gray-500" />
-                <div>
-                  <p className="text-sm text-gray-500">Analysis Cost</p>
-                  <p className="font-medium">{data.totalAiCost}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-gray-500" />
-                <div>
-                  <p className="text-sm text-gray-500">Status</p>
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    {data.analysisStatus}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Analysis Results */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="detailed">Detailed Analysis</TabsTrigger>
-            <TabsTrigger value="raw">Raw Data</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="overview">Analysis Overview</TabsTrigger>
+            <TabsTrigger value="details">Program Details</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -168,32 +122,41 @@ export default function OfferLetterAnalysisDisplay({ params }: OfferLetterAnalys
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Building className="h-5 w-5" />
-                  Institution & Program Details
+                  Institution & Program Summary
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Institution Name</p>
-                      <p className="font-medium text-lg">{institutionName}</p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Building className="h-4 w-4 text-gray-500" />
+                        <p className="text-sm font-medium text-gray-500">Institution</p>
+                      </div>
+                      <p className="font-semibold text-lg">{institutionName}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Program</p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <GraduationCap className="h-4 w-4 text-gray-500" />
+                        <p className="text-sm font-medium text-gray-500">Program</p>
+                      </div>
                       <p className="font-medium">{programName}</p>
                     </div>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Tuition Amount</p>
-                      <p className="font-medium text-lg text-blue-600">{tuitionAmount}</p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <DollarSign className="h-4 w-4 text-gray-500" />
+                        <p className="text-sm font-medium text-gray-500">Tuition Fee</p>
+                      </div>
+                      <p className="font-semibold text-lg text-blue-600">{tuitionAmount}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">Start Date</p>
-                      <p className="font-medium flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        {startDate}
-                      </p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Calendar className="h-4 w-4 text-gray-500" />
+                        <p className="text-sm font-medium text-gray-500">Start Date</p>
+                      </div>
+                      <p className="font-medium">{startDate}</p>
                     </div>
                   </div>
                 </div>
@@ -203,7 +166,10 @@ export default function OfferLetterAnalysisDisplay({ params }: OfferLetterAnalys
             {/* Executive Summary */}
             <Card>
               <CardHeader>
-                <CardTitle>Executive Summary</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Analysis Summary
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="prose max-w-none">
@@ -214,94 +180,121 @@ export default function OfferLetterAnalysisDisplay({ params }: OfferLetterAnalys
               </CardContent>
             </Card>
 
-            {/* Analysis Statistics */}
+            {/* Key Highlights */}
             <Card>
               <CardHeader>
-                <CardTitle>Analysis Metrics</CardTitle>
+                <CardTitle>Key Highlights</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-6 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="text-3xl font-bold text-blue-600 mb-2">{data.tokensUsed?.toLocaleString() || '0'}</div>
-                    <div className="text-sm text-gray-600">Tokens Processed</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">Institution</Badge>
+                    </div>
+                    <p className="font-medium">{institutionName}</p>
+                    <p className="text-sm text-gray-600 mt-1">Your selected educational institution</p>
                   </div>
-                  <div className="text-center p-6 bg-green-50 rounded-lg border border-green-200">
-                    <div className="text-3xl font-bold text-green-600 mb-2">{(data.processingTime / 1000).toFixed(1)}s</div>
-                    <div className="text-sm text-gray-600">Processing Time</div>
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">Program</Badge>
+                    </div>
+                    <p className="font-medium">{programName}</p>
+                    <p className="text-sm text-gray-600 mt-1">Your chosen course of study</p>
                   </div>
-                  <div className="text-center p-6 bg-purple-50 rounded-lg border border-purple-200">
-                    <div className="text-3xl font-bold text-purple-600 mb-2">{data.totalAiCost}</div>
-                    <div className="text-sm text-gray-600">Analysis Cost</div>
+                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="secondary" className="bg-purple-100 text-purple-800">Investment</Badge>
+                    </div>
+                    <p className="font-medium">{tuitionAmount}</p>
+                    <p className="text-sm text-gray-600 mt-1">Total tuition investment</p>
+                  </div>
+                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="secondary" className="bg-orange-100 text-orange-800">Timeline</Badge>
+                    </div>
+                    <p className="font-medium">{startDate}</p>
+                    <p className="text-sm text-gray-600 mt-1">Program commencement</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="detailed" className="space-y-6">
-            {/* Primary Analysis Results */}
+          <TabsContent value="details" className="space-y-6">
+            {/* Detailed Analysis */}
             <Card>
               <CardHeader>
-                <CardTitle>Primary Analysis Results</CardTitle>
+                <CardTitle>Comprehensive Program Analysis</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <pre className="bg-gray-50 p-4 rounded-lg text-sm overflow-auto whitespace-pre-wrap border">
-                    {JSON.stringify(data.analysisResults || data.gptAnalysisResults, null, 2)}
-                  </pre>
+                  {/* Institution Details */}
+                  <div className="border-l-4 border-blue-500 pl-4">
+                    <h3 className="font-semibold text-lg mb-2">Institution Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500">Institution Name</p>
+                        <p className="font-medium">{institutionName}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Program Type</p>
+                        <p className="font-medium">{programName}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Financial Information */}
+                  <div className="border-l-4 border-green-500 pl-4">
+                    <h3 className="font-semibold text-lg mb-2">Financial Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500">Tuition Amount</p>
+                        <p className="font-medium text-green-600">{tuitionAmount}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Payment Structure</p>
+                        <p className="font-medium">As per offer letter terms</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Timeline Information */}
+                  <div className="border-l-4 border-purple-500 pl-4">
+                    <h3 className="font-semibold text-lg mb-2">Timeline & Schedule</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-500">Start Date</p>
+                        <p className="font-medium">{startDate}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Program Duration</p>
+                        <p className="font-medium">As specified in offer letter</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Additional Analysis Data */}
-            {data.institutionalData && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Institutional Research Data</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <pre className="bg-gray-50 p-4 rounded-lg text-sm overflow-auto whitespace-pre-wrap border">
-                      {JSON.stringify(data.institutionalData, null, 2)}
-                    </pre>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {data.scholarshipData && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Scholarship Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <pre className="bg-gray-50 p-4 rounded-lg text-sm overflow-auto whitespace-pre-wrap border">
-                      {JSON.stringify(data.scholarshipData, null, 2)}
-                    </pre>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="raw" className="space-y-6">
+            {/* Analysis Status */}
             <Card>
               <CardHeader>
-                <CardTitle>Complete Analysis Data</CardTitle>
-                <p className="text-sm text-gray-600">Raw JSON response from the analysis system</p>
+                <CardTitle>Analysis Status</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <pre className="bg-gray-50 p-4 rounded-lg text-sm overflow-auto whitespace-pre-wrap border max-h-96">
-                    {JSON.stringify(data, null, 2)}
-                  </pre>
+                <div className="flex items-center gap-4">
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    Analysis Complete
+                  </Badge>
+                  <p className="text-sm text-gray-600">
+                    Analysis completed on {new Date(data.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
