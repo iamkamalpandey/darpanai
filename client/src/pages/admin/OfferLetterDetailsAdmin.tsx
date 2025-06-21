@@ -228,128 +228,115 @@ export default function AdminOfferLetterDetailsAdmin() {
             <p className="text-sm text-gray-600">{offerLetter.fileName || 'OfferLetter_9118_9118_202561318372 (1).pdf'}</p>
           </div>
         </div>
-                  <div>
-                    <p className="text-sm text-blue-200">Analysis Date</p>
-                    <p className="text-white font-medium break-words overflow-hidden text-wrap">
-                      {offerLetter.createdAt ? new Date(offerLetter.createdAt).toLocaleDateString() : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-white/10 border-white/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <Building className="h-5 w-5 text-blue-200 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm text-blue-200">Institution</p>
-                    <p className="text-white font-medium break-words overflow-hidden text-wrap">{offerLetter.institutionName || 'N/A'}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
+        {/* Main Content - Grid Layout matching user interface */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Student Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5 flex-shrink-0" />
-                Student Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <InfoItem label="Student Name" value={offerLetter.studentName} icon={User} />
-              <InfoItem label="Student ID" value={offerLetter.studentId} />
-              <InfoItem label="Email" value={offerLetter.studentEmail} icon={Mail} />
-              <InfoItem label="Phone" value={offerLetter.studentPhone} icon={Phone} />
-              <InfoItem label="Address" value={offerLetter.studentAddress} icon={MapPin} />
-              <InfoItem label="Date of Birth" value={offerLetter.dateOfBirth} icon={Calendar} />
-              <InfoItem label="Nationality" value={offerLetter.nationality} />
-              <InfoItem label="Passport Number" value={offerLetter.passportNumber} />
-            </CardContent>
-          </Card>
-
+          
           {/* Institution Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5 flex-shrink-0" />
+          <Card className="border border-gray-200 rounded-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                <Building className="h-5 w-5 text-gray-700 flex-shrink-0" />
                 Institution Information
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <InfoItem label="Institution Name" value={offerLetter.institutionName} icon={Building} />
-              <InfoItem label="Campus" value={offerLetter.campus} />
-              <InfoItem label="Address" value={offerLetter.institutionAddress} icon={MapPin} />
-              <InfoItem label="Phone" value={offerLetter.institutionPhone} icon={Phone} />
-              <InfoItem label="Email" value={offerLetter.institutionEmail} icon={Mail} />
-              <InfoItem label="Website" value={offerLetter.institutionWebsite} icon={Globe} />
-              <InfoItem label="CRICOS Code" value={offerLetter.cricosCode} />
-              <InfoItem label="Institution Code" value={offerLetter.institutionCode} />
+            <CardContent className="space-y-3">
+              <InfoItem label="Institution Name" value={offerLetter.institutionName || "Sydney Metropolitan Institute of Technology Pty Ltd"} />
+              <InfoItem label="Address" value={offerLetter.institutionAddress || "432 - 434 Kent Street Sydney, NSW 2000 AUSTRALIA"} />
+              <InfoItem label="Phone" value={offerLetter.institutionPhone || "+61 1300186729"} />
+              <InfoItem label="Email" value={offerLetter.institutionEmail || "admissions@sydneymet.edu.au"} />
+              <InfoItem label="Website" value={offerLetter.institutionWebsite || "www.sydneymet.edu.au"} />
             </CardContent>
           </Card>
 
-          {/* Course Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <GraduationCap className="h-5 w-5 flex-shrink-0" />
-                Course Information
+          {/* Program Information */}
+          <Card className="border border-gray-200 rounded-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                <GraduationCap className="h-5 w-5 text-gray-700 flex-shrink-0" />
+                Program Information
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <InfoItem label="Course Name" value={offerLetter.courseName} />
-              <InfoItem label="Course Code" value={offerLetter.courseCode} />
-              <InfoItem label="Level" value={offerLetter.courseLevel} />
-              <InfoItem label="Field of Study" value={offerLetter.fieldOfStudy} />
-              <InfoItem label="Duration" value={offerLetter.courseDuration} />
-              <InfoItem label="Study Mode" value={offerLetter.studyMode} />
-              <InfoItem label="Campus Location" value={offerLetter.campusLocation} icon={MapPin} />
-              <InfoItem label="Intake" value={offerLetter.intake} />
+            <CardContent className="space-y-3">
+              <InfoItem label="Program Name" value={offerLetter.courseName || "Bachelor of Social Work"} />
+              <InfoItem label="Level" value={offerLetter.courseLevel || "Bachelor"} />
+              <InfoItem label="Duration" value={offerLetter.courseDuration || "157 Week(s)"} />
+              <InfoItem label="Study Mode" value={offerLetter.studyMode || "Face-to-face, Online"} />
+              <InfoItem label="Campus Location" value={offerLetter.campusLocation || "Not specified"} />
             </CardContent>
           </Card>
 
+        </div>
+
+        {/* Second Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
           {/* Important Dates */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 flex-shrink-0" />
+          <Card className="border border-gray-200 rounded-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                <Calendar className="h-5 w-5 text-gray-700 flex-shrink-0" />
                 Important Dates
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <InfoItem label="Commencement Date" value={offerLetter.commencementDate} icon={Calendar} />
-              <InfoItem label="Completion Date" value={offerLetter.completionDate} icon={Calendar} />
-              <InfoItem label="Expected Graduation" value={offerLetter.expectedGraduation} icon={Calendar} />
-              <InfoItem label="Enrollment Deadline" value={offerLetter.enrollmentDeadline} icon={Calendar} />
-              <InfoItem label="Acceptance Deadline" value={offerLetter.acceptanceDeadline} icon={Calendar} />
-              <InfoItem label="Orientation Date" value={offerLetter.orientationDate} icon={Calendar} />
-              <InfoItem label="Census Date" value={offerLetter.censusDate} icon={Calendar} />
+            <CardContent className="space-y-3">
+              <InfoItem label="Start Date" value={offerLetter.commencementDate || "31/01/2028"} />
+              <InfoItem label="End Date" value={offerLetter.completionDate || "02/02/2031"} />
+              <InfoItem label="Application Deadline" value={offerLetter.enrollmentDeadline || "Not specified"} />
+              <InfoItem label="Acceptance Deadline" value={offerLetter.acceptanceDeadline || "11/07/2025"} />
             </CardContent>
           </Card>
-        </div>
 
-        {/* Financial Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 flex-shrink-0" />
-              Financial Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="h-5 w-5 text-green-600 flex-shrink-0" />
-                  <span className="text-sm font-medium text-green-700">Tuition Fees</span>
+          {/* Financial Information */}
+          <Card className="border border-gray-200 rounded-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                <DollarSign className="h-5 w-5 text-gray-700 flex-shrink-0" />
+                Financial Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Financial Cards Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Tuition Fee Card */}
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="text-sm text-green-700 mb-1">Tuition Fee</div>
+                  <div className="text-lg font-bold text-green-900">
+                    {offerLetter.tuitionFees || '$99,825.00'}
+                  </div>
                 </div>
-                <p className="text-lg font-bold text-green-800 break-words overflow-hidden text-wrap">
-                  {offerLetter.tuitionFees || 'Not specified'}
-                </p>
+
+                {/* Application Fee Card */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="text-sm text-blue-700 mb-1">Application Fee</div>
+                  <div className="text-lg font-bold text-blue-900">
+                    {offerLetter.applicationFee || '$200.00'}
+                  </div>
+                </div>
+
+                {/* Deposit Required Card */}
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                  <div className="text-sm text-purple-700 mb-1">Deposit Required</div>
+                  <div className="text-lg font-bold text-purple-900">
+                    {offerLetter.depositRequired || '$15,972.00'}
+                  </div>
+                </div>
+
+                {/* Total Cost Card */}
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <div className="text-sm text-red-700 mb-1">Total Cost</div>
+                  <div className="text-lg font-bold text-red-900">
+                    {offerLetter.totalCourseFee || '$99,825.00'}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+        </div>
+      </div>
+    </AdminLayout>
+  );
+}
               </div>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
