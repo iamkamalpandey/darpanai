@@ -17,8 +17,7 @@ import {
   ChevronDown,
   ChevronRight,
   FolderOpen,
-  MessageSquare,
-  GraduationCap
+  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/Footer';
@@ -56,7 +55,6 @@ interface AdminLayoutProps {
 export function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
-  const [informationReportsOpen, setInformationReportsOpen] = useState(false);
   const [location] = useLocation();
   
   const { data: user } = useQuery({
@@ -76,15 +74,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: <BarChart3 size={20} />, label: 'Dashboard', href: '/admin' },
     { icon: <Users size={20} />, label: 'User Management', href: '/admin/users' },
     { icon: <FileText size={20} />, label: 'Analysis Reports', href: '/admin/analyses' },
-    { 
-      icon: <FileCheck size={20} />, 
-      label: 'Information Reports', 
-      isSubmenu: true,
-      submenuItems: [
-        { icon: <GraduationCap size={18} />, label: 'Offer Letter Information', href: '/admin/offer-letter-information' },
-        { icon: <FileCheck size={18} />, label: 'COE Information', href: '/admin/coe-information' },
-      ]
-    },
+    { icon: <FileCheck size={20} />, label: 'Information Reports', href: '/admin/information-reports' },
     { icon: <MessageSquare size={20} />, label: 'User Feedback', href: '/admin/feedback' },
     { icon: <Calendar size={20} />, label: 'Appointments', href: '/admin/appointments' },
     { icon: <Briefcase size={20} />, label: 'Professional Applications', href: '/admin/professional-applications' },

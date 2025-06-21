@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import multer from 'multer';
 import { offerLetterInfoStorage } from './offerLetterInfoStorage';
-import { storage } from './storage';
 import { extractTextFromPdf } from './fileProcessing';
 import { extractOfferLetterInfo } from './offerLetterExtractor';
 
@@ -23,7 +22,7 @@ const upload = multer({
 export function setupOfferLetterInfoRoutes(app: any) {
   
   // Upload and extract offer letter information
-  app.post('/api/offer-letter-information/extract', upload.single('document'), async (req: Request, res: Response) => {
+  app.post('/api/offer-letter-info', upload.single('document'), async (req: Request, res: Response) => {
     try {
       const file = req.file;
       const user = req.user as any;
@@ -46,120 +45,25 @@ export function setupOfferLetterInfoRoutes(app: any) {
         return res.status(400).json({ error: 'Document appears to be empty or unreadable' });
       }
 
-      // Extract information using ChatGPT API
+      // Extract information using OpenAI
       const startTime = Date.now();
-      console.log(`Starting ChatGPT extraction for ${file.originalname}...`);
-      
       const { extractedInfo, tokensUsed } = await extractOfferLetterInfo(documentText);
       const processingTime = Date.now() - startTime;
-      
-      console.log(`Extraction completed in ${processingTime}ms, tokens used: ${tokensUsed}`);
-      console.log('Extracted institution name:', extractedInfo.institutionName);
-      console.log('Extracted course name:', extractedInfo.courseName);
-      console.log('Extracted student name:', extractedInfo.studentName);
 
       if (extractedInfo.error) {
-        console.error('Extraction error:', extractedInfo.error);
         return res.status(500).json({ error: extractedInfo.error });
       }
 
-      // Sanitize and map extracted fields to database schema
-      const sanitizeTextForInteger = (value: any) => {
-        if (value === null || value === undefined) return null;
-        // If it's a string that contains letters, return null (not a valid integer)
-        if (typeof value === 'string' && /[a-zA-Z]/.test(value)) return null;
-        // Try to parse as integer, return null if invalid
-        const parsed = parseInt(value);
-        return isNaN(parsed) ? null : parsed;
-      };
-
-      const mappedInfo = {
+      // Save to database
+      const savedInfo = await offerLetterInfoStorage.saveOfferLetterInfo({
         userId: user.id,
         fileName: file.originalname,
         fileSize: file.size,
         extractedText: documentText,
-        tokensUsed: sanitizeTextForInteger(tokensUsed),
-        processingTime: sanitizeTextForInteger(processingTime),
-        
-        // Institution Information (Provider Details)
-        institutionName: extractedInfo.institutionName,
-        tradingAs: extractedInfo.tradingAs,
-        institutionAddress: extractedInfo.institutionAddress,
-        institutionPhone: extractedInfo.institutionPhone,
-        institutionEmail: extractedInfo.institutionEmail,
-        institutionWebsite: extractedInfo.institutionWebsite,
-        providerId: extractedInfo.providerId,
-        cricosProviderCode: extractedInfo.cricosProviderCode,
-        abn: extractedInfo.abn,
-        
-        // Student Personal Information
-        studentName: extractedInfo.studentName,
-        studentId: extractedInfo.studentId,
-        dateOfBirth: extractedInfo.dateOfBirth,
-        gender: extractedInfo.gender,
-        citizenship: extractedInfo.citizenship,
-        maritalStatus: extractedInfo.maritalStatus,
-        homeAddress: extractedInfo.homeAddress,
-        contactNumber: extractedInfo.contactNumber,
-        emailAddress: extractedInfo.emailAddress,
-        correspondenceAddress: extractedInfo.correspondenceAddress,
-        passportNumber: extractedInfo.passportNumber,
-        passportExpiryDate: extractedInfo.passportExpiryDate,
-        agentDetails: extractedInfo.agentDetails,
-        
-        // Course/Program Information
-        courseName: extractedInfo.courseName,
-        courseSpecialization: extractedInfo.courseSpecialization,
-        courseLevel: extractedInfo.courseLevel,
-        cricosCode: extractedInfo.cricosCode,
-        courseDuration: extractedInfo.courseDuration,
-        numberOfUnits: extractedInfo.numberOfUnits,
-        creditPoints: extractedInfo.creditPoints,
-        orientationDate: extractedInfo.orientationDate,
-        courseStartDate: extractedInfo.courseStartDate,
-        courseEndDate: extractedInfo.courseEndDate,
-        studyMode: extractedInfo.studyMode,
-        campusLocation: extractedInfo.campusLocation,
-        intakeSchedule: extractedInfo.intakeSchedule,
-        
-        // Financial Information - Map to actual schema fields
-        totalTuitionFees: extractedInfo.totalTuitionFees,
-        materialFee: extractedInfo.materialsFee,
-        enrollmentFee: extractedInfo.enrollmentFee,
-        totalFeeDue: extractedInfo.totalFeesAmount,
-        paymentSchedule: extractedInfo.paymentSchedule,
-        paymentMethods: extractedInfo.paymentMethods,
-        refundPolicy: extractedInfo.refundPolicy,
-        
-        // Scholarship & Financial Aid - Map to schema fields
-        scholarshipAmount: extractedInfo.scholarshipAmount,
-        scholarshipDetails: extractedInfo.scholarshipConditions,
-        
-        // Important Dates & Deadlines
-        acceptanceDeadline: extractedInfo.acceptanceDeadline,
-        
-        // Academic Requirements - Map to schema fields
-        minimumEntryRequirements: extractedInfo.academicRequirements,
-        englishLanguageRequirements: extractedInfo.englishRequirements,
-        documentationRequired: extractedInfo.documentRequirements,
-        
-        // Support Services - Map to schema fields
-        accommodationAssistance: extractedInfo.accommodationInfo,
-        studentSupportServices: extractedInfo.studentSupportServices,
-        visaAdvice: extractedInfo.visaInfo,
-        orientationProgram: extractedInfo.additionalServices,
-        
-        // Policies - Map to schema fields
-        withdrawalPolicy: extractedInfo.withdrawalPolicy,
-        transferPolicy: extractedInfo.transferPolicy,
-        
-        // Additional Information
-        importantNotes: extractedInfo.importantNotes,
-        additionalInformation: extractedInfo.additionalInformation
-      };
-
-      // Save to database
-      const savedInfo = await offerLetterInfoStorage.saveOfferLetterInfo(mappedInfo);
+        tokensUsed,
+        processingTime,
+        ...extractedInfo
+      });
 
       console.log(`Successfully saved offer letter info with ID: ${savedInfo.id}`);
 
@@ -178,7 +82,7 @@ export function setupOfferLetterInfoRoutes(app: any) {
   });
 
   // Get all offer letter information for current user
-  app.get('/api/offer-letter-information', async (req: Request, res: Response) => {
+  app.get('/api/offer-letter-info', async (req: Request, res: Response) => {
     try {
       const user = req.user as any;
 
@@ -191,56 +95,8 @@ export function setupOfferLetterInfoRoutes(app: any) {
       res.json(offerLetters.map(info => ({
         id: info.id,
         fileName: info.fileName,
-        fileSize: info.fileSize,
-        
-        // Institution Information
         institutionName: info.institutionName,
-        tradingAs: info.tradingAs,
-        institutionAddress: info.institutionAddress,
-        institutionPhone: info.institutionPhone,
-        institutionEmail: info.institutionEmail,
-        institutionWebsite: info.institutionWebsite,
-        cricosProviderCode: info.cricosProviderCode,
-        
-        // Student Information
-        studentName: info.studentName,
-        studentId: info.studentId,
-        dateOfBirth: info.dateOfBirth,
-        citizenship: info.citizenship,
-        contactNumber: info.contactNumber,
-        emailAddress: info.emailAddress,
-        
-        // Course Information
-        courseName: info.courseName,
-        courseLevel: info.courseLevel,
-        courseDuration: info.courseDuration,
-        courseStartDate: info.courseStartDate,
-        courseEndDate: info.courseEndDate,
-        studyMode: info.studyMode,
-        campusLocation: info.campusLocation,
-        cricosCode: info.cricosCode,
-        
-        // Financial Information
-        totalTuitionFees: info.totalTuitionFees,
-        totalFeeDue: info.totalFeeDue,
-        enrollmentFee: info.enrollmentFee,
-        scholarshipAmount: info.scholarshipAmount,
-        scholarshipDetails: info.scholarshipDetails,
-        
-        // Important Dates
-        acceptanceDeadline: info.acceptanceDeadline,
-        orientationDate: info.orientationDate,
-        
-        // Requirements
-        minimumEntryRequirements: info.minimumEntryRequirements,
-        englishLanguageRequirements: info.englishLanguageRequirements,
-        documentationRequired: info.documentationRequired,
-        
-        // Additional Information
-        accommodationAssistance: info.accommodationAssistance,
-        studentSupportServices: info.studentSupportServices,
-        visaAdvice: info.visaAdvice,
-        
+        programName: info.programName,
         createdAt: info.createdAt
       })));
 
@@ -297,24 +153,6 @@ export function setupOfferLetterInfoRoutes(app: any) {
     }
   });
 
-  // Admin route - get all offer letter information for admin dashboard
-  app.get('/api/admin/offer-letter-information', async (req: Request, res: Response) => {
-    try {
-      const user = req.user as any;
-
-      if (!user || user.role !== 'admin') {
-        return res.status(403).json({ error: 'Admin access required' });
-      }
-
-      const allInfo = await offerLetterInfoStorage.getAllOfferLetterInfo();
-      res.json(allInfo);
-
-    } catch (error) {
-      console.error('Error fetching all offer letter info for admin:', error);
-      res.status(500).json({ error: 'Failed to fetch offer letter information' });
-    }
-  });
-
   // Admin route - get specific offer letter information by ID
   app.get('/api/admin/offer-letter-info/:id', async (req: Request, res: Response) => {
     try {
@@ -342,62 +180,4 @@ export function setupOfferLetterInfoRoutes(app: any) {
       res.status(500).json({ error: 'Failed to fetch offer letter information' });
     }
   });
-
-  // Delete offer letter information
-  app.delete('/api/offer-letter-information/:id', async (req: Request, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const user = req.user as any;
-
-      if (!user) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
-
-      if (isNaN(id)) {
-        return res.status(400).json({ error: 'Invalid offer letter ID' });
-      }
-
-      // Check if offer letter exists and belongs to user (unless admin)
-      const existingInfo = await offerLetterInfoStorage.getOfferLetterInfoById(id);
-      if (!existingInfo) {
-        return res.status(404).json({ error: 'Offer letter information not found' });
-      }
-
-      if (user.role !== 'admin' && existingInfo.userId !== user.id) {
-        return res.status(403).json({ error: 'Not authorized to delete this offer letter' });
-      }
-
-      // Delete the offer letter information
-      await offerLetterInfoStorage.deleteOfferLetterInfo(id);
-
-      res.json({ success: true, message: 'Offer letter information deleted successfully' });
-
-    } catch (error) {
-      console.error('Error deleting offer letter information:', error);
-      res.status(500).json({ 
-        error: 'Failed to delete offer letter information',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  });
-
-  // Admin route - get all COE information for admin dashboard
-  app.get('/api/admin/coe-information', async (req: Request, res: Response) => {
-    try {
-      const user = req.user as any;
-
-      if (!user || user.role !== 'admin') {
-        return res.status(403).json({ error: 'Admin access required' });
-      }
-
-      const allCoeInfo = await storage.getAllCoeInfo();
-      res.json(allCoeInfo);
-
-    } catch (error) {
-      console.error('Error fetching all COE info for admin:', error);
-      res.status(500).json({ error: 'Failed to fetch COE information' });
-    }
-  });
-
-  console.log('✓ Separated offer letter architecture routes registered successfully');
 }

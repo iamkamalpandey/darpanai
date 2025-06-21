@@ -6,132 +6,50 @@ const openai = new OpenAI({
 
 export async function extractOfferLetterInfo(documentText: string) {
   try {
-    const prompt = `You are a comprehensive document information extraction specialist. Analyze this ENTIRE offer letter document and extract ALL available information with maximum accuracy. This is for pure information retrieval and categorization - NO recommendations or analysis needed.
-
-Return a JSON object with the following complete structure. Extract ONLY information that is explicitly stated in the document. If any field is not found, return null for that field.
+    const prompt = `Extract all information from this offer letter document. Return a JSON object with the following structure. If any information is not found, return null for that field.
 
 {
-  "institutionName": "Full name of the educational institution",
-  "tradingAs": "Trading name or alternative name",
-  "institutionAddress": "Complete address of the institution",
+  "institutionName": "Name of the educational institution",
+  "institutionAddress": "Full address of the institution",
   "institutionPhone": "Phone number",
-  "institutionEmail": "Official email address",
+  "institutionEmail": "Email address",
   "institutionWebsite": "Website URL",
-  "providerId": "Provider ID number",
-  "cricosProviderCode": "CRICOS provider code",
-  "abn": "ABN or business registration number",
-  
-  "studentName": "Full student name",
-  "studentId": "Student ID number",
-  "dateOfBirth": "Student date of birth",
-  "gender": "Student gender",
-  "citizenship": "Student citizenship/nationality",
-  "maritalStatus": "Marital status",
-  "homeAddress": "Home address",
-  "contactNumber": "Student contact phone",
-  "emailAddress": "Student email address",
-  "correspondenceAddress": "Correspondence address",
-  "passportNumber": "Passport number",
-  "passportExpiryDate": "Passport expiry date",
-  "agentDetails": "Education agent details",
-  
-  "courseName": "Full course/program name",
-  "courseSpecialization": "Course specialization",
-  "courseLevel": "Course level (Bachelor, Master, PhD, etc.)",
-  "cricosCode": "Course CRICOS code",
-  "courseDuration": "Course duration",
-  "numberOfUnits": "Number of units/subjects",
-  "creditPoints": "Total credit points",
-  "orientationDate": "Orientation date",
-  "courseStartDate": "Course start date",
-  "courseEndDate": "Course end date",
-  "studyMode": "Study mode (Full-time, Part-time, etc.)",
-  "campusLocation": "Campus location",
-  "intakeSchedule": "Intake schedule details",
-  
-  "totalTuitionFees": "Total tuition fees amount",
-  "materialsFee": "Materials fee",
-  "studentServicesFee": "Student services fee",
-  "technologyFee": "Technology fee",
-  "libraryFee": "Library fee",
-  "laboratoryFee": "Laboratory fee",
-  "applicationFee": "Application fee",
-  "enrollmentFee": "Enrollment fee",
-  "administrationFee": "Administration fee",
-  "otherFees": "Other fees",
-  "totalFeesAmount": "Total fees amount",
-  "initialPrePaidAmount": "Initial pre-paid amount",
-  "remainingBalance": "Remaining balance",
-  "paymentSchedule": "Payment schedule details",
-  "paymentMethods": "Accepted payment methods",
-  "lateFeePolicy": "Late fee policy",
-  "refundPolicy": "Refund policy",
-  
-  "scholarshipAmount": "Scholarship amount if applicable",
-  "scholarshipPercentage": "Scholarship percentage",
-  "scholarshipConditions": "Scholarship conditions",
-  "scholarshipDuration": "Scholarship duration",
-  "financialAidInfo": "Financial aid information",
-  
+  "programName": "Name of the program/course",
+  "programLevel": "Level (Bachelor, Master, PhD, etc.)",
+  "programDuration": "Duration of the program",
+  "studyMode": "Full-time, Part-time, Online, etc.",
+  "campusLocation": "Campus or location",
+  "startDate": "Program start date",
+  "endDate": "Program end date",
+  "applicationDeadline": "Application deadline",
   "acceptanceDeadline": "Acceptance deadline",
-  "enrollmentDeadline": "Enrollment deadline",
-  "feePaymentDeadline": "Fee payment deadline",
-  "documentSubmissionDeadline": "Document submission deadline",
-  "orientationDeadline": "Orientation deadline",
-  
-  "academicRequirements": "Academic entry requirements",
+  "tuitionFee": "Tuition fee amount",
+  "applicationFee": "Application fee",
+  "depositRequired": "Deposit amount required",
+  "totalCost": "Total cost",
+  "paymentSchedule": "Payment schedule details",
+  "academicRequirements": "Academic requirements",
   "englishRequirements": "English language requirements",
-  "ieltsRequirement": "IELTS requirement",
-  "toeflRequirement": "TOEFL requirement",
-  "pteRequirement": "PTE requirement",
-  "documentRequirements": "Required documents list",
-  "healthInsuranceRequirement": "Health insurance requirements",
-  "visaRequirements": "Visa requirements",
-  
-  "accommodationInfo": "Accommodation information",
-  "accommodationFees": "Accommodation fees",
-  "mealPlanInfo": "Meal plan information",
-  "transportInfo": "Transportation information",
-  
-  "contactPersonName": "Contact person name",
-  "contactPersonTitle": "Contact person title/position",
-  "contactPersonPhone": "Contact person phone",
-  "contactPersonEmail": "Contact person email",
-  "admissionsOfficeContact": "Admissions office contact",
-  "internationalOfficeContact": "International office contact",
-  
-  "complianceInfo": "Compliance information",
-  "accreditationInfo": "Accreditation details",
-  "governmentRegistration": "Government registration details",
-  "qualityAssurance": "Quality assurance information",
-  
-  "withdrawalPolicy": "Withdrawal policy",
-  "transferPolicy": "Transfer policy",
-  "attendancePolicy": "Attendance policy",
-  "academicProgressPolicy": "Academic progress policy",
-  "disciplinaryPolicy": "Disciplinary policy",
-  
-  "additionalServices": "Additional services offered",
-  "studentSupportServices": "Student support services",
-  "careerServices": "Career services",
-  "libraryServices": "Library services",
-  "itServices": "IT services",
-  
-  "termsAndConditions": "Terms and conditions",
-  "importantNotes": "Important notes",
-  "disclaimers": "Disclaimers",
-  "additionalInformation": "Any other important information"
+  "documentRequirements": "Required documents",
+  "studentName": "Student name from the letter",
+  "studentId": "Student ID if mentioned",
+  "applicationNumber": "Application reference number",
+  "scholarshipInfo": "Scholarship information",
+  "accommodationInfo": "Accommodation details",
+  "visaInfo": "Visa information",
+  "contactPerson": "Contact person details",
+  "additionalNotes": "Any other important information"
 }
 
-DOCUMENT TEXT TO ANALYZE:
+Document text:
 ${documentText}`;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o', // Using ChatGPT API as requested
+      model: 'gpt-4o',
       messages: [
         {
           role: 'system',
-          content: 'You are a comprehensive document information extraction specialist. Analyze ENTIRE offer letter documents for pure information retrieval and categorization. Extract ALL available information with maximum accuracy. Return only factual data found in the document - NO recommendations or analysis.'
+          content: 'You are a document information extraction specialist. Extract all information from offer letters accurately and return it in JSON format. Only extract information that is explicitly stated in the document.'
         },
         {
           role: 'user',
@@ -139,8 +57,7 @@ ${documentText}`;
         }
       ],
       response_format: { type: 'json_object' },
-      temperature: 0.1, // Low temperature for consistent extraction
-      max_tokens: 4000, // Sufficient tokens for comprehensive extraction
+      temperature: 0.1,
     });
 
     const content = response.choices[0].message.content;
