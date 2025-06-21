@@ -363,8 +363,7 @@ Extract all available information from the complete document. If information is 
 export async function analyzeOfferLetterDocument(
   documentText: string,
   fileName: string
-): Promise<{ analysis: OfferLetterAnalysisResponse; tokensUsed: number; processingTime: number }> {
-  const startTime = Date.now();
+): Promise<{ analysis: OfferLetterAnalysisResponse }> {
   
   try {
     console.log('Starting comprehensive offer letter analysis for:', fileName);
@@ -530,7 +529,6 @@ export async function analyzeOfferLetterDocument(
   } catch (error) {
     console.error('Error in comprehensive offer letter analysis:', error);
     
-    const processingTime = Date.now() - startTime;
     const professionalFallback: OfferLetterAnalysisResponse = {
       universityInfo: {
         name: "Document processing temporarily unavailable",
