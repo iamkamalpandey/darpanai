@@ -32,6 +32,7 @@ export default function AdminOfferLetterInfo() {
 
   // Debug logging
   console.log('Admin Offer Letters Query:', { offerLetters, isLoading, error, length: offerLetters?.length });
+  console.log('First offer letter data:', offerLetters?.[0]);
 
   // Upload mutation for admin
   const uploadMutation = useMutation({
@@ -192,10 +193,10 @@ function AdminOfferLetterCard({ letter }: { letter: any }) {
               </div>
             )}
             
-            {letter.courseName && (
+            {letter.programName && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <GraduationCap className="h-4 w-4" />
-                {letter.courseName}
+                {letter.programName}
               </div>
             )}
             
