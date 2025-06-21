@@ -99,7 +99,7 @@ export function setupOfferLetterRoutesSimplified(app: any) {
   });
 
   // Get specific analysis by ID
-  app.get('/api/offer-letter-analyses/:id', async (req: Request, res: Response) => {
+  app.get('/api/offer-letter-analyses-new/:id', async (req: Request, res: Response) => {
     try {
       const analysisId = parseInt(req.params.id);
       const user = { id: 4 };

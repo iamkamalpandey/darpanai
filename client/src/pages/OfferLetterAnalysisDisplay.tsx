@@ -26,10 +26,13 @@ export default function OfferLetterAnalysisDisplay({ params }: OfferLetterAnalys
     queryFn: async () => {
       const response = await fetch(`/api/offer-letter-analyses-new/${params.id}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch analysis');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch analysis');
       }
       return response.json();
     },
+    retry: 1,
+    staleTime: 5 * 60 * 1000,
   });
 
   if (isLoading) {
