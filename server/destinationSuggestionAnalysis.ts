@@ -257,7 +257,7 @@ export async function generateDestinationSuggestions(
     console.error('Error in destination suggestion analysis:', error);
     
     // Provide comprehensive fallback analysis
-    const fallbackAnalysis = generateFallbackAnalysis(userProfile, requestData);
+    const fallbackAnalysis = createFallbackAnalysis(userProfile, requestData);
     
     return {
       analysis: fallbackAnalysis,
@@ -322,122 +322,258 @@ You are an elite international education strategist. Analyze this student's comp
 
 ## REQUIRED ANALYSIS STRUCTURE
 
-REQUIRED JSON STRUCTURE:
+Based on proven IDP Live app methodology, provide practical recommendations focused on actual university applications:
+
 {
-  "executiveSummary": "Comprehensive analysis of top 3 destinations with scores and key fit reasons",
-  "overallMatchScore": 85,
-  "topRecommendations": [
+  "profileAssessment": {
+    "academicStrength": "Honest assessment of their academic competitiveness",
+    "majorChallenges": "Key obstacles like IELTS score, budget, academic gaps",
+    "competitiveAdvantages": "What makes them stand out from other applicants",
+    "overallReadiness": "Are they ready to apply now or need preparation?"
+  },
+  "recommendedCountries": [
     {
       "country": "Country Name",
-      "countryCode": "CC",
-      "matchScore": 8.5,
-      "ranking": 1,
-      "entryOptions": ["Direct Entry", "Foundation Program", "Pathway"],
-      "academicFit": {
-        "entryRequirements": "Specific requirements",
-        "programAlignment": "How well programs match",
-        "intakeDeadlines": "Key dates"
+      "matchScore": 78,
+      "whyThisCountry": "Specific reasons this fits their profile - not generic benefits",
+      "bestUniversities": [
+        {
+          "name": "University Name",
+          "program": "Specific program they should apply to",
+          "entryRequirements": "Exact requirements",
+          "tuitionFee": "2025 annual fee",
+          "admissionChance": "High/Medium/Low based on their profile",
+          "applicationDeadline": "Specific dates",
+          "scholarships": [
+            {
+              "name": "Scholarship name",
+              "amount": "Amount or percentage",
+              "eligibility": "Why they qualify",
+              "deadline": "Application deadline"
+            }
+          ]
+        }
+      ],
+      "livingCosts": {
+        "accommodation": "Monthly cost range",
+        "food": "Monthly estimate",
+        "transport": "Monthly cost",
+        "total": "Monthly total"
       },
-      "financialBreakdown": {
-        "tuitionRange": "Detailed 2025 program-specific fees with breakdown by degree level",
-        "livingCosts": "City-specific monthly expenses including accommodation, food, transport, utilities",
-        "totalAnnualCost": "Complete investment including hidden costs (visa, insurance, travel, books)",
-        "scholarships": "Specific scholarship opportunities this student qualifies for with amounts and requirements",
-        "budgetFit": "Detailed analysis of affordability including work-study earnings and cost optimization strategies"
+      "visaRequirements": {
+        "processingTime": "Timeline",
+        "successRate": "For their nationality",
+        "workRights": "Part-time work allowance"
       },
-      "languageFit": {
-        "ieltsRequired": "6.5 overall",
-        "waivers": "Available pathway options",
-        "bridgingPrograms": "English support available"
-      },
-      "visaLandscape": {
-        "successRate": "85% for this nationality",
-        "processingTime": "4-8 weeks",
-        "documentationComplexity": "Moderate",
-        "workPermit": "20 hours/week during studies"
-      },
-      "careerIntelligence": {
-        "jobMarket": "Comprehensive industry analysis with demand forecasts, growth sectors, and job availability in user's field",
-        "averageSalary": "Detailed salary progression from entry-level to senior positions with 5-year earning projections",
-        "prPotential": "Specific permanent residency pathways, point systems, processing times, and success rates for this field",
-        "postStudyWork": "Complete work rights breakdown including duration, restrictions, employer sponsorship opportunities"
-      },
-      "uniqueAdvantages": ["Advantage 1", "Advantage 2", "Advantage 3"],
-      "risksAndRecommendations": ["Risk mitigation strategy 1", "Improvement recommendation 2"]
+      "postStudyOpportunities": {
+        "workVisa": "Post-study work visa duration",
+        "prPathway": "Path to permanent residency",
+        "averageSalary": "Starting salary in their field"
+      }
     }
   ],
-  "intelligentAlternatives": [
+  "smartAlternatives": [
     {
-      "country": "Alternative Country",
-      "whyBetter": "Specific reasons why this is a better match",
-      "keyBenefits": ["Benefit 1", "Benefit 2", "Benefit 3"]
+      "country": "Alternative option they didn't consider",
+      "whyBetter": "Specific advantages for their situation",
+      "keyBenefits": ["Lower IELTS requirement", "More affordable", "Better PR chances"]
     }
   ],
-  "keyFactors": ["Critical factor 1", "Critical factor 2", "Critical factor 3"],
-  "personalizedInsights": {
-    "strengthsAnalysis": ["Detailed analysis of user's competitive advantages including academic credentials, work experience, language skills, and unique qualifications that enhance admission prospects"],
-    "improvementAreas": ["Specific areas requiring enhancement with actionable improvement strategies, timeline for development, and impact on admission success"],
-    "strategicRecommendations": ["Comprehensive strategic guidance including application optimization, profile enhancement, scholarship targeting, and long-term career positioning"]
-  },
+  "majorScholarships": [
+    {
+      "name": "Scholarship name",
+      "provider": "University/Government",
+      "amount": "Value",
+      "eligibility": "Requirements they meet",
+      "competitiveness": "Their realistic chances",
+      "applicationProcess": "How to apply",
+      "deadline": "When to apply"
+    }
+  ],
   "actionPlan": {
-    "applyTo": ["Recommended universities/colleges"],
-    "required": ["IELTS prep", "Documents needed", "Budget planning"],
-    "timeline": ["Intake deadlines", "Application windows"],
-    "optional": ["Additional recommendations"]
+    "immediate": ["Specific actions for next 30 days"],
+    "shortTerm": ["Key milestones for 3-6 months"],
+    "longTerm": ["Strategic goals for 6+ months"]
   },
-  "budgetOptimization": {
-    "costSavingStrategies": ["Detailed cost reduction strategies including shared accommodation options, meal planning, transportation discounts, textbook alternatives, and part-time work opportunities with specific earning potential"],
-    "scholarshipOpportunities": ["Comprehensive scholarship analysis with specific programs this student qualifies for, application requirements, deadlines, award amounts, and success strategies"],
-    "financialPlanningTips": ["Advanced financial planning including budget allocation, emergency fund planning, currency management, tax implications, and long-term investment strategies for international students"]
-  },
-  "nextSteps": {
-    "immediate": ["High-priority urgent actions requiring immediate attention within next 30 days with specific deadlines and implementation steps"],
-    "shortTerm": ["Medium-priority strategic planning and preparation activities for 2-6 months with detailed milestones and success metrics"],
-    "longTerm": ["Strategic planning and goal-setting activities for 6+ months focusing on long-term success and career trajectory optimization"]
-  },
-  "timeline": {
-    "preparation": "6-12 months comprehensive preparation phase including research, documentation, and skill development with quarterly milestones",
-    "application": "3-6 months intensive application phase covering university applications, scholarship submissions, and visa preparations with specific deadlines",
-    "decisionMaking": "2-3 months final decision phase including offer evaluation, visa processing, and enrollment confirmation with contingency planning"
-  },
-  "disclaimer": "⚠️ This recommendation is AI-generated and intended for informational purposes only. It is not a substitute for professional advice. We strongly recommend consulting a licensed education counsellor or migration agent before making any final decisions related to study abroad, visa applications, or financial planning. Darpan Intelligence and its developers are not liable for decisions made solely based on this AI analysis."
+  "budgetPlanning": {
+    "totalCostEstimate": "Complete cost for their top choice",
+    "fundingOptions": ["Scholarships", "Education loans", "Family support"],
+    "costSavingTips": ["Practical ways to reduce expenses"]
+  }
 }
 
-**CRITICAL ANALYSIS MANDATES:**
-- **DEPTH REQUIREMENT**: Each recommendation must be 300-500 words with comprehensive strategic analysis, specific data points, and actionable insights
-- **AUTHENTIC DATA**: Use only current 2025 tuition fees, living costs, and salary data from official sources - no placeholder information
-- **PERSONALIZATION**: Every recommendation must be specifically tailored to this student's profile with detailed reasoning for fit
-- **STRATEGIC INTELLIGENCE**: Include advanced insights on scholarship targeting, application timing, visa optimization, and career trajectory planning
-- **IMPLEMENTATION FOCUS**: Provide specific universities to target, exact scholarship programs to apply for, and step-by-step preparation strategies
-- **PATHWAY OPTIMIZATION**: Detailed analysis of foundation programs, TAFE pathways, 2+2 transfers with specific entry requirements and progression routes
-- **FINANCIAL INTELLIGENCE**: ROI calculations, earning potential projections, cost optimization strategies with specific dollar amounts and timelines
-- **RISK MITIGATION**: Identify potential challenges with detailed mitigation strategies and backup plans
-- Suggest intelligent alternatives that user may not have considered but are better matches
-- Be specific with financial figures, university names, timelines, and requirements
-- Use the weighted scoring matrix for objective destination ranking
-- Provide comprehensive analysis covering all aspects: academic, financial, language, career, visa
+**ANALYSIS MANDATES:**
+- **GENUINE INSIGHTS**: No templates or generic advice - every recommendation must be specific to this student's actual profile
+- **AUTHENTIC DATA**: Use real 2025 tuition fees, living costs, and scholarship amounts from official sources
+- **ACTIONABLE GUIDANCE**: Focus on what they should actually DO - which universities to apply to, which scholarships to target
+- **HONEST ASSESSMENT**: Be realistic about their chances and challenges - don't oversell prospects
+- **PRACTICAL FOCUS**: Help them move from analysis to actual applications
 
-Analyze thoroughly and provide comprehensive, personalized recommendations based on current global education trends, visa policies, and market conditions.
+Focus on helping this student take concrete steps toward university applications.
 `;
 }
 
 /**
- * Transform analysis to new enhanced structure while maintaining backward compatibility
+ * Transform analysis to new simplified structure focused on actionable insights
  */
 function transformToNewStructure(
   analysis: any,
   userProfile: UserProfile
 ): DestinationSuggestionResponse {
-  // Transform analysis to new enhanced structure with authentic data
+  // Handle new simplified structure
+  if (analysis.profileAssessment && analysis.recommendedCountries) {
+    // New structure - transform to legacy format for frontend compatibility
+    const transformedAnalysis: DestinationSuggestionResponse = {
+      executiveSummary: `Profile Assessment: ${analysis.profileAssessment.academicStrength || 'Assessment completed'}. ${analysis.profileAssessment.majorChallenges || 'Challenges identified'}. ${analysis.profileAssessment.overallReadiness || 'Readiness evaluated'}.`,
+      overallMatchScore: analysis.recommendedCountries?.[0]?.matchScore || 75,
+      topRecommendations: (analysis.recommendedCountries || []).map((country: any, index: number) => ({
+        country: country.country || 'Country Name',
+        countryCode: country.country?.substring(0, 2).toUpperCase() || 'CC',
+        matchScore: country.matchScore || 75,
+        ranking: index + 1,
+        personalizedReasons: [country.whyThisCountry || 'Strategic fit identified'],
+        specificAdvantages: country.keyBenefits || [],
+        potentialChallenges: [],
+        detailedCostBreakdown: {
+          tuitionFees: {
+            bachelors: country.bestUniversities?.[0]?.tuitionFee || 'Not specified',
+            masters: country.bestUniversities?.[0]?.tuitionFee || 'Not specified',
+            phd: 'Contact university',
+            specificProgram: country.bestUniversities?.[0]?.tuitionFee || 'Not specified'
+          },
+          livingExpenses: {
+            accommodation: country.livingCosts?.accommodation || 'Not specified',
+            food: country.livingCosts?.food || 'Not specified',
+            transportation: country.livingCosts?.transport || 'Not specified',
+            personalExpenses: 'Varies',
+            healthInsurance: 'Required',
+            totalMonthly: country.livingCosts?.total || 'Not specified'
+          },
+          totalAnnualInvestment: 'Calculate based on program',
+          scholarshipPotential: country.bestUniversities?.[0]?.scholarships?.[0]?.amount || 'Available',
+          workStudyEarnings: country.visaRequirements?.workRights || 'Part-time allowed'
+        },
+        targetedUniversities: (country.bestUniversities || []).map((uni: any) => ({
+          name: uni.name || 'University Name',
+          ranking: 'Top ranked',
+          programSpecific: uni.program || 'Program available',
+          admissionRequirements: uni.entryRequirements || 'Standard requirements',
+          scholarshipAvailable: uni.scholarships?.[0]?.name || 'Merit-based available'
+        })),
+        personalizedVisaGuidance: {
+          successRate: country.visaRequirements?.successRate || 'Good',
+          specificRequirements: ['Standard visa requirements'],
+          timelineForUser: country.visaRequirements?.processingTime || '4-8 weeks',
+          workRights: country.visaRequirements?.workRights || 'Part-time allowed',
+          postStudyOptions: country.postStudyOpportunities?.workVisa || 'Available'
+        },
+        careerPathway: {
+          industryDemand: 'Strong demand',
+          salaryExpectations: country.postStudyOpportunities?.averageSalary || 'Competitive',
+          careerProgression: 'Excellent opportunities',
+          networkingOpportunities: 'Extensive',
+          returnOnInvestment: 'Positive'
+        },
+        culturalAlignment: {
+          languageSupport: 'English speaking',
+          communityPresence: 'Strong international community',
+          culturalAdaptation: 'Moderate',
+          supportSystems: 'University support available'
+        }
+      })),
+      keyFactors: ['Academic fit', 'Financial viability', 'Visa requirements'],
+      personalizedInsights: {
+        profileStrengths: [analysis.profileAssessment?.competitiveAdvantages || 'Strong academic background'],
+        specificImprovementAreas: [analysis.profileAssessment?.majorChallenges || 'Areas for improvement identified'],
+        tailoredStrategicActions: analysis.actionPlan?.immediate || ['Prepare application documents'],
+        uniqueOpportunities: ['Scholarship opportunities', 'Career advancement']
+      },
+      actionPlan: {
+        immediateActions: (analysis.actionPlan?.immediate || []).map((action: string) => ({
+          action: action,
+          deadline: '30 days',
+          priority: 'High',
+          specificSteps: [action],
+          resources: ['University websites', 'Application portals']
+        })),
+        shortTermGoals: (analysis.actionPlan?.shortTerm || []).map((goal: string) => ({
+          goal: goal,
+          timeline: '3-6 months',
+          milestones: [goal],
+          requirements: ['Documentation'],
+          successMetrics: ['Application submitted']
+        })),
+        longTermStrategy: (analysis.actionPlan?.longTerm || []).map((strategy: string) => ({
+          objective: strategy,
+          timeframe: '6+ months',
+          keyActivities: [strategy],
+          dependencies: ['Admission results'],
+          expectedOutcomes: ['University acceptance']
+        }))
+      },
+      financialStrategy: {
+        personalizedBudgetPlan: {
+          totalInvestmentRequired: analysis.budgetPlanning?.totalCostEstimate || 'Calculate based on program',
+          fundingGapAnalysis: 'Based on available funds',
+          cashflowProjection: analysis.budgetPlanning?.fundingOptions || []
+        },
+        targetedScholarships: (analysis.majorScholarships || []).map((scholarship: any) => ({
+          scholarshipName: scholarship.name || 'Merit Scholarship',
+          provider: scholarship.provider || 'University',
+          amount: scholarship.amount || 'Varies',
+          eligibilityMatch: scholarship.eligibility || 'Good match',
+          applicationDeadline: scholarship.deadline || 'Check university website',
+          competitiveness: scholarship.competitiveness || 'Competitive',
+          applicationStrategy: [scholarship.applicationProcess || 'Apply through university portal']
+        })),
+        costOptimizationStrategies: (analysis.budgetPlanning?.costSavingTips || []).map((tip: string) => ({
+          strategy: tip,
+          potentialSavings: 'Varies',
+          implementationSteps: [tip],
+          timeline: 'Ongoing'
+        }))
+      },
+      personlizedTimeline: {
+        preparationPhase: {
+          duration: '3-6 months',
+          keyMilestones: analysis.actionPlan?.shortTerm || [],
+          criticalDeadlines: ['Application deadlines']
+        },
+        applicationPhase: {
+          duration: '2-4 months',
+          applicationWindows: ['Fall/Spring intake'],
+          documentsRequired: ['Transcripts', 'English test', 'SOP']
+        },
+        decisionPhase: {
+          duration: '2-3 months',
+          evaluationCriteria: ['University ranking', 'Cost', 'Location'],
+          finalSteps: ['Accept offer', 'Apply for visa']
+        }
+      },
+      intelligentAlternatives: (analysis.smartAlternatives || []).map((alt: any) => ({
+        country: alt.country || 'Alternative Country',
+        whyBetterForUser: alt.whyBetter || 'Better fit',
+        specificBenefits: alt.keyBenefits || [],
+        matchScore: 70,
+        costAdvantage: 'More affordable',
+        personalizedRationale: alt.whyBetter || 'Strategic advantage'
+      })),
+      pathwayPrograms: []
+    };
+
+    return transformedAnalysis;
+  }
+
+  // Legacy structure fallback
   const transformedAnalysis: DestinationSuggestionResponse = {
-    executiveSummary: analysis.executiveSummary || `Based on ${userProfile.firstName}'s profile in ${userProfile.fieldOfStudy || 'their chosen field'}, comprehensive analysis completed.`,
+    executiveSummary: analysis.executiveSummary || `Based on ${userProfile.firstName}'s profile, comprehensive analysis completed.`,
     overallMatchScore: analysis.overallMatchScore || 75,
     topRecommendations: (analysis.topRecommendations || []).map((country: any, index: number) => ({
       country: country.country || 'Country Name',
       countryCode: country.countryCode || 'CC',
       matchScore: country.matchScore || 75,
       ranking: index + 1,
-      personalizedReasons: country.personalizedReasons || country.reasons || [`Strong fit for ${userProfile.fieldOfStudy || 'chosen field'}`],
+      personalizedReasons: country.personalizedReasons || country.reasons || ['Strategic fit identified'],
       specificAdvantages: country.specificAdvantages || country.advantages || ['Quality education system'],
       potentialChallenges: country.potentialChallenges || country.challenges || ['Visa requirements'],
       detailedCostBreakdown: {
