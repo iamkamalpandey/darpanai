@@ -244,7 +244,14 @@ export default function AdminCoeDetailsNew() {
               {coe.dateOfBirth && (
                 <InfoItem 
                   label="Date of Birth" 
-                  value={format(new Date(coe.dateOfBirth), 'MMMM dd, yyyy')} 
+                  value={(() => {
+                    try {
+                      const date = new Date(coe.dateOfBirth);
+                      return isNaN(date.getTime()) ? coe.dateOfBirth : format(date, 'MMMM dd, yyyy');
+                    } catch {
+                      return coe.dateOfBirth;
+                    }
+                  })()} 
                   icon={Calendar} 
                 />
               )}
@@ -287,14 +294,28 @@ export default function AdminCoeDetailsNew() {
               {coe.courseStartDate && (
                 <InfoItem 
                   label="Course Start Date" 
-                  value={format(new Date(coe.courseStartDate), 'MMMM dd, yyyy')} 
+                  value={(() => {
+                    try {
+                      const date = new Date(coe.courseStartDate);
+                      return isNaN(date.getTime()) ? coe.courseStartDate : format(date, 'MMMM dd, yyyy');
+                    } catch {
+                      return coe.courseStartDate;
+                    }
+                  })()} 
                   icon={Calendar} 
                 />
               )}
               {coe.courseEndDate && (
                 <InfoItem 
                   label="Course End Date" 
-                  value={format(new Date(coe.courseEndDate), 'MMMM dd, yyyy')} 
+                  value={(() => {
+                    try {
+                      const date = new Date(coe.courseEndDate);
+                      return isNaN(date.getTime()) ? coe.courseEndDate : format(date, 'MMMM dd, yyyy');
+                    } catch {
+                      return coe.courseEndDate;
+                    }
+                  })()} 
                   icon={Calendar} 
                 />
               )}
@@ -333,14 +354,28 @@ export default function AdminCoeDetailsNew() {
                 {coe.oshcStartDate && (
                   <InfoItem 
                     label="OSHC Start Date" 
-                    value={format(new Date(coe.oshcStartDate), 'MMMM dd, yyyy')} 
+                    value={(() => {
+                      try {
+                        const date = new Date(coe.oshcStartDate);
+                        return isNaN(date.getTime()) ? coe.oshcStartDate : format(date, 'MMMM dd, yyyy');
+                      } catch {
+                        return coe.oshcStartDate;
+                      }
+                    })()} 
                     icon={Calendar} 
                   />
                 )}
                 {coe.oshcEndDate && (
                   <InfoItem 
                     label="OSHC End Date" 
-                    value={format(new Date(coe.oshcEndDate), 'MMMM dd, yyyy')} 
+                    value={(() => {
+                      try {
+                        const date = new Date(coe.oshcEndDate);
+                        return isNaN(date.getTime()) ? coe.oshcEndDate : format(date, 'MMMM dd, yyyy');
+                      } catch {
+                        return coe.oshcEndDate;
+                      }
+                    })()} 
                     icon={Calendar} 
                   />
                 )}
@@ -363,7 +398,14 @@ export default function AdminCoeDetailsNew() {
                 {coe.englishTestDate && (
                   <InfoItem 
                     label="Test Date" 
-                    value={format(new Date(coe.englishTestDate), 'MMMM dd, yyyy')} 
+                    value={(() => {
+                      try {
+                        const date = new Date(coe.englishTestDate);
+                        return isNaN(date.getTime()) ? coe.englishTestDate : format(date, 'MMMM dd, yyyy');
+                      } catch {
+                        return coe.englishTestDate;
+                      }
+                    })()} 
                     icon={Calendar} 
                   />
                 )}
