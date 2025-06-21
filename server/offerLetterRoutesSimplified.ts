@@ -56,7 +56,7 @@ export function setupOfferLetterRoutesSimplified(app: any) {
         processingTime: processingTime
       };
 
-      // Step 4: Save analysis results to separate table
+      // Step 5: Save analysis results to separate table
       const analysis = await offerLetterStorage.saveAnalysis({
         documentId: document.id,
         userId: user.id,
