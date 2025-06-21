@@ -142,6 +142,13 @@ function Router() {
           </Suspense>
         )} />
       </Route>
+      <Route path="/personalized-destination-analysis">
+        <UserProtectedRoute path="/personalized-destination-analysis" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <PersonalizedDestinationAnalysis />
+          </Suspense>
+        )} />
+      </Route>
       <Route path="/personalized-destination-analysis/:id">
         <UserProtectedRoute path="/personalized-destination-analysis/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
