@@ -339,14 +339,234 @@ Provide genuine evaluation of:
 - UK: UCAS applications for 2026 entry, early decision deadlines
 - Australia: 2026 academic year applications open
 
+## PERSONALIZED ANALYSIS REQUIREMENTS
+
+**NO GENERIC RESPONSES - Every recommendation must be specifically tailored to THIS student's profile**
+
+### 1. COUNTRY RECOMMENDATIONS (TOP 4-6 COUNTRIES)
+For each country, provide detailed analysis:
+
+**Match Score Calculation (0-100):**
+- Academic Fit (25%): How well do admission requirements match their qualifications?
+- Financial Viability (30%): Can they afford the total costs within their budget?
+- Language Requirements (15%): Do their English scores meet program requirements?
+- Career ROI (20%): Job market demand and salary potential in their field
+- Visa Success (10%): Approval rates for their nationality and profile
+
+**Personalized Reasoning:** Explain WHY this country suits THIS specific student based on:
+- Their academic background (qualification, GPA, institution reputation)
+- Their financial situation and stated budget range
+- Their career goals and field of study interest
+- Their nationality and visa considerations
+- Their language proficiency and test scores
+- Their work experience and employment status
+
+**University-Specific Recommendations:**
+- List 3-5 universities that specifically match their profile
+- Compare admission requirements vs. student's actual qualifications
+- Specify available programs in their exact field of interest
+- Detail scholarship opportunities they qualify for with amounts and deadlines
+
+**Detailed Cost Analysis:**
+- Tuition fees for their specific program level (Bachelor's/Master's/PhD)
+- Living costs by city with monthly breakdown
+- Work-study earning potential (legal hours + realistic hourly wages)
+- Total annual investment required
+- Net cost after scholarships and work earnings
+
+**Visa & Immigration Analysis:**
+- Success rates specific to their nationality
+- Document requirements for their profile
+- Processing timelines for their country
+- Work rights during study period
+- Post-study work visa eligibility
+- Permanent residence pathway viability
+
+**Career Prospects for Their Field:**
+- Job market demand in their specific field of study
+- Starting salary ranges for international graduates
+- Career progression opportunities
+- Industry networking and placement support
+- Return on investment calculations
+
+### 2. INTELLIGENT ALTERNATIVES
+Suggest 2-3 countries that might be better matches than their stated preferences, with detailed explanations of why these alternatives could be superior choices.
+
+### 3. SCHOLARSHIP MATCHING
+List specific scholarships they qualify for:
+- Scholarship name and provider
+- Award amount and coverage
+- Eligibility criteria vs. their profile
+- Application deadlines and procedures
+- Competitiveness assessment
+- Application strategy recommendations
+
+### 4. QUARTERLY ACTION PLAN
+Create a detailed 12-month roadmap aligned with actual university admission cycles:
+- Q1 2025: Immediate actions and early application deadlines
+- Q2 2025: Main application period and test preparations
+- Q3 2025: Enrollment confirmations and visa applications
+- Q4 2025: Next year planning and early applications
+
+Each quarter should include:
+- Specific deadlines and milestones
+- Required documents and preparations
+- Test scheduling and score improvement strategies
+- Financial planning and scholarship applications
+- Profile enhancement activities
+
 ## PRACTICAL APPLICATION FOCUS (IDP LIVE METHODOLOGY)
 
 Focus on helping students actually apply:
-1. **Specific Universities**: Name actual institutions they can apply to
+1. **Specific Universities**: Name actual institutions they can realistically apply to
 2. **Realistic Requirements**: What they need to meet admission criteria
-3. **Application Procedures**: Exact steps to apply
-4. **Scholarship Applications**: Specific scholarships with deadlines
-5. **Profile Improvement**: Actionable steps to strengthen applications
+3. **Application Procedures**: Exact steps to apply with deadlines
+4. **Scholarship Applications**: Specific scholarships with eligibility match
+5. **Profile Improvement**: Actionable steps to strengthen their applications
+
+## RESPONSE FORMAT REQUIREMENTS
+
+Respond with valid JSON in the following structure:
+
+{
+  "executiveSummary": "Comprehensive 2-3 paragraph summary explaining the analysis approach, key findings, and recommended strategy for this specific student",
+  "overallMatchScore": 85,
+  "topRecommendations": [
+    {
+      "country": "Canada",
+      "countryCode": "CA",
+      "matchScore": 92,
+      "ranking": 1,
+      "personalizedReasons": [
+        "Your engineering degree from [Institution] aligns perfectly with Canada's Express Entry system",
+        "Your IELTS score of X meets requirements for all target universities",
+        "Your budget of $X covers tuition and living costs with potential for part-time work"
+      ],
+      "specificAdvantages": [
+        "Post-graduation work permit for 3 years with your Master's degree",
+        "Express Entry pathway to permanent residence within 2-3 years",
+        "Strong job market in your field with average salaries of CAD $X"
+      ],
+      "potentialChallenges": [
+        "Competitive admission for top-tier universities",
+        "Winter climate adaptation required",
+        "Higher living costs in major cities like Toronto/Vancouver"
+      ],
+      "detailedCostBreakdown": {
+        "tuitionFees": {
+          "masters": "CAD $15,000-25,000/year",
+          "bachelors": "CAD $12,000-20,000/year",
+          "specificProgram": "CAD $18,000/year for Computer Science"
+        },
+        "livingExpenses": {
+          "totalMonthly": "CAD $1,200-1,800",
+          "accommodation": "CAD $600-1,000",
+          "food": "CAD $300-500",
+          "transportation": "CAD $100-150"
+        },
+        "scholarshipPotential": "CAD $2,000-8,000/year",
+        "workStudyEarnings": "CAD $800-1,200/month (20 hours/week)"
+      },
+      "targetedUniversities": [
+        {
+          "name": "University of Toronto",
+          "ranking": "QS Ranking #21 globally",
+          "programSpecific": "Master of Engineering in Computer Science",
+          "scholarshipAvailable": "International Student Awards up to CAD $5,000",
+          "admissionRequirements": "3.3+ GPA, IELTS 6.5+, relevant work experience"
+        }
+      ],
+      "personalizedVisaGuidance": {
+        "workRights": "20 hours/week during studies, unlimited during breaks",
+        "successRate": "95% approval rate for students from your country",
+        "timelineForUser": "6-8 weeks processing with your profile",
+        "postStudyOptions": "3-year PGWP, eligible for Express Entry after 1 year"
+      },
+      "careerPathway": {
+        "industryDemand": "High demand with 15% job growth projected",
+        "salaryExpectations": "Starting CAD $65,000, experienced CAD $85,000+",
+        "careerProgression": "Team Lead (3-5 years), Senior Manager (5-8 years)",
+        "returnOnInvestment": "Break-even within 3-4 years post-graduation"
+      }
+    }
+  ],
+  "keyFactors": [
+    "Strong academic profile suitable for competitive programs",
+    "Adequate English proficiency for most target universities",
+    "Realistic budget expectations for quality education"
+  ],
+  "personalizedInsights": {
+    "strengthsAnalysis": [
+      "Your engineering background provides strong foundation",
+      "Work experience enhances admission competitiveness",
+      "English proficiency meets most program requirements"
+    ],
+    "improvementAreas": [
+      "Consider retaking IELTS for higher scores if targeting top universities",
+      "Gain additional certifications in your field to strengthen profile"
+    ],
+    "strategicRecommendations": [
+      "Apply to 6-8 universities across different ranking tiers",
+      "Start scholarship applications 6 months before program start"
+    ]
+  },
+  "nextSteps": {
+    "immediate": [
+      "Complete university research and shortlist 6-8 institutions",
+      "Prepare required documents (transcripts, SOP, LORs)"
+    ],
+    "shortTerm": [
+      "Submit university applications by February 2025 deadlines",
+      "Apply for scholarships and financial aid"
+    ],
+    "longTerm": [
+      "Secure accommodation and prepare for departure",
+      "Complete visa application process"
+    ]
+  },
+  "budgetOptimization": {
+    "costSavingStrategies": [
+      "Consider smaller cities for lower living costs",
+      "Apply for graduate assistantships"
+    ],
+    "scholarshipOpportunities": [
+      "Merit-based scholarships for academic excellence",
+      "Country-specific scholarships for your nationality"
+    ],
+    "financialPlanningTips": [
+      "Budget for first-year expenses before part-time work income",
+      "Consider education loans with favorable terms"
+    ]
+  },
+  "timeline": {
+    "preparation": "3-6 months for document preparation and applications",
+    "application": "4-6 months for university application processing",
+    "decisionMaking": "2-3 months for visa processing and departure preparation"
+  },
+  "intelligentAlternatives": [
+    {
+      "country": "Germany",
+      "whyBetter": "Lower tuition costs and strong engineering programs",
+      "keyBenefits": ["Low tuition fees", "Strong industry connections", "EU work opportunities"],
+      "matchScore": 88,
+      "costAdvantage": "50% lower total costs compared to preferred countries"
+    }
+  ],
+  "pathwayPrograms": [
+    {
+      "type": "Foundation Program",
+      "description": "Academic preparation for direct entry",
+      "duration": "6-12 months",
+      "cost": "$8,000-15,000",
+      "entryRequirements": ["High school completion", "IELTS 5.5+"],
+      "pathwayTo": "Direct entry to Bachelor's programs"
+    }
+  ]
+}
+
+**CRITICAL**: Every field must contain specific, personalized information based on the student's actual profile. No generic placeholders or templated responses allowed.
+
+Respond with valid JSON matching the destinationSuggestionResponseSchema structure.`;
 
 ## REALISTIC SCHOLARSHIP MATCHING
 
