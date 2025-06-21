@@ -355,21 +355,21 @@ export default function AdminOfferLetterDetails() {
                   <DollarSign className="h-4 w-4 text-green-600" />
                   <p className="font-medium text-green-800">Total Tuition</p>
                 </div>
-                <p className="text-lg font-bold text-green-900">{offerLetter.totalTuition || 'Not specified'}</p>
+                <p className="text-lg font-bold text-green-900 break-words overflow-hidden">{offerLetter.totalTuition || 'Not specified'}</p>
               </div>
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2 mb-2">
                   <DollarSign className="h-4 w-4 text-blue-600" />
                   <p className="font-medium text-blue-800">Application Fee</p>
                 </div>
-                <p className="text-lg font-bold text-blue-900">{offerLetter.applicationFee || 'Not specified'}</p>
+                <p className="text-lg font-bold text-blue-900 break-words overflow-hidden">{offerLetter.applicationFee || 'Not specified'}</p>
               </div>
               <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
                 <div className="flex items-center gap-2 mb-2">
                   <DollarSign className="h-4 w-4 text-orange-600" />
                   <p className="font-medium text-orange-800">Deposit Required</p>
                 </div>
-                <p className="text-lg font-bold text-orange-900">{offerLetter.depositRequired || 'Not specified'}</p>
+                <p className="text-lg font-bold text-orange-900 break-words overflow-hidden">{offerLetter.depositRequired || 'Not specified'}</p>
               </div>
             </div>
             
@@ -379,8 +379,8 @@ export default function AdminOfferLetterDetails() {
                 <p className="font-medium text-muted-foreground mb-2">Payment Information</p>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <p>Due Date: {offerLetter.paymentDueDate || 'Not specified'}</p>
+                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="break-words overflow-hidden">Due Date: {offerLetter.paymentDueDate || 'Not specified'}</p>
                   </div>
                 </div>
               </div>
@@ -391,8 +391,8 @@ export default function AdminOfferLetterDetails() {
                   <div className="space-y-2">
                     {offerLetter.scholarshipAmount && (
                       <div className="flex items-center gap-2">
-                        <Award className="h-4 w-4 text-yellow-600" />
-                        <p>Amount: {offerLetter.scholarshipAmount}</p>
+                        <Award className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+                        <p className="break-words overflow-hidden">Amount: {offerLetter.scholarshipAmount}</p>
                       </div>
                     )}
                     {offerLetter.scholarshipConditions && (
@@ -471,8 +471,8 @@ export default function AdminOfferLetterDetails() {
                 <p className="font-medium mb-2">Acceptance Deadline</p>
                 <div className="bg-red-50 p-4 rounded border border-red-200">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-red-600" />
-                    <p className="font-semibold text-red-800">{offerLetter.acceptanceDeadline}</p>
+                    <Calendar className="h-4 w-4 text-red-600 flex-shrink-0" />
+                    <p className="font-semibold text-red-800 break-words overflow-hidden">{offerLetter.acceptanceDeadline}</p>
                   </div>
                 </div>
               </div>
@@ -501,8 +501,8 @@ export default function AdminOfferLetterDetails() {
                 <p className="font-medium mb-2">Contact Person</p>
                 <div className="bg-blue-50 p-4 rounded border border-blue-200">
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-blue-600" />
-                    <p>{offerLetter.contactPerson}</p>
+                    <User className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                    <p className="break-words overflow-hidden">{offerLetter.contactPerson}</p>
                   </div>
                 </div>
               </div>
