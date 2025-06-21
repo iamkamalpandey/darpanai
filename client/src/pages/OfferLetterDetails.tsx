@@ -24,6 +24,65 @@ import {
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Link } from 'wouter';
 
+// Helper function to format requirements text with proper lists and highlighting
+function formatRequirementsText(text: string | null): JSX.Element {
+  if (!text || text === 'Not specified') {
+    return <span className="text-gray-400 italic">Not specified</span>;
+  }
+
+  // Split by common delimiters and create lists
+  const lines = text.split(/[•\-\n]/).filter(line => line.trim());
+  
+  if (lines.length > 1) {
+    return (
+      <ul className="space-y-2">
+        {lines.map((line, index) => {
+          const trimmedLine = line.trim();
+          if (trimmedLine) {
+            return (
+              <li key={index} className="flex items-start">
+                <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                <span className="leading-relaxed">{highlightImportantTerms(trimmedLine)}</span>
+              </li>
+            );
+          }
+          return null;
+        })}
+      </ul>
+    );
+  }
+
+  return <div className="leading-relaxed">{highlightImportantTerms(text)}</div>;
+}
+
+// Helper function to highlight important terms and conditions
+function highlightImportantTerms(text: string): JSX.Element {
+  const importantTerms = [
+    'minimum', 'required', 'must', 'mandatory', 'deadline', 'fee', 'cost', 
+    'tuition', 'deposit', 'scholarship', 'IELTS', 'TOEFL', 'GPA', 'grade',
+    'certificate', 'transcript', 'visa', 'passport', 'insurance', 'accommodation',
+    'terms', 'conditions', 'policy', 'refund', 'withdrawal', 'academic', 'attendance'
+  ];
+
+  let highlightedText = text;
+  
+  importantTerms.forEach(term => {
+    const regex = new RegExp(`\\b${term}\\b`, 'gi');
+    highlightedText = highlightedText.replace(regex, `<mark class="bg-yellow-200 px-1 rounded">$&</mark>`);
+  });
+
+  // Highlight monetary amounts
+  highlightedText = highlightedText.replace(/\$[\d,]+(?:\.\d{2})?/g, '<span class="font-semibold text-green-600 bg-green-50 px-1 rounded">$&</span>');
+  
+  // Highlight percentages
+  highlightedText = highlightedText.replace(/\d+%/g, '<span class="font-semibold text-blue-600 bg-blue-50 px-1 rounded">$&</span>');
+  
+  // Highlight dates
+  highlightedText = highlightedText.replace(/\b\d{1,2}\/\d{1,2}\/\d{4}\b|\b\d{4}-\d{2}-\d{2}\b/g, '<span class="font-semibold text-purple-600 bg-purple-50 px-1 rounded">$&</span>');
+
+  return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
+}
+
 export default function OfferLetterDetails() {
   const { id } = useParams();
   
@@ -316,9 +375,9 @@ export default function OfferLetterDetails() {
               <CardTitle>Academic Requirements</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {offerLetter.academicRequirements || 'Not specified'}
-              </p>
+              <div className="text-sm text-muted-foreground">
+                {formatRequirementsText(offerLetter.academicRequirements)}
+              </div>
             </CardContent>
           </Card>
 
@@ -327,9 +386,9 @@ export default function OfferLetterDetails() {
               <CardTitle>English Requirements</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {offerLetter.englishRequirements || 'Not specified'}
-              </p>
+              <div className="text-sm text-muted-foreground">
+                {formatRequirementsText(offerLetter.englishRequirements)}
+              </div>
             </CardContent>
           </Card>
 
@@ -338,53 +397,110 @@ export default function OfferLetterDetails() {
               <CardTitle>Document Requirements</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {offerLetter.documentRequirements || 'Not specified'}
-              </p>
+              <div className="text-sm text-muted-foreground">
+                {formatRequirementsText(offerLetter.documentRequirements)}
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Additional Notes */}
+        {/* Additional Notes & Terms */}
         {offerLetter.additionalNotes && (
-          <Card>
+          <Card className="border-l-4 border-l-orange-500">
             <CardHeader>
-              <CardTitle>Additional Notes</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-orange-500" />
+                Important Notes & Terms
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {offerLetter.additionalNotes}
-              </p>
+              <div className="bg-orange-50 p-4 rounded-lg">
+                <div className="text-sm leading-relaxed">
+                  {formatRequirementsText(offerLetter.additionalNotes)}
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}
-
-        {/* Processing Information */}
-        <Card>
+        
+        {/* Financial Summary Table */}
+        <Card className="border-l-4 border-l-green-500">
           <CardHeader>
-            <CardTitle>Processing Information</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-green-500" />
+              Financial Summary
+            </CardTitle>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {(offerLetter.fileSize / 1024 / 1024).toFixed(2)} MB
-              </div>
-              <div className="text-sm text-muted-foreground">File Size</div>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-gray-200">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="border border-gray-200 px-4 py-2 text-left font-semibold">Fee Type</th>
+                    <th className="border border-gray-200 px-4 py-2 text-left font-semibold">Amount</th>
+                    <th className="border border-gray-200 px-4 py-2 text-left font-semibold">Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border border-gray-200 px-4 py-2 font-medium">Tuition Fee</td>
+                    <td className="border border-gray-200 px-4 py-2">
+                      <span className="font-semibold text-green-600 bg-green-50 px-2 py-1 rounded">
+                        {offerLetter.tuitionFee || 'Not specified'}
+                      </span>
+                    </td>
+                    <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
+                      {offerLetter.paymentSchedule || 'Payment schedule not specified'}
+                    </td>
+                  </tr>
+                  <tr className="bg-gray-25">
+                    <td className="border border-gray-200 px-4 py-2 font-medium">Application Fee</td>
+                    <td className="border border-gray-200 px-4 py-2">
+                      <span className="font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                        {offerLetter.applicationFee || 'Not specified'}
+                      </span>
+                    </td>
+                    <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
+                      One-time application processing fee
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 px-4 py-2 font-medium">Deposit Required</td>
+                    <td className="border border-gray-200 px-4 py-2">
+                      <span className="font-semibold text-purple-600 bg-purple-50 px-2 py-1 rounded">
+                        {offerLetter.depositRequired || 'Not specified'}
+                      </span>
+                    </td>
+                    <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
+                      Required to secure enrollment
+                    </td>
+                  </tr>
+                  <tr className="bg-gray-25">
+                    <td className="border border-gray-200 px-4 py-2 font-medium">Total Estimated Cost</td>
+                    <td className="border border-gray-200 px-4 py-2">
+                      <span className="font-bold text-red-600 bg-red-50 px-2 py-1 rounded">
+                        {offerLetter.totalCost || 'Not specified'}
+                      </span>
+                    </td>
+                    <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
+                      Complete program cost including all fees
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {offerLetter.tokensUsed || 0}
+            {offerLetter.scholarshipInfo && (
+              <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <h4 className="font-semibold text-yellow-800 mb-2">Scholarship Information:</h4>
+                <div className="text-sm text-yellow-700">
+                  {formatRequirementsText(offerLetter.scholarshipInfo)}
+                </div>
               </div>
-              <div className="text-sm text-muted-foreground">Tokens Used</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {offerLetter.processingTime ? `${(offerLetter.processingTime / 1000).toFixed(1)}s` : 'N/A'}
-              </div>
-              <div className="text-sm text-muted-foreground">Processing Time</div>
-            </div>
+            )}
           </CardContent>
         </Card>
+
+
       </div>
     </DashboardLayout>
   );
