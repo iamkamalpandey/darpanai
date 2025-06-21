@@ -159,6 +159,10 @@ export interface IStorage {
     totalEnrollmentAnalyses: number;
     averageProcessingTime: string;
   }>;
+
+  // COE Information methods
+  getAllCoeInfo(): Promise<any[]>;
+  getCoeInfoById(id: number): Promise<any | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1350,6 +1354,19 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error fetching all COE info:", error);
       return [];
+    }
+  }
+
+  async getCoeInfoById(id: number): Promise<any | undefined> {
+    try {
+      const [result] = await db
+        .select()
+        .from(coeInformation)
+        .where(eq(coeInformation.id, id));
+      return result || undefined;
+    } catch (error) {
+      console.error("Error fetching COE info by ID:", error);
+      return undefined;
     }
   }
 
