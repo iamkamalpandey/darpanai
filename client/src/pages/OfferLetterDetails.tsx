@@ -440,32 +440,78 @@ export default function OfferLetterDetails() {
         </div>
 
         {/* Requirements Section */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Academic Requirements</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <GraduationCap className="h-5 w-5 text-blue-500" />
+                Academic Documents Required
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">Documents you need to provide to confirm your educational background</p>
             </CardHeader>
             <CardContent>
-              <div className="text-sm text-muted-foreground">
-                {formatRequirementsText(offerLetter.academicRequirements)}
+              <div className="space-y-3">
+                {offerLetter.academicRequirements ? (
+                  <div>
+                    {formatRequirementsText(offerLetter.academicRequirements)}
+                    <div className="mt-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-200">
+                      <p className="text-xs text-blue-700 font-medium mb-2">What this means:</p>
+                      <ul className="text-xs text-blue-600 space-y-1">
+                        <li>• <strong>Certification of Completion:</strong> Your official diploma certificate</li>
+                        <li>• <strong>Year 12 Documents:</strong> High school transcripts and certificates</li>
+                        <li>• <strong>Original:</strong> Certified copies or official documents from the institution</li>
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  <span className="text-gray-400 italic">No specific academic requirements listed</span>
+                )}
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>English Requirements</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-green-500" />
+                English Language Requirements
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">English proficiency tests and minimum scores required</p>
             </CardHeader>
             <CardContent>
-              <div className="text-sm text-muted-foreground">
-                {formatRequirementsText(offerLetter.englishRequirements)}
+              <div className="space-y-3">
+                {offerLetter.englishRequirements && offerLetter.englishRequirements !== 'Not specified' ? (
+                  <div>
+                    {formatRequirementsText(offerLetter.englishRequirements)}
+                  </div>
+                ) : (
+                  <div>
+                    <span className="text-gray-400 italic">No English requirements specified</span>
+                    <div className="mt-3 p-3 bg-green-50 rounded-lg border-l-4 border-green-200">
+                      <p className="text-xs text-green-700 font-medium mb-2">Common English Tests:</p>
+                      <ul className="text-xs text-green-600 space-y-1">
+                        <li>• <strong>IELTS:</strong> Usually 6.0-7.0 overall</li>
+                        <li>• <strong>TOEFL:</strong> Usually 80-100 total score</li>
+                        <li>• <strong>PTE Academic:</strong> Usually 58-65 overall</li>
+                        <li>• <strong>Note:</strong> Check with your institution for specific requirements</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
+        </div>
 
+        {/* Additional Document Requirements */}
+        {offerLetter.documentRequirements && offerLetter.documentRequirements !== offerLetter.academicRequirements && (
           <Card>
             <CardHeader>
-              <CardTitle>Document Requirements</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-purple-500" />
+                Additional Documents Required
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">Extra documents you may need to submit</p>
             </CardHeader>
             <CardContent>
               <div className="text-sm text-muted-foreground">
@@ -473,7 +519,7 @@ export default function OfferLetterDetails() {
               </div>
             </CardContent>
           </Card>
-        </div>
+        )}
 
         {/* Additional Notes & Terms */}
         {offerLetter.additionalNotes && (
