@@ -56,6 +56,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [enrollmentInfoOpen, setEnrollmentInfoOpen] = useState(false);
+  const [enrollmentAnalysisOpen, setEnrollmentAnalysisOpen] = useState(false);
   const [location] = useLocation();
   const { unreadCount, hasUnread } = useUnreadUpdates();
   
@@ -205,6 +206,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                             setResourcesOpen(!resourcesOpen);
                           } else if (item.label === 'Enrollment Info') {
                             setEnrollmentInfoOpen(!enrollmentInfoOpen);
+                          } else if (item.label === 'Enrollment Analysis') {
+                            setEnrollmentAnalysisOpen(!enrollmentAnalysisOpen);
                           }
                         }}
                         className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -213,13 +216,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                           {item.icon}
                         </span>
                         <span className="truncate flex-1 text-left">{item.label}</span>
-                        {((item.label === 'Resources' && resourcesOpen) || (item.label === 'Enrollment Info' && enrollmentInfoOpen)) ? (
+                        {((item.label === 'Resources' && resourcesOpen) || 
+                          (item.label === 'Enrollment Info' && enrollmentInfoOpen) || 
+                          (item.label === 'Enrollment Analysis' && enrollmentAnalysisOpen)) ? (
                           <ChevronDown className="h-4 w-4 text-gray-400" />
                         ) : (
                           <ChevronRight className="h-4 w-4 text-gray-400" />
                         )}
                       </button>
-                      {((item.label === 'Resources' && resourcesOpen) || (item.label === 'Enrollment Info' && enrollmentInfoOpen)) && item.submenuItems && (
+                      {((item.label === 'Resources' && resourcesOpen) || 
+                        (item.label === 'Enrollment Info' && enrollmentInfoOpen) || 
+                        (item.label === 'Enrollment Analysis' && enrollmentAnalysisOpen)) && item.submenuItems && (
                         <div className="ml-8 mt-1 space-y-1">
                           {item.submenuItems.map((subItem) => (
                             <div key={subItem.href} onClick={() => setSidebarOpen(false)}>
@@ -318,20 +325,32 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   {item.isSubmenu ? (
                     <div>
                       <button
-                        onClick={() => setResourcesOpen(!resourcesOpen)}
+                        onClick={() => {
+                          if (item.label === 'Resources') {
+                            setResourcesOpen(!resourcesOpen);
+                          } else if (item.label === 'Enrollment Info') {
+                            setEnrollmentInfoOpen(!enrollmentInfoOpen);
+                          } else if (item.label === 'Enrollment Analysis') {
+                            setEnrollmentAnalysisOpen(!enrollmentAnalysisOpen);
+                          }
+                        }}
                         className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                       >
                         <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-gray-500">
                           {item.icon}
                         </span>
                         <span className="truncate flex-1 text-left">{item.label}</span>
-                        {resourcesOpen ? (
+                        {((item.label === 'Resources' && resourcesOpen) || 
+                          (item.label === 'Enrollment Info' && enrollmentInfoOpen) || 
+                          (item.label === 'Enrollment Analysis' && enrollmentAnalysisOpen)) ? (
                           <ChevronDown className="h-4 w-4 text-gray-400" />
                         ) : (
                           <ChevronRight className="h-4 w-4 text-gray-400" />
                         )}
                       </button>
-                      {resourcesOpen && item.submenuItems && (
+                      {((item.label === 'Resources' && resourcesOpen) || 
+                        (item.label === 'Enrollment Info' && enrollmentInfoOpen) || 
+                        (item.label === 'Enrollment Analysis' && enrollmentAnalysisOpen)) && item.submenuItems && (
                         <div className="ml-8 mt-1 space-y-1">
                           {item.submenuItems.map((subItem) => (
                             <SidebarItem 
