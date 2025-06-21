@@ -1,0 +1,402 @@
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Building, 
+  GraduationCap, 
+  Calendar, 
+  DollarSign, 
+  FileText, 
+  Phone, 
+  Mail, 
+  Globe, 
+  MapPin, 
+  User, 
+  Clock,
+  BookOpen,
+  Search,
+  Filter,
+  Eye,
+  FileCheck,
+  Shield,
+  Info
+} from 'lucide-react';
+import { AdminLayout } from '@/components/AdminLayout';
+import { Link } from 'wouter';
+import { format } from 'date-fns';
+
+interface OfferLetterInfo {
+  id: number;
+  userId: number;
+  fileName: string;
+  fileSize: number | null;
+  institutionName: string | null;
+  programName: string | null;
+  studentName: string | null;
+  tuitionFees: string | null;
+  totalCost: string | null;
+  commencementDate: string | null;
+  createdAt: string;
+}
+
+interface CoeInfo {
+  id: number;
+  userId: number;
+  fileName: string;
+  fileSize: number | null;
+  studentName: string | null;
+  institutionName: string | null;
+  courseName: string | null;
+  tuitionFees: string | null;
+  commencementDate: string | null;
+  enrollmentStatus: string | null;
+  createdAt: string;
+}
+
+// Helper component for displaying information items with icons
+const InfoItem = ({ 
+  icon, 
+  label, 
+  value, 
+  isLink = false 
+}: { 
+  icon: React.ReactNode; 
+  label: string; 
+  value: string | null; 
+  isLink?: boolean;
+}) => {
+  if (!value || value === 'Not specified') {
+    return (
+      <div className="flex items-start gap-3">
+        <div className="text-gray-400 mt-0.5">{icon}</div>
+        <div>
+          <div className="text-sm font-medium text-gray-700">{label}</div>
+          <div className="text-sm text-gray-400 italic">Not specified</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-start gap-3">
+      <div className="text-blue-600 mt-0.5">{icon}</div>
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-medium text-gray-700">{label}</div>
+        <div className="text-sm text-gray-900">
+          {isLink ? (
+            <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+              {value}
+            </a>
+          ) : (
+            value
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Helper component for financial cards with color coding
+const FinancialCard = ({ 
+  title, 
+  value, 
+  colorScheme 
+}: { 
+  title: string; 
+  value: string | null; 
+  colorScheme: 'green' | 'blue' | 'purple' | 'red' | 'gray';
+}) => {
+  const colorClasses = {
+    green: 'bg-green-50 border-green-200 text-green-800 text-green-700',
+    blue: 'bg-blue-50 border-blue-200 text-blue-800 text-blue-700',
+    purple: 'bg-purple-50 border-purple-200 text-purple-800 text-purple-700',
+    red: 'bg-red-50 border-red-200 text-red-800 text-red-700',
+    gray: 'bg-gray-50 border-gray-200 text-gray-800 text-gray-700'
+  };
+
+  const [bgColor, borderColor, titleColor, valueColor] = colorClasses[colorScheme].split(' ');
+
+  return (
+    <div className={`p-3 ${bgColor} border ${borderColor} rounded-lg`}>
+      <div className={`text-sm font-medium ${titleColor}`}>{title}</div>
+      <div className={`text-lg font-semibold ${valueColor}`}>
+        {value || 'Not specified'}
+      </div>
+    </div>
+  );
+};
+
+export default function InformationReports() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTab, setSelectedTab] = useState('offer-letters');
+
+  const { data: offerLetters, isLoading: offerLettersLoading } = useQuery({
+    queryKey: ['/api/offer-letter-info'],
+  }) as { data: OfferLetterInfo[] | undefined; isLoading: boolean };
+
+  const { data: coeInfo, isLoading: coeLoading } = useQuery({
+    queryKey: ['/api/coe-info'],
+  }) as { data: CoeInfo[] | undefined; isLoading: boolean };
+
+  // Filter data based on search term
+  const filteredOfferLetters = offerLetters?.filter(item =>
+    item.fileName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.institutionName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.programName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.studentName?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  const filteredCoeInfo = coeInfo?.filter(item =>
+    item.fileName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.institutionName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.courseName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.studentName?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  const OfferLetterCard = ({ offerLetter }: { offerLetter: OfferLetterInfo }) => (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            <FileText className="h-5 w-5 text-blue-600" />
+            <CardTitle className="text-lg">{offerLetter.fileName}</CardTitle>
+          </div>
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            {format(new Date(offerLetter.createdAt), 'MMM dd, yyyy')}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid md:grid-cols-2 gap-4">
+          <InfoItem 
+            icon={<Building className="h-4 w-4" />}
+            label="Institution" 
+            value={offerLetter.institutionName} 
+          />
+          <InfoItem 
+            icon={<GraduationCap className="h-4 w-4" />}
+            label="Program" 
+            value={offerLetter.programName} 
+          />
+          <InfoItem 
+            icon={<User className="h-4 w-4" />}
+            label="Student" 
+            value={offerLetter.studentName} 
+          />
+          <InfoItem 
+            icon={<Calendar className="h-4 w-4" />}
+            label="Commencement" 
+            value={offerLetter.commencementDate} 
+          />
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3 mt-4">
+          <FinancialCard 
+            title="Tuition Fees" 
+            value={offerLetter.tuitionFees} 
+            colorScheme="green" 
+          />
+          <FinancialCard 
+            title="Total Cost" 
+            value={offerLetter.totalCost} 
+            colorScheme="red" 
+          />
+        </div>
+
+        <div className="pt-3 border-t">
+          <Link href={`/offer-letter-info/${offerLetter.id}`}>
+            <Button variant="outline" size="sm" className="w-full">
+              <Eye className="h-4 w-4 mr-2" />
+              View Full Details
+            </Button>
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const CoeCard = ({ coe }: { coe: CoeInfo }) => (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-green-600" />
+            <CardTitle className="text-lg">{coe.fileName}</CardTitle>
+          </div>
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+            {format(new Date(coe.createdAt), 'MMM dd, yyyy')}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid md:grid-cols-2 gap-4">
+          <InfoItem 
+            icon={<Building className="h-4 w-4" />}
+            label="Institution" 
+            value={coe.institutionName} 
+          />
+          <InfoItem 
+            icon={<BookOpen className="h-4 w-4" />}
+            label="Course" 
+            value={coe.courseName} 
+          />
+          <InfoItem 
+            icon={<User className="h-4 w-4" />}
+            label="Student" 
+            value={coe.studentName} 
+          />
+          <InfoItem 
+            icon={<Calendar className="h-4 w-4" />}
+            label="Commencement" 
+            value={coe.commencementDate} 
+          />
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3 mt-4">
+          <FinancialCard 
+            title="Tuition Fees" 
+            value={coe.tuitionFees} 
+            colorScheme="blue" 
+          />
+          <FinancialCard 
+            title="Enrollment Status" 
+            value={coe.enrollmentStatus} 
+            colorScheme="purple" 
+          />
+        </div>
+
+        <div className="pt-3 border-t">
+          <Link href={`/coe-info/${coe.id}`}>
+            <Button variant="outline" size="sm" className="w-full">
+              <Eye className="h-4 w-4 mr-2" />
+              View Full Details
+            </Button>
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <AdminLayout>
+      <div className="container mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Information Reports</h1>
+            <p className="text-muted-foreground">View and manage all offer letter and COE information</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+              {(offerLetters?.length || 0) + (coeInfo?.length || 0)} Total Documents
+            </Badge>
+          </div>
+        </div>
+
+        {/* Search and Filter */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Search by file name, institution, program, or student..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Filter className="h-4 w-4 text-gray-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tabs for different information types */}
+        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="offer-letters" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Offer Letters ({filteredOfferLetters.length})
+            </TabsTrigger>
+            <TabsTrigger value="coe-info" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              COE Information ({filteredCoeInfo.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="offer-letters" className="space-y-4">
+            {offerLettersLoading ? (
+              <div className="grid gap-4">
+                {[...Array(3)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                      <div className="space-y-2">
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : filteredOfferLetters.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Offer Letters Found</h3>
+                  <p className="text-gray-500">
+                    {searchTerm ? 'Try adjusting your search terms.' : 'No offer letter information has been uploaded yet.'}
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {filteredOfferLetters.map((offerLetter) => (
+                  <OfferLetterCard key={offerLetter.id} offerLetter={offerLetter} />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="coe-info" className="space-y-4">
+            {coeLoading ? (
+              <div className="grid gap-4">
+                {[...Array(3)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-6">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                      <div className="space-y-2">
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : filteredCoeInfo.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No COE Information Found</h3>
+                  <p className="text-gray-500">
+                    {searchTerm ? 'Try adjusting your search terms.' : 'No COE information has been uploaded yet.'}
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {filteredCoeInfo.map((coe) => (
+                  <CoeCard key={coe.id} coe={coe} />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+    </AdminLayout>
+  );
+}

@@ -47,6 +47,7 @@ const AdminDocumentTemplates = lazy(() => import("@/pages/admin-document-templat
 const AdminDocumentChecklists = lazy(() => import("@/pages/admin-document-checklists"));
 const AdminFeedback = lazy(() => import("@/pages/admin-feedback"));
 const AdminOfferLetterAnalysisView = lazy(() => import("@/pages/AdminOfferLetterAnalysisView"));
+const AdminInformationReports = lazy(() => import("@/pages/admin/InformationReports"));
 const StudyDestinationSuggestions = lazy(() => import("@/pages/StudyDestinationSuggestions"));
 const DestinationSuggestionDetail = lazy(() => import("@/pages/DestinationSuggestionDetail"));
 const PersonalizedDestinationAnalysis = lazy(() => import("@/pages/PersonalizedDestinationAnalysis"));
@@ -403,6 +404,13 @@ function Router() {
         <AdminProtectedRoute path="/admin/offer-letter-analysis/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <AdminOfferLetterAnalysisView />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/information-reports">
+        <AdminProtectedRoute path="/admin/information-reports" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminInformationReports />
           </Suspense>
         )} />
       </Route>
