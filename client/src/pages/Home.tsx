@@ -162,71 +162,48 @@ export default function Home() {
 
           {/* Analysis Options */}
           <div className="mb-12">
-            <div className="text-center mb-8">
+            <div className="text-center mb-10">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                AI-Powered Document Analysis
+                Document Analysis Services
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Choose the analysis type that matches your document and get instant AI insights
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                Get professional AI-powered analysis for your study abroad documents
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {analysisOptions.map((option, index) => (
-                <Card 
-                  key={index} 
-                  className={`group relative overflow-hidden border-0 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 ${
-                    option.comingSoon 
-                      ? 'bg-gradient-to-br from-gray-50 to-gray-100 cursor-default' 
-                      : 'bg-white/90 backdrop-blur-sm cursor-pointer hover:bg-white'
-                  }`}
-                >
-                  {option.comingSoon && (
-                    <div className="absolute top-4 right-4 z-10">
-                      <Badge className="bg-orange-500 text-white text-xs px-2 py-1">
-                        Coming Soon
-                      </Badge>
-                    </div>
-                  )}
-                  
-                  <CardHeader className="text-center pb-4">
-                    <div className={`w-16 h-16 bg-gradient-to-r ${option.color} rounded-2xl flex items-center justify-center mx-auto mb-4 ${
-                      option.comingSoon ? 'opacity-70' : 'group-hover:scale-110'
-                    } transition-transform duration-300`}>
-                      {option.comingSoon ? <Construction className="w-8 h-8 text-white" /> : option.icon}
-                    </div>
-                    <CardTitle className="text-xl font-bold text-gray-900 mb-2">
-                      {option.title}
-                    </CardTitle>
-                    <CardDescription className="text-gray-600 text-sm leading-relaxed">
-                      {option.description}
-                    </CardDescription>
-                  </CardHeader>
-                  
-                  <CardContent className="pt-0">
-                    <ul className="space-y-2 mb-6">
-                      {option.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-center text-sm text-gray-600">
-                          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mr-3 flex-shrink-0"></div>
-                          <span className="truncate">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {analysisOptions.filter(option => !option.comingSoon).map((option, index) => (
+                <Link key={index} href={option.href}>
+                  <Card className="group relative overflow-hidden border border-gray-200 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-white cursor-pointer h-full">
+                    <CardHeader className="text-center pb-6">
+                      <div className={`w-20 h-20 bg-gradient-to-r ${option.color} rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-105 transition-transform duration-300`}>
+                        {option.icon}
+                      </div>
+                      <CardTitle className="text-2xl font-bold text-gray-900 mb-3">
+                        {option.title}
+                      </CardTitle>
+                      <CardDescription className="text-gray-600 text-base leading-relaxed">
+                        {option.description}
+                      </CardDescription>
+                    </CardHeader>
                     
-                    {option.comingSoon ? (
-                      <Button disabled className="w-full bg-gray-300 text-gray-600 cursor-not-allowed">
-                        Under Development
+                    <CardContent className="pt-0">
+                      <ul className="space-y-3 mb-8">
+                        {option.features.slice(0, 3).map((feature, idx) => (
+                          <li key={idx} className="flex items-start text-sm text-gray-700">
+                            <div className="w-2 h-2 bg-green-500 rounded-full mr-3 mt-1.5 flex-shrink-0"></div>
+                            <span className="leading-relaxed">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      
+                      <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 group-hover:scale-105 transition-all duration-300">
+                        Start Analysis
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                       </Button>
-                    ) : (
-                      <Link href={option.href}>
-                        <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white transition-all duration-300">
-                          Start Analysis
-                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                      </Link>
-                    )}
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           </div>
