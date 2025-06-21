@@ -2567,10 +2567,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Return the complete analysis data
       return res.status(200).json({
         id: analysis.id,
-        fileName: analysis.filename,
+        fileName: analysis.fileName,
         fileSize: analysis.fileSize,
         analysisDate: analysis.createdAt,
-        analysisResults: transformedAnalysis,
+        analysisResults: parsedAnalysis,
         createdAt: analysis.createdAt
       });
     } catch (error) {
