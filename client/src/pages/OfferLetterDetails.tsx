@@ -30,29 +30,85 @@ function formatRequirementsText(text: string | null): JSX.Element {
     return <span className="text-gray-400 italic">Not specified</span>;
   }
 
-  // Split by common delimiters and create lists
-  const lines = text.split(/[•\-\n]/).filter(line => line.trim());
+  // Check for explicit list markers first
+  const hasExplicitListMarkers = /[•\-\*]\s/.test(text);
+  const hasNumberedList = /^\d+\.\s/.test(text);
+  const hasLetterList = /^\w\)\s/.test(text);
+  const hasLineBreaks = text.includes('\n');
   
-  if (lines.length > 1) {
-    return (
-      <ul className="space-y-2">
-        {lines.map((line, index) => {
-          const trimmedLine = line.trim();
-          if (trimmedLine) {
-            return (
-              <li key={index} className="flex items-start">
-                <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                <span className="leading-relaxed">{highlightImportantTerms(trimmedLine)}</span>
-              </li>
-            );
-          }
-          return null;
-        })}
-      </ul>
-    );
+  if (hasExplicitListMarkers || hasNumberedList || hasLetterList) {
+    // Split by list markers and preserve full content
+    const lines = text
+      .split(/(?=\s*[•\-\*]\s)|(?=\s*\d+\.\s)|(?=\s*\w\)\s)/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+    
+    if (lines.length > 1) {
+      return (
+        <ul className="space-y-3">
+          {lines.map((line, index) => {
+            // Remove only the list marker, keep everything else
+            const cleanLine = line.replace(/^[•\-\*]\s*|^\d+\.\s*|^\w\)\s*/, '').trim();
+            if (cleanLine) {
+              return (
+                <li key={index} className="flex items-start">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                  <span className="leading-relaxed text-sm">{highlightImportantTerms(cleanLine)}</span>
+                </li>
+              );
+            }
+            return null;
+          })}
+        </ul>
+      );
+    }
   }
 
-  return <div className="leading-relaxed">{highlightImportantTerms(text)}</div>;
+  // Handle line breaks as separate items
+  if (hasLineBreaks) {
+    const lines = text
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+    
+    if (lines.length > 1) {
+      return (
+        <ul className="space-y-2">
+          {lines.map((line, index) => (
+            <li key={index} className="flex items-start">
+              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2.5 mr-3 flex-shrink-0"></span>
+              <span className="leading-relaxed text-sm">{highlightImportantTerms(line)}</span>
+            </li>
+          ))}
+        </ul>
+      );
+    }
+  }
+
+  // Check for sentences separated by periods or semicolons only if text is very long
+  if (text.length > 200) {
+    const sentences = text.split(/\.\s+/).filter(s => s.trim().length > 20);
+    if (sentences.length > 2) {
+      return (
+        <ul className="space-y-2">
+          {sentences.map((sentence, index) => {
+            const cleanSentence = sentence.trim();
+            if (cleanSentence) {
+              return (
+                <li key={index} className="flex items-start">
+                  <span className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-2.5 mr-3 flex-shrink-0"></span>
+                  <span className="leading-relaxed text-sm">{highlightImportantTerms(cleanSentence + '.')}</span>
+                </li>
+              );
+            }
+            return null;
+          })}
+        </ul>
+      );
+    }
+  }
+
+  return <div className="leading-relaxed text-sm">{highlightImportantTerms(text)}</div>;
 }
 
 // Helper function to highlight important terms and conditions
@@ -68,17 +124,17 @@ function highlightImportantTerms(text: string): JSX.Element {
   
   importantTerms.forEach(term => {
     const regex = new RegExp(`\\b${term}\\b`, 'gi');
-    highlightedText = highlightedText.replace(regex, `<mark class="bg-yellow-200 px-1 rounded">$&</mark>`);
+    highlightedText = highlightedText.replace(regex, `<span class="font-semibold text-orange-800 bg-orange-100 px-1 py-0.5 rounded text-xs">$&</span>`);
   });
 
   // Highlight monetary amounts
-  highlightedText = highlightedText.replace(/\$[\d,]+(?:\.\d{2})?/g, '<span class="font-semibold text-green-600 bg-green-50 px-1 rounded">$&</span>');
+  highlightedText = highlightedText.replace(/\$[\d,]+(?:\.\d{2})?/g, '<span class="font-semibold text-green-700 bg-green-100 px-1 py-0.5 rounded text-xs">$&</span>');
   
   // Highlight percentages
-  highlightedText = highlightedText.replace(/\d+%/g, '<span class="font-semibold text-blue-600 bg-blue-50 px-1 rounded">$&</span>');
+  highlightedText = highlightedText.replace(/\d+%/g, '<span class="font-semibold text-blue-700 bg-blue-100 px-1 py-0.5 rounded text-xs">$&</span>');
   
   // Highlight dates
-  highlightedText = highlightedText.replace(/\b\d{1,2}\/\d{1,2}\/\d{4}\b|\b\d{4}-\d{2}-\d{2}\b/g, '<span class="font-semibold text-purple-600 bg-purple-50 px-1 rounded">$&</span>');
+  highlightedText = highlightedText.replace(/\b\d{1,2}\/\d{1,2}\/\d{4}\b|\b\d{4}-\d{2}-\d{2}\b/g, '<span class="font-semibold text-purple-700 bg-purple-100 px-1 py-0.5 rounded text-xs">$&</span>');
 
   return <span dangerouslySetInnerHTML={{ __html: highlightedText }} />;
 }
@@ -280,31 +336,40 @@ export default function OfferLetterDetails() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <InfoItem 
-                icon={<DollarSign className="h-4 w-4" />}
-                label="Tuition Fee" 
-                value={offerLetter.tuitionFee} 
-              />
-              <InfoItem 
-                icon={<DollarSign className="h-4 w-4" />}
-                label="Application Fee" 
-                value={offerLetter.applicationFee} 
-              />
-              <InfoItem 
-                icon={<DollarSign className="h-4 w-4" />}
-                label="Deposit Required" 
-                value={offerLetter.depositRequired} 
-              />
-              <InfoItem 
-                icon={<DollarSign className="h-4 w-4" />}
-                label="Total Cost" 
-                value={offerLetter.totalCost} 
-              />
-              <InfoItem 
-                icon={<Calendar className="h-4 w-4" />}
-                label="Payment Schedule" 
-                value={offerLetter.paymentSchedule} 
-              />
+              <div className="grid gap-3">
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="text-sm font-medium text-green-800">Tuition Fee</div>
+                  <div className="text-lg font-semibold text-green-700">
+                    {offerLetter.tuitionFee || 'Not specified'}
+                  </div>
+                </div>
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="text-sm font-medium text-blue-800">Application Fee</div>
+                  <div className="text-lg font-semibold text-blue-700">
+                    {offerLetter.applicationFee || 'Not specified'}
+                  </div>
+                </div>
+                <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                  <div className="text-sm font-medium text-purple-800">Deposit Required</div>
+                  <div className="text-lg font-semibold text-purple-700">
+                    {offerLetter.depositRequired || 'Not specified'}
+                  </div>
+                </div>
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="text-sm font-medium text-red-800">Total Cost</div>
+                  <div className="text-lg font-semibold text-red-700">
+                    {offerLetter.totalCost || 'Not specified'}
+                  </div>
+                </div>
+                {offerLetter.paymentSchedule && (
+                  <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div className="text-sm font-medium text-gray-800 mb-2">Payment Schedule</div>
+                    <div className="text-sm text-gray-700 leading-relaxed">
+                      {formatRequirementsText(offerLetter.paymentSchedule)}
+                    </div>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 
