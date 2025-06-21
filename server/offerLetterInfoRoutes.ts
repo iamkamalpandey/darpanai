@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import multer from 'multer';
 import { offerLetterInfoStorage } from './offerLetterInfoStorage';
+import { storage } from './storage';
 import { extractTextFromPdf } from './fileProcessing';
 import { extractOfferLetterInfo } from './offerLetterExtractor';
 
@@ -153,6 +154,24 @@ export function setupOfferLetterInfoRoutes(app: any) {
     }
   });
 
+  // Admin route - get all offer letter information for admin dashboard
+  app.get('/api/admin/offer-letter-information', async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const allInfo = await offerLetterInfoStorage.getAllOfferLetterInfo();
+      res.json(allInfo);
+
+    } catch (error) {
+      console.error('Error fetching all offer letter info for admin:', error);
+      res.status(500).json({ error: 'Failed to fetch offer letter information' });
+    }
+  });
+
   // Admin route - get specific offer letter information by ID
   app.get('/api/admin/offer-letter-info/:id', async (req: Request, res: Response) => {
     try {
@@ -178,6 +197,24 @@ export function setupOfferLetterInfoRoutes(app: any) {
     } catch (error) {
       console.error('Error fetching admin offer letter info:', error);
       res.status(500).json({ error: 'Failed to fetch offer letter information' });
+    }
+  });
+
+  // Admin route - get all COE information for admin dashboard
+  app.get('/api/admin/coe-information', async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const allCoeInfo = await storage.getAllCoeInfo();
+      res.json(allCoeInfo);
+
+    } catch (error) {
+      console.error('Error fetching all COE info for admin:', error);
+      res.status(500).json({ error: 'Failed to fetch COE information' });
     }
   });
 }
