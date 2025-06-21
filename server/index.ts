@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupOfferLetterRoutes } from "./offerLetterRoutesNew";
+import coeRoutes from "./coeRoutes";
 import { setupVite, serveStatic, log } from "./vite";
 import { pool } from "./db";
 
@@ -198,6 +199,10 @@ function setupGracefulShutdown(server: any) {
     const { scholarshipRoutes } = await import('./scholarshipRoutes');
     app.use('/api/scholarships', scholarshipRoutes);
     logWithLevel('✓ Scholarship research routes registered successfully');
+    
+    // Register COE information routes
+    app.use('/api/coe-info', coeRoutes);
+    logWithLevel('✓ COE information routes registered successfully');
     
     // Step 5: Setup error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
