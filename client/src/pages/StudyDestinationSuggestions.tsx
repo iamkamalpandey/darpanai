@@ -701,7 +701,7 @@ export default function StudyDestinationSuggestions() {
                         Scholarship Opportunities
                       </h3>
                       <ul className="space-y-2">
-                        {latestSuggestion.recommendations.budgetOptimization.scholarshipOpportunities.map((scholarship, index) => (
+                        {(latestSuggestion.recommendations?.budgetOptimization?.scholarshipOpportunities || []).map((scholarship, index) => (
                           <li key={index} className="flex items-start gap-2">
                             <Star className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-gray-700">{scholarship}</span>
@@ -720,21 +720,21 @@ export default function StudyDestinationSuggestions() {
                           <Clock className="h-6 w-6 text-blue-600" />
                         </div>
                         <h3 className="font-semibold text-blue-700 mb-2">Preparation</h3>
-                        <p className="text-sm text-gray-600">{latestSuggestion.recommendations.timeline.preparation}</p>
+                        <p className="text-sm text-gray-600">{latestSuggestion.recommendations?.timeline?.preparation || 'Not specified'}</p>
                       </div>
                       <div className="text-center">
                         <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                           <GraduationCap className="h-6 w-6 text-green-600" />
                         </div>
                         <h3 className="font-semibold text-green-700 mb-2">Application</h3>
-                        <p className="text-sm text-gray-600">{latestSuggestion.recommendations.timeline.application}</p>
+                        <p className="text-sm text-gray-600">{latestSuggestion.recommendations?.timeline?.application || 'Not specified'}</p>
                       </div>
                       <div className="text-center">
                         <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
                           <Target className="h-6 w-6 text-purple-600" />
                         </div>
                         <h3 className="font-semibold text-purple-700 mb-2">Decision Making</h3>
-                        <p className="text-sm text-gray-600">{latestSuggestion.recommendations.timeline.decisionMaking}</p>
+                        <p className="text-sm text-gray-600">{latestSuggestion.recommendations?.timeline?.decisionMaking || 'Not specified'}</p>
                       </div>
                     </div>
                   </div>
