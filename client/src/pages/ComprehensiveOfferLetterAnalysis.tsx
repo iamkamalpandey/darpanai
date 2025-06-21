@@ -404,7 +404,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
       setUploadProgress(0);
       setSelectedFile(null);
       setSelectedAnalysis(result);
-      queryClient.invalidateQueries({ queryKey: ['/api/offer-letter-analyses'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/offer-letter-analyses-new'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/stats'] });
       toast({
         title: 'Analysis Complete',
