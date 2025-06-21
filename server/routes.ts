@@ -2491,27 +2491,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         file.originalname
       );
 
-      // Save comprehensive analysis with core student information to database
+      // Save comprehensive analysis to database
       const savedAnalysis = await storage.saveOfferLetterAnalysis({
-        filename: file.originalname,
+        fileName: file.originalname,
         fileSize: file.size,
-        originalText: extractedText,
-        universityName: coreInfo.institutionName,
-        universityLocation: coreInfo.country,
-        program: coreInfo.program,
-        tuition: `${coreInfo.tuitionFee} ${coreInfo.currency}`,
-        duration: coreInfo.duration,
-        academicStanding: analysis.executiveSummary?.overallAssessment || 'Not specified',
-        gpa: 'Based on comprehensive analysis',
-        financialStatus: analysis.executiveSummary?.riskLevel || 'Not specified',
-        relevantSkills: [],
-        strengths: analysis.qualityAssurance?.strengths || [],
-        weaknesses: analysis.qualityAssurance?.areasOfConcern || [],
-        scholarshipOpportunities: [],
-        costSavingStrategies: [],
-        recommendations: analysis.finalRecommendations || [],
-        nextSteps: [],
-        analysisResults: analysis,
+        documentText: extractedText,
+        analysisResults: {
+          ...analysis,
+          coreStudentInfo: coreInfo
+        },
         tokensUsed,
         processingTime,
         isPublic: false,
@@ -2530,7 +2518,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: 'Offer letter analysis completed successfully',
         analysis: {
           id: savedAnalysis.id,
-          fileName: savedAnalysis.filename,
+          fileName: savedAnalysis.fileName,
           fileSize: savedAnalysis.fileSize,
           analysisDate: savedAnalysis.createdAt,
           analysisResults: analysis,
@@ -2564,11 +2552,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Analysis not found' });
       }
 
-      // Check if this is a failed analysis
-      if (analysis.universityName === 'Analysis Error - Please Try Again') {
-        return res.status(404).json({ error: 'Analysis failed or corrupted' });
-      }
-
       // Parse analysis results from the stored JSON
       let parsedAnalysis = null;
       if (analysis.analysisResults) {
@@ -2580,61 +2563,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error('Error parsing analysis results:', error);
         }
       }
-
-      // Transform existing data to match comprehensive structure
-      const transformedAnalysis = {
-        universityInfo: {
-          name: parsedAnalysis?.universityInfo?.name || analysis.universityName || 'University information available',
-          location: parsedAnalysis?.universityInfo?.location || analysis.universityLocation || 'Location details available',
-          program: parsedAnalysis?.universityInfo?.program || analysis.program || 'Program details available',
-          tuition: parsedAnalysis?.universityInfo?.tuition || analysis.tuition || 'Tuition information available',
-          duration: parsedAnalysis?.universityInfo?.duration || analysis.duration || 'Duration specified',
-          startDate: parsedAnalysis?.universityInfo?.startDate || 'Start date provided',
-          campus: parsedAnalysis?.universityInfo?.campus || 'Campus information available',
-          studyMode: parsedAnalysis?.universityInfo?.studyMode || 'Study mode details available'
-        },
-        profileAnalysis: {
-          academicStanding: parsedAnalysis?.profileAnalysis?.academicStanding || analysis.academicStanding || 'Academic standing assessed',
-          gpa: parsedAnalysis?.profileAnalysis?.gpa || analysis.gpa || 'GPA requirements available',
-          financialStatus: parsedAnalysis?.profileAnalysis?.financialStatus || analysis.financialStatus || 'Financial status evaluated',
-          relevantSkills: parsedAnalysis?.profileAnalysis?.relevantSkills || analysis.relevantSkills || [],
-          strengths: parsedAnalysis?.profileAnalysis?.strengths || analysis.strengths || [],
-          weaknesses: parsedAnalysis?.profileAnalysis?.weaknesses || analysis.weaknesses || [],
-          improvementAreas: parsedAnalysis?.profileAnalysis?.improvementAreas || []
-        },
-        documentAnalysis: {
-          termsAndConditions: {
-            academicRequirements: parsedAnalysis?.documentAnalysis?.termsAndConditions?.academicRequirements || ['Academic requirements detailed in document'],
-            financialObligations: parsedAnalysis?.documentAnalysis?.termsAndConditions?.financialObligations || ['Financial obligations outlined'],
-            enrollmentConditions: parsedAnalysis?.documentAnalysis?.termsAndConditions?.enrollmentConditions || ['Enrollment conditions specified'],
-            complianceRequirements: parsedAnalysis?.documentAnalysis?.termsAndConditions?.complianceRequirements || ['Compliance requirements detailed'],
-            hiddenClauses: parsedAnalysis?.documentAnalysis?.termsAndConditions?.hiddenClauses || ['Important clauses identified'],
-            criticalDeadlines: parsedAnalysis?.documentAnalysis?.termsAndConditions?.criticalDeadlines || ['Critical deadlines highlighted'],
-            penalties: parsedAnalysis?.documentAnalysis?.termsAndConditions?.penalties || ['Penalty conditions outlined']
-          },
-          riskAssessment: {
-            highRiskFactors: parsedAnalysis?.documentAnalysis?.riskAssessment?.highRiskFactors || ['Risk factors identified'],
-            financialRisks: parsedAnalysis?.documentAnalysis?.riskAssessment?.financialRisks || ['Financial risks assessed'],
-            academicRisks: parsedAnalysis?.documentAnalysis?.riskAssessment?.academicRisks || ['Academic risks evaluated'],
-            complianceRisks: parsedAnalysis?.documentAnalysis?.riskAssessment?.complianceRisks || ['Compliance risks identified'],
-            mitigationStrategies: parsedAnalysis?.documentAnalysis?.riskAssessment?.mitigationStrategies || ['Mitigation strategies provided']
-          }
-        },
-        scholarshipOpportunities: parsedAnalysis?.scholarshipOpportunities || analysis.scholarshipOpportunities || [],
-        costSavingStrategies: parsedAnalysis?.costSavingStrategies || analysis.costSavingStrategies || [],
-        financialBreakdown: {
-          totalCost: parsedAnalysis?.financialBreakdown?.totalCost || 'Total cost available in document',
-          tuitionFees: parsedAnalysis?.financialBreakdown?.tuitionFees || analysis.tuition || 'Tuition fees specified',
-          otherFees: parsedAnalysis?.financialBreakdown?.otherFees || 'Additional fees outlined',
-          livingExpenses: parsedAnalysis?.financialBreakdown?.livingExpenses || 'Living expenses estimated',
-          scholarshipOpportunities: parsedAnalysis?.financialBreakdown?.scholarshipOpportunities || `${(parsedAnalysis?.scholarshipOpportunities || []).length} opportunities identified`,
-          netCost: parsedAnalysis?.financialBreakdown?.netCost || 'Net cost calculated',
-          paymentSchedule: parsedAnalysis?.financialBreakdown?.paymentSchedule || ['Payment schedule available'],
-          fundingGaps: parsedAnalysis?.financialBreakdown?.fundingGaps || ['Funding gaps identified']
-        },
-        recommendations: parsedAnalysis?.recommendations || analysis.recommendations || [],
-        nextSteps: parsedAnalysis?.nextSteps || analysis.nextSteps || []
-      };
 
       // Return the complete analysis data
       return res.status(200).json({
