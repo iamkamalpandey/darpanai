@@ -115,29 +115,29 @@ interface DestinationSuggestion {
     optional: string[];
   };
   disclaimer?: string;
-  // Top-level comprehensive analysis sections
+  // Top-level comprehensive analysis sections from database
   budgetOptimization?: {
     costSavingStrategies: string[];
     scholarshipOpportunities: string[];
     financialPlanningTips: string[];
-  };
+  } | any;
   timeline?: {
     preparation: string;
     application: string;
     decisionMaking: string;
-  };
+  } | any;
   nextSteps?: {
     immediate: string[];
     shortTerm: string[];
     longTerm: string[];
-  };
+  } | any;
   personalizedInsights?: {
     strengthsAnalysis: string[];
     improvementAreas: string[];
     strategicRecommendations: string[];
-  };
+  } | any;
   // Legacy nested structure for backward compatibility
-  recommendations: {
+  recommendations?: {
     personalizedInsights: {
       strengthsAnalysis: string[];
       improvementAreas: string[];
@@ -861,6 +861,141 @@ export default function StudyDestinationSuggestions() {
                             </div>
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="next-steps" className="space-y-6">
+                  {/* Immediate Actions */}
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                    <h3 className="text-xl font-bold text-red-700 mb-4 flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5" />
+                      Immediate Actions (Next 30 Days)
+                    </h3>
+                    <div className="space-y-3">
+                      {(latestSuggestion.nextSteps?.immediate || latestSuggestion.recommendations?.nextSteps?.immediate || []).map((step: any, index: number) => (
+                        <div key={index} className="bg-white p-4 rounded-lg border border-red-100">
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center mt-0.5">
+                              <span className="text-xs font-bold text-red-600">{index + 1}</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-gray-800 font-medium">{step}</p>
+                              <div className="mt-2">
+                                <Badge variant="destructive" className="text-xs">
+                                  High Priority
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {(latestSuggestion.nextSteps?.immediate || latestSuggestion.recommendations?.nextSteps?.immediate || []).length === 0 && (
+                        <div className="bg-white p-4 rounded-lg border border-red-100 text-center">
+                          <p className="text-gray-500">No immediate actions required</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Short-term Strategic Steps */}
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                    <h3 className="text-xl font-bold text-yellow-700 mb-4 flex items-center gap-2">
+                      <Clock className="h-5 w-5" />
+                      Short-term Steps (2-6 Months)
+                    </h3>
+                    <div className="space-y-3">
+                      {(latestSuggestion.nextSteps?.shortTerm || latestSuggestion.recommendations?.nextSteps?.shortTerm || []).map((step: any, index: number) => (
+                        <div key={index} className="bg-white p-4 rounded-lg border border-yellow-100">
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center mt-0.5">
+                              <span className="text-xs font-bold text-yellow-600">{index + 1}</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-gray-800 font-medium">{step}</p>
+                              <div className="mt-2">
+                                <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
+                                  Medium Priority
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {(latestSuggestion.nextSteps?.shortTerm || latestSuggestion.recommendations?.nextSteps?.shortTerm || []).length === 0 && (
+                        <div className="bg-white p-4 rounded-lg border border-yellow-100 text-center">
+                          <p className="text-gray-500">No short-term steps defined</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Long-term Planning */}
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                    <h3 className="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      Long-term Planning (6+ Months)
+                    </h3>
+                    <div className="space-y-3">
+                      {(latestSuggestion.nextSteps?.longTerm || latestSuggestion.recommendations?.nextSteps?.longTerm || []).map((step: any, index: number) => (
+                        <div key={index} className="bg-white p-4 rounded-lg border border-green-100">
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-0.5">
+                              <span className="text-xs font-bold text-green-600">{index + 1}</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-gray-800 font-medium">{step}</p>
+                              <div className="mt-2">
+                                <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                                  Strategic Planning
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {(latestSuggestion.nextSteps?.longTerm || latestSuggestion.recommendations?.nextSteps?.longTerm || []).length === 0 && (
+                        <div className="bg-white p-4 rounded-lg border border-green-100 text-center">
+                          <p className="text-gray-500">No long-term planning steps defined</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Action Plan Summary */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                    <h3 className="text-xl font-bold text-blue-700 mb-4 flex items-center gap-2">
+                      <Settings className="h-5 w-5" />
+                      Action Plan Summary
+                    </h3>
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <AlertTriangle className="h-6 w-6 text-red-600" />
+                        </div>
+                        <h4 className="font-semibold text-red-700">Immediate</h4>
+                        <p className="text-sm text-gray-600">
+                          {(latestSuggestion.nextSteps?.immediate || latestSuggestion.recommendations?.nextSteps?.immediate || []).length} actions
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Clock className="h-6 w-6 text-yellow-600" />
+                        </div>
+                        <h4 className="font-semibold text-yellow-700">Short-term</h4>
+                        <p className="text-sm text-gray-600">
+                          {(latestSuggestion.nextSteps?.shortTerm || latestSuggestion.recommendations?.nextSteps?.shortTerm || []).length} steps
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Target className="h-6 w-6 text-green-600" />
+                        </div>
+                        <h4 className="font-semibold text-green-700">Long-term</h4>
+                        <p className="text-sm text-gray-600">
+                          {(latestSuggestion.nextSteps?.longTerm || latestSuggestion.recommendations?.nextSteps?.longTerm || []).length} goals
+                        </p>
                       </div>
                     </div>
                   </div>

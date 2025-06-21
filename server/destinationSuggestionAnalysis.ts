@@ -210,7 +210,7 @@ export async function generateDestinationSuggestions(
     
     const response = await anthropic.messages.create({
       model: DEFAULT_MODEL_STR, // "claude-sonnet-4-20250514"
-      max_tokens: 6000,
+      max_tokens: 8000,
       system: "You are a senior international education strategist and migration consultant with 15+ years of experience in global education systems, visa requirements, scholarship matrices, and career outcomes. Provide extremely detailed, highly personalized study destination recommendations with comprehensive strategic analysis, authentic 2025 cost data, and actionable implementation plans. Focus on depth, specificity, and strategic insights tailored to this individual student's profile. Always respond with valid JSON format.",
       messages: [
         {
@@ -408,7 +408,7 @@ REQUIRED JSON STRUCTURE:
         "postStudyWork": "Complete work rights breakdown including duration, restrictions, employer sponsorship opportunities"
       },
       "uniqueAdvantages": ["Advantage 1", "Advantage 2", "Advantage 3"],
-      "risksAndRecommendations": ["Risk/Recommendation 1", "Risk/Recommendation 2"]
+      "risksAndRecommendations": ["Risk mitigation strategy 1", "Improvement recommendation 2"]
     }
   ],
   "intelligentAlternatives": [
@@ -435,10 +435,15 @@ REQUIRED JSON STRUCTURE:
     "scholarshipOpportunities": ["Comprehensive scholarship analysis with specific programs this student qualifies for, application requirements, deadlines, award amounts, and success strategies"],
     "financialPlanningTips": ["Advanced financial planning including budget allocation, emergency fund planning, currency management, tax implications, and long-term investment strategies for international students"]
   },
+  "nextSteps": {
+    "immediate": ["High-priority urgent actions requiring immediate attention within next 30 days with specific deadlines and implementation steps"],
+    "shortTerm": ["Medium-priority strategic planning and preparation activities for 2-6 months with detailed milestones and success metrics"],
+    "longTerm": ["Strategic planning and goal-setting activities for 6+ months focusing on long-term success and career trajectory optimization"]
+  },
   "timeline": {
-    "preparation": "6-12 months for research and preparation",
-    "application": "3-6 months for applications and documentation",
-    "decisionMaking": "2-3 months for decision and enrollment"
+    "preparation": "6-12 months comprehensive preparation phase including research, documentation, and skill development with quarterly milestones",
+    "application": "3-6 months intensive application phase covering university applications, scholarship submissions, and visa preparations with specific deadlines",
+    "decisionMaking": "2-3 months final decision phase including offer evaluation, visa processing, and enrollment confirmation with contingency planning"
   },
   "disclaimer": "⚠️ This recommendation is AI-generated and intended for informational purposes only. It is not a substitute for professional advice. We strongly recommend consulting a licensed education counsellor or migration agent before making any final decisions related to study abroad, visa applications, or financial planning. Darpan Intelligence and its developers are not liable for decisions made solely based on this AI analysis."
 }
