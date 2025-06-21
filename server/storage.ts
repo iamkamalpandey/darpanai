@@ -14,7 +14,7 @@ import {
   type AnalysisFeedback, type InsertAnalysisFeedback,
   type OfferLetterAnalysis, type InsertOfferLetterAnalysis
 } from "@shared/schema";
-import { offerLetterInformation } from "@shared/offerLetterSchema";
+import { offerLetterInfo } from "@shared/offerLetterSchema";
 import { coeInformation } from "@shared/coeSchema";
 import { db } from "./db";
 import { eq, desc, and, isNull, isNotNull, sql, or, gt } from "drizzle-orm";
@@ -1295,28 +1295,27 @@ export class DatabaseStorage implements IStorage {
   // Admin access methods for Information Reports
   async getAllOfferLetterInfo(): Promise<any[]> {
     try {
-      const { offerLetterInformation } = await import('@shared/offerLetterSchema');
       const results = await db
         .select({
-          id: offerLetterInformation.id,
-          userId: offerLetterInformation.userId,
-          fileName: offerLetterInformation.fileName,
-          fileSize: offerLetterInformation.fileSize,
-          institutionName: offerLetterInformation.institutionName,
-          programName: offerLetterInformation.programName,
-          studentName: offerLetterInformation.studentName,
-          tuitionFees: offerLetterInformation.tuitionFees,
-          totalCost: offerLetterInformation.totalCost,
-          commencementDate: offerLetterInformation.commencementDate,
-          createdAt: offerLetterInformation.createdAt,
+          id: offerLetterInfo.id,
+          userId: offerLetterInfo.userId,
+          fileName: offerLetterInfo.fileName,
+          fileSize: offerLetterInfo.fileSize,
+          institutionName: offerLetterInfo.institutionName,
+          programName: offerLetterInfo.programName,
+          studentName: offerLetterInfo.studentName,
+          tuitionFees: offerLetterInfo.tuitionFees,
+          totalCost: offerLetterInfo.totalCost,
+          commencementDate: offerLetterInfo.commencementDate,
+          createdAt: offerLetterInfo.createdAt,
           username: users.username,
           firstName: users.firstName,
           lastName: users.lastName,
           email: users.email,
         })
-        .from(offerLetterInformation)
-        .leftJoin(users, eq(offerLetterInformation.userId, users.id))
-        .orderBy(desc(offerLetterInformation.createdAt));
+        .from(offerLetterInfo)
+        .leftJoin(users, eq(offerLetterInfo.userId, users.id))
+        .orderBy(desc(offerLetterInfo.createdAt));
       return results;
     } catch (error) {
       console.error("Error fetching all offer letter info:", error);
@@ -1326,7 +1325,6 @@ export class DatabaseStorage implements IStorage {
 
   async getAllCoeInfo(): Promise<any[]> {
     try {
-      const { coeInformation } = await import('@shared/coeSchema');
       const results = await db
         .select({
           id: coeInformation.id,

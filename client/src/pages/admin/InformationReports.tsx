@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Building, 
   GraduationCap, 
@@ -23,7 +24,10 @@ import {
   Eye,
   FileCheck,
   Shield,
-  Info
+  Info,
+  CalendarRange,
+  Download,
+  BarChart3
 } from 'lucide-react';
 import { AdminLayout } from '@/components/AdminLayout';
 import { Link } from 'wouter';
@@ -133,29 +137,113 @@ const FinancialCard = ({
 export default function InformationReports() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTab, setSelectedTab] = useState('offer-letters');
+  const [dateFilter, setDateFilter] = useState<'all' | '7days' | '30days' | '90days'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'pending' | 'completed'>('all');
+  const [institutionFilter, setInstitutionFilter] = useState('');
+  const [sortBy, setSortBy] = useState<'date' | 'name' | 'institution'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const { data: offerLetters, isLoading: offerLettersLoading } = useQuery({
-    queryKey: ['/api/offer-letter-info'],
+    queryKey: ['/api/admin/offer-letter-info'],
+    staleTime: 30 * 60 * 1000,
   }) as { data: OfferLetterInfo[] | undefined; isLoading: boolean };
 
   const { data: coeInfo, isLoading: coeLoading } = useQuery({
-    queryKey: ['/api/coe-info'],
+    queryKey: ['/api/admin/coe-info'],
+    staleTime: 30 * 60 * 1000,
   }) as { data: CoeInfo[] | undefined; isLoading: boolean };
 
-  // Filter data based on search term
-  const filteredOfferLetters = offerLetters?.filter(item =>
-    item.fileName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.institutionName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.programName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.studentName?.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  // Helper function to filter by date
+  const filterByDate = (date: string) => {
+    const itemDate = new Date(date);
+    const now = new Date();
+    
+    switch (dateFilter) {
+      case '7days':
+        return itemDate >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      case '30days':
+        return itemDate >= new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      case '90days':
+        return itemDate >= new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      default:
+        return true;
+    }
+  };
 
-  const filteredCoeInfo = coeInfo?.filter(item =>
-    item.fileName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.institutionName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.courseName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.studentName?.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  // Advanced filtering for offer letters
+  const filteredOfferLetters = useMemo(() => {
+    return offerLetters?.filter(item => {
+      const matchesSearch = !searchTerm || (
+        item.fileName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.institutionName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.programName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.studentName?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+      const matchesDate = filterByDate(item.createdAt);
+      
+      const matchesInstitution = !institutionFilter || 
+        item.institutionName?.toLowerCase().includes(institutionFilter.toLowerCase());
+
+      return matchesSearch && matchesDate && matchesInstitution;
+    })?.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'name':
+          comparison = (a.fileName || '').localeCompare(b.fileName || '');
+          break;
+        case 'institution':
+          comparison = (a.institutionName || '').localeCompare(b.institutionName || '');
+          break;
+        case 'date':
+        default:
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+      }
+      
+      return sortOrder === 'desc' ? -comparison : comparison;
+    }) || [];
+  }, [offerLetters, searchTerm, dateFilter, institutionFilter, sortBy, sortOrder]);
+
+  // Advanced filtering for COE info
+  const filteredCoeInfo = useMemo(() => {
+    return coeInfo?.filter(item => {
+      const matchesSearch = !searchTerm || (
+        item.fileName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.institutionName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.courseName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.studentName?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+      const matchesDate = filterByDate(item.createdAt);
+      
+      const matchesInstitution = !institutionFilter || 
+        item.institutionName?.toLowerCase().includes(institutionFilter.toLowerCase());
+
+      const matchesStatus = statusFilter === 'all' || 
+        item.enrollmentStatus?.toLowerCase() === statusFilter;
+
+      return matchesSearch && matchesDate && matchesInstitution && matchesStatus;
+    })?.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'name':
+          comparison = (a.fileName || '').localeCompare(b.fileName || '');
+          break;
+        case 'institution':
+          comparison = (a.institutionName || '').localeCompare(b.institutionName || '');
+          break;
+        case 'date':
+        default:
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+      }
+      
+      return sortOrder === 'desc' ? -comparison : comparison;
+    }) || [];
+  }, [coeInfo, searchTerm, dateFilter, institutionFilter, statusFilter, sortBy, sortOrder]);
 
   const OfferLetterCard = ({ offerLetter }: { offerLetter: OfferLetterInfo }) => (
     <Card className="hover:shadow-md transition-shadow">
