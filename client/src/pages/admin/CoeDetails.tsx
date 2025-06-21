@@ -252,8 +252,8 @@ export default function AdminCoeDetails() {
               <div>
                 <p className="font-medium text-muted-foreground mb-1">Address</p>
                 <div className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
-                  <p className="text-sm">{coeInfo.institutionAddress || 'Not specified'}</p>
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
+                  <p className="text-sm break-words overflow-hidden">{coeInfo.institutionAddress || 'Not specified'}</p>
                 </div>
               </div>
             </div>
@@ -262,12 +262,12 @@ export default function AdminCoeDetails() {
                 <p className="font-medium text-muted-foreground mb-1">Contact Information</p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-sm">{coeInfo.institutionPhone || 'Not specified'}</p>
+                    <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="text-sm break-words overflow-hidden">{coeInfo.institutionPhone || 'Not specified'}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-sm">{coeInfo.institutionEmail || 'Not specified'}</p>
+                    <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="text-sm break-words overflow-hidden">{coeInfo.institutionEmail || 'Not specified'}</p>
                   </div>
                 </div>
               </div>
@@ -289,8 +289,8 @@ export default function AdminCoeDetails() {
                 <p className="font-medium text-muted-foreground mb-1">Course Details</p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-muted-foreground" />
-                    <p className="font-semibold">{coeInfo.courseName || 'Not specified'}</p>
+                    <BookOpen className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="font-semibold break-words overflow-hidden">{coeInfo.courseName || 'Not specified'}</p>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Badge variant="outline">Code: {coeInfo.courseCode || 'N/A'}</Badge>
@@ -300,7 +300,7 @@ export default function AdminCoeDetails() {
               </div>
               <div>
                 <p className="font-medium text-muted-foreground mb-1">Field of Study</p>
-                <p>{coeInfo.fieldOfStudy || 'Not specified'}</p>
+                <p className="break-words overflow-hidden">{coeInfo.fieldOfStudy || 'Not specified'}</p>
               </div>
             </div>
             <div className="space-y-4">
@@ -308,12 +308,12 @@ export default function AdminCoeDetails() {
                 <p className="font-medium text-muted-foreground mb-1">Duration & Mode</p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <p>Duration: {coeInfo.courseDuration || 'Not specified'}</p>
+                    <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="break-words overflow-hidden">Duration: {coeInfo.courseDuration || 'Not specified'}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Home className="h-4 w-4 text-muted-foreground" />
-                    <p>Mode: {coeInfo.studyMode || 'Not specified'}</p>
+                    <Home className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="break-words overflow-hidden">Mode: {coeInfo.studyMode || 'Not specified'}</p>
                   </div>
                 </div>
               </div>
@@ -321,12 +321,12 @@ export default function AdminCoeDetails() {
                 <p className="font-medium text-muted-foreground mb-1">Study Period</p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <p>Start: {coeInfo.startDate || 'Not specified'}</p>
+                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="break-words overflow-hidden">Start: {coeInfo.startDate || 'Not specified'}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <p>End: {coeInfo.endDate || 'Not specified'}</p>
+                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="break-words overflow-hidden">End: {coeInfo.endDate || 'Not specified'}</p>
                   </div>
                 </div>
               </div>
@@ -349,21 +349,21 @@ export default function AdminCoeDetails() {
                   <DollarSign className="h-4 w-4 text-green-600" />
                   <p className="font-medium text-green-800">Total Tuition</p>
                 </div>
-                <p className="text-lg font-bold text-green-900">{coeInfo.totalTuition || 'Not specified'}</p>
+                <p className="text-lg font-bold text-green-900 break-words overflow-hidden">{coeInfo.totalTuition || 'Not specified'}</p>
               </div>
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="h-4 w-4 text-blue-600" />
+                  <DollarSign className="h-4 w-4 text-blue-600 flex-shrink-0" />
                   <p className="font-medium text-blue-800">Per Semester</p>
                 </div>
-                <p className="text-lg font-bold text-blue-900">{coeInfo.tuitionPerSemester || 'Not specified'}</p>
+                <p className="text-lg font-bold text-blue-900 break-words overflow-hidden">{coeInfo.tuitionPerSemester || 'Not specified'}</p>
               </div>
               <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="h-4 w-4 text-orange-600" />
+                  <DollarSign className="h-4 w-4 text-orange-600 flex-shrink-0" />
                   <p className="font-medium text-orange-800">Application Fee</p>
                 </div>
-                <p className="text-lg font-bold text-orange-900">{coeInfo.applicationFee || 'Not specified'}</p>
+                <p className="text-lg font-bold text-orange-900 break-words overflow-hidden">{coeInfo.applicationFee || 'Not specified'}</p>
               </div>
             </div>
 
@@ -373,11 +373,11 @@ export default function AdminCoeDetails() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Material Fee:</span>
-                    <span className="font-medium">{coeInfo.materialFee || 'Not specified'}</span>
+                    <span className="font-medium break-words overflow-hidden">{coeInfo.materialFee || 'Not specified'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Other Fees:</span>
-                    <span className="font-medium">{coeInfo.otherFees || 'Not specified'}</span>
+                    <span className="font-medium break-words overflow-hidden">{coeInfo.otherFees || 'Not specified'}</span>
                   </div>
                 </div>
               </div>
