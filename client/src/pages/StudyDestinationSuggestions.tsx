@@ -623,7 +623,7 @@ export default function StudyDestinationSuggestions() {
                                   <div className="space-y-2">
                                     <h5 className="font-medium text-orange-700">Key Benefits:</h5>
                                     <ul className="space-y-1">
-                                      {(alternative.keyBenefits || alternative.specificBenefits || []).map((benefit: string, i: number) => (
+                                      {(alternative.keyBenefits || []).map((benefit: string, i: number) => (
                                         <li key={i} className="flex items-start gap-2">
                                           <CheckCircle className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
                                           <span className="text-sm text-gray-700">{benefit}</span>
@@ -654,7 +654,7 @@ export default function StudyDestinationSuggestions() {
                         Your Strengths
                       </h3>
                       <ul className="space-y-2">
-                        {(latestSuggestion.recommendations?.personalizedInsights?.strengthsAnalysis || latestSuggestion.recommendations?.personalizedInsights?.profileStrengths || []).map((strength: string, index: number) => (
+                        {(latestSuggestion.recommendations?.personalizedInsights?.strengthsAnalysis || []).map((strength: string, index: number) => (
                           <li key={index} className="flex items-start gap-2">
                             <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-gray-700">{strength}</span>
@@ -668,7 +668,7 @@ export default function StudyDestinationSuggestions() {
                         Strategic Recommendations
                       </h3>
                       <ul className="space-y-2">
-                        {(latestSuggestion.recommendations?.personalizedInsights?.strategicRecommendations || latestSuggestion.recommendations?.personalizedInsights?.tailoredStrategicActions || []).map((rec: string, index: number) => (
+                        {(latestSuggestion.recommendations?.personalizedInsights?.strategicRecommendations || []).map((rec: string, index: number) => (
                           <li key={index} className="flex items-start gap-2">
                             <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-gray-700">{rec}</span>
@@ -687,7 +687,7 @@ export default function StudyDestinationSuggestions() {
                         Cost-Saving Strategies
                       </h3>
                       <ul className="space-y-2">
-                        {(latestSuggestion.recommendations?.budgetOptimization?.costSavingStrategies || latestSuggestion.recommendations?.financialStrategy?.costOptimizationStrategies || []).map((strategy: any, index: number) => (
+                        {(latestSuggestion.recommendations?.budgetOptimization?.costSavingStrategies || []).map((strategy: any, index: number) => (
                           <li key={index} className="flex items-start gap-2">
                             <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-gray-700">{strategy}</span>
@@ -701,7 +701,7 @@ export default function StudyDestinationSuggestions() {
                         Scholarship Opportunities
                       </h3>
                       <ul className="space-y-2">
-                        {(latestSuggestion.recommendations?.budgetOptimization?.scholarshipOpportunities || []).map((scholarship, index) => (
+                        {(latestSuggestion.recommendations?.budgetOptimization?.scholarshipOpportunities || []).map((scholarship: any, index: number) => (
                           <li key={index} className="flex items-start gap-2">
                             <Star className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                             <span className="text-sm text-gray-700">{scholarship}</span>
