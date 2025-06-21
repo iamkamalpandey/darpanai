@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,10 +15,23 @@ export default function AdminOfferLetterInfo() {
   const queryClient = useQueryClient();
 
   // Fetch all offer letters (admin has access to all)
-  const { data: offerLetters = [], isLoading } = useQuery<any[]>({
+  const { data: offerLetters = [], isLoading, error } = useQuery<any[]>({
     queryKey: ['/api/admin/offer-letter-info'],
     enabled: true,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+    staleTime: 0,
+    gcTime: 0,
+    retry: 1,
   });
+
+  // Force cache invalidation on mount to ensure fresh data
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ['/api/admin/offer-letter-info'] });
+  }, [queryClient]);
+
+  // Debug logging
+  console.log('Admin Offer Letters Query:', { offerLetters, isLoading, error, length: offerLetters?.length });
 
   // Upload mutation for admin
   const uploadMutation = useMutation({
@@ -114,6 +127,15 @@ export default function AdminOfferLetterInfo() {
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold">All Offer Letters ({offerLetters.length})</h2>
           
+          {error && (
+            <Card>
+              <CardContent className="p-6 text-center">
+                <FileText className="h-12 w-12 mx-auto text-red-500 mb-4" />
+                <p className="text-red-600">Error loading data: {error?.message || 'Unknown error'}</p>
+              </CardContent>
+            </Card>
+          )}
+          
           {isLoading ? (
             <div className="grid gap-4">
               {[1, 2, 3].map((i) => (
@@ -130,6 +152,7 @@ export default function AdminOfferLetterInfo() {
               <CardContent className="p-6 text-center">
                 <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <p className="text-muted-foreground">No offer letters in system yet</p>
+                <p className="text-sm text-muted-foreground mt-2">Query returned: {JSON.stringify(offerLetters)}</p>
               </CardContent>
             </Card>
           ) : (
