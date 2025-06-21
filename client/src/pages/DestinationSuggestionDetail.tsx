@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Globe, DollarSign, BookOpen, Clock, TrendingUp, MapPin, Star } from 'lucide-react';
+import { ArrowLeft, Globe, DollarSign, BookOpen, Clock, TrendingUp, MapPin, Star, Calendar } from 'lucide-react';
 
 interface CountryRecommendation {
   country: string;
