@@ -46,16 +46,24 @@ export function setupOfferLetterInfoRoutes(app: any) {
         return res.status(400).json({ error: 'Document appears to be empty or unreadable' });
       }
 
-      // Extract information using OpenAI
+      // Extract information using ChatGPT API
       const startTime = Date.now();
+      console.log(`Starting ChatGPT extraction for ${file.originalname}...`);
+      
       const { extractedInfo, tokensUsed } = await extractOfferLetterInfo(documentText);
       const processingTime = Date.now() - startTime;
+      
+      console.log(`Extraction completed in ${processingTime}ms, tokens used: ${tokensUsed}`);
+      console.log('Extracted institution name:', extractedInfo.institutionName);
+      console.log('Extracted course name:', extractedInfo.courseName);
+      console.log('Extracted student name:', extractedInfo.studentName);
 
       if (extractedInfo.error) {
+        console.error('Extraction error:', extractedInfo.error);
         return res.status(500).json({ error: extractedInfo.error });
       }
 
-      // Map extracted fields to database schema
+      // Map extracted fields to database schema - comprehensive mapping for all fields
       const mappedInfo = {
         userId: user.id,
         fileName: file.originalname,
@@ -64,48 +72,119 @@ export function setupOfferLetterInfoRoutes(app: any) {
         tokensUsed,
         processingTime,
         
-        // Institution Information
+        // Institution Information (Provider Details)
         institutionName: extractedInfo.institutionName,
+        tradingAs: extractedInfo.tradingAs,
         institutionAddress: extractedInfo.institutionAddress,
         institutionPhone: extractedInfo.institutionPhone,
         institutionEmail: extractedInfo.institutionEmail,
         institutionWebsite: extractedInfo.institutionWebsite,
+        providerId: extractedInfo.providerId,
+        cricosProviderCode: extractedInfo.cricosProviderCode,
+        abn: extractedInfo.abn,
         
-        // Course Information - Map programName to courseName
-        courseName: extractedInfo.programName,
-        courseLevel: extractedInfo.programLevel,
-        courseDuration: extractedInfo.programDuration,
-        studyMode: extractedInfo.studyMode,
-        campusLocation: extractedInfo.campusLocation,
-        courseStartDate: extractedInfo.startDate,
-        courseEndDate: extractedInfo.endDate,
-        
-        // Student Information
+        // Student Personal Information
         studentName: extractedInfo.studentName,
         studentId: extractedInfo.studentId,
+        dateOfBirth: extractedInfo.dateOfBirth,
+        gender: extractedInfo.gender,
+        citizenship: extractedInfo.citizenship,
+        maritalStatus: extractedInfo.maritalStatus,
+        homeAddress: extractedInfo.homeAddress,
+        contactNumber: extractedInfo.contactNumber,
+        emailAddress: extractedInfo.emailAddress,
+        correspondenceAddress: extractedInfo.correspondenceAddress,
+        passportNumber: extractedInfo.passportNumber,
+        passportExpiryDate: extractedInfo.passportExpiryDate,
+        agentDetails: extractedInfo.agentDetails,
         
-        // Financial Information
-        totalTuitionFees: extractedInfo.tuitionFee,
-        applicationFee: extractedInfo.applicationFee,
-        depositRequired: extractedInfo.depositRequired,
-        totalCost: extractedInfo.totalCost,
+        // Course/Program Information
+        courseName: extractedInfo.courseName,
+        courseSpecialization: extractedInfo.courseSpecialization,
+        courseLevel: extractedInfo.courseLevel,
+        cricosCode: extractedInfo.cricosCode,
+        courseDuration: extractedInfo.courseDuration,
+        numberOfUnits: extractedInfo.numberOfUnits,
+        creditPoints: extractedInfo.creditPoints,
+        orientationDate: extractedInfo.orientationDate,
+        courseStartDate: extractedInfo.courseStartDate,
+        courseEndDate: extractedInfo.courseEndDate,
+        studyMode: extractedInfo.studyMode,
+        campusLocation: extractedInfo.campusLocation,
+        intakeSchedule: extractedInfo.intakeSchedule,
+        
+        // Financial Information - Map to actual schema fields
+        totalTuitionFees: extractedInfo.totalTuitionFees,
+        materialFee: extractedInfo.materialsFee,
+        enrollmentFee: extractedInfo.enrollmentFee,
+        totalFeeDue: extractedInfo.totalFeesAmount,
         paymentSchedule: extractedInfo.paymentSchedule,
+        paymentMethods: extractedInfo.paymentMethods,
+        refundPolicy: extractedInfo.refundPolicy,
         
-        // Important Dates
+        // Scholarship & Financial Aid
+        scholarshipAmount: extractedInfo.scholarshipAmount,
+        scholarshipPercentage: extractedInfo.scholarshipPercentage,
+        scholarshipConditions: extractedInfo.scholarshipConditions,
+        scholarshipDuration: extractedInfo.scholarshipDuration,
+        financialAidInfo: extractedInfo.financialAidInfo,
+        
+        // Important Dates & Deadlines
         acceptanceDeadline: extractedInfo.acceptanceDeadline,
-        applicationDeadline: extractedInfo.applicationDeadline,
+        enrollmentDeadline: extractedInfo.enrollmentDeadline,
+        feePaymentDeadline: extractedInfo.feePaymentDeadline,
+        documentSubmissionDeadline: extractedInfo.documentSubmissionDeadline,
+        orientationDeadline: extractedInfo.orientationDeadline,
         
-        // Requirements
+        // Academic Requirements
         academicRequirements: extractedInfo.academicRequirements,
         englishRequirements: extractedInfo.englishRequirements,
+        ieltsRequirement: extractedInfo.ieltsRequirement,
+        toeflRequirement: extractedInfo.toeflRequirement,
+        pteRequirement: extractedInfo.pteRequirement,
         documentRequirements: extractedInfo.documentRequirements,
+        healthInsuranceRequirement: extractedInfo.healthInsuranceRequirement,
+        visaRequirements: extractedInfo.visaRequirements,
+        
+        // Accommodation & Support
+        accommodationInfo: extractedInfo.accommodationInfo,
+        accommodationFees: extractedInfo.accommodationFees,
+        mealPlanInfo: extractedInfo.mealPlanInfo,
+        transportInfo: extractedInfo.transportInfo,
+        
+        // Contact Information
+        contactPersonName: extractedInfo.contactPersonName,
+        contactPersonTitle: extractedInfo.contactPersonTitle,
+        contactPersonPhone: extractedInfo.contactPersonPhone,
+        contactPersonEmail: extractedInfo.contactPersonEmail,
+        admissionsOfficeContact: extractedInfo.admissionsOfficeContact,
+        internationalOfficeContact: extractedInfo.internationalOfficeContact,
+        
+        // Compliance & Accreditation
+        complianceInfo: extractedInfo.complianceInfo,
+        accreditationInfo: extractedInfo.accreditationInfo,
+        governmentRegistration: extractedInfo.governmentRegistration,
+        qualityAssurance: extractedInfo.qualityAssurance,
+        
+        // Policies
+        withdrawalPolicy: extractedInfo.withdrawalPolicy,
+        transferPolicy: extractedInfo.transferPolicy,
+        attendancePolicy: extractedInfo.attendancePolicy,
+        academicProgressPolicy: extractedInfo.academicProgressPolicy,
+        disciplinaryPolicy: extractedInfo.disciplinaryPolicy,
+        
+        // Services
+        additionalServices: extractedInfo.additionalServices,
+        studentSupportServices: extractedInfo.studentSupportServices,
+        careerServices: extractedInfo.careerServices,
+        libraryServices: extractedInfo.libraryServices,
+        itServices: extractedInfo.itServices,
         
         // Additional Information
-        scholarshipInfo: extractedInfo.scholarshipInfo,
-        accommodationInfo: extractedInfo.accommodationInfo,
-        visaInfo: extractedInfo.visaInfo,
-        contactPerson: extractedInfo.contactPerson,
-        additionalNotes: extractedInfo.additionalNotes
+        termsAndConditions: extractedInfo.termsAndConditions,
+        importantNotes: extractedInfo.importantNotes,
+        disclaimers: extractedInfo.disclaimers,
+        additionalInformation: extractedInfo.additionalInformation
       };
 
       // Save to database
@@ -141,16 +220,56 @@ export function setupOfferLetterInfoRoutes(app: any) {
       res.json(offerLetters.map(info => ({
         id: info.id,
         fileName: info.fileName,
+        fileSize: info.fileSize,
+        
+        // Institution Information
         institutionName: info.institutionName,
-        courseName: info.courseName,
-        studentName: info.studentName,
-        totalTuitionFees: info.totalTuitionFees,
-        courseStartDate: info.courseStartDate,
-        acceptanceDeadline: info.acceptanceDeadline,
-        courseLevel: info.courseLevel,
+        tradingAs: info.tradingAs,
+        institutionAddress: info.institutionAddress,
         institutionPhone: info.institutionPhone,
         institutionEmail: info.institutionEmail,
+        institutionWebsite: info.institutionWebsite,
+        cricosProviderCode: info.cricosProviderCode,
+        
+        // Student Information
+        studentName: info.studentName,
+        studentId: info.studentId,
+        dateOfBirth: info.dateOfBirth,
+        citizenship: info.citizenship,
+        contactNumber: info.contactNumber,
+        emailAddress: info.emailAddress,
+        
+        // Course Information
+        courseName: info.courseName,
+        courseLevel: info.courseLevel,
+        courseDuration: info.courseDuration,
+        courseStartDate: info.courseStartDate,
+        courseEndDate: info.courseEndDate,
+        studyMode: info.studyMode,
+        campusLocation: info.campusLocation,
+        cricosCode: info.cricosCode,
+        
+        // Financial Information
+        totalTuitionFees: info.totalTuitionFees,
+        totalFeeDue: info.totalFeeDue,
+        enrollmentFee: info.enrollmentFee,
         scholarshipAmount: info.scholarshipAmount,
+        scholarshipDetails: info.scholarshipDetails,
+        
+        // Important Dates
+        acceptanceDeadline: info.acceptanceDeadline,
+        orientationDate: info.orientationDate,
+        
+        // Requirements
+        minimumEntryRequirements: info.minimumEntryRequirements,
+        englishLanguageRequirements: info.englishLanguageRequirements,
+        documentationRequired: info.documentationRequired,
+        
+        // Additional Information
+        accommodationAssistance: info.accommodationAssistance,
+        studentSupportServices: info.studentSupportServices,
+        visaAdvice: info.visaAdvice,
+        
         createdAt: info.createdAt
       })));
 
