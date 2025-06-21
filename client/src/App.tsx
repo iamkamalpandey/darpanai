@@ -62,6 +62,7 @@ const CoeInformation = lazy(() => import("@/pages/CoeInformation"));
 const CoeDetails = lazy(() => import("@/pages/CoeDetailsNew"));
 const UserCoeDetails = lazy(() => import("@/pages/UserCoeDetails"));
 const AdminOfferLetterDetailsAdmin = lazy(() => import("@/pages/admin/OfferLetterDetailsAdmin"));
+const AdminOfferLetterInfo = lazy(() => import("@/pages/admin/AdminOfferLetterInfo"));
 const UserAdminCoeDetails = lazy(() => import("@/pages/UserAdminCoeDetails"));
 
 // Loading fallback component
@@ -395,6 +396,13 @@ function Router() {
         <AdminProtectedRoute path="/admin/document-checklists" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <AdminDocumentChecklists />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/offer-letter-info">
+        <AdminProtectedRoute path="/admin/offer-letter-info" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminOfferLetterInfo />
           </Suspense>
         )} />
       </Route>

@@ -180,4 +180,64 @@ export function setupOfferLetterInfoRoutes(app: any) {
       res.status(500).json({ error: 'Failed to fetch offer letter information' });
     }
   });
+
+  // Admin route - upload and process offer letter
+  app.post('/api/admin/offer-letter-info', upload.single('document'), async (req: Request, res: Response) => {
+    try {
+      const file = req.file;
+      const user = req.user as any;
+
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      if (!file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      console.log(`Admin processing offer letter: ${file.originalname}`);
+
+      // Extract text from document
+      const documentText = await extractTextFromPdf(file.buffer);
+      console.log(`Extracted ${documentText.length} characters from document`);
+
+      if (documentText.length < 100) {
+        return res.status(400).json({ error: 'Document appears to be empty or unreadable' });
+      }
+
+      // Extract information using OpenAI
+      const startTime = Date.now();
+      const { extractedInfo, tokensUsed } = await extractOfferLetterInfo(documentText);
+      const processingTime = Date.now() - startTime;
+
+      if (extractedInfo.error) {
+        return res.status(500).json({ error: extractedInfo.error });
+      }
+
+      // Save to database with admin user ID
+      const savedInfo = await offerLetterInfoStorage.saveOfferLetterInfo({
+        userId: user.id,
+        fileName: file.originalname,
+        fileSize: file.size,
+        extractedText: documentText,
+        tokensUsed,
+        processingTime,
+        ...extractedInfo
+      });
+
+      console.log(`Admin successfully saved offer letter info with ID: ${savedInfo.id}`);
+
+      res.status(201).json({
+        id: savedInfo.id,
+        message: 'Offer letter information extracted and saved successfully by admin'
+      });
+
+    } catch (error) {
+      console.error('Error processing admin offer letter:', error);
+      res.status(500).json({ 
+        error: 'Failed to process offer letter',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 }
