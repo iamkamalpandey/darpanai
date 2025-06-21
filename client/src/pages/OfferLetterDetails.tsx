@@ -658,20 +658,20 @@ function InfoItem({
 
   return (
     <div className="flex items-start gap-3">
-      <div className="text-muted-foreground mt-0.5">{icon}</div>
-      <div className="flex-1">
+      <div className="text-muted-foreground mt-0.5 flex-shrink-0">{icon}</div>
+      <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-muted-foreground">{label}</div>
         {isLink && value.startsWith('http') ? (
           <a 
             href={value} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-blue-600 hover:underline break-words overflow-hidden"
           >
             {value}
           </a>
         ) : (
-          <div className="text-sm">{value}</div>
+          <div className="text-sm break-words overflow-hidden">{value}</div>
         )}
       </div>
     </div>

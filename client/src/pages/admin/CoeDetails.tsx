@@ -478,7 +478,7 @@ export default function AdminCoeDetails() {
               <div>
                 <p className="font-medium mb-2">Visa Conditions</p>
                 <div className="bg-purple-50 p-4 rounded border border-purple-200">
-                  <p className="text-sm">{coeInfo.visaConditions}</p>
+                  <p className="text-sm break-words overflow-hidden">{coeInfo.visaConditions}</p>
                 </div>
               </div>
             )}
@@ -487,7 +487,7 @@ export default function AdminCoeDetails() {
               <div>
                 <p className="font-medium mb-2">Work Rights</p>
                 <div className="bg-indigo-50 p-4 rounded border border-indigo-200">
-                  <p className="text-sm">{coeInfo.workRights}</p>
+                  <p className="text-sm break-words overflow-hidden">{coeInfo.workRights}</p>
                 </div>
               </div>
             )}
@@ -508,7 +508,7 @@ export default function AdminCoeDetails() {
                 <div>
                   <p className="font-medium mb-2">Accommodation Information</p>
                   <div className="bg-gray-50 p-4 rounded border border-gray-200">
-                    <p className="text-sm">{coeInfo.accommodationInfo}</p>
+                    <p className="text-sm break-words overflow-hidden">{coeInfo.accommodationInfo}</p>
                   </div>
                 </div>
               )}
@@ -517,7 +517,7 @@ export default function AdminCoeDetails() {
                 <div>
                   <p className="font-medium mb-2">Key Findings</p>
                   <div className="bg-blue-50 p-4 rounded border border-blue-200">
-                    <p className="text-sm">{coeInfo.keyFindings}</p>
+                    <p className="text-sm break-words overflow-hidden">{coeInfo.keyFindings}</p>
                   </div>
                 </div>
               )}
@@ -526,7 +526,7 @@ export default function AdminCoeDetails() {
                 <div>
                   <p className="font-medium mb-2">Risk Assessment</p>
                   <div className="bg-red-50 p-4 rounded border border-red-200">
-                    <p className="text-sm">{coeInfo.riskAssessment}</p>
+                    <p className="text-sm break-words overflow-hidden">{coeInfo.riskAssessment}</p>
                   </div>
                 </div>
               )}
@@ -535,7 +535,7 @@ export default function AdminCoeDetails() {
                 <div>
                   <p className="font-medium mb-2">Recommendations</p>
                   <div className="bg-green-50 p-4 rounded border border-green-200">
-                    <p className="text-sm">{coeInfo.recommendations}</p>
+                    <p className="text-sm break-words overflow-hidden">{coeInfo.recommendations}</p>
                   </div>
                 </div>
               )}
@@ -544,7 +544,7 @@ export default function AdminCoeDetails() {
                 <div>
                   <p className="font-medium mb-2">Next Steps</p>
                   <div className="bg-purple-50 p-4 rounded border border-purple-200">
-                    <p className="text-sm">{coeInfo.nextSteps}</p>
+                    <p className="text-sm break-words overflow-hidden">{coeInfo.nextSteps}</p>
                   </div>
                 </div>
               )}
@@ -553,7 +553,7 @@ export default function AdminCoeDetails() {
                 <div>
                   <p className="font-medium mb-2">Compliance Notes</p>
                   <div className="bg-yellow-50 p-4 rounded border border-yellow-200">
-                    <p className="text-sm">{coeInfo.complianceNotes}</p>
+                    <p className="text-sm break-words overflow-hidden">{coeInfo.complianceNotes}</p>
                   </div>
                 </div>
               )}
