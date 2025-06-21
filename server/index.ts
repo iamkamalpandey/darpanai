@@ -186,9 +186,13 @@ function setupGracefulShutdown(server: any) {
     logWithLevel('Registering application routes...');
     const server = await registerRoutes(app);
     
-    // Import and register simplified offer letter routes BEFORE Vite setup
+    // Import and register offer letter routes BEFORE Vite setup
     const { setupOfferLetterRoutesSimplified } = await import('./offerLetterRoutesSimplified');
     setupOfferLetterRoutesSimplified(app);
+    
+    // Register new offer letter information routes
+    const { setupOfferLetterInfoRoutes } = await import('./offerLetterInfoRoutes');
+    setupOfferLetterInfoRoutes(app);
     
     // Step 5: Setup error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

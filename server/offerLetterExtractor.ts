@@ -6,137 +6,76 @@ const openai = new OpenAI({
 
 export async function extractOfferLetterInfo(documentText: string) {
   try {
-    const prompt = `
-Extract all information from this offer letter document. Return ONLY a JSON object with the following structure. If any information is not found, use null:
+    const prompt = `Extract all information from this offer letter document. Return a JSON object with the following structure. If any information is not found, return null for that field.
 
 {
-  "institutionName": "Full institution name",
-  "institutionAddress": "Complete address",
+  "institutionName": "Name of the educational institution",
+  "institutionAddress": "Full address of the institution",
   "institutionPhone": "Phone number",
   "institutionEmail": "Email address",
   "institutionWebsite": "Website URL",
-  "cricosCode": "CRICOS code if available",
-  "providerCode": "Provider registration code",
-  
-  "studentName": "Full student name",
-  "studentId": "Student ID number",
-  "studentEmail": "Student email",
-  "studentPhone": "Student phone",
-  "studentAddress": "Student address",
-  "dateOfBirth": "Student date of birth",
-  "nationality": "Student nationality",
-  "passportNumber": "Passport number",
-  
-  "programName": "Full program name",
-  "programCode": "Program code",
-  "programLevel": "Degree level (Bachelor/Master/PhD/Diploma/Certificate)",
-  "fieldOfStudy": "Field of study",
-  "specialization": "Specialization if any",
-  "programDuration": "Duration (e.g., 3 years, 18 months)",
-  "totalUnits": "Total units/credits",
-  "studyMode": "Full-time/Part-time",
-  "deliveryMode": "On-campus/Online/Blended",
-  "campus": "Campus location",
-  
+  "programName": "Name of the program/course",
+  "programLevel": "Level (Bachelor, Master, PhD, etc.)",
+  "programDuration": "Duration of the program",
+  "studyMode": "Full-time, Part-time, Online, etc.",
+  "campusLocation": "Campus or location",
   "startDate": "Program start date",
   "endDate": "Program end date",
-  "orientationDate": "Orientation date",
-  "enrolmentDate": "Enrollment deadline",
-  "censusDate": "Census date",
   "applicationDeadline": "Application deadline",
   "acceptanceDeadline": "Acceptance deadline",
-  
   "tuitionFee": "Tuition fee amount",
-  "currency": "Currency (AUD/USD/CAD etc)",
-  "paymentFrequency": "Payment frequency",
   "applicationFee": "Application fee",
-  "enrollmentFee": "Enrollment fee",
-  "materialsFee": "Materials fee",
-  "technologyFee": "Technology fee",
-  "studentServicesFee": "Student services fee",
-  "totalFirstYearFee": "Total first year fee",
-  "totalProgramFee": "Total program fee",
-  
-  "paymentDueDate": "Payment due date",
-  "paymentMethods": "Payment methods accepted",
-  "refundPolicy": "Refund policy details",
-  "scholarshipInfo": "Scholarship information",
-  "discountsAvailable": "Available discounts",
-  
-  "academicRequirements": "Academic entry requirements",
+  "depositRequired": "Deposit amount required",
+  "totalCost": "Total cost",
+  "paymentSchedule": "Payment schedule details",
+  "academicRequirements": "Academic requirements",
   "englishRequirements": "English language requirements",
-  "minimumGpa": "Minimum GPA required",
-  "prerequisiteSubjects": "Prerequisite subjects",
-  "workExperienceRequired": "Work experience requirements",
-  "portfolioRequired": "Portfolio requirements",
-  "interviewRequired": "Interview requirements",
-  
-  "visaType": "Visa type required",
-  "visaSubclass": "Visa subclass",
-  "coe": "COE information",
-  "oshc": "Health cover requirements",
-  "workRights": "Work rights information",
-  
-  "admissionsContact": "Admissions contact details",
-  "internationalOfficeContact": "International office contact",
-  "studentServicesContact": "Student services contact",
-  "financialAidContact": "Financial aid contact",
-  
-  "terms": "Terms and conditions",
-  "conditions": "Special conditions",
-  "policiesUrl": "Policies URL",
-  "handbookUrl": "Student handbook URL",
-  
-  "accreditation": "Accreditation information",
-  "professionalRecognition": "Professional recognition",
-  "pathwayOptions": "Pathway options",
-  "transferCredit": "Transfer credit policy",
-  "graduationRequirements": "Graduation requirements",
-  "facilities": "Available facilities",
-  "supportServices": "Support services"
+  "documentRequirements": "Required documents",
+  "studentName": "Student name from the letter",
+  "studentId": "Student ID if mentioned",
+  "applicationNumber": "Application reference number",
+  "scholarshipInfo": "Scholarship information",
+  "accommodationInfo": "Accommodation details",
+  "visaInfo": "Visa information",
+  "contactPerson": "Contact person details",
+  "additionalNotes": "Any other important information"
 }
 
 Document text:
-${documentText}
-
-Return only the JSON object, no other text.`;
+${documentText}`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: 'gpt-4o',
       messages: [
         {
-          role: "system",
-          content: "You are an expert document processor. Extract information accurately and return only valid JSON."
+          role: 'system',
+          content: 'You are a document information extraction specialist. Extract all information from offer letters accurately and return it in JSON format. Only extract information that is explicitly stated in the document.'
         },
         {
-          role: "user",
+          role: 'user',
           content: prompt
         }
       ],
-      max_tokens: 3000,
-      temperature: 0,
+      response_format: { type: 'json_object' },
+      temperature: 0.1,
     });
 
-    const responseText = response.choices[0].message.content || '{}';
-    
-    try {
-      const extractedInfo = JSON.parse(responseText);
-      return {
-        extractedInfo,
-        tokensUsed: response.usage?.total_tokens || 0
-      };
-    } catch (parseError) {
-      console.error('JSON parsing error:', parseError);
-      return {
-        extractedInfo: { error: 'Failed to parse extracted information' },
-        tokensUsed: response.usage?.total_tokens || 0
-      };
+    const content = response.choices[0].message.content;
+    if (!content) {
+      throw new Error('No response from OpenAI');
     }
 
-  } catch (error) {
-    console.error('OpenAI extraction error:', error);
+    const extractedInfo = JSON.parse(content);
+    
     return {
-      extractedInfo: { error: 'Failed to extract information' },
+      extractedInfo,
+      tokensUsed: response.usage?.total_tokens || 0
+    };
+
+  } catch (error) {
+    console.error('Error extracting offer letter info:', error);
+    return {
+      extractedInfo: { error: error instanceof Error ? error.message : 'Unknown error' },
       tokensUsed: 0
     };
   }

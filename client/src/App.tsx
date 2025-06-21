@@ -52,6 +52,8 @@ const PersonalizedDestinationAnalysis = lazy(() => import("@/pages/PersonalizedD
 const EnhancedUserProfile = lazy(() => import("@/pages/EnhancedUserProfile"));
 const ProfileEdit = lazy(() => import("@/pages/ProfileEdit"));
 const ProfilePageRedesign = lazy(() => import("@/components/ProfilePageRedesign"));
+const OfferLetterInfo = lazy(() => import("@/pages/OfferLetterInfo"));
+const OfferLetterDetails = lazy(() => import("@/pages/OfferLetterDetails"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -172,6 +174,20 @@ function Router() {
         <UserProtectedRoute path="/profile" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <ProfilePageRedesign />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/offer-letter-info">
+        <UserProtectedRoute path="/offer-letter-info" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <OfferLetterInfo />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/offer-letter-info/:id">
+        <UserProtectedRoute path="/offer-letter-info/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <OfferLetterDetails />
           </Suspense>
         )} />
       </Route>
