@@ -55,6 +55,8 @@ const ProfileEdit = lazy(() => import("@/pages/ProfileEdit"));
 const ProfilePageRedesign = lazy(() => import("@/components/ProfilePageRedesign"));
 const OfferLetterInfo = lazy(() => import("@/pages/OfferLetterInfo"));
 const OfferLetterDetails = lazy(() => import("@/pages/OfferLetterDetails"));
+const CoeInformation = lazy(() => import("@/pages/CoeInformation"));
+const CoeDetails = lazy(() => import("@/pages/CoeDetails"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -196,6 +198,20 @@ function Router() {
         <UserProtectedRoute path="/offer-letter-info/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <OfferLetterDetails />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/coe-info">
+        <UserProtectedRoute path="/coe-info" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <CoeInformation />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/coe-info/:id">
+        <UserProtectedRoute path="/coe-info/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <CoeDetails />
           </Suspense>
         )} />
       </Route>
