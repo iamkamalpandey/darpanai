@@ -61,10 +61,18 @@ export default function AdminAppointments() {
   const updateStatusMutation = useMutation({
     mutationFn: (data: { appointmentId: number; status: string }) =>
       apiRequest(`/api/admin/appointments/${data.appointmentId}/status`, "PATCH", { status: data.status }),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/appointments"] });
-      toast({ title: "Success", description: "Appointment status updated successfully" });
+      toast({ title: "Success", description: `Appointment ${variables.status === 'confirmed' ? 'confirmed' : variables.status === 'completed' ? 'marked as complete' : 'updated'} successfully` });
       setEditingField(null);
+      
+      // Update selected appointment state immediately for UI feedback
+      if (selectedAppointment) {
+        setSelectedAppointment({
+          ...selectedAppointment,
+          status: variables.status
+        });
+      }
     },
     onError: () => {
       toast({ title: "Error", description: "Failed to update appointment status", variant: "destructive" });
@@ -603,7 +611,8 @@ export default function AdminAppointments() {
                           <div className="flex space-x-2">
                             <Button
                               size="sm"
-                              variant="outline"
+                              variant="default"
+                              className="bg-green-600 hover:bg-green-700"
                               onClick={() => {
                                 if (selectedAppointment.status !== "confirmed") {
                                   updateStatusMutation.mutate({ 
@@ -612,14 +621,24 @@ export default function AdminAppointments() {
                                   });
                                 }
                               }}
-                              disabled={selectedAppointment.status === "confirmed"}
+                              disabled={selectedAppointment.status === "confirmed" || updateStatusMutation.isPending}
                             >
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Confirm Appointment
+                              {updateStatusMutation.isPending ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                                  Confirming...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  {selectedAppointment.status === "confirmed" ? "Confirmed" : "Confirm Appointment"}
+                                </>
+                              )}
                             </Button>
                             <Button
                               size="sm"
-                              variant="outline"
+                              variant="default"
+                              className="bg-blue-600 hover:bg-blue-700"
                               onClick={() => {
                                 if (selectedAppointment.status !== "completed") {
                                   updateStatusMutation.mutate({ 
@@ -628,10 +647,19 @@ export default function AdminAppointments() {
                                   });
                                 }
                               }}
-                              disabled={selectedAppointment.status === "completed"}
+                              disabled={selectedAppointment.status === "completed" || updateStatusMutation.isPending}
                             >
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Mark Complete
+                              {updateStatusMutation.isPending ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  {selectedAppointment.status === "completed" ? "Completed" : "Mark Complete"}
+                                </>
+                              )}
                             </Button>
                           </div>
                         </div>

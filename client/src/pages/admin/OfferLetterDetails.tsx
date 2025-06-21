@@ -201,23 +201,23 @@ export default function AdminOfferLetterDetails() {
     <AdminLayout>
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
             <Button variant="outline" size="sm" asChild>
               <Link href="/admin/information-reports">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Information Reports
               </Link>
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold">Offer Letter Information</h1>
-              <p className="text-muted-foreground">{offerLetter.fileName}</p>
-            </div>
+            <Badge variant="secondary" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Admin View
+            </Badge>
           </div>
-          <Badge variant="secondary" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Admin View
-          </Badge>
+          <div>
+            <h1 className="text-3xl font-bold">Offer Letter Information</h1>
+            <p className="text-muted-foreground break-words">{offerLetter.fileName}</p>
+          </div>
         </div>
 
         {/* Document Metadata */}
@@ -236,7 +236,7 @@ export default function AdminOfferLetterDetails() {
               </div>
               <div>
                 <p className="font-medium text-muted-foreground">File Name</p>
-                <p className="font-semibold">{offerLetter.fileName}</p>
+                <p className="font-semibold break-words overflow-hidden text-ellipsis" title={offerLetter.fileName}>{offerLetter.fileName}</p>
               </div>
               <div>
                 <p className="font-medium text-muted-foreground">Upload Date</p>
@@ -262,13 +262,13 @@ export default function AdminOfferLetterDetails() {
             <div className="space-y-4">
               <div>
                 <p className="font-medium text-muted-foreground mb-1">Institution Name</p>
-                <p className="font-semibold">{offerLetter.institutionName || 'Not specified'}</p>
+                <p className="font-semibold break-words overflow-hidden">{offerLetter.institutionName || 'Not specified'}</p>
               </div>
               <div>
                 <p className="font-medium text-muted-foreground mb-1">Address</p>
                 <div className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
-                  <p>{offerLetter.institutionAddress || 'Not specified'}</p>
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
+                  <p className="break-words overflow-hidden">{offerLetter.institutionAddress || 'Not specified'}</p>
                 </div>
               </div>
             </div>
