@@ -1615,7 +1615,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
           Comprehensive Offer Letter Analysis
         </h1>
         <p className="text-gray-600">
-          Multi-AI powered analysis with institutional research, scholarship matching, and strategic insights
+          Advanced Darpan AI analysis with institutional research, scholarship matching, and strategic insights
         </p>
       </div>
 
@@ -1624,10 +1624,10 @@ export default function ComprehensiveOfferLetterAnalysis() {
         <CardHeader className="text-center">
           <CardTitle className="flex items-center justify-center gap-2">
             <Brain className="h-6 w-6 text-blue-600" />
-            Advanced Multi-AI Analysis
+            Advanced Darpan AI Analysis
           </CardTitle>
           <CardDescription>
-            Upload your offer letter for comprehensive analysis using both OpenAI GPT-4o and Claude Anthropic, 
+            Upload your offer letter for comprehensive analysis using advanced Darpan AI technology, 
             including institutional research, scholarship matching, and competitor analysis
           </CardDescription>
         </CardHeader>
@@ -1679,7 +1679,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
               </div>
               <Progress value={uploadProgress} className="w-full" />
               <p className="text-xs text-gray-600 text-center">
-                Analyzing with OpenAI GPT-4o, Claude Anthropic, and institutional web research...
+                Processing with advanced Darpan AI technology and institutional web research...
               </p>
             </div>
           )}
@@ -1718,8 +1718,8 @@ export default function ComprehensiveOfferLetterAnalysis() {
         <Card className="border-blue-200">
           <CardContent className="p-4 text-center">
             <Brain className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-            <h3 className="font-medium">Multi-AI Analysis</h3>
-            <p className="text-xs text-gray-600">OpenAI GPT-4o + Claude Anthropic</p>
+            <h3 className="font-medium">Advanced AI Analysis</h3>
+            <p className="text-xs text-gray-600">Powered by Darpan AI</p>
           </CardContent>
         </Card>
         <Card className="border-green-200">
