@@ -269,7 +269,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                         <AdminSidebarItem 
                           icon={item.icon}
                           label={item.label}
-                          href={item.href}
+                          href={item.href || '#'}
                           active={location === item.href}
                         />
                       </div>
