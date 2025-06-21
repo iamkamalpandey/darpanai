@@ -199,7 +199,7 @@ export default function AdminOfferLetterDetails() {
 
   return (
     <AdminLayout>
-      <div className="container mx-auto p-6 space-y-6">
+      <div className="container mx-auto p-6 space-y-6 overflow-hidden">
         {/* Header */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -277,16 +277,16 @@ export default function AdminOfferLetterDetails() {
                 <p className="font-medium text-muted-foreground mb-1">Contact Information</p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <p>{offerLetter.institutionPhone || 'Not specified'}</p>
+                    <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="break-words overflow-hidden">{offerLetter.institutionPhone || 'Not specified'}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <p>{offerLetter.institutionEmail || 'Not specified'}</p>
+                    <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="break-words overflow-hidden">{offerLetter.institutionEmail || 'Not specified'}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <p>{offerLetter.institutionWebsite || 'Not specified'}</p>
+                    <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="break-words overflow-hidden">{offerLetter.institutionWebsite || 'Not specified'}</p>
                   </div>
                 </div>
               </div>
@@ -308,12 +308,12 @@ export default function AdminOfferLetterDetails() {
                 <p className="font-medium text-muted-foreground mb-1">Program Details</p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-muted-foreground" />
-                    <p className="font-semibold">{offerLetter.programName || 'Not specified'}</p>
+                    <BookOpen className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="font-semibold break-words overflow-hidden">{offerLetter.programName || 'Not specified'}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                    <p>{offerLetter.programLevel || 'Not specified'}</p>
+                    <GraduationCap className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="break-words overflow-hidden">{offerLetter.programLevel || 'Not specified'}</p>
                   </div>
                 </div>
               </div>
@@ -323,16 +323,16 @@ export default function AdminOfferLetterDetails() {
                 <p className="font-medium text-muted-foreground mb-1">Timeline</p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <p>Start: {offerLetter.startDate || 'Not specified'}</p>
+                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="break-words overflow-hidden">Start: {offerLetter.startDate || 'Not specified'}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <p>End: {offerLetter.endDate || 'Not specified'}</p>
+                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="break-words overflow-hidden">End: {offerLetter.endDate || 'Not specified'}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <p>Duration: {offerLetter.duration || 'Not specified'}</p>
+                    <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <p className="break-words overflow-hidden">Duration: {offerLetter.duration || 'Not specified'}</p>
                   </div>
                 </div>
               </div>
