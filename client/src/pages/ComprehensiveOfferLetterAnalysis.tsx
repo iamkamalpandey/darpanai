@@ -1694,7 +1694,7 @@ export default function ComprehensiveOfferLetterAnalysis() {
             </div>
             <Button
               onClick={handleAnalyze}
-              disabled={!selectedFile || analyzeMutation.isPending || (userStats && 'remainingAnalyses' in userStats && userStats.remainingAnalyses <= 0)}
+              disabled={!selectedFile || analyzeMutation.isPending || (userStats && userStats.remainingAnalyses <= 0)}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
               {analyzeMutation.isPending ? (
