@@ -51,29 +51,54 @@ interface CountryRecommendation {
   countryCode: string;
   matchScore: number;
   ranking: number;
-  reasons: string[];
-  advantages: string[];
-  challenges: string[];
-  estimatedCosts: {
-    tuitionRange: string;
-    livingCosts: string;
-    totalAnnualCost: string;
+  personalizedReasons: string[];
+  specificAdvantages: string[];
+  potentialChallenges: string[];
+  detailedCostBreakdown: {
+    tuitionFees: {
+      bachelors: string;
+      masters: string;
+      phd: string;
+      specificProgram: string;
+    };
+    livingExpenses: {
+      accommodation: string;
+      food: string;
+      transportation: string;
+      personalExpenses: string;
+      healthInsurance: string;
+      totalMonthly: string;
+    };
+    totalAnnualInvestment: string;
+    scholarshipPotential: string;
+    workStudyEarnings: string;
   };
-  topUniversities: string[];
-  visaRequirements: {
-    difficulty: string;
-    processingTime: string;
-    workPermit: string;
+  targetedUniversities: Array<{
+    name: string;
+    ranking: string;
+    programSpecific: string;
+    admissionRequirements: string;
+    scholarshipAvailable: string;
+  }>;
+  personalizedVisaGuidance: {
+    successRate: string;
+    specificRequirements: string[];
+    timelineForUser: string;
+    workRights: string;
+    postStudyOptions: string;
   };
-  careerProspects: {
-    jobMarket: string;
-    averageSalary: string;
-    growthOpportunities: string;
+  careerPathway: {
+    industryDemand: string;
+    salaryExpectations: string;
+    careerProgression: string;
+    networkingOpportunities: string;
+    returnOnInvestment: string;
   };
-  culturalFit: {
-    languageBarrier: string;
+  culturalAlignment: {
+    languageSupport: string;
+    communityPresence: string;
     culturalAdaptation: string;
-    internationalStudentSupport: string;
+    supportSystems: string;
   };
 }
 
@@ -83,39 +108,89 @@ interface DestinationSuggestionResponse {
   topRecommendations: CountryRecommendation[];
   keyFactors: string[];
   personalizedInsights: {
-    strengthsAnalysis: string[];
-    improvementAreas: string[];
-    strategicRecommendations: string[];
+    profileStrengths: string[];
+    specificImprovementAreas: string[];
+    tailoredStrategicActions: string[];
+    uniqueOpportunities: string[];
   };
-  nextSteps: {
-    immediate: string[];
-    shortTerm: string[];
-    longTerm: string[];
+  actionPlan: {
+    immediateActions: Array<{
+      action: string;
+      deadline: string;
+      priority: string;
+      specificSteps: string[];
+      resources: string[];
+    }>;
+    shortTermGoals: Array<{
+      goal: string;
+      timeline: string;
+      milestones: string[];
+      requirements: string[];
+      successMetrics: string[];
+    }>;
+    longTermStrategy: Array<{
+      objective: string;
+      timeframe: string;
+      keyActivities: string[];
+      dependencies: string[];
+      expectedOutcomes: string[];
+    }>;
   };
-  budgetOptimization: {
-    costSavingStrategies: string[];
-    scholarshipOpportunities: string[];
-    financialPlanningTips: string[];
+  financialStrategy: {
+    personalizedBudgetPlan: {
+      totalInvestmentRequired: string;
+      fundingGapAnalysis: string;
+      cashflowProjection: string[];
+    };
+    targetedScholarships: Array<{
+      scholarshipName: string;
+      provider: string;
+      amount: string;
+      eligibilityMatch: string;
+      applicationDeadline: string;
+      competitiveness: string;
+      applicationStrategy: string[];
+    }>;
+    costOptimizationStrategies: Array<{
+      strategy: string;
+      potentialSavings: string;
+      implementationSteps: string[];
+      timeline: string;
+    }>;
   };
-  timeline: {
-    preparation: string;
-    application: string;
-    decisionMaking: string;
+  personlizedTimeline: {
+    preparationPhase: {
+      duration: string;
+      keyMilestones: string[];
+      criticalDeadlines: string[];
+    };
+    applicationPhase: {
+      duration: string;
+      applicationWindows: string[];
+      documentsRequired: string[];
+    };
+    decisionPhase: {
+      duration: string;
+      evaluationCriteria: string[];
+      finalSteps: string[];
+    };
   };
   intelligentAlternatives?: Array<{
     country: string;
-    whyBetter: string;
-    keyBenefits: string[];
+    whyBetterForUser: string;
+    specificBenefits: string[];
     matchScore: number;
-    costAdvantage?: string;
+    costAdvantage: string;
+    personalizedRationale: string;
   }>;
   pathwayPrograms?: Array<{
-    type: string;
+    programType: string;
     description: string;
     duration: string;
-    cost: string;
-    entryRequirements: string[];
-    pathwayTo: string;
+    costDetails: string;
+    specificEntryRequirements: string[];
+    pathwayToProgram: string;
+    suitabilityForUser: string;
   }>;
 }
 
@@ -169,11 +244,11 @@ export async function generateDestinationSuggestions(
       throw new Error('Invalid response format from AI analysis');
     }
 
-    // Validate and enhance analysis structure
-    const validatedAnalysis = validateAndEnhanceAnalysis(analysis, userProfile);
+    // Transform analysis to match new enhanced structure
+    const transformedAnalysis = transformToNewStructure(analysis, userProfile);
     
     return {
-      analysis: validatedAnalysis,
+      analysis: transformedAnalysis,
       tokensUsed,
       processingTime
     };
@@ -204,45 +279,36 @@ function buildDestinationAnalysisPrompt(
   const englishScore = englishTest ? `${englishTest.testType}: ${englishTest.overallScore}` : 'Not provided';
   
   return `
-# 🧠 AI Study Destination Recommendation System (Global Edition)
+# PERSONALIZED STUDY DESTINATION ANALYSIS SYSTEM
 
-## 🎓 System Role
-You are an expert AI-powered study-abroad advisor with access to updated insights on:
-- Global education systems and pathway programs
-- Regional cost variations and scholarship opportunities
-- Visa, PR, and post-study migration policies
-- IELTS and English entry alternatives
-- Career market alignment by country and field
+## ANALYSIS MANDATE
+Provide highly personalized, detailed recommendations with AUTHENTIC cost estimates, specific university targets, and actionable insights tailored to THIS SPECIFIC STUDENT'S profile. Every recommendation must be justified based on the individual's academic background, financial situation, and career goals.
 
-## 🌍 Supported Study Destinations
-🇦🇺 Australia | 🇺🇸 USA | 🇨🇦 Canada | 🇬🇧 UK | 🇩🇰 Denmark | 🇳🇿 New Zealand | 🇳🇱 Netherlands | 🇦🇪 UAE | 🇩🇪 Germany | 🇫🇮 Finland | 🇮🇪 Ireland | 🇸🇬 Singapore | 🇸🇪 Sweden | 🇫🇷 France
+## COST ANALYSIS REQUIREMENTS
+- Provide CURRENT 2025 tuition fees for specific programs at target universities
+- Include detailed living cost breakdowns by city/region
+- Calculate total investment including hidden costs (visa, health insurance, travel)
+- Identify specific scholarship opportunities this student qualifies for
+- Project potential earnings from part-time work (country-specific rules)
 
-## 🔍 AI Recommendation Framework
+## GLOBAL STUDY DESTINATIONS ANALYSIS
+Australia | USA | Canada | UK | Denmark | New Zealand | Netherlands | UAE | Germany | Finland | Ireland | Singapore | Sweden | France
 
-### Score Destinations (1-10 scale):
-| Metric | Weight | Description |
-|--------|--------|-------------|
-| Academic Compatibility | 25% | Degree recognition, entry route (foundation/TAFE), gap tolerance |
-| Financial Feasibility | 30% | Tuition + living, funding vs budget, scholarships, ROI |
-| Language Alignment | 15% | IELTS requirement vs score, English pathways |
-| Career Prospects & PR | 20% | Work rights, industry match, migration pathways |
-| Visa Probability | 10% | Approval trends, processing time, risk for user profile |
+## STUDENT PROFILE FOR PERSONALIZED ANALYSIS
 
-## 👤 Student Profile Analysis:
-
-**Personal Information:**
-- Name: ${userProfile.firstName} ${userProfile.lastName}
-- Date of Birth: ${userProfile.dateOfBirth || 'Not provided'}
+**PERSONAL DETAILS:**
+- Full Name: ${userProfile.firstName} ${userProfile.lastName}
+- Age: ${userProfile.dateOfBirth ? Math.floor((Date.now() - new Date(userProfile.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 'Not provided'} years old
 - Gender: ${userProfile.gender || 'Not specified'}
 - Nationality: ${userProfile.nationality || 'Not specified'}
-- Current Country: ${userProfile.country || 'Not specified'}
+- Current Residence: ${userProfile.country || 'Not specified'}
 
-**Academic Background:**
-- Highest Qualification: ${userProfile.highestQualification || 'Not specified'}
+**ACADEMIC CREDENTIALS:**
+- Current Qualification: ${userProfile.highestQualification || 'Not specified'}
 - Institution: ${userProfile.highestInstitution || 'Not specified'}
-- Graduation Year: ${userProfile.graduationYear || 'Not specified'}
-- GPA/Grade: ${userProfile.highestGpa || 'Not specified'}
-- Academic Gap: ${userProfile.graduationYear ? new Date().getFullYear() - userProfile.graduationYear : 'Not calculated'} years
+- Graduation: ${userProfile.graduationYear || 'Not specified'}
+- Academic Performance: ${userProfile.highestGpa || 'Not specified'}
+- Study Gap: ${userProfile.graduationYear ? new Date().getFullYear() - userProfile.graduationYear : 'Not calculated'} years
 
 **Study Preferences:**
 - Interested Course: ${userProfile.interestedCourse || 'Not specified'}
