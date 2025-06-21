@@ -156,7 +156,7 @@ export default function DestinationSuggestionDetail() {
 
           {/* Top Countries Tab */}
           <TabsContent value="countries" className="space-y-4">
-            {suggestion.suggestedCountries.map((country, index) => (
+            {(suggestion.suggestedCountries || []).map((country, index) => (
               <Card key={index}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -180,7 +180,7 @@ export default function DestinationSuggestionDetail() {
                         Advantages
                       </h4>
                       <ul className="space-y-1">
-                        {country.advantages.map((advantage, i) => (
+                        {(country.advantages || []).map((advantage, i) => (
                           <li key={i} className="text-sm text-gray-600 flex items-start">
                             <span className="text-green-500 mr-2">•</span>
                             {advantage}
@@ -196,7 +196,7 @@ export default function DestinationSuggestionDetail() {
                         Top Universities
                       </h4>
                       <ul className="space-y-1">
-                        {country.topUniversities.map((university, i) => (
+                        {(country.topUniversities || []).map((university, i) => (
                           <li key={i} className="text-sm text-gray-600">
                             • {university}
                           </li>
@@ -214,15 +214,15 @@ export default function DestinationSuggestionDetail() {
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>
                         <span className="text-gray-500">Tuition:</span>
-                        <div className="font-medium">{country.estimatedCosts.tuitionRange}</div>
+                        <div className="font-medium">{country.estimatedCosts?.tuitionRange || 'Not specified'}</div>
                       </div>
                       <div>
                         <span className="text-gray-500">Living:</span>
-                        <div className="font-medium">{country.estimatedCosts.livingCosts}</div>
+                        <div className="font-medium">{country.estimatedCosts?.livingCosts || 'Not specified'}</div>
                       </div>
                       <div>
                         <span className="text-gray-500">Total Annual:</span>
-                        <div className="font-medium">{country.estimatedCosts.totalAnnualCost}</div>
+                        <div className="font-medium">{country.estimatedCosts?.totalAnnualCost || 'Not specified'}</div>
                       </div>
                     </div>
                   </div>
