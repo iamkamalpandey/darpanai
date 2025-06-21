@@ -644,22 +644,12 @@ export default function AdminOfferLetterDetails() {
               </table>
             </div>
             
-            {/* Payment Schedule Information */}
+            {/* Additional Financial Information */}
             {offerLetter.paymentSchedule && (
-              <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                <h4 className="font-medium text-green-800 mb-2">Payment Schedule</h4>
-                <div className="text-sm text-green-700 break-words">
-                  {offerLetter.paymentSchedule}
-                </div>
-              </div>
-            )}
-
-            {/* Scholarship Information */}
-            {offerLetter.scholarshipInfo && (
-              <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                <h4 className="font-medium text-yellow-800 mb-2">Scholarship Information</h4>
-                <div className="text-sm text-yellow-700 break-words">
-                  {offerLetter.scholarshipInfo}
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <h4 className="font-semibold text-green-800 mb-2">Payment Schedule:</h4>
+                <div className="text-sm text-green-700 break-words overflow-hidden text-wrap">
+                  {formatRequirementsText(offerLetter.paymentSchedule)}
                 </div>
               </div>
             )}

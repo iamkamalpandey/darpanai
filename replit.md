@@ -130,6 +130,16 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 21, 2025 - Admin Offer Letter Details Formatting Enhancement & Critical Runtime Error Fix:**
+- ✓ Enhanced admin offer letter details page formatting to match user dashboard styling with professional table borders, color-coded badges, and improved visual hierarchy
+- ✓ Applied Financial Summary table improvements with proper borders, gray headers, and color-coded amount badges (green for tuition, blue for application fee, purple for deposit, red for total)
+- ✓ Updated Financial Information cards with color-coded grid layout (blue, green, orange, purple) matching user dashboard design
+- ✓ Fixed critical runtime error in admin appointments page where apiRequest function parameters were in wrong order causing "Failed to execute 'fetch'" error
+- ✓ Corrected apiRequest parameter order from (url, method, data) to proper (method, url, data) format preventing application crashes
+- ✓ Applied consistent typography, spacing, and green left border styling throughout admin offer letter details page
+- ✓ Enhanced payment schedule display with proper text formatting and overflow protection
+- ✓ Successfully aligned admin dashboard offer letter presentation with user dashboard counterpart while maintaining administrative functionality
+
 **June 21, 2025 - Complete Cross-Dashboard Feature Integration Implementation:**
 - ✓ Successfully implemented admin offer letter details page access via `/admin/offer-letter-info/:id` route using existing AdminOfferLetterDetails component
 - ✓ Created comprehensive UserCoeDetails.tsx component providing complete admin COE functionality within user dashboard

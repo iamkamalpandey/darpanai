@@ -60,7 +60,7 @@ export default function AdminAppointments() {
   // Update appointment status mutation
   const updateStatusMutation = useMutation({
     mutationFn: (data: { appointmentId: number; status: string }) =>
-      apiRequest(`/api/admin/appointments/${data.appointmentId}/status`, "PUT", { status: data.status }),
+      apiRequest("PUT", `/api/admin/appointments/${data.appointmentId}/status`, { status: data.status }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/appointments"] });
       toast({ title: "Success", description: `Appointment ${variables.status === 'confirmed' ? 'confirmed' : variables.status === 'completed' ? 'marked as complete' : 'updated'} successfully` });
