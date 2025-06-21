@@ -506,38 +506,57 @@ export default function AdminOfferLetterDetails() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="bg-white p-3 rounded border">
-                    <div className="text-xs text-gray-500 mb-1">Tuition Fee</div>
-                    <div className="text-xl font-bold text-green-600">
-                      {offerLetter.tuitionFee || '$0.00'}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <DollarSign className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                      <span className="font-medium text-blue-800 break-words overflow-hidden text-wrap text-sm">Tuition Fee</span>
+                    </div>
+                    <div className="text-lg font-bold text-blue-900 break-words overflow-hidden text-wrap">
+                      {offerLetter.tuitionFee || 'Not specified'}
                     </div>
                   </div>
-                  <div className="bg-white p-3 rounded border">
-                    <div className="text-xs text-gray-500 mb-1">Application Fee</div>
-                    <div className="text-lg font-semibold text-blue-600">
-                      {offerLetter.applicationFee || '$0.00'}
+
+                  <div className="bg-green-50 border border-green-200 p-3 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileText className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <span className="font-medium text-green-800 break-words overflow-hidden text-wrap text-sm">Application Fee</span>
+                    </div>
+                    <div className="text-lg font-bold text-green-900 break-words overflow-hidden text-wrap">
+                      {offerLetter.applicationFee || 'Not specified'}
                     </div>
                   </div>
-                  <div className="bg-white p-3 rounded border">
-                    <div className="text-xs text-gray-500 mb-1">Deposit Required</div>
-                    <div className="text-lg font-semibold text-purple-600">
-                      {offerLetter.depositRequired || '$0.00'}
+
+                  <div className="bg-orange-50 border border-orange-200 p-3 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                      <span className="font-medium text-orange-800 break-words overflow-hidden text-wrap text-sm">Deposit Required</span>
+                    </div>
+                    <div className="text-lg font-bold text-orange-900 break-words overflow-hidden text-wrap">
+                      {offerLetter.depositRequired || 'Not specified'}
                     </div>
                   </div>
-                  <div className="bg-white p-3 rounded border">
-                    <div className="text-xs text-gray-500 mb-1">Total Cost</div>
-                    <div className="text-xl font-bold text-red-600">
-                      {offerLetter.totalCost || '$0.00'}
+
+                  <div className="bg-purple-50 border border-purple-200 p-3 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Award className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                      <span className="font-medium text-purple-800 break-words overflow-hidden text-wrap text-sm">Total Cost</span>
                     </div>
-                  </div>
-                  <div className="bg-white p-3 rounded border">
-                    <div className="text-xs text-gray-500 mb-1">Payment Schedule</div>
-                    <div className="text-sm text-gray-700 break-words">
-                      {offerLetter.paymentSchedule || 'Not specified'}
+                    <div className="text-lg font-bold text-purple-900 break-words overflow-hidden text-wrap">
+                      {offerLetter.totalCost || 'Not specified'}
                     </div>
                   </div>
                 </div>
+
+                {/* Payment Schedule */}
+                {offerLetter.paymentSchedule && (
+                  <div className="bg-white p-3 rounded border mt-4">
+                    <div className="text-sm text-gray-500 mb-1">Payment Schedule</div>
+                    <div className="text-sm text-gray-700 break-words">
+                      {offerLetter.paymentSchedule}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -559,55 +578,91 @@ export default function AdminOfferLetterDetails() {
         </div>
 
         {/* Financial Summary Table */}
-        <Card className="mt-6 bg-yellow-50 border border-yellow-200">
+        <Card className="mt-6 border-l-4 border-l-green-500">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base font-semibold">
-              <DollarSign className="h-4 w-4 text-yellow-600 flex-shrink-0" />
+              <DollarSign className="h-4 w-4 text-green-600 flex-shrink-0" />
               Financial Summary
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
+              <table className="w-full border-collapse border border-gray-200">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left text-xs font-semibold text-gray-700 py-2 px-3">Fee Type</th>
-                    <th className="text-left text-xs font-semibold text-gray-700 py-2 px-3">Amount</th>
-                    <th className="text-left text-xs font-semibold text-gray-700 py-2 px-3">Details</th>
+                  <tr className="bg-gray-50">
+                    <th className="border border-gray-200 px-4 py-2 text-left font-semibold text-sm">Fee Type</th>
+                    <th className="border border-gray-200 px-4 py-2 text-left font-semibold text-sm">Amount</th>
+                    <th className="border border-gray-200 px-4 py-2 text-left font-semibold text-sm">Details</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="border-b border-gray-100">
-                    <td className="text-xs py-2 px-3 font-medium">Tuition Fee</td>
-                    <td className="text-xs py-2 px-3 font-bold text-green-600">
-                      {offerLetter.tuitionFee || '$0.00'}
+                  <tr>
+                    <td className="border border-gray-200 px-4 py-2 font-medium">Tuition Fee</td>
+                    <td className="border border-gray-200 px-4 py-2">
+                      <span className="font-semibold text-green-600 bg-green-50 px-2 py-1 rounded text-sm">
+                        {offerLetter.tuitionFee || 'Not specified'}
+                      </span>
                     </td>
-                    <td className="text-xs py-2 px-3 text-gray-600">Main program fee</td>
+                    <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
+                      {offerLetter.paymentSchedule || 'Payment schedule not specified'}
+                    </td>
                   </tr>
-                  <tr className="border-b border-gray-100">
-                    <td className="text-xs py-2 px-3 font-medium">Application Fee</td>
-                    <td className="text-xs py-2 px-3 font-bold text-blue-600">
-                      {offerLetter.applicationFee || '$0.00'}
+                  <tr className="bg-gray-25">
+                    <td className="border border-gray-200 px-4 py-2 font-medium">Application Fee</td>
+                    <td className="border border-gray-200 px-4 py-2">
+                      <span className="font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded text-sm">
+                        {offerLetter.applicationFee || 'Not specified'}
+                      </span>
                     </td>
-                    <td className="text-xs py-2 px-3 text-gray-600">One-time application processing fee</td>
+                    <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
+                      One-time application processing fee
+                    </td>
                   </tr>
-                  <tr className="border-b border-gray-100">
-                    <td className="text-xs py-2 px-3 font-medium">Deposit Required</td>
-                    <td className="text-xs py-2 px-3 font-bold text-purple-600">
-                      {offerLetter.depositRequired || '$0.00'}
+                  <tr>
+                    <td className="border border-gray-200 px-4 py-2 font-medium">Deposit Required</td>
+                    <td className="border border-gray-200 px-4 py-2">
+                      <span className="font-semibold text-purple-600 bg-purple-50 px-2 py-1 rounded text-sm">
+                        {offerLetter.depositRequired || 'Not specified'}
+                      </span>
                     </td>
-                    <td className="text-xs py-2 px-3 text-gray-600">Required to secure enrollment</td>
+                    <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
+                      Required to secure enrollment
+                    </td>
                   </tr>
-                  <tr className="bg-yellow-100 border-b border-yellow-200">
-                    <td className="text-xs py-2 px-3 font-bold">Total Estimated Cost</td>
-                    <td className="text-xs py-2 px-3 font-bold text-red-600 text-base">
-                      {offerLetter.totalCost || '$0.00'}
+                  <tr className="bg-gray-25">
+                    <td className="border border-gray-200 px-4 py-2 font-medium">Total Estimated Cost</td>
+                    <td className="border border-gray-200 px-4 py-2">
+                      <span className="font-bold text-red-600 bg-red-50 px-2 py-1 rounded text-sm">
+                        {offerLetter.totalCost || 'Not specified'}
+                      </span>
                     </td>
-                    <td className="text-xs py-2 px-3 text-gray-600">Complete program cost including all fees</td>
+                    <td className="border border-gray-200 px-4 py-2 text-sm text-gray-600">
+                      Complete program cost including all fees
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
+            
+            {/* Payment Schedule Information */}
+            {offerLetter.paymentSchedule && (
+              <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                <h4 className="font-medium text-green-800 mb-2">Payment Schedule</h4>
+                <div className="text-sm text-green-700 break-words">
+                  {offerLetter.paymentSchedule}
+                </div>
+              </div>
+            )}
+
+            {/* Scholarship Information */}
+            {offerLetter.scholarshipInfo && (
+              <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <h4 className="font-medium text-yellow-800 mb-2">Scholarship Information</h4>
+                <div className="text-sm text-yellow-700 break-words">
+                  {offerLetter.scholarshipInfo}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
