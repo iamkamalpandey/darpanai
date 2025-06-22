@@ -8,18 +8,12 @@ const router = Router();
 // Search scholarships with filtering and pagination
 router.get("/search", async (req: Request, res: Response) => {
   try {
-    // Parse and validate query parameters
+    // Parse and validate query parameters matching frontend schema
     const searchParams = scholarshipSearchSchema.parse({
       search: req.query.search as string,
-      country: req.query.country as string,
-      studyLevel: req.query.studyLevel as string,
-      fieldOfStudy: req.query.fieldOfStudy as string,
+      programLevel: req.query.programLevel as string,
+      institutionName: req.query.institutionName as string,
       fundingType: req.query.fundingType as string,
-      providerType: req.query.providerType as string,
-      minAmount: req.query.minAmount ? Number(req.query.minAmount) : undefined,
-      maxAmount: req.query.maxAmount ? Number(req.query.maxAmount) : undefined,
-      deadlineFrom: req.query.deadlineFrom as string,
-      deadlineTo: req.query.deadlineTo as string,
       limit: req.query.limit ? Number(req.query.limit) : 20,
       offset: req.query.offset ? Number(req.query.offset) : 0
     });

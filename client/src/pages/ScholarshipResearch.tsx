@@ -64,6 +64,26 @@ export default function ScholarshipResearch() {
       limit: 20,
       offset: (page - 1) * 20
     }],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (programLevelFilter && programLevelFilter !== "all") params.append('programLevel', programLevelFilter);
+      if (institutionFilter && institutionFilter !== "all") params.append('institutionName', institutionFilter);
+      if (fundingTypeFilter && fundingTypeFilter !== "all") params.append('fundingType', fundingTypeFilter);
+      params.append('limit', '20');
+      params.append('offset', ((page - 1) * 20).toString());
+
+      const response = await fetch(`/api/scholarships/search?${params.toString()}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch scholarships');
+      }
+      
+      const result = await response.json();
+      return result.data;
+    },
     enabled: true
   });
 
