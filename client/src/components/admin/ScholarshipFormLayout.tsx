@@ -741,7 +741,7 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
           name="tuitionCoveragePercentage"
@@ -872,7 +872,7 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
         )}
       />
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
           name="minGpa"
@@ -957,7 +957,7 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
         )}
       />
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
           name="durationValue"
@@ -1046,7 +1046,7 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
 
   return (
     <AdminLayout>
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
         {/* Header - Responsive Layout */}
         <div className="space-y-4">
           {/* Back Button */}
