@@ -202,14 +202,14 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
                 <span className="text-lg font-semibold text-gray-900">Darpan Intelligence</span>
               </div>
               
-              <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto min-h-0">
+              <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
                 {sidebarItems.map((item, index) => (
                   <div key={item.href || `submenu-${index}`}>
                     {item.isSubmenu ? (
                       <div>
                         <button
                           onClick={() => handleSubmenuToggle(item.label)}
-                          className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                          className="w-full group flex gap-x-3 rounded-md p-3 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                         >
                           <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-gray-500">
                             {item.icon}
@@ -222,7 +222,7 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
                           )}
                         </button>
                         {isSubmenuOpen(item.label) && item.submenuItems && (
-                          <div className="ml-8 mt-1 space-y-1">
+                          <div className="ml-6 mt-2 space-y-1 pl-3 border-l-2 border-gray-100">
                             {item.submenuItems.map((subItem) => (
                               <div key={subItem.href} onClick={() => setSidebarOpen(false)}>
                                 <SidebarItem 
@@ -297,20 +297,20 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Desktop Layout */}
       <div className="hidden md:flex h-screen bg-gray-50">
         {/* Desktop Sidebar */}
-        <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+        <div className="w-72 bg-white border-r border-gray-200 flex flex-col shadow-sm">
           <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-white flex-shrink-0">
             <Shield className="h-6 w-6 text-blue-600 mr-3" />
             <span className="text-lg font-semibold text-gray-900">Darpan Intelligence</span>
           </div>
           
-          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto min-h-0">
+          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
             {sidebarItems.map((item, index) => (
               <div key={item.href || `submenu-${index}`}>
                 {item.isSubmenu ? (
                   <div>
                     <button
                       onClick={() => handleSubmenuToggle(item.label)}
-                      className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                      className="w-full group flex gap-x-3 rounded-md p-3 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                     >
                       <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-gray-500">
                         {item.icon}
@@ -323,7 +323,7 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
                       )}
                     </button>
                     {isSubmenuOpen(item.label) && item.submenuItems && (
-                      <div className="ml-8 mt-1 space-y-1">
+                      <div className="ml-6 mt-2 space-y-1 pl-3 border-l-2 border-gray-100">
                         {item.submenuItems.map((subItem) => (
                           <SidebarItem 
                             key={subItem.href}
