@@ -109,38 +109,25 @@ export default function NewHome() {
     }
   ];
 
-  const upcomingFeatures = [
-    {
-      title: "Profile AI Analysis",
-      description: "Personalized recommendations based on your complete academic profile",
-      timeline: "Q2 2025",
-      icon: <User className="w-5 h-5" />
-    },
-    {
-      title: "SOP Analysis",
-      description: "AI-powered Statement of Purpose review and optimization",
-      timeline: "Q3 2025", 
-      icon: <BookOpen className="w-5 h-5" />
-    }
-  ];
+
 
   const quickActions = [
     {
       title: "Book Consultation",
       description: "Get personalized guidance from education experts",
       icon: <Calendar className="w-5 h-5" />,
-      href: "/appointments",
+      href: "/consultations",
       color: "text-blue-600"
     },
     {
       title: "My Analysis History",
       description: "Review all your previous document analyses",
       icon: <TrendingUp className="w-5 h-5" />,
-      href: "/analysis-history",
+      href: "/my-analysis",
       color: "text-emerald-600"
     },
     {
-      title: "Profile Completion",
+      title: "Profile Management",
       description: "Complete your profile for better recommendations",
       icon: <User className="w-5 h-5" />,
       href: "/profile",
@@ -355,36 +342,7 @@ export default function NewHome() {
             </div>
           </div>
 
-          {/* Coming Soon Features */}
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">What's next</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {upcomingFeatures.map((feature, index) => (
-                <Card key={index} className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-gray-600">
-                        {feature.icon}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-gray-900">
-                            {feature.title}
-                          </h3>
-                          <Badge variant="outline" className="text-xs">
-                            {feature.timeline}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          {feature.description}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
+
 
         </div>
       </div>
