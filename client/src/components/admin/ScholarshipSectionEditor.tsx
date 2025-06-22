@@ -253,7 +253,7 @@ export default function ScholarshipSectionEditor({
                 )}
               />
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="providerName"
                 render={({ field }) => (
                   <FormItem>
@@ -266,7 +266,7 @@ export default function ScholarshipSectionEditor({
                 )}
               />
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="providerType"
                 render={({ field }) => (
                   <FormItem>
@@ -289,7 +289,7 @@ export default function ScholarshipSectionEditor({
                 )}
               />
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="providerCountry"
                 render={({ field }) => (
                   <FormItem>
@@ -303,7 +303,7 @@ export default function ScholarshipSectionEditor({
               />
             </div>
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="description"
               render={({ field }) => (
                 <FormItem>
@@ -316,7 +316,7 @@ export default function ScholarshipSectionEditor({
               )}
             />
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="shortDescription"
               render={({ field }) => (
                 <FormItem>
@@ -335,7 +335,7 @@ export default function ScholarshipSectionEditor({
         return (
           <div className="grid gap-4 md:grid-cols-3">
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="fundingType"
               render={({ field }) => (
                 <FormItem>
@@ -359,7 +359,7 @@ export default function ScholarshipSectionEditor({
               )}
             />
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="fundingAmount"
               render={({ field }) => (
                 <FormItem>
