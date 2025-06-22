@@ -32,15 +32,15 @@ const SidebarItem = ({ icon, label, href, active }: {
 }) => {
   return (
     <Link href={href}>
-      <div className={`group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 ${
+      <div className={`group flex gap-x-3 rounded-md p-2.5 text-sm font-medium leading-6 transition-all duration-200 ${
         active 
-          ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' 
+          ? 'bg-blue-50 text-blue-700 border-l-3 border-blue-600 shadow-sm' 
           : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
       }`}>
         <span className={`h-5 w-5 shrink-0 ${active ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'}`}>
           {icon}
         </span>
-        <span className="truncate">{label}</span>
+        <span className="truncate font-medium">{label}</span>
       </div>
     </Link>
   );
@@ -160,18 +160,18 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Mobile Layout */}
       <div className="md:hidden min-h-screen bg-gray-50">
         {/* Mobile Header */}
-        <header className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-40">
+        <header className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-40 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
+            <div className="flex items-center min-w-0 flex-1">
               <button
-                className="p-2 -ml-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                className="p-2 -ml-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors flex-shrink-0"
                 onClick={() => setSidebarOpen(true)}
               >
                 <Menu className="h-6 w-6" />
               </button>
-              <div className="ml-2 flex items-center">
-                <Shield className="h-6 w-6 text-blue-600 mr-2" />
-                <span className="text-lg font-semibold text-gray-900">Darpan Intelligence</span>
+              <div className="ml-2 flex items-center min-w-0">
+                <Shield className="h-6 w-6 text-blue-600 mr-2 flex-shrink-0" />
+                <span className="text-lg font-semibold text-gray-900 truncate">Darpan Intelligence</span>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -297,10 +297,10 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Desktop Layout */}
       <div className="hidden md:flex h-screen bg-gray-50">
         {/* Desktop Sidebar */}
-        <div className="w-72 bg-white border-r border-gray-200 flex flex-col shadow-sm">
+        <div className="w-72 lg:w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm">
           <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-white flex-shrink-0">
-            <Shield className="h-6 w-6 text-blue-600 mr-3" />
-            <span className="text-lg font-semibold text-gray-900">Darpan Intelligence</span>
+            <Shield className="h-7 w-7 text-blue-600 mr-3 flex-shrink-0" />
+            <span className="text-xl font-semibold text-gray-900 truncate">Darpan Intelligence</span>
           </div>
           
           <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
