@@ -16,7 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Edit, Trash2, Search, Filter, Eye, Download, Upload } from "lucide-react";
-import { Link } from "wouter";
+
 import { z } from "zod";
 
 // Scholarship form validation schema
@@ -56,9 +56,9 @@ export default function ScholarshipManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterProviderType, setFilterProviderType] = useState<string>("all");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedScholarship, setSelectedScholarship] = useState<Scholarship | null>(null);
+  const [editingSection, setEditingSection] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   
   const { toast } = useToast();
@@ -81,20 +81,34 @@ export default function ScholarshipManagement() {
     }
   });
 
-  // Create scholarship mutation
-  const createMutation = useMutation({
-    mutationFn: async (data: ScholarshipFormData) => {
-      return apiRequest('POST', '/api/admin/scholarships', data);
+  // Category-based sections for editing
+  const editingSections = [
+    { 
+      key: 'basic', 
+      title: 'Basic Information', 
+      fields: ['scholarshipId', 'name', 'shortName', 'providerName', 'providerType', 'providerCountry']
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-scholarships'] });
-      setIsCreateDialogOpen(false);
-      toast({ title: "Success", description: "Scholarship created successfully" });
+    { 
+      key: 'funding', 
+      title: 'Funding Details', 
+      fields: ['fundingType', 'fundingCurrency', 'totalValueMin', 'totalValueMax', 'tuitionCoveragePercentage']
     },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to create scholarship", variant: "destructive" });
+    { 
+      key: 'eligibility', 
+      title: 'Eligibility Requirements', 
+      fields: ['minGpa', 'minAge', 'maxAge', 'genderRequirement', 'minWorkExperience', 'leadershipRequired']
+    },
+    { 
+      key: 'application', 
+      title: 'Application Process', 
+      fields: ['applicationUrl', 'applicationFeeAmount', 'interviewRequired', 'essayRequired']
+    },
+    { 
+      key: 'additional', 
+      title: 'Additional Information', 
+      fields: ['description', 'difficultyLevel', 'status', 'verified']
     }
-  });
+  ];
 
   // Update scholarship mutation
   const updateMutation = useMutation({
@@ -189,12 +203,10 @@ export default function ScholarshipManagement() {
             <Upload className="w-4 h-4 mr-2" />
             Import
           </Button>
-          <Link href="/admin/scholarships/create">
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Scholarship
-            </Button>
-          </Link>
+          <Button onClick={() => window.location.href = '/admin/scholarships/create'}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Scholarship
+          </Button>
         </div>
       </div>
 
