@@ -255,7 +255,7 @@ export default function ScholarshipDetails() {
           <div className="p-6">
             {/* Title */}
             <h1 className="text-2xl font-bold text-gray-900 mb-6">
-              {(scholarship as any)?.scholarshipName || 'Not specified'}
+              {scholarship?.scholarshipName || 'Loading...'}
             </h1>
 
             {/* Content Grid */}

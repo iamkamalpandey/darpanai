@@ -232,6 +232,29 @@ router.get("/admin/scholarships", requireAdmin, async (req: Request, res: Respon
   }
 });
 
+// Get individual scholarship by ID (admin endpoint)
+router.get("/admin/scholarships/:id", requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    const scholarship = await scholarshipStorage.getScholarshipById(id);
+    
+    if (!scholarship) {
+      return res.status(404).json({
+        success: false,
+        error: "Scholarship not found"
+      });
+    }
+    
+    res.json(scholarship);
+  } catch (error) {
+    console.error('[Admin Scholarship Get] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to get scholarship"
+    });
+  }
+});
+
 // Create new scholarship (admin endpoint)
 router.post("/admin/scholarships", requireAdmin, async (req: Request, res: Response) => {
   try {
