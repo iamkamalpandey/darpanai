@@ -342,7 +342,42 @@ export default function NewHome() {
             </div>
           </div>
 
-
+          {/* System Disclaimer */}
+          <div className="mt-16 mb-8">
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <Brain className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-blue-900 mb-3">
+                      Platform Enhancement Notice
+                    </h3>
+                    <p className="text-blue-800 leading-relaxed mb-4">
+                      Please note that some features might not work as expected as we continuously improve our system. 
+                      We are actively working on enhancing the platform to make it more efficient and effective for you.
+                    </p>
+                    <p className="text-blue-800 leading-relaxed mb-4">
+                      If you encounter any issues or have suggestions for improvement, please don't hesitate to inform our team. 
+                      Your feedback is invaluable in helping us deliver the best possible experience.
+                    </p>
+                    <p className="text-blue-700 font-medium">
+                      Thank you for your patience and cooperation as we work to serve you better.
+                    </p>
+                    <div className="mt-4 pt-4 border-t border-blue-200">
+                      <Link href="/consultations">
+                        <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-100">
+                          <Calendar className="w-4 h-4 mr-2" />
+                          Contact Support Team
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
         </div>
       </div>
