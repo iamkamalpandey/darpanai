@@ -23,25 +23,20 @@ import {
   Award,
   MapPin
 } from 'lucide-react';
-import { Footer } from '@/components/Footer';
 
-interface SidebarItemProps {
-  icon: React.ReactNode;
+const SidebarItem = ({ icon, label, href, active }: {
+  icon: ReactNode;
   label: string;
   href: string;
-  active?: boolean;
-}
-
-const SidebarItem = ({ icon, label, href, active }: SidebarItemProps) => {
+  active: boolean;
+}) => {
   return (
     <Link href={href}>
-      <div 
-        className={`group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 cursor-pointer ${
-          active
-            ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
-            : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
-        }`}
-      >
+      <div className={`group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 ${
+        active 
+          ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' 
+          : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+      }`}>
         <span className={`h-5 w-5 shrink-0 ${active ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'}`}>
           {icon}
         </span>
@@ -57,9 +52,9 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [aiAnalysisToolsOpen, setAiAnalysisToolsOpen] = useState(false);
+  const [aiAnalysisOpen, setAiAnalysisOpen] = useState(false);
   const [documentInfoOpen, setDocumentInfoOpen] = useState(false);
-  const [enrollmentHubOpen, setEnrollmentHubOpen] = useState(false);
+  const [enrollmentOpen, setEnrollmentOpen] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [location] = useLocation();
   const { unreadCount, hasUnread } = useUnreadUpdates();
@@ -86,7 +81,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const sidebarItems = [
     { icon: <Home size={20} />, label: 'Dashboard', href: '/' },
     
-    // Analysis & AI Tools
+    // AI Analysis Tools
     { 
       icon: <BarChart3 size={20} />, 
       label: 'AI Analysis Tools', 
@@ -123,16 +118,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       ]
     },
 
-    { icon: <Calendar size={20} />, label: 'Appointments', href: '/consultations' },
+    // Resources
     { 
       icon: <FolderOpen size={20} />, 
-      label: 'Resources', 
+      label: 'Resources & Support', 
       isSubmenu: true,
       submenuItems: [
         { icon: <FileCheck size={18} />, label: 'Document Templates', href: '/document-templates' },
         { icon: <ClipboardCheck size={18} />, label: 'Document Checklists', href: '/document-checklist' },
       ]
     },
+
+    // Updates
     { 
       icon: <div className="relative">
         <Bell size={20} />
@@ -142,14 +139,34 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </span>
         )}
       </div>, 
-      label: 'Updates', 
+      label: 'Updates & News', 
       href: '/updates' 
     },
   ];
 
+  const handleSubmenuToggle = (label: string) => {
+    if (label === 'AI Analysis Tools') {
+      setAiAnalysisOpen(!aiAnalysisOpen);
+    } else if (label === 'Document Information') {
+      setDocumentInfoOpen(!documentInfoOpen);
+    } else if (label === 'Enrollment Hub') {
+      setEnrollmentOpen(!enrollmentOpen);
+    } else if (label === 'Resources & Support') {
+      setResourcesOpen(!resourcesOpen);
+    }
+  };
+
+  const isSubmenuOpen = (label: string) => {
+    if (label === 'AI Analysis Tools') return aiAnalysisOpen;
+    if (label === 'Document Information') return documentInfoOpen;
+    if (label === 'Enrollment Hub') return enrollmentOpen;
+    if (label === 'Resources & Support') return resourcesOpen;
+    return false;
+  };
+
   return (
     <>
-      {/* Mobile Layout (hidden on md and larger) */}
+      {/* Mobile Layout */}
       <div className="md:hidden min-h-screen bg-gray-50">
         {/* Mobile Header */}
         <header className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-40">
@@ -167,22 +184,187 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <Link href="/updates">
-                <div className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                  <Bell className="h-5 w-5 text-gray-600" />
-                  {hasUnread && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  )}
+              <Link href="/profile" className="relative h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-colors">
+                <span className="text-xs font-medium text-white">
+                  {user?.firstName?.[0]}{user?.lastName?.[0]}
+                </span>
+                <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-white rounded-full flex items-center justify-center shadow-sm">
+                  <div className={`h-3 w-3 rounded-full flex items-center justify-center ${
+                    completionPercentage >= 80 ? 'bg-green-500' : 
+                    completionPercentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                  }`}>
+                    <span className="text-[7px] font-bold text-white">{Math.round(completionPercentage)}</span>
+                  </div>
                 </div>
               </Link>
-              <Link href="/profile">
-                <div className="relative h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-colors cursor-pointer">
-                  <span className="text-xs font-semibold text-white">
+            </div>
+          </div>
+        </header>
+
+        {/* Mobile Sidebar */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-50">
+            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)} />
+            <div className="fixed left-0 top-0 h-full w-80 bg-white shadow-xl flex flex-col">
+              <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-white flex-shrink-0">
+                <Shield className="h-6 w-6 text-blue-600 mr-3" />
+                <span className="text-lg font-semibold text-gray-900">Darpan Intelligence</span>
+              </div>
+              
+              <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto min-h-0">
+                {sidebarItems.map((item, index) => (
+                  <div key={item.href || `submenu-${index}`}>
+                    {item.isSubmenu ? (
+                      <div>
+                        <button
+                          onClick={() => handleSubmenuToggle(item.label)}
+                          className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                        >
+                          <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-gray-500">
+                            {item.icon}
+                          </span>
+                          <span className="truncate flex-1 text-left">{item.label}</span>
+                          {isSubmenuOpen(item.label) ? (
+                            <ChevronDown className="h-4 w-4 text-gray-400" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 text-gray-400" />
+                          )}
+                        </button>
+                        {isSubmenuOpen(item.label) && item.submenuItems && (
+                          <div className="ml-8 mt-1 space-y-1">
+                            {item.submenuItems.map((subItem) => (
+                              <div key={subItem.href} onClick={() => setSidebarOpen(false)}>
+                                <SidebarItem 
+                                  icon={subItem.icon}
+                                  label={subItem.label}
+                                  href={subItem.href}
+                                  active={location === subItem.href}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : item.href ? (
+                      <div onClick={() => setSidebarOpen(false)}>
+                        <SidebarItem 
+                          icon={item.icon}
+                          label={item.label}
+                          href={item.href}
+                          active={location === item.href}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </nav>
+
+              {/* Mobile Profile Section */}
+              <div className="sticky bottom-4 mt-auto mx-3 mb-4">
+                <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-lg">
+                  <div className="flex items-center justify-between">
+                    <Link href="/profile" className="flex items-center min-w-0 flex-1 hover:bg-gray-50 rounded-md p-1 -m-1 transition-colors">
+                      <div className="relative h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-medium text-white">
+                          {user?.firstName?.[0]}{user?.lastName?.[0]}
+                        </span>
+                        <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-white rounded-full flex items-center justify-center shadow-sm">
+                          <div className={`h-3 w-3 rounded-full flex items-center justify-center ${
+                            completionPercentage >= 80 ? 'bg-green-500' : 
+                            completionPercentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}>
+                            <span className="text-[7px] font-bold text-white">{Math.round(completionPercentage)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="ml-3 min-w-0 flex-1">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {user?.firstName} {user?.lastName}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">Profile: {Math.round(completionPercentage)}%</p>
+                      </div>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors flex-shrink-0"
+                    >
+                      <LogOut className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Content */}
+        <main className="flex-1 min-h-0">
+          {children}
+        </main>
+      </div>
+
+      {/* Desktop Layout */}
+      <div className="hidden md:flex h-screen bg-gray-50">
+        {/* Desktop Sidebar */}
+        <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+          <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-white flex-shrink-0">
+            <Shield className="h-6 w-6 text-blue-600 mr-3" />
+            <span className="text-lg font-semibold text-gray-900">Darpan Intelligence</span>
+          </div>
+          
+          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto min-h-0">
+            {sidebarItems.map((item, index) => (
+              <div key={item.href || `submenu-${index}`}>
+                {item.isSubmenu ? (
+                  <div>
+                    <button
+                      onClick={() => handleSubmenuToggle(item.label)}
+                      className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                    >
+                      <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-gray-500">
+                        {item.icon}
+                      </span>
+                      <span className="truncate flex-1 text-left">{item.label}</span>
+                      {isSubmenuOpen(item.label) ? (
+                        <ChevronDown className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-gray-400" />
+                      )}
+                    </button>
+                    {isSubmenuOpen(item.label) && item.submenuItems && (
+                      <div className="ml-8 mt-1 space-y-1">
+                        {item.submenuItems.map((subItem) => (
+                          <SidebarItem 
+                            key={subItem.href}
+                            icon={subItem.icon}
+                            label={subItem.label}
+                            href={subItem.href}
+                            active={location === subItem.href}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : item.href ? (
+                  <SidebarItem 
+                    icon={item.icon}
+                    label={item.label}
+                    href={item.href}
+                    active={location === item.href}
+                  />
+                ) : null}
+              </div>
+            ))}
+          </nav>
+
+          {/* Desktop Profile Section */}
+          <div className="border-t border-gray-200 p-4">
+            <div className="flex items-center">
+              <Link href="/profile" className="flex items-center min-w-0 flex-1 hover:bg-gray-50 rounded-md p-2 -m-2 transition-colors">
+                <div className="relative h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-medium text-white">
                     {user?.firstName?.[0]}{user?.lastName?.[0]}
                   </span>
-                  {/* Profile Completion Indicator */}
                   <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-white rounded-full flex items-center justify-center shadow-sm">
                     <div className={`h-3 w-3 rounded-full flex items-center justify-center ${
                       completionPercentage >= 80 ? 'bg-green-500' : 
@@ -192,266 +374,28 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     </div>
                   </div>
                 </div>
+                <div className="ml-3 min-w-0 flex-1">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {user?.firstName} {user?.lastName}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">Profile: {Math.round(completionPercentage)}%</p>
+                </div>
               </Link>
-            </div>
-          </div>
-        </header>
-
-        {/* Mobile Sidebar Overlay */}
-        <div 
-          className={`fixed inset-0 z-50 bg-black/20 backdrop-blur-sm transition-opacity ${
-            sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-          }`}
-          onClick={() => setSidebarOpen(false)}
-        />
-
-        {/* Mobile Sidebar */}
-        <div className={`fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}>
-          <div className="flex flex-col h-full">
-            <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-white flex-shrink-0">
-              <Shield className="h-6 w-6 text-blue-600 mr-3" />
-              <span className="text-lg font-semibold text-gray-900">Darpan Intelligence</span>
-            </div>
-            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto min-h-0">
-              {sidebarItems.map((item, index) => (
-                <div key={item.href || `submenu-${index}`}>
-                  {item.isSubmenu ? (
-                    <div>
-                      <button
-                        onClick={() => {
-                          if (item.label === 'AI Analysis Tools') {
-                            setAiAnalysisToolsOpen(!aiAnalysisToolsOpen);
-                          } else if (item.label === 'Document Information') {
-                            setDocumentInfoOpen(!documentInfoOpen);
-                          } else if (item.label === 'Enrollment Hub') {
-                            setEnrollmentHubOpen(!enrollmentHubOpen);
-                          } else if (item.label === 'Resources') {
-                            setResourcesOpen(!resourcesOpen);
-                          }
-                        }}
-                        className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                      >
-                        <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-gray-500">
-                          {item.icon}
-                        </span>
-                        <span className="truncate flex-1 text-left">{item.label}</span>
-                        {((item.label === 'AI Analysis Tools' && aiAnalysisToolsOpen) || 
-                          (item.label === 'Document Information' && documentInfoOpen) || 
-                          (item.label === 'Enrollment Hub' && enrollmentHubOpen) || 
-                          (item.label === 'Resources' && resourcesOpen)) ? (
-                          <ChevronDown className="h-4 w-4 text-gray-400" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4 text-gray-400" />
-                        )}
-                      </button>
-                      {((item.label === 'AI Analysis Tools' && aiAnalysisToolsOpen) || 
-                        (item.label === 'Document Information' && documentInfoOpen) || 
-                        (item.label === 'Enrollment Hub' && enrollmentHubOpen) || 
-                        (item.label === 'Resources' && resourcesOpen)) && item.submenuItems && (
-                        <div className="ml-8 mt-1 space-y-1">
-                          {item.submenuItems.map((subItem) => (
-                            <div key={subItem.href} onClick={() => setSidebarOpen(false)}>
-                              <SidebarItem 
-                                icon={subItem.icon}
-                                label={subItem.label}
-                                href={subItem.href}
-                                active={location === subItem.href}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : item.href ? (
-                    <div onClick={() => setSidebarOpen(false)}>
-                      <SidebarItem 
-                        icon={item.icon}
-                        label={item.label}
-                        href={item.href}
-                        active={location === item.href}
-                      />
-                    </div>
-                  ) : null}
-                </div>
-              ))}
-            </nav>
-            
-            {/* Floating Mobile User Profile & Logout */}
-            <div className="sticky bottom-4 mt-auto mx-3 mb-4">
-              <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-lg">
-                <div className="flex items-center justify-between">
-                  <Link href="/profile" className="flex items-center min-w-0 flex-1 hover:bg-gray-50 rounded-md p-1 -m-1 transition-colors">
-                    <div className="relative h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-medium text-white">
-                        {user?.firstName?.[0]}{user?.lastName?.[0]}
-                      </span>
-                      {/* Mobile Profile Completion Indicator */}
-                      <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-white rounded-full flex items-center justify-center shadow-sm">
-                        <div className={`h-3 w-3 rounded-full flex items-center justify-center ${
-                          completionPercentage >= 80 ? 'bg-green-500' : 
-                          completionPercentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`}>
-                          <span className="text-[7px] font-bold text-white">{Math.round(completionPercentage)}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="ml-3 min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {user?.firstName} {user?.lastName}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">
-                        {user?.analysisCount || 0}/{user?.maxAnalyses || 3} analyses
-                      </p>
-                    </div>
-                  </Link>
-                  
-                  <button
-                    onClick={handleLogout}
-                    className="ml-3 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-md transition-colors"
-                    title="Sign out"
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Content */}
-        <main className="p-4 pb-6 min-w-0 bg-slate-100">
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 w-full min-w-0 max-w-full">
-            <div className="p-4 sm:p-6 min-w-0">
-              {children}
-            </div>
-          </div>
-        </main>
-      </div>
-
-      {/* Desktop Layout (hidden below md) */}
-      <div className="hidden md:flex min-h-screen bg-gray-50">
-        {/* Desktop Sidebar */}
-        <div className="w-64 lg:w-72 xl:w-80 bg-white border-r border-gray-200 flex-shrink-0 relative">
-          <div className="flex flex-col h-screen">
-            {/* Header */}
-            <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-white flex-shrink-0">
-              <Shield className="h-6 w-6 text-blue-600 mr-3" />
-              <span className="text-lg font-semibold text-gray-900">Darpan Intelligence</span>
-            </div>
-            
-            {/* Navigation */}
-            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto min-h-0">
-              {sidebarItems.map((item, index) => (
-                <div key={item.href || `submenu-${index}`}>
-                  {item.isSubmenu ? (
-                    <div>
-                      <button
-                        onClick={() => {
-                          if (item.label === 'AI Analysis Tools') {
-                            setAiAnalysisToolsOpen(!aiAnalysisToolsOpen);
-                          } else if (item.label === 'Document Information') {
-                            setDocumentInfoOpen(!documentInfoOpen);
-                          } else if (item.label === 'Enrollment Hub') {
-                            setEnrollmentHubOpen(!enrollmentHubOpen);
-                          } else if (item.label === 'Resources') {
-                            setResourcesOpen(!resourcesOpen);
-                          }
-                        }}
-                        className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
-                      >
-                        <span className="h-5 w-5 shrink-0 text-gray-400 group-hover:text-gray-500">
-                          {item.icon}
-                        </span>
-                        <span className="truncate flex-1 text-left">{item.label}</span>
-                        {((item.label === 'AI Analysis Tools' && aiAnalysisToolsOpen) || 
-                          (item.label === 'Document Information' && documentInfoOpen) || 
-                          (item.label === 'Enrollment Hub' && enrollmentHubOpen) || 
-                          (item.label === 'Resources' && resourcesOpen)) ? (
-                          <ChevronDown className="h-4 w-4 text-gray-400" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4 text-gray-400" />
-                        )}
-                      </button>
-                      {((item.label === 'AI Analysis Tools' && aiAnalysisToolsOpen) || 
-                        (item.label === 'Document Information' && documentInfoOpen) || 
-                        (item.label === 'Enrollment Hub' && enrollmentHubOpen) || 
-                        (item.label === 'Resources' && resourcesOpen)) && item.submenuItems && (
-                        <div className="ml-8 mt-1 space-y-1">
-                          {item.submenuItems.map((subItem) => (
-                            <SidebarItem 
-                              key={subItem.href}
-                              icon={subItem.icon}
-                              label={subItem.label}
-                              href={subItem.href}
-                              active={location === subItem.href}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ) : item.href ? (
-                    <SidebarItem 
-                      icon={item.icon}
-                      label={item.label}
-                      href={item.href}
-                      active={location === item.href}
-                    />
-                  ) : null}
-                </div>
-              ))}
-            </nav>
-            
-            {/* Floating User Profile & Logout */}
-            <div className="sticky bottom-4 mt-auto mx-3 mb-4">
-              <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-lg">
-                <div className="flex items-center justify-between">
-                  <Link href="/profile" className="flex items-center min-w-0 flex-1 hover:bg-gray-50 rounded-md p-1 -m-1 transition-colors">
-                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-medium text-white">
-                        {user?.firstName?.[0]}{user?.lastName?.[0]}
-                      </span>
-                    </div>
-                    <div className="ml-3 min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {user?.firstName} {user?.lastName}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">
-                        {user?.analysisCount || 0}/{user?.maxAnalyses || 3} analyses
-                      </p>
-                    </div>
-                  </Link>
-                  
-                  <button
-                    onClick={handleLogout}
-                    className="ml-3 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-md transition-colors"
-                    title="Sign out"
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
+              <button
+                onClick={handleLogout}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors flex-shrink-0"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
           </div>
         </div>
 
         {/* Desktop Content */}
-        <div className="flex-1 flex flex-col min-w-0 bg-slate-100">
-          <main className="flex-1 p-6 lg:p-8 min-w-0">
-            <div className="max-w-none min-w-0">
-              <div className="bg-white rounded-lg shadow-sm border border-slate-200 w-full min-w-0 max-w-full">
-                <div className="p-6 lg:p-8 min-w-0">
-                  {children}
-                </div>
-                <Footer />
-              </div>
-            </div>
-          </main>
-        </div>
+        <main className="flex-1 overflow-hidden">
+          {children}
+        </main>
       </div>
     </>
   );
 }
-
-export default DashboardLayout;
