@@ -534,7 +534,7 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
   };
 
   const renderEssentialInformation = () => (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
@@ -1046,9 +1046,9 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
 
   return (
     <AdminLayout>
-      <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
+      <div className="max-w-5xl mx-auto p-3 sm:p-4 space-y-4">
         {/* Header - Responsive Layout */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Back Button */}
           <div className="flex items-center">
             <Button 
@@ -1174,9 +1174,9 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
 
         {/* Form Content */}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2">
                   <currentStepData.icon className="h-5 w-5" />
                   {currentStepData.title}
@@ -1185,7 +1185,7 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
                   Fill in the required information for this step
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-0">
                 {renderStepContent()}
               </CardContent>
             </Card>
