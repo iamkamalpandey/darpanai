@@ -16,9 +16,9 @@ import SimplifiedAuth from "@/components/SimplifiedAuth";
 
 // New redesigned components
 const NewHome = lazy(() => import("@/pages/NewHome"));
-const ModernAIDashboard = lazy(() => import("@/pages/ModernAIDashboard"));
+const StudentAIDashboard = lazy(() => import("@/pages/StudentAIDashboard"));
 const PublicLanding = lazy(() => import("@/pages/PublicLanding"));
-const ModernPublicLanding = lazy(() => import("@/pages/ModernPublicLanding"));
+const EducationLanding = lazy(() => import("@/pages/EducationLanding"));
 
 // Lazy load heavy components for better initial performance
 const VisaAnalyzer = lazy(() => import("@/pages/VisaAnalyzer"));
@@ -98,14 +98,14 @@ function Router() {
     if (user) {
       return (
         <Suspense fallback={<LoadingFallback />}>
-          <ModernAIDashboard />
+          <StudentAIDashboard />
         </Suspense>
       );
     }
     
     return (
       <Suspense fallback={<LoadingFallback />}>
-        <ModernPublicLanding />
+        <EducationLanding />
       </Suspense>
     );
   }
