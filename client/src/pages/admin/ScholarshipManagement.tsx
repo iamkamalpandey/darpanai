@@ -427,6 +427,7 @@ export default function ScholarshipManagement() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setLocation(`/admin/scholarship-details/${scholarship.id}`)}
+                                title="View Details"
                               >
                                 <Eye className="w-4 h-4" />
                               </Button>

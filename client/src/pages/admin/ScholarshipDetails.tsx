@@ -338,9 +338,17 @@ export default function ScholarshipDetails() {
                     <InfoItem label="Study Levels" value={scholarship.studyLevels} isArray />
                     <InfoItem label="Field Categories" value={scholarship.fieldCategories} isArray />
                     <InfoItem label="Host Countries" value={scholarship.hostCountries} isArray />
-                    <InfoItem label="Target Countries" value={scholarship.targetCountries} isArray />
-                    <InfoItem label="Program Duration" value={scholarship.programDuration} />
-                    <InfoItem label="Start Date" value={scholarship.startDate} />
+                    <InfoItem label="Eligible Countries" value={scholarship.eligibleCountries} isArray />
+                    <InfoItem label="Program Duration" value={
+                      scholarship.durationValue && scholarship.durationUnit 
+                        ? `${scholarship.durationValue} ${scholarship.durationUnit}`
+                        : null
+                    } />
+                    <InfoItem label="Program Start Date" value={
+                      scholarship.programStartDate ? 
+                        new Date(scholarship.programStartDate).toLocaleDateString() : 
+                        null
+                    } />
                   </dl>
                 </CardContent>
               </Card>
@@ -356,13 +364,18 @@ export default function ScholarshipDetails() {
                 <CardContent>
                   <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <InfoItem label="Funding Type" value={scholarship.fundingType} />
-                    <InfoItem label="Funding Amount" value={scholarship.fundingAmount} />
+                    <InfoItem label="Total Value (Min)" value={scholarship.totalValueMin ? `${scholarship.fundingCurrency} ${scholarship.totalValueMin}` : null} />
+                    <InfoItem label="Total Value (Max)" value={scholarship.totalValueMax ? `${scholarship.fundingCurrency} ${scholarship.totalValueMax}` : null} />
                     <InfoItem label="Currency" value={scholarship.fundingCurrency} />
-                    <InfoItem label="Funding Duration" value={scholarship.fundingDuration} />
+                    <InfoItem label="Tuition Coverage %" value={scholarship.tuitionCoveragePercentage} />
+                    <InfoItem label="Living Allowance" value={
+                      scholarship.livingAllowanceAmount 
+                        ? `${scholarship.fundingCurrency} ${scholarship.livingAllowanceAmount} ${scholarship.livingAllowanceFrequency || ''}`
+                        : null
+                    } />
                     <InfoItem label="Renewable" value={scholarship.renewable} />
-                    <InfoItem label="Renewal Criteria" value={scholarship.renewalCriteria} />
-                    <InfoItem label="Additional Benefits" value={scholarship.additionalBenefits} />
-                    <InfoItem label="Living Allowance" value={scholarship.livingAllowance} />
+                    <InfoItem label="Max Renewal Duration" value={scholarship.maxRenewalDuration} />
+                    <InfoItem label="Renewal Criteria" value={scholarship.renewalCriteria} isArray />
                   </dl>
                 </CardContent>
               </Card>
@@ -378,18 +391,29 @@ export default function ScholarshipDetails() {
                 <CardContent>
                   <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <InfoItem label="Eligible Countries" value={scholarship.eligibleCountries} isArray />
-                    <InfoItem label="Age Limit" value={scholarship.ageLimit} />
-                    <InfoItem label="GPA Requirement" value={scholarship.gpaRequirement} />
-                    <InfoItem label="Work Experience Required" value={scholarship.workExperienceRequired} />
+                    <InfoItem label="Age Range" value={
+                      scholarship.minAge || scholarship.maxAge 
+                        ? `${scholarship.minAge || 'N/A'} - ${scholarship.maxAge || 'N/A'} years`
+                        : null
+                    } />
+                    <InfoItem label="Minimum GPA" value={
+                      scholarship.minGpa && scholarship.gpaScale 
+                        ? `${scholarship.minGpa}/${scholarship.gpaScale}`
+                        : scholarship.minGpa
+                    } />
+                    <InfoItem label="Min Work Experience" value={
+                      scholarship.minWorkExperience ? `${scholarship.minWorkExperience} years` : null
+                    } />
                     <InfoItem label="Leadership Required" value={scholarship.leadershipRequired} />
-                    <div className="md:col-span-2">
-                      <InfoItem label="Eligibility Requirements" value={scholarship.eligibilityRequirements} isArray />
-                    </div>
-                    <div className="md:col-span-2">
-                      <InfoItem label="Academic Requirements" value={scholarship.academicRequirements} />
-                    </div>
+                    <InfoItem label="Gender Requirement" value={scholarship.genderRequirement} />
+                    <InfoItem label="Degree Required" value={scholarship.degreeRequired} isArray />
+                    <InfoItem label="Interview Required" value={scholarship.interviewRequired} />
+                    <InfoItem label="Essay Required" value={scholarship.essayRequired} />
                     <div className="md:col-span-2">
                       <InfoItem label="Language Requirements" value={scholarship.languageRequirements} isArray />
+                    </div>
+                    <div className="md:col-span-2">
+                      <InfoItem label="Documents Required" value={scholarship.documentsRequired} isArray />
                     </div>
                   </dl>
                 </CardContent>
@@ -408,6 +432,12 @@ export default function ScholarshipDetails() {
                     <InfoItem label="Status" value={scholarship.status} />
                     <InfoItem label="Difficulty Level" value={scholarship.difficultyLevel} />
                     <InfoItem label="Verified" value={scholarship.verified} />
+                    <InfoItem label="Data Source" value={scholarship.dataSource} />
+                    <InfoItem label="Application Open Date" value={
+                      scholarship.applicationOpenDate ? 
+                        new Date(scholarship.applicationOpenDate).toLocaleDateString() : 
+                        null
+                    } />
                     <InfoItem label="Application Deadline" value={
                       scholarship.applicationDeadline ? 
                         new Date(scholarship.applicationDeadline).toLocaleDateString() : 
@@ -418,10 +448,24 @@ export default function ScholarshipDetails() {
                         new Date(scholarship.notificationDate).toLocaleDateString() : 
                         null
                     } />
+                    <InfoItem label="Application Fee" value={
+                      scholarship.applicationFeeAmount && parseFloat(scholarship.applicationFeeAmount) > 0
+                        ? `${scholarship.applicationFeeCurrency} ${scholarship.applicationFeeAmount}`
+                        : "No fee"
+                    } />
+                    <InfoItem label="Fee Waiver Available" value={scholarship.feeWaiverAvailable} />
+                    <InfoItem label="Total Applicants/Year" value={scholarship.totalApplicantsPerYear} />
+                    <InfoItem label="Acceptance Rate" value={
+                      scholarship.acceptanceRate ? `${scholarship.acceptanceRate}%` : null
+                    } />
                     <InfoItem label="Tags" value={scholarship.tags} isArray />
-                    <div className="md:col-span-2">
-                      <InfoItem label="Remarks" value={scholarship.remarks} />
-                    </div>
+                    <InfoItem label="Work Restrictions" value={scholarship.workRestrictions} />
+                    <InfoItem label="Travel Restrictions" value={scholarship.travelRestrictions} />
+                    <InfoItem label="Other Scholarships Allowed" value={scholarship.otherScholarshipsAllowed} />
+                    <InfoItem label="Mentorship Available" value={scholarship.mentorshipAvailable} />
+                    <InfoItem label="Networking Opportunities" value={scholarship.networkingOpportunities} />
+                    <InfoItem label="Internship Opportunities" value={scholarship.internshipOpportunities} />
+                    <InfoItem label="Research Opportunities" value={scholarship.researchOpportunities} />
                     <InfoItem label="Created Date" value={
                       scholarship.createdDate ? 
                         new Date(scholarship.createdDate).toLocaleDateString() : 
