@@ -149,9 +149,10 @@ export default function ScholarshipDetailsRedesign() {
   return (
     <AdminLayout>
       <div className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        {/* Header - Responsive Layout */}
+        <div className="space-y-4">
+          {/* Back Button */}
+          <div className="flex items-center">
             <Button 
               variant="outline" 
               onClick={() => setLocation('/admin/scholarships')}
@@ -160,27 +161,34 @@ export default function ScholarshipDetailsRedesign() {
               <ArrowLeft className="w-4 h-4" />
               Back to Scholarships
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 break-words overflow-hidden text-wrap">{scholarship.name || 'Scholarship Details'}</h1>
-              <p className="text-gray-600 mt-1 break-words overflow-hidden text-wrap">
-                Scholarship ID: <span className="font-mono">{scholarship.scholarshipId}</span>
+          </div>
+          
+          {/* Title and Actions */}
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words leading-tight">
+                {scholarship.name || 'Scholarship Details'}
+              </h1>
+              <p className="text-gray-600 mt-2 break-words text-sm sm:text-base">
+                Scholarship ID: <span className="font-mono text-xs sm:text-sm">{scholarship.scholarshipId}</span>
               </p>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Badge 
-              variant={scholarship.status === 'active' ? 'default' : 'secondary'}
-              className="px-3 py-1"
-            >
-              {scholarship.status?.charAt(0).toUpperCase() + scholarship.status?.slice(1)}
-            </Badge>
-            <Button 
-              onClick={() => setLocation(`/admin/scholarship/edit/${scholarship.id}`)}
-              className="flex items-center gap-2"
-            >
-              <Edit className="w-4 h-4" />
-              Edit Scholarship
-            </Button>
+            
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 flex-shrink-0">
+              <Badge 
+                variant={scholarship.status === 'active' ? 'default' : 'secondary'}
+                className="px-3 py-1 text-sm"
+              >
+                {scholarship.status?.charAt(0).toUpperCase() + scholarship.status?.slice(1)}
+              </Badge>
+              <Button 
+                onClick={() => setLocation(`/admin/scholarship/edit/${scholarship.id}`)}
+                className="flex items-center gap-2 w-full sm:w-auto"
+              >
+                <Edit className="w-4 h-4" />
+                Edit Scholarship
+              </Button>
+            </div>
           </div>
         </div>
 

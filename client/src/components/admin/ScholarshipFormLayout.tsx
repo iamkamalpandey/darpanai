@@ -535,7 +535,7 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
 
   const renderEssentialInformation = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
           name="scholarshipId"
@@ -649,7 +649,7 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
 
   const renderFundingDetails = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
           name="fundingType"
@@ -701,7 +701,7 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
           name="totalValueMin"
@@ -1047,9 +1047,10 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
   return (
     <AdminLayout>
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+        {/* Header - Responsive Layout */}
+        <div className="space-y-4">
+          {/* Back Button */}
+          <div className="flex items-center">
             <Button 
               variant="outline" 
               onClick={() => setLocation('/admin/scholarships')}
@@ -1058,27 +1059,33 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
               <ArrowLeft className="h-4 w-4" />
               Back to Scholarships
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                {mode === 'create' ? 'Create New Scholarship' : 'Edit Scholarship'}
-              </h1>
-              <p className="text-gray-600 mt-1">Step {currentStep} of {totalSteps}: {currentStepData.title}</p>
-            </div>
           </div>
           
-          {/* Auto-save Status */}
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            {isAutoSaving ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Saving...</span>
-              </>
-            ) : lastSaved ? (
-              <>
-                <Check className="h-4 w-4 text-green-600" />
-                <span>Saved {lastSaved.toLocaleTimeString()}</span>
-              </>
-            ) : null}
+          {/* Title and Status */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words leading-tight">
+                {mode === 'create' ? 'Create New Scholarship' : 'Edit Scholarship'}
+              </h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base break-words">
+                Step {currentStep} of {totalSteps}: {currentStepData.title}
+              </p>
+            </div>
+            
+            {/* Auto-save Status */}
+            <div className="flex items-center gap-2 text-sm text-gray-500 flex-shrink-0">
+              {isAutoSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span className="hidden sm:inline">Saving...</span>
+                </>
+              ) : lastSaved ? (
+                <>
+                  <Check className="h-4 w-4 text-green-600" />
+                  <span className="hidden sm:inline">Saved {lastSaved.toLocaleTimeString()}</span>
+                </>
+              ) : null}
+            </div>
           </div>
         </div>
 
