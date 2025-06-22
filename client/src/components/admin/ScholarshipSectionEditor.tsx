@@ -144,7 +144,7 @@ export default function ScholarshipSectionEditor({
     return fieldMappings[sectionKey as keyof typeof fieldMappings] || {};
   }
 
-  const handleSubmit = (data: FormData) => {
+  const handleSubmit = (data: any) => {
     // Include array fields in submission
     const submissionData = {
       ...data,
@@ -504,7 +504,7 @@ export default function ScholarshipSectionEditor({
                 )}
               />
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="status"
                 render={({ field }) => (
                   <FormItem>
@@ -527,7 +527,7 @@ export default function ScholarshipSectionEditor({
               />
             </div>
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="verified"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
