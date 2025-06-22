@@ -13,6 +13,84 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Edit, Save, ArrowLeft, Plus, X } from 'lucide-react';
 import { AdminLayout } from '@/components/AdminLayout';
 
+// Array Field Editor Component
+interface ArrayFieldEditorProps {
+  values: string[];
+  onChange: (values: string[]) => void;
+  options: { value: string; label: string }[];
+  placeholder: string;
+}
+
+function ArrayFieldEditor({ values, onChange, options, placeholder }: ArrayFieldEditorProps) {
+  const [selectedValue, setSelectedValue] = useState('');
+
+  const addValue = () => {
+    if (selectedValue && !values.includes(selectedValue)) {
+      onChange([...values, selectedValue]);
+      setSelectedValue('');
+    }
+  };
+
+  const removeValue = (valueToRemove: string) => {
+    onChange(values.filter(v => v !== valueToRemove));
+  };
+
+  const getOptionLabel = (value: string) => {
+    const option = options.find(opt => opt.value === value);
+    return option ? option.label : value;
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <Select value={selectedValue} onValueChange={setSelectedValue}>
+          <SelectTrigger className="flex-1">
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {options
+              .filter(option => !values.includes(option.value))
+              .map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))
+            }
+          </SelectContent>
+        </Select>
+        <Button 
+          type="button" 
+          variant="outline" 
+          size="sm" 
+          onClick={addValue}
+          disabled={!selectedValue || values.includes(selectedValue)}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+      
+      {values.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {values.map((value) => (
+            <Badge key={value} variant="secondary" className="flex items-center gap-1">
+              {getOptionLabel(value)}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-auto p-0 text-muted-foreground hover:text-foreground"
+                onClick={() => removeValue(value)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Predefined options for dropdown fields
 const PROVIDER_TYPES = [
   { value: 'government', label: 'Government' },
@@ -199,60 +277,71 @@ export function ScholarshipEditor({ scholarshipId, mode }: ScholarshipEditorProp
     }));
   };
 
-  // Handle save operation - similar to ProfileSectionEditor
-  const handleSave = async (section: string) => {
-    const sectionFields = getSectionFields(section);
-    const submitData: any = {};
-    
-    // Only include fields relevant to current section
-    sectionFields.forEach(field => {
-      if (formData.hasOwnProperty(field)) {
-        let value = formData[field];
-        
-        // Handle empty strings
-        if (typeof value === 'string' && value.trim() === '') {
-          value = null;
-        }
-        
-        // Type conversions for numeric fields
-        if (['fundingAmountMin', 'fundingAmountMax', 'applicationFee'].includes(field) && value) {
-          value = parseFloat(value) || null;
-        }
-        
-        submitData[field] = value;
-      }
-    });
-    
-    console.log('Submitting scholarship data for section:', section, submitData);
-    updateMutation.mutate(submitData);
+  // Handle save - similar to ProfileSectionEditor
+  const handleSave = (section: string) => {
+    // Get only the fields relevant to this section
+    const sectionData = getSectionData(section);
+    console.log(`Saving ${section} section with data:`, sectionData);
+    updateMutation.mutate(sectionData);
   };
 
-  // Get fields for each section - similar to ProfileSectionEditor
-  const getSectionFields = (section: string): string[] => {
+  // Get section-specific data
+  const getSectionData = (section: string) => {
     switch (section) {
       case 'basic':
-        return ['scholarshipId', 'name', 'providerType', 'providerName', 'providerWebsite', 'description'];
+        return {
+          scholarshipId: formData.scholarshipId,
+          name: formData.name,
+          shortName: formData.shortName,
+          providerName: formData.providerName,
+          providerType: formData.providerType,
+          providerCountry: formData.providerCountry,
+          providerWebsite: formData.providerWebsite,
+          description: formData.description
+        };
       case 'funding':
-        return ['fundingType', 'fundingAmountMin', 'fundingAmountMax', 'currency', 'fundingDescription'];
+        return {
+          fundingType: formData.fundingType,
+          fundingCurrency: formData.fundingCurrency,
+          totalValueMin: formData.totalValueMin,
+          totalValueMax: formData.totalValueMax,
+          tuitionCoveragePercentage: formData.tuitionCoveragePercentage,
+          livingAllowanceAmount: formData.livingAllowanceAmount,
+          livingAllowanceFrequency: formData.livingAllowanceFrequency
+        };
       case 'eligibility':
-        return ['hostCountries', 'eligibleCountries', 'studyLevels', 'fieldCategories', 'specificFields', 'minGpa', 'languageRequirements'];
+        return {
+          hostCountries: formData.hostCountries,
+          eligibleCountries: formData.eligibleCountries,
+          studyLevels: formData.studyLevels,
+          fieldCategories: formData.fieldCategories,
+          minGpa: formData.minGpa,
+          gpaScale: formData.gpaScale,
+          degreeRequired: formData.degreeRequired,
+          minAge: formData.minAge,
+          maxAge: formData.maxAge,
+          genderRequirement: formData.genderRequirement,
+          minWorkExperience: formData.minWorkExperience
+        };
       case 'application':
-        return ['applicationDeadline', 'applicationFee', 'applicationProcess', 'documentsRequired', 'selectionCriteria'];
-      case 'details':
-        return ['duration', 'renewable', 'renewalCriteria', 'additionalBenefits', 'restrictions', 'contactEmail', 'tags'];
+        return {
+          applicationOpenDate: formData.applicationOpenDate,
+          applicationDeadline: formData.applicationDeadline,
+          notificationDate: formData.notificationDate,
+          programStartDate: formData.programStartDate,
+          durationValue: formData.durationValue,
+          durationUnit: formData.durationUnit
+        };
       default:
-        return [];
+        return formData;
     }
   };
 
   if (isLoading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading scholarship...</p>
-          </div>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       </AdminLayout>
     );
@@ -261,9 +350,14 @@ export function ScholarshipEditor({ scholarshipId, mode }: ScholarshipEditorProp
   if (!scholarship) {
     return (
       <AdminLayout>
-        <div className="text-center py-12">
-          <p className="text-gray-600">Unable to load scholarship data.</p>
-          <Button onClick={() => setLocation('/admin/scholarships')} className="mt-4">
+        <div className="text-center py-8">
+          <h2 className="text-2xl font-bold text-gray-900">Scholarship Not Found</h2>
+          <p className="text-gray-600 mt-2">The scholarship you're looking for doesn't exist.</p>
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation('/admin/scholarships')}
+            className="mt-4"
+          >
             Back to Scholarships
           </Button>
         </div>
@@ -309,15 +403,15 @@ export function ScholarshipEditor({ scholarshipId, mode }: ScholarshipEditorProp
                   {scholarship.providerName} • {scholarship.providerType}
                 </CardDescription>
                 <CardDescription className="text-gray-600 mt-1">
-                  {scholarship.fundingType} • {scholarship.currency} {scholarship.fundingAmountMin?.toLocaleString()} - {scholarship.fundingAmountMax?.toLocaleString()}
+                  {scholarship.fundingType} • {scholarship.fundingCurrency} {Number(scholarship.totalValueMin)?.toLocaleString()} - {Number(scholarship.totalValueMax)?.toLocaleString()}
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
         </Card>
 
-        {/* Scholarship Sections */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Scholarship Details Cards */}
+        <div className="grid gap-6">
           {/* Basic Information */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -337,16 +431,16 @@ export function ScholarshipEditor({ scholarshipId, mode }: ScholarshipEditorProp
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <div className="text-sm font-medium text-gray-500">Scholarship ID</div>
-                  <div className="text-gray-900">{scholarship.scholarshipId || 'Not specified'}</div>
+                  <div className="text-sm font-medium text-gray-500">Provider Name</div>
+                  <div className="text-gray-900">{scholarship.providerName || 'Not specified'}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-gray-500">Provider Type</div>
                   <div className="text-gray-900 capitalize">{scholarship.providerType || 'Not specified'}</div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-gray-500">Provider Name</div>
-                  <div className="text-gray-900">{scholarship.providerName || 'Not specified'}</div>
+                  <div className="text-sm font-medium text-gray-500">Provider Country</div>
+                  <div className="text-gray-900">{scholarship.providerCountry || 'Not specified'}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-gray-500">Website</div>
@@ -386,24 +480,18 @@ export function ScholarshipEditor({ scholarshipId, mode }: ScholarshipEditorProp
                 </div>
                 <div>
                   <div className="text-sm font-medium text-gray-500">Currency</div>
-                  <div className="text-gray-900">{scholarship.currency || 'Not specified'}</div>
+                  <div className="text-gray-900">{scholarship.fundingCurrency || 'Not specified'}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-gray-500">Amount Range</div>
                   <div className="text-gray-900">
-                    {scholarship.fundingAmountMin && scholarship.fundingAmountMax 
-                      ? `${scholarship.currency} ${scholarship.fundingAmountMin.toLocaleString()} - ${scholarship.fundingAmountMax.toLocaleString()}`
+                    {scholarship.totalValueMin && scholarship.totalValueMax 
+                      ? `${scholarship.fundingCurrency} ${scholarship.totalValueMin.toLocaleString()} - ${scholarship.totalValueMax.toLocaleString()}`
                       : 'Not specified'
                     }
                   </div>
                 </div>
               </div>
-              {scholarship.fundingDescription && (
-                <div>
-                  <div className="text-sm font-medium text-gray-500">Funding Description</div>
-                  <div className="text-gray-900">{scholarship.fundingDescription}</div>
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -452,17 +540,6 @@ export function ScholarshipEditor({ scholarshipId, mode }: ScholarshipEditorProp
                   </div>
                 </div>
               )}
-
-              {scholarship.fieldCategories && scholarship.fieldCategories.length > 0 && (
-                <div>
-                  <div className="text-sm font-medium text-gray-500 mb-2">Field Categories</div>
-                  <div className="flex flex-wrap gap-2">
-                    {scholarship.fieldCategories.map((field: string, index: number) => (
-                      <Badge key={index} variant="outline">{field}</Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -488,39 +565,12 @@ export function ScholarshipEditor({ scholarshipId, mode }: ScholarshipEditorProp
                   <div className="text-sm font-medium text-gray-500">Application Deadline</div>
                   <div className="text-gray-900">
                     {scholarship.applicationDeadline 
-                      ? new Date(scholarship.applicationDeadline).toLocaleDateString() 
-                      : 'Not specified'
-                    }
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-500">Application Fee</div>
-                  <div className="text-gray-900">
-                    {scholarship.applicationFee 
-                      ? `${scholarship.currency} ${scholarship.applicationFee}`
+                      ? new Date(scholarship.applicationDeadline).toLocaleDateString()
                       : 'Not specified'
                     }
                   </div>
                 </div>
               </div>
-
-              {scholarship.applicationProcess && (
-                <div>
-                  <div className="text-sm font-medium text-gray-500">Application Process</div>
-                  <div className="text-gray-900">{scholarship.applicationProcess}</div>
-                </div>
-              )}
-
-              {scholarship.documentsRequired && scholarship.documentsRequired.length > 0 && (
-                <div>
-                  <div className="text-sm font-medium text-gray-500 mb-2">Required Documents</div>
-                  <div className="flex flex-wrap gap-2">
-                    {scholarship.documentsRequired.map((doc: string, index: number) => (
-                      <Badge key={index} variant="outline">{doc}</Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>
@@ -536,6 +586,7 @@ export function ScholarshipEditor({ scholarshipId, mode }: ScholarshipEditorProp
           onArrayFieldChange={handleArrayFieldChange}
           onSave={handleSave}
           isLoading={updateMutation.isPending}
+          countries={countries || []}
         />
       </div>
     </AdminLayout>
@@ -553,6 +604,7 @@ interface ScholarshipSectionEditorProps {
   onArrayFieldChange: (field: string, values: string[]) => void;
   onSave: (section: string) => void;
   isLoading: boolean;
+  countries: any[];
 }
 
 function ScholarshipSectionEditor({
@@ -564,7 +616,8 @@ function ScholarshipSectionEditor({
   onInputChange,
   onArrayFieldChange,
   onSave,
-  isLoading
+  isLoading,
+  countries
 }: ScholarshipSectionEditorProps) {
   
   const getSectionTitle = () => {
@@ -651,7 +704,7 @@ function ScholarshipSectionEditor({
               <SelectValue placeholder="Select provider country" />
             </SelectTrigger>
             <SelectContent>
-              {countries?.map((country: any) => (
+              {countries.map((country: any) => (
                 <SelectItem key={country.isoAlpha2} value={country.isoAlpha2}>
                   {country.countryName}
                 </SelectItem>
@@ -717,84 +770,259 @@ function ScholarshipSectionEditor({
             </SelectContent>
           </Select>
         </div>
-            </SelectContent>
-          </Select>
-        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="fundingAmountMin">Minimum Amount</Label>
+          <Label htmlFor="totalValueMin">Minimum Amount</Label>
           <Input
-            id="fundingAmountMin"
+            id="totalValueMin"
             type="number"
-            value={formData.fundingAmountMin || ''}
-            onChange={(e) => onInputChange('fundingAmountMin', e.target.value)}
+            value={formData.totalValueMin || ''}
+            onChange={(e) => onInputChange('totalValueMin', e.target.value)}
             placeholder="5000"
           />
         </div>
         <div>
-          <Label htmlFor="fundingAmountMax">Maximum Amount</Label>
+          <Label htmlFor="totalValueMax">Maximum Amount</Label>
           <Input
-            id="fundingAmountMax"
+            id="totalValueMax"
             type="number"
-            value={formData.fundingAmountMax || ''}
-            onChange={(e) => onInputChange('fundingAmountMax', e.target.value)}
+            value={formData.totalValueMax || ''}
+            onChange={(e) => onInputChange('totalValueMax', e.target.value)}
             placeholder="50000"
           />
         </div>
-      </div>
-      
-      <div>
-        <Label htmlFor="fundingDescription">Funding Description</Label>
-        <Textarea
-          id="fundingDescription"
-          value={formData.fundingDescription || ''}
-          onChange={(e) => onInputChange('fundingDescription', e.target.value)}
-          placeholder="Details about what the funding covers"
-          rows={3}
-        />
       </div>
     </div>
   );
 
   const renderEligibilityCriteria = () => (
     <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="minGpa">Minimum GPA</Label>
+          <Input
+            id="minGpa"
+            type="number"
+            step="0.1"
+            value={formData.minGpa || ''}
+            onChange={(e) => onInputChange('minGpa', e.target.value)}
+            placeholder="3.0"
+          />
+        </div>
+        <div>
+          <Label htmlFor="gpaScale">GPA Scale</Label>
+          <Input
+            id="gpaScale"
+            type="number"
+            step="0.1"
+            value={formData.gpaScale || ''}
+            onChange={(e) => onInputChange('gpaScale', e.target.value)}
+            placeholder="4.0"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="minAge">Minimum Age</Label>
+          <Input
+            id="minAge"
+            type="number"
+            value={formData.minAge || ''}
+            onChange={(e) => onInputChange('minAge', e.target.value)}
+            placeholder="18"
+          />
+        </div>
+        <div>
+          <Label htmlFor="maxAge">Maximum Age</Label>
+          <Input
+            id="maxAge"
+            type="number"
+            value={formData.maxAge || ''}
+            onChange={(e) => onInputChange('maxAge', e.target.value)}
+            placeholder="35"
+          />
+        </div>
+      </div>
+
       <div>
-        <Label htmlFor="minGpa">Minimum GPA</Label>
-        <Input
-          id="minGpa"
-          value={formData.minGpa || ''}
-          onChange={(e) => onInputChange('minGpa', e.target.value)}
-          placeholder="e.g., 3.0, 85%"
-        />
+        <Label htmlFor="genderRequirement">Gender Requirement</Label>
+        <Select value={formData.genderRequirement || ''} onValueChange={(value) => onInputChange('genderRequirement', value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select gender requirement" />
+          </SelectTrigger>
+          <SelectContent>
+            {GENDER_REQUIREMENTS.map((requirement) => (
+              <SelectItem key={requirement.value} value={requirement.value}>
+                {requirement.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
         <Label>Host Countries</Label>
-        <ArrayFieldEditor
-          value={formData.hostCountries || []}
-          onChange={(values) => onArrayFieldChange('hostCountries', values)}
-          placeholder="Add host country"
-        />
+        <div className="space-y-2">
+          <Select 
+            value="" 
+            onValueChange={(value) => {
+              const currentValues = formData.hostCountries || [];
+              if (value && !currentValues.includes(value)) {
+                onArrayFieldChange('hostCountries', [...currentValues, value]);
+              }
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Add host country" />
+            </SelectTrigger>
+            <SelectContent>
+              {countries
+                .filter((country: any) => !(formData.hostCountries || []).includes(country.isoAlpha2))
+                .map((country: any) => (
+                  <SelectItem key={country.isoAlpha2} value={country.isoAlpha2}>
+                    {country.countryName}
+                  </SelectItem>
+                ))
+              }
+            </SelectContent>
+          </Select>
+          
+          {formData.hostCountries && formData.hostCountries.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {formData.hostCountries.map((countryCode: string) => {
+                const country = countries.find((c: any) => c.isoAlpha2 === countryCode);
+                return (
+                  <Badge key={countryCode} variant="secondary" className="flex items-center gap-1">
+                    {country?.countryName || countryCode}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto p-0 text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        const newValues = (formData.hostCountries || []).filter((c: string) => c !== countryCode);
+                        onArrayFieldChange('hostCountries', newValues);
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       <div>
         <Label>Study Levels</Label>
-        <ArrayFieldEditor
-          value={formData.studyLevels || []}
-          onChange={(values) => onArrayFieldChange('studyLevels', values)}
-          placeholder="Add study level"
-        />
+        <div className="space-y-2">
+          <Select 
+            value="" 
+            onValueChange={(value) => {
+              const currentValues = formData.studyLevels || [];
+              if (value && !currentValues.includes(value)) {
+                onArrayFieldChange('studyLevels', [...currentValues, value]);
+              }
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Add study level" />
+            </SelectTrigger>
+            <SelectContent>
+              {STUDY_LEVELS
+                .filter(level => !(formData.studyLevels || []).includes(level.value))
+                .map((level) => (
+                  <SelectItem key={level.value} value={level.value}>
+                    {level.label}
+                  </SelectItem>
+                ))
+              }
+            </SelectContent>
+          </Select>
+          
+          {formData.studyLevels && formData.studyLevels.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {formData.studyLevels.map((levelValue: string) => {
+                const level = STUDY_LEVELS.find(l => l.value === levelValue);
+                return (
+                  <Badge key={levelValue} variant="secondary" className="flex items-center gap-1">
+                    {level?.label || levelValue}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto p-0 text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        const newValues = (formData.studyLevels || []).filter((l: string) => l !== levelValue);
+                        onArrayFieldChange('studyLevels', newValues);
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       <div>
         <Label>Field Categories</Label>
-        <ArrayFieldEditor
-          value={formData.fieldCategories || []}
-          onChange={(values) => onArrayFieldChange('fieldCategories', values)}
-          placeholder="Add field category"
-        />
+        <div className="space-y-2">
+          <Select 
+            value="" 
+            onValueChange={(value) => {
+              const currentValues = formData.fieldCategories || [];
+              if (value && !currentValues.includes(value)) {
+                onArrayFieldChange('fieldCategories', [...currentValues, value]);
+              }
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Add field category" />
+            </SelectTrigger>
+            <SelectContent>
+              {FIELD_CATEGORIES
+                .filter(category => !(formData.fieldCategories || []).includes(category.value))
+                .map((category) => (
+                  <SelectItem key={category.value} value={category.value}>
+                    {category.label}
+                  </SelectItem>
+                ))
+              }
+            </SelectContent>
+          </Select>
+          
+          {formData.fieldCategories && formData.fieldCategories.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {formData.fieldCategories.map((categoryValue: string) => {
+                const category = FIELD_CATEGORIES.find(c => c.value === categoryValue);
+                return (
+                  <Badge key={categoryValue} variant="secondary" className="flex items-center gap-1">
+                    {category?.label || categoryValue}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto p-0 text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        const newValues = (formData.fieldCategories || []).filter((c: string) => c !== categoryValue);
+                        onArrayFieldChange('fieldCategories', newValues);
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -807,95 +1035,63 @@ function ScholarshipSectionEditor({
           <Input
             id="applicationDeadline"
             type="date"
-            value={formData.applicationDeadline ? formData.applicationDeadline.split('T')[0] : ''}
+            value={formData.applicationDeadline || ''}
             onChange={(e) => onInputChange('applicationDeadline', e.target.value)}
           />
         </div>
         <div>
-          <Label htmlFor="applicationFee">Application Fee</Label>
+          <Label htmlFor="durationValue">Duration Value</Label>
           <Input
-            id="applicationFee"
+            id="durationValue"
             type="number"
-            value={formData.applicationFee || ''}
-            onChange={(e) => onInputChange('applicationFee', e.target.value)}
-            placeholder="0"
+            value={formData.durationValue || ''}
+            onChange={(e) => onInputChange('durationValue', e.target.value)}
+            placeholder="2"
           />
         </div>
       </div>
-      
-      <div>
-        <Label htmlFor="applicationProcess">Application Process</Label>
-        <Textarea
-          id="applicationProcess"
-          value={formData.applicationProcess || ''}
-          onChange={(e) => onInputChange('applicationProcess', e.target.value)}
-          placeholder="Steps to apply for this scholarship"
-          rows={4}
-        />
-      </div>
 
       <div>
-        <Label>Required Documents</Label>
-        <ArrayFieldEditor
-          value={formData.documentsRequired || []}
-          onChange={(values) => onArrayFieldChange('documentsRequired', values)}
-          placeholder="Add required document"
-        />
+        <Label htmlFor="durationUnit">Duration Unit</Label>
+        <Select value={formData.durationUnit || ''} onValueChange={(value) => onInputChange('durationUnit', value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select duration unit" />
+          </SelectTrigger>
+          <SelectContent>
+            {DURATION_UNITS.map((unit) => (
+              <SelectItem key={unit.value} value={unit.value}>
+                {unit.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
 
   const renderAdditionalDetails = () => (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="duration">Duration</Label>
-          <Input
-            id="duration"
-            value={formData.duration || ''}
-            onChange={(e) => onInputChange('duration', e.target.value)}
-            placeholder="e.g., 1 year, 4 years"
-          />
-        </div>
-        <div>
-          <Label htmlFor="renewable">Renewable</Label>
-          <Select value={formData.renewable?.toString() || ''} onValueChange={(value) => onInputChange('renewable', value === 'true')}>
-            <SelectTrigger>
-              <SelectValue placeholder="Is renewable?" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="true">Yes</SelectItem>
-              <SelectItem value="false">No</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
       <div>
-        <Label htmlFor="contactEmail">Contact Email</Label>
-        <Input
-          id="contactEmail"
-          type="email"
-          value={formData.contactEmail || ''}
-          onChange={(e) => onInputChange('contactEmail', e.target.value)}
-          placeholder="contact@example.com"
-        />
-      </div>
-
-      <div>
-        <Label>Tags</Label>
-        <ArrayFieldEditor
-          value={formData.tags || []}
-          onChange={(values) => onArrayFieldChange('tags', values)}
-          placeholder="Add tag"
-        />
+        <Label htmlFor="status">Scholarship Status</Label>
+        <Select value={formData.status || ''} onValueChange={(value) => onInputChange('status', value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+          <SelectContent>
+            {SCHOLARSHIP_STATUS.map((status) => (
+              <SelectItem key={status.value} value={status.value}>
+                {status.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit {getSectionTitle()}</DialogTitle>
           <DialogDescription>
@@ -905,85 +1101,26 @@ function ScholarshipSectionEditor({
         
         <div className="space-y-6">
           {renderSectionContent()}
-          
-          <div className="flex justify-end space-x-3 pt-6 border-t">
-            <Button variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => onSave(section)}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Changes
-                </>
-              )}
-            </Button>
-          </div>
+        </div>
+
+        <div className="flex justify-end space-x-3 pt-6">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={() => onSave(section)}
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            Save Changes
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
-  );
-}
-
-// Array Field Editor Component
-interface ArrayFieldEditorProps {
-  value: string[];
-  onChange: (values: string[]) => void;
-  placeholder: string;
-}
-
-function ArrayFieldEditor({ value, onChange, placeholder }: ArrayFieldEditorProps) {
-  const [inputValue, setInputValue] = useState('');
-
-  const addValue = () => {
-    if (inputValue.trim() && !value.includes(inputValue.trim())) {
-      onChange([...value, inputValue.trim()]);
-      setInputValue('');
-    }
-  };
-
-  const removeValue = (index: number) => {
-    onChange(value.filter((_, i) => i !== index));
-  };
-
-  return (
-    <div className="space-y-2">
-      <div className="flex gap-2">
-        <Input
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder={placeholder}
-          onKeyPress={(e) => e.key === 'Enter' && addValue()}
-        />
-        <Button type="button" variant="outline" onClick={addValue}>
-          <Plus className="w-4 h-4" />
-        </Button>
-      </div>
-      
-      {value.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {value.map((item, index) => (
-            <Badge key={index} variant="secondary" className="flex items-center gap-1">
-              {item}
-              <button
-                type="button"
-                onClick={() => removeValue(index)}
-                className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </Badge>
-          ))}
-        </div>
-      )}
-    </div>
   );
 }
