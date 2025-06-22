@@ -30,7 +30,13 @@ import {
   GraduationCap,
   Calendar as CalendarIcon,
   Check,
-  AlertTriangle
+  AlertTriangle,
+  Building2,
+  Globe,
+  Calendar,
+  RefreshCw,
+  Star,
+  BarChart
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -38,69 +44,86 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
-// Comprehensive validation schema with all database fields
+// Comprehensive validation schema with all 57+ database fields
 const scholarshipSchema = z.object({
-  scholarshipId: z.string()
-    .min(3, "Scholarship ID must be at least 3 characters")
-    .max(50, "Scholarship ID cannot exceed 50 characters")
-    .regex(/^[A-Z0-9_-]+$/, "Use only uppercase letters, numbers, underscores, and hyphens"),
-  scholarshipName: z.string()
-    .min(5, "Scholarship name must be at least 5 characters")
-    .max(200, "Scholarship name cannot exceed 200 characters"),
-  providerName: z.string()
-    .min(3, "Provider name must be at least 3 characters")
-    .max(100, "Provider name cannot exceed 100 characters"),
-  providerType: z.enum(["government", "private", "institution", "other"], {
-    required_error: "Provider type is required"
-  }),
-  providerCountry: z.string()
-    .min(2, "Provider country is required")
-    .max(50, "Country name cannot exceed 50 characters"),
-  description: z.string()
-    .min(50, "Description must be at least 50 characters")
-    .max(2000, "Description cannot exceed 2000 characters"),
-  shortDescription: z.string()
-    .min(20, "Short description must be at least 20 characters")
-    .max(300, "Short description cannot exceed 300 characters"),
-  applicationUrl: z.string()
-    .url("Must be a valid URL")
-    .max(500, "URL cannot exceed 500 characters"),
-  applicationDeadline: z.string()
-    .min(1, "Application deadline is required"),
-  studyLevel: z.string()
-    .min(2, "Study level is required")
-    .max(100, "Study level cannot exceed 100 characters"),
-  fieldCategory: z.string()
-    .min(2, "Field category is required")
-    .max(100, "Field category cannot exceed 100 characters"),
-  targetCountries: z.array(z.string())
-    .min(1, "At least one target country is required")
-    .max(20, "Cannot exceed 20 target countries"),
-  fundingType: z.enum(["full", "partial", "tuition-only", "living-allowance", "other"], {
-    required_error: "Funding type is required"
-  }),
-  fundingAmount: z.number()
-    .min(1, "Funding amount must be greater than 0")
-    .max(1000000, "Funding amount cannot exceed 1,000,000"),
-  fundingCurrency: z.string()
-    .length(3, "Currency must be exactly 3 characters")
-    .regex(/^[A-Z]{3}$/, "Currency must be uppercase (e.g., USD, EUR)"),
-  eligibilityRequirements: z.array(z.string())
-    .min(1, "At least one eligibility requirement is required")
-    .max(50, "Cannot exceed 50 eligibility requirements"),
-  languageRequirements: z.array(z.string())
-    .max(20, "Cannot exceed 20 language requirements")
-    .optional(),
-  difficultyLevel: z.enum(["beginner", "intermediate", "advanced", "expert"], {
-    required_error: "Difficulty level is required"
-  }),
-  dataSource: z.string()
-    .min(2, "Data source is required")
-    .max(200, "Data source cannot exceed 200 characters"),
-  verified: z.boolean(),
-  status: z.enum(["active", "inactive", "pending"], {
-    required_error: "Status is required"
-  }),
+  // Basic Information
+  scholarshipId: z.string().min(3, "Scholarship ID must be at least 3 characters").max(50),
+  name: z.string().min(5, "Name must be at least 5 characters").max(200),
+  shortName: z.string().optional(),
+  
+  // Provider Details
+  providerName: z.string().min(3, "Provider name required").max(100),
+  providerType: z.enum(["government", "private", "institution", "other"]),
+  providerCountry: z.string().min(2, "Provider country required"),
+  providerWebsite: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  
+  // Target Information
+  hostCountries: z.array(z.string()).optional(),
+  eligibleCountries: z.array(z.string()).optional(),
+  studyLevels: z.array(z.string()).optional(),
+  fieldCategories: z.array(z.string()).optional(),
+  specificFields: z.array(z.string()).optional(),
+  
+  // Funding Details
+  fundingType: z.string().min(1, "Funding type required"),
+  fundingCurrency: z.string().length(3, "Currency must be 3 characters").default("USD"),
+  tuitionCoveragePercentage: z.number().min(0).max(100).optional(),
+  livingAllowanceAmount: z.number().min(0).optional(),
+  livingAllowanceFrequency: z.string().optional(),
+  totalValueMin: z.number().min(0).optional(),
+  totalValueMax: z.number().min(0).optional(),
+  
+  // Timeline
+  applicationOpenDate: z.string().optional(),
+  applicationDeadline: z.string().optional(),
+  notificationDate: z.string().optional(),
+  programStartDate: z.string().optional(),
+  durationValue: z.number().min(1).optional(),
+  durationUnit: z.string().optional(),
+  
+  // Academic Requirements
+  minGpa: z.number().min(0).max(4).optional(),
+  gpaScale: z.number().min(1).max(10).optional(),
+  degreeRequired: z.array(z.string()).optional(),
+  minAge: z.number().min(16).max(100).optional(),
+  maxAge: z.number().min(16).max(100).optional(),
+  genderRequirement: z.string().default("any"),
+  minWorkExperience: z.number().min(0).optional(),
+  leadershipRequired: z.boolean().default(false),
+  languageRequirements: z.array(z.string()).optional(),
+  
+  // Application Process
+  applicationUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  applicationFeeAmount: z.number().min(0).default(0),
+  applicationFeeCurrency: z.string().length(3).default("USD"),
+  feeWaiverAvailable: z.boolean().default(false),
+  documentsRequired: z.array(z.string()).optional(),
+  interviewRequired: z.boolean().default(false),
+  essayRequired: z.boolean().default(false),
+  
+  // Renewal & Restrictions
+  renewable: z.boolean().default(false),
+  maxRenewalDuration: z.string().optional(),
+  renewalCriteria: z.array(z.string()).optional(),
+  workRestrictions: z.string().optional(),
+  travelRestrictions: z.string().optional(),
+  otherScholarshipsAllowed: z.string().optional(),
+  
+  // Additional Benefits
+  mentorshipAvailable: z.boolean().default(false),
+  networkingOpportunities: z.boolean().default(false),
+  internshipOpportunities: z.boolean().default(false),
+  researchOpportunities: z.boolean().default(false),
+  
+  // Metadata
+  description: z.string().min(50, "Description must be at least 50 characters").max(2000),
+  tags: z.array(z.string()).optional(),
+  difficultyLevel: z.string().optional(),
+  totalApplicantsPerYear: z.number().min(1).optional(),
+  acceptanceRate: z.number().min(0).max(100).optional(),
+  status: z.enum(["active", "inactive", "pending", "draft"]).default("active"),
+  dataSource: z.string().default("official"),
+  verified: z.boolean().default(true),
 });
 
 type ScholarshipFormData = z.infer<typeof scholarshipSchema>;
@@ -118,42 +141,70 @@ const formSections = [
     title: "Basic Information",
     icon: FileText,
     description: "Essential scholarship details and identification",
-    fields: ["scholarshipId", "scholarshipName", "providerName", "providerType", "providerCountry", "description", "shortDescription"]
+    fields: ["scholarshipId", "name", "shortName", "description"]
   },
   {
-    id: "application",
-    title: "Application Details",
-    icon: BookOpen,
-    description: "Application process and deadline information",
-    fields: ["applicationUrl", "applicationDeadline"]
+    id: "provider",
+    title: "Provider Details", 
+    icon: Building2,
+    description: "Scholarship provider information and contact details",
+    fields: ["providerName", "providerType", "providerCountry", "providerWebsite"]
   },
   {
-    id: "study",
-    title: "Study Information",
-    icon: GraduationCap,
-    description: "Academic levels, fields, and target countries",
-    fields: ["studyLevel", "fieldCategory", "targetCountries"]
+    id: "target",
+    title: "Target Information",
+    icon: Globe,
+    description: "Host countries, eligible nationalities, and study fields",
+    fields: ["hostCountries", "eligibleCountries", "studyLevels", "fieldCategories", "specificFields"]
   },
   {
     id: "funding",
-    title: "Funding Information",
+    title: "Funding & Financial Details",
     icon: DollarSign,
-    description: "Financial details and funding structure",
-    fields: ["fundingType", "fundingAmount", "fundingCurrency"]
+    description: "Complete funding structure and financial coverage",
+    fields: ["fundingType", "fundingCurrency", "tuitionCoveragePercentage", "livingAllowanceAmount", "livingAllowanceFrequency", "totalValueMin", "totalValueMax"]
   },
   {
-    id: "requirements",
-    title: "Requirements & Eligibility",
-    icon: Users,
-    description: "Eligibility criteria and language requirements",
-    fields: ["eligibilityRequirements", "languageRequirements", "difficultyLevel"]
+    id: "timeline",
+    title: "Timeline & Deadlines",
+    icon: Calendar,
+    description: "Important dates and program duration",
+    fields: ["applicationOpenDate", "applicationDeadline", "notificationDate", "programStartDate", "durationValue", "durationUnit"]
   },
   {
-    id: "settings",
-    title: "Settings & Metadata",
-    icon: Settings,
-    description: "Administrative settings and verification status",
-    fields: ["dataSource", "verified", "status"]
+    id: "academic",
+    title: "Academic Requirements",
+    icon: GraduationCap,
+    description: "Educational prerequisites and academic standards",
+    fields: ["minGpa", "gpaScale", "degreeRequired", "minAge", "maxAge", "genderRequirement", "minWorkExperience", "leadershipRequired", "languageRequirements"]
+  },
+  {
+    id: "application",
+    title: "Application Process",
+    icon: FileText,
+    description: "Application procedures, fees, and required documents",
+    fields: ["applicationUrl", "applicationFeeAmount", "applicationFeeCurrency", "feeWaiverAvailable", "documentsRequired", "interviewRequired", "essayRequired"]
+  },
+  {
+    id: "renewal",
+    title: "Renewal & Restrictions",
+    icon: RefreshCw,
+    description: "Renewal policies and scholarship restrictions",
+    fields: ["renewable", "maxRenewalDuration", "renewalCriteria", "workRestrictions", "travelRestrictions", "otherScholarshipsAllowed"]
+  },
+  {
+    id: "benefits",
+    title: "Additional Benefits",
+    icon: Star,
+    description: "Extra opportunities and support services",
+    fields: ["mentorshipAvailable", "networkingOpportunities", "internshipOpportunities", "researchOpportunities"]
+  },
+  {
+    id: "metadata",
+    title: "Statistics & Metadata",
+    icon: BarChart,
+    description: "Administrative data and scholarship statistics",
+    fields: ["tags", "difficultyLevel", "totalApplicantsPerYear", "acceptanceRate", "status", "dataSource", "verified"]
   }
 ];
 
@@ -169,50 +220,97 @@ export function ScholarshipFormLayout({
   const [currentSection, setCurrentSection] = useState(0);
   const [completedSections, setCompletedSections] = useState<number[]>([]);
   const [arrayFields, setArrayFields] = useState<{[key: string]: string[]}>({
-    targetCountries: initialData?.targetCountries || [],
-    eligibilityRequirements: initialData?.eligibilityRequirements || [],
-    languageRequirements: initialData?.languageRequirements || []
+    targetCountries: [],
+    eligibilityRequirements: [],
+    languageRequirements: []
   });
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
+
+  // Fetch existing scholarship data for edit mode
+  const { data: scholarshipData, isLoading } = useQuery({
+    queryKey: ['admin-scholarship', scholarshipId],
+    queryFn: async () => {
+      const response = await fetch(`/api/admin/scholarships/${scholarshipId}`);
+      if (!response.ok) throw new Error('Failed to fetch scholarship');
+      return response.json();
+    },
+    enabled: mode === 'edit' && !!scholarshipId
+  });
+
+  const existingData = mode === 'edit' ? scholarshipData?.data : null;
 
   // Initialize form with comprehensive default values
   const form = useForm<ScholarshipFormData>({
     resolver: zodResolver(scholarshipSchema),
     defaultValues: {
-      scholarshipId: initialData?.scholarshipId || "",
-      scholarshipName: initialData?.scholarshipName || "",
-      providerName: initialData?.providerName || "",
-      providerType: initialData?.providerType || "government",
-      providerCountry: initialData?.providerCountry || "",
-      description: initialData?.description || "",
-      shortDescription: initialData?.shortDescription || "",
-      applicationUrl: initialData?.applicationUrl || "",
-      applicationDeadline: initialData?.applicationDeadline || "",
-      studyLevel: initialData?.studyLevel || "",
-      fieldCategory: initialData?.fieldCategory || "",
-      targetCountries: initialData?.targetCountries || [],
-      fundingType: initialData?.fundingType || "full",
-      fundingAmount: initialData?.fundingAmount || 0,
-      fundingCurrency: initialData?.fundingCurrency || "USD",
-      eligibilityRequirements: initialData?.eligibilityRequirements || [],
-      languageRequirements: initialData?.languageRequirements || [],
-      difficultyLevel: initialData?.difficultyLevel || "intermediate",
-      dataSource: initialData?.dataSource || "",
-      verified: initialData?.verified || false,
-      status: initialData?.status || "pending",
+      scholarshipId: "",
+      scholarshipName: "",
+      providerName: "",
+      providerType: "government",
+      providerCountry: "",
+      description: "",
+      shortDescription: "",
+      applicationUrl: "",
+      applicationDeadline: "",
+      studyLevel: "",
+      fieldCategory: "",
+      targetCountries: [],
+      fundingType: "full",
+      fundingAmount: 0,
+      fundingCurrency: "USD",
+      eligibilityRequirements: [],
+      languageRequirements: [],
+      difficultyLevel: "intermediate",
+      dataSource: "",
+      verified: false,
+      status: "pending",
     },
   });
 
-  // Update array fields when initial data changes
+  // Update form when scholarship data is loaded (for edit mode)
   useEffect(() => {
-    if (initialData) {
+    if (existingData && mode === 'edit') {
+      // Reset form with existing scholarship data
+      form.reset({
+        scholarshipId: existingData.scholarshipId || "",
+        scholarshipName: existingData.name || "",
+        providerName: existingData.providerName || "",
+        providerType: existingData.providerType || "government",
+        providerCountry: existingData.providerCountry || "",
+        description: existingData.description || "",
+        shortDescription: existingData.shortDescription || "",
+        applicationUrl: existingData.applicationUrl || "",
+        applicationDeadline: existingData.applicationDeadline || "",
+        studyLevel: existingData.studyLevel || "",
+        fieldCategory: existingData.fieldCategory || "",
+        targetCountries: existingData.targetCountries || [],
+        fundingType: existingData.fundingType || "full",
+        fundingAmount: existingData.fundingAmount || 0,
+        fundingCurrency: existingData.fundingCurrency || "USD",
+        eligibilityRequirements: existingData.eligibilityRequirements || [],
+        languageRequirements: existingData.languageRequirements || [],
+        difficultyLevel: existingData.difficultyLevel || "intermediate",
+        dataSource: existingData.dataSource || "",
+        verified: existingData.verified || false,
+        status: existingData.status || "pending",
+      });
+
+      // Update array fields state
+      setArrayFields({
+        targetCountries: existingData.targetCountries || [],
+        eligibilityRequirements: existingData.eligibilityRequirements || [],
+        languageRequirements: existingData.languageRequirements || []
+      });
+    } else if (initialData && mode === 'create') {
+      // Handle initial data for create mode
+      form.reset(initialData);
       setArrayFields({
         targetCountries: initialData.targetCountries || [],
         eligibilityRequirements: initialData.eligibilityRequirements || [],
         languageRequirements: initialData.languageRequirements || []
       });
     }
-  }, [initialData]);
+  }, [existingData, initialData, mode, form]);
 
   // Create/Update mutation
   const mutation = useMutation({
@@ -222,7 +320,7 @@ export function ScholarshipFormLayout({
       if (mode === 'create') {
         return apiRequest("POST", "/api/admin/scholarships", finalData);
       } else {
-        return apiRequest("PATCH", `/api/admin/scholarships/${scholarshipId}`, finalData);
+        return apiRequest("PUT", `/api/admin/scholarships/${scholarshipId}`, finalData);
       }
     },
     onSuccess: () => {
@@ -368,6 +466,20 @@ export function ScholarshipFormLayout({
       default: return 'Manage scholarship information';
     }
   };
+
+  // Show loading state for edit mode
+  if (mode === 'edit' && isLoading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+            <p className="text-gray-600">Loading scholarship data...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
