@@ -114,7 +114,7 @@ const sampleScholarships: Scholarship[] = [
   }
 ];
 
-export default function ScholarshipResearchSample() {
+function ScholarshipResearchSample() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
   const [selectedLevel, setSelectedLevel] = useState<string>("all");
