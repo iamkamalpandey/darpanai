@@ -215,19 +215,19 @@ export default function ScholarshipManagement() {
     <AdminLayout>
       <div className="flex flex-col h-screen bg-gray-50">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Scholarship Management</h1>
-              <p className="text-gray-600">Comprehensive database-driven scholarship system</p>
+        <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">Scholarship Management</h1>
+              <p className="text-sm sm:text-base text-gray-600 break-words">Comprehensive database-driven scholarship system</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
               <Button 
                 onClick={() => setLocation('/admin/scholarships/create')} 
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Create Scholarship
+                <Plus className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span className="break-words">Create Scholarship</span>
               </Button>
               <input
                 type="file"
@@ -240,30 +240,32 @@ export default function ScholarshipManagement() {
                 variant="outline" 
                 onClick={() => document.getElementById('import-input')?.click()}
                 disabled={isImporting}
+                className="w-full sm:w-auto"
               >
-                <Upload className="w-4 h-4 mr-2" />
-                {isImporting ? 'Importing...' : 'Import Data'}
+                <Upload className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span className="break-words">{isImporting ? 'Importing...' : 'Import Data'}</span>
               </Button>
               <Button 
                 variant="outline" 
                 onClick={handleExport}
                 disabled={isExporting}
+                className="w-full sm:w-auto"
               >
-                <Download className="w-4 h-4 mr-2" />
-                {isExporting ? 'Exporting...' : 'Export Data'}
+                <Download className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span className="break-words">{isExporting ? 'Exporting...' : 'Export Data'}</span>
               </Button>
             </div>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center">
-                  <Database className="h-8 w-8 text-blue-500" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Total Scholarships</p>
-                    <p className="text-2xl font-bold">{statsData?.data?.totalScholarships || 0}</p>
+                  <Database className="h-8 w-8 text-blue-500 flex-shrink-0" />
+                  <div className="ml-4 min-w-0 flex-1">
+                    <p className="text-sm font-medium text-gray-600 break-words">Total Scholarships</p>
+                    <p className="text-2xl font-bold break-words">{statsData?.data?.totalScholarships || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -271,10 +273,10 @@ export default function ScholarshipManagement() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center">
-                  <Users className="h-8 w-8 text-green-500" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Total Providers</p>
-                    <p className="text-2xl font-bold">{statsData?.data?.totalProviders || 0}</p>
+                  <Users className="h-8 w-8 text-green-500 flex-shrink-0" />
+                  <div className="ml-4 min-w-0 flex-1">
+                    <p className="text-sm font-medium text-gray-600 break-words">Total Providers</p>
+                    <p className="text-2xl font-bold break-words">{statsData?.data?.totalProviders || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -282,21 +284,10 @@ export default function ScholarshipManagement() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center">
-                  <Globe className="h-8 w-8 text-purple-500" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Countries Covered</p>
-                    <p className="text-2xl font-bold">{statsData?.data?.totalCountries || 0}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center">
-                  <DollarSign className="h-8 w-8 text-orange-500" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">Total Funding</p>
-                    <p className="text-2xl font-bold">{statsData?.data?.totalFunding || '$0M+'}</p>
+                  <Globe className="h-8 w-8 text-purple-500 flex-shrink-0" />
+                  <div className="ml-4 min-w-0 flex-1">
+                    <p className="text-sm font-medium text-gray-600 break-words">Countries Covered</p>
+                    <p className="text-2xl font-bold break-words">{statsData?.data?.totalCountries || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -304,43 +295,45 @@ export default function ScholarshipManagement() {
           </div>
 
           {/* Search and Filter Bar */}
-          <div className="flex items-center gap-4">
-            <div className="flex-1 max-w-md">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+            <div className="flex-1 sm:max-w-md">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 flex-shrink-0" />
                 <Input
-                  placeholder="Search scholarships, providers, or countries..."
+                  placeholder="Search scholarships..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 w-full"
                 />
               </div>
             </div>
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2"
-            >
-              <Filter className="w-4 h-4" />
-              Filters
-              <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-            </Button>
-            {(filterStatus !== 'all' || filterProviderType !== 'all' || filterCountry !== 'all' || filterFundingType !== 'all' || filterDifficulty !== 'all' || searchTerm) && (
-              <Button variant="ghost" onClick={clearAllFilters} className="text-red-600">
-                <X className="w-4 h-4 mr-2" />
-                Clear Filters
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center justify-center gap-2 w-full sm:w-auto"
+              >
+                <Filter className="w-4 h-4 flex-shrink-0" />
+                <span className="break-words">Filters</span>
+                <ChevronDown className={`w-4 h-4 flex-shrink-0 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
               </Button>
-            )}
-            <Badge variant="outline" className="px-3 py-1">
-              {isLoading ? 'Loading...' : `${scholarships.length} of ${totalScholarships} scholarships`}
-            </Badge>
+              {(filterStatus !== 'all' || filterProviderType !== 'all' || filterCountry !== 'all' || filterFundingType !== 'all' || filterDifficulty !== 'all' || searchTerm) && (
+                <Button variant="ghost" onClick={clearAllFilters} className="text-red-600 w-full sm:w-auto">
+                  <X className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="break-words">Clear Filters</span>
+                </Button>
+              )}
+              <Badge variant="outline" className="px-3 py-1 text-center break-words overflow-hidden">
+                {isLoading ? 'Loading...' : `${scholarships.length} of ${totalScholarships}`}
+              </Badge>
+            </div>
           </div>
         </div>
 
         {/* Filter Panel */}
         {showFilters && (
-          <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
-            <div className="grid grid-cols-5 gap-4">
+          <div className="bg-gray-50 border-b border-gray-200 px-4 sm:px-6 py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">Status</label>
                 <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -463,19 +456,20 @@ export default function ScholarshipManagement() {
                 </div>
               ) : (
                 <>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Scholarship Name</TableHead>
-                        <TableHead>Provider</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Country</TableHead>
-                        <TableHead>Funding</TableHead>
-                        <TableHead>Deadline</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="min-w-[200px]">Scholarship Name</TableHead>
+                          <TableHead className="min-w-[150px]">Provider</TableHead>
+                          <TableHead className="min-w-[100px]">Type</TableHead>
+                          <TableHead className="min-w-[80px]">Country</TableHead>
+                          <TableHead className="min-w-[100px]">Funding</TableHead>
+                          <TableHead className="min-w-[120px]">Deadline</TableHead>
+                          <TableHead className="min-w-[100px]">Status</TableHead>
+                          <TableHead className="text-right min-w-[120px]">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
                     <TableBody>
                       {scholarships.map((scholarship: Scholarship) => (
                         <TableRow key={scholarship.id} className="hover:bg-gray-50">
