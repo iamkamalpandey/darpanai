@@ -165,6 +165,24 @@ router.get("/stats/overview", async (req: Request, res: Response) => {
   }
 });
 
+// Get filter options from database
+router.get("/filter-options", async (req: Request, res: Response) => {
+  try {
+    const options = await scholarshipStorage.getFilterOptions();
+    
+    res.json({
+      success: true,
+      data: options
+    });
+  } catch (error) {
+    console.error('[Filter Options] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to get filter options"
+    });
+  }
+});
+
 // Authentication middleware for admin operations
 const requireAuth = (req: Request, res: Response, next: any) => {
   if (!req.user) {

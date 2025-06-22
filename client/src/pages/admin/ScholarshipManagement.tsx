@@ -63,6 +63,18 @@ export default function ScholarshipManagement() {
     refetchOnWindowFocus: false
   });
 
+  // Fetch filter options from database
+  const { data: filterOptions } = useQuery({
+    queryKey: ['scholarship-filter-options'],
+    queryFn: async () => {
+      const response = await fetch('/api/scholarships/filter-options');
+      if (!response.ok) throw new Error('Failed to fetch filter options');
+      return response.json();
+    },
+    staleTime: 600000, // Cache for 10 minutes
+    refetchOnWindowFocus: false
+  });
+
   // Delete scholarship mutation
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiRequest('DELETE', `/api/admin/scholarships/${id}`),
@@ -324,10 +336,9 @@ export default function ScholarshipManagement() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="government">Government</SelectItem>
-                    <SelectItem value="private">Private</SelectItem>
-                    <SelectItem value="institution">Institution</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    {filterOptions?.data?.providerTypes?.map((type: string) => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
