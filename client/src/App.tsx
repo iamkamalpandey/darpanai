@@ -14,6 +14,10 @@ import Home from "@/pages/Home";
 import Landing from "@/pages/Landing";
 import SimplifiedAuth from "@/components/SimplifiedAuth";
 
+// New redesigned components
+const NewHome = lazy(() => import("@/pages/NewHome"));
+const PublicLanding = lazy(() => import("@/pages/PublicLanding"));
+
 // Lazy load heavy components for better initial performance
 const VisaAnalyzer = lazy(() => import("@/pages/VisaAnalyzer"));
 const AnalysisHistory = lazy(() => import("@/pages/AnalysisHistory"));
@@ -90,10 +94,18 @@ function Router() {
     }
     
     if (user) {
-      return <Home />;
+      return (
+        <Suspense fallback={<LoadingFallback />}>
+          <NewHome />
+        </Suspense>
+      );
     }
     
-    return <Landing />;
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        <PublicLanding />
+      </Suspense>
+    );
   }
   return (
     <Switch>
