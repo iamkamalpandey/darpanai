@@ -41,8 +41,8 @@ export class ScholarshipStorage {
         );
       }
 
-      // Filter by provider type
-      if (providerType) {
+      // Filter by provider type (only if not 'all')
+      if (providerType && providerType !== 'all') {
         conditions.push(eq(scholarships.providerType, providerType));
       }
 

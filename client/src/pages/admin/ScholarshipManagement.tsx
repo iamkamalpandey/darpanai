@@ -110,15 +110,16 @@ export default function ScholarshipManagement() {
     }
   ];
 
-  // Update scholarship mutation
+  // Update scholarship mutation for category-based editing
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: ScholarshipFormData }) => {
+    mutationFn: async ({ id, data }: { id: number; data: Partial<ScholarshipFormData> }) => {
       return apiRequest('PUT', `/api/admin/scholarships/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-scholarships'] });
       setIsEditDialogOpen(false);
       setSelectedScholarship(null);
+      setEditingSection(null);
       toast({ title: "Success", description: "Scholarship updated successfully" });
     },
     onError: () => {
@@ -155,8 +156,37 @@ export default function ScholarshipManagement() {
     }
   });
 
-  const handleCreateSubmit = (data: ScholarshipFormData) => {
-    createMutation.mutate(data);
+  // Category-based editing handlers
+  const handleEditSection = (scholarship: Scholarship, section: string) => {
+    setSelectedScholarship(scholarship);
+    setEditingSection(section);
+    setIsEditDialogOpen(true);
+    
+    // Initialize form with current scholarship data
+    const currentSection = editingSections.find(s => s.key === section);
+    if (currentSection) {
+      const sectionData = {};
+      currentSection.fields.forEach(field => {
+        sectionData[field] = scholarship[field];
+      });
+      form.reset(sectionData);
+    }
+  };
+
+  const handleSectionSubmit = (data: Partial<ScholarshipFormData>) => {
+    if (selectedScholarship && editingSection) {
+      // Only send fields for the current section
+      const currentSection = editingSections.find(s => s.key === editingSection);
+      if (currentSection) {
+        const sectionData = {};
+        currentSection.fields.forEach(field => {
+          if (data[field] !== undefined) {
+            sectionData[field] = data[field];
+          }
+        });
+        updateMutation.mutate({ id: selectedScholarship.id, data: sectionData });
+      }
+    }
   };
 
   const handleUpdateSubmit = (data: ScholarshipFormData) => {
