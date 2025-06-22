@@ -57,9 +57,10 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [aiAnalysisToolsOpen, setAiAnalysisToolsOpen] = useState(false);
+  const [documentInfoOpen, setDocumentInfoOpen] = useState(false);
+  const [enrollmentHubOpen, setEnrollmentHubOpen] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
-  const [myAnalysisOpen, setMyAnalysisOpen] = useState(false);
-  const [enrollmentDetailsOpen, setEnrollmentDetailsOpen] = useState(false);
   const [location] = useLocation();
   const { unreadCount, hasUnread } = useUnreadUpdates();
   
@@ -84,29 +85,43 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const sidebarItems = [
     { icon: <Home size={20} />, label: 'Dashboard', href: '/' },
+    
+    // Analysis & AI Tools
     { 
       icon: <BarChart3 size={20} />, 
-      label: 'My Analysis', 
+      label: 'AI Analysis Tools', 
       isSubmenu: true,
       submenuItems: [
-        { icon: <Shield size={18} />, label: 'Visa Analysis', href: '/visa-analysis' },
-        { icon: <MapPin size={18} />, label: 'AI Destination Recommendation', href: '/personalized-destination-analysis' },
-        { icon: <FileText size={18} />, label: 'Analysis History', href: '/my-analysis' },
+        { icon: <Shield size={18} />, label: 'Visa Document Analysis', href: '/visa-analysis' },
+        { icon: <FileText size={18} />, label: 'COE Certificate Analysis', href: '/coe-analysis' },
+        { icon: <FileCheck size={18} />, label: 'Offer Letter Analysis', href: '/offer-letter-analysis' },
+        { icon: <MapPin size={18} />, label: 'AI Study Destination', href: '/personalized-destination-analysis' },
       ]
     },
+
+    // Document Information
+    { 
+      icon: <FolderOpen size={20} />, 
+      label: 'Document Information', 
+      isSubmenu: true,
+      submenuItems: [
+        { icon: <FileText size={18} />, label: 'My Analysis History', href: '/my-analysis' },
+        { icon: <GraduationCap size={18} />, label: 'Offer Letter Details', href: '/offer-letter-info' },
+        { icon: <FileCheck size={18} />, label: 'COE Information', href: '/coe-info' },
+      ]
+    },
+
+    // Enrollment & Applications
     { 
       icon: <GraduationCap size={20} />, 
-      label: 'Enrollment Details', 
+      label: 'Enrollment Hub', 
       isSubmenu: true,
       submenuItems: [
         { icon: <TrendingUp size={18} />, label: 'Enrollment Analysis', href: '/enrollment-analysis' },
-        { icon: <FileText size={18} />, label: 'COE Analysis', href: '/coe-analysis' },
-        { icon: <FileCheck size={18} />, label: 'Offer Letter Analysis', href: '/offer-letter-analysis' },
-        { icon: <FileCheck size={18} />, label: 'Offer Letter Info', href: '/offer-letter-info' },
-        { icon: <FileText size={18} />, label: 'COE Information', href: '/coe-info' },
+        { icon: <Award size={18} />, label: 'Scholarship Research', href: '/scholarship-research' },
+        { icon: <Calendar size={18} />, label: 'Consultation Booking', href: '/consultations' },
       ]
     },
-    { icon: <Award size={20} />, label: 'My Scholarships', href: '/scholarship-research' },
 
     { icon: <Calendar size={20} />, label: 'Appointments', href: '/consultations' },
     { 
@@ -206,12 +221,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     <div>
                       <button
                         onClick={() => {
-                          if (item.label === 'Resources') {
+                          if (item.label === 'AI Analysis Tools') {
+                            setAiAnalysisToolsOpen(!aiAnalysisToolsOpen);
+                          } else if (item.label === 'Document Information') {
+                            setDocumentInfoOpen(!documentInfoOpen);
+                          } else if (item.label === 'Enrollment Hub') {
+                            setEnrollmentHubOpen(!enrollmentHubOpen);
+                          } else if (item.label === 'Resources') {
                             setResourcesOpen(!resourcesOpen);
-                          } else if (item.label === 'My Analysis') {
-                            setMyAnalysisOpen(!myAnalysisOpen);
-                          } else if (item.label === 'Enrollment Details') {
-                            setEnrollmentDetailsOpen(!enrollmentDetailsOpen);
                           }
                         }}
                         className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -220,17 +237,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                           {item.icon}
                         </span>
                         <span className="truncate flex-1 text-left">{item.label}</span>
-                        {((item.label === 'Resources' && resourcesOpen) || 
-                          (item.label === 'My Analysis' && myAnalysisOpen) || 
-                          (item.label === 'Enrollment Details' && enrollmentDetailsOpen)) ? (
+                        {((item.label === 'AI Analysis Tools' && aiAnalysisToolsOpen) || 
+                          (item.label === 'Document Information' && documentInfoOpen) || 
+                          (item.label === 'Enrollment Hub' && enrollmentHubOpen) || 
+                          (item.label === 'Resources' && resourcesOpen)) ? (
                           <ChevronDown className="h-4 w-4 text-gray-400" />
                         ) : (
                           <ChevronRight className="h-4 w-4 text-gray-400" />
                         )}
                       </button>
-                      {((item.label === 'Resources' && resourcesOpen) || 
-                        (item.label === 'My Analysis' && myAnalysisOpen) || 
-                        (item.label === 'Enrollment Details' && enrollmentDetailsOpen)) && item.submenuItems && (
+                      {((item.label === 'AI Analysis Tools' && aiAnalysisToolsOpen) || 
+                        (item.label === 'Document Information' && documentInfoOpen) || 
+                        (item.label === 'Enrollment Hub' && enrollmentHubOpen) || 
+                        (item.label === 'Resources' && resourcesOpen)) && item.submenuItems && (
                         <div className="ml-8 mt-1 space-y-1">
                           {item.submenuItems.map((subItem) => (
                             <div key={subItem.href} onClick={() => setSidebarOpen(false)}>
@@ -330,12 +349,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     <div>
                       <button
                         onClick={() => {
-                          if (item.label === 'Resources') {
+                          if (item.label === 'AI Analysis Tools') {
+                            setAiAnalysisToolsOpen(!aiAnalysisToolsOpen);
+                          } else if (item.label === 'Document Information') {
+                            setDocumentInfoOpen(!documentInfoOpen);
+                          } else if (item.label === 'Enrollment Hub') {
+                            setEnrollmentHubOpen(!enrollmentHubOpen);
+                          } else if (item.label === 'Resources') {
                             setResourcesOpen(!resourcesOpen);
-                          } else if (item.label === 'My Analysis') {
-                            setMyAnalysisOpen(!myAnalysisOpen);
-                          } else if (item.label === 'Enrollment Details') {
-                            setEnrollmentDetailsOpen(!enrollmentDetailsOpen);
                           }
                         }}
                         className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -344,17 +365,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                           {item.icon}
                         </span>
                         <span className="truncate flex-1 text-left">{item.label}</span>
-                        {((item.label === 'Resources' && resourcesOpen) || 
-                          (item.label === 'My Analysis' && myAnalysisOpen) || 
-                          (item.label === 'Enrollment Details' && enrollmentDetailsOpen)) ? (
+                        {((item.label === 'AI Analysis Tools' && aiAnalysisToolsOpen) || 
+                          (item.label === 'Document Information' && documentInfoOpen) || 
+                          (item.label === 'Enrollment Hub' && enrollmentHubOpen) || 
+                          (item.label === 'Resources' && resourcesOpen)) ? (
                           <ChevronDown className="h-4 w-4 text-gray-400" />
                         ) : (
                           <ChevronRight className="h-4 w-4 text-gray-400" />
                         )}
                       </button>
-                      {((item.label === 'Resources' && resourcesOpen) || 
-                        (item.label === 'My Analysis' && myAnalysisOpen) || 
-                        (item.label === 'Enrollment Details' && enrollmentDetailsOpen)) && item.submenuItems && (
+                      {((item.label === 'AI Analysis Tools' && aiAnalysisToolsOpen) || 
+                        (item.label === 'Document Information' && documentInfoOpen) || 
+                        (item.label === 'Enrollment Hub' && enrollmentHubOpen) || 
+                        (item.label === 'Resources' && resourcesOpen)) && item.submenuItems && (
                         <div className="ml-8 mt-1 space-y-1">
                           {item.submenuItems.map((subItem) => (
                             <SidebarItem 
