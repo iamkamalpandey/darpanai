@@ -235,8 +235,15 @@ router.get("/admin/scholarships", requireAdmin, async (req: Request, res: Respon
 // Get individual scholarship by ID (admin endpoint)
 router.get("/admin/scholarships/:id", requireAdmin, async (req: Request, res: Response) => {
   try {
-    const id = req.params.id;
-    const scholarship = await scholarshipStorage.getScholarshipById(id);
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid scholarship ID"
+      });
+    }
+
+    const scholarship = await scholarshipStorage.getScholarshipByNumericId(id);
     
     if (!scholarship) {
       return res.status(404).json({

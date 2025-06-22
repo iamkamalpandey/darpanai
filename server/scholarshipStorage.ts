@@ -143,7 +143,7 @@ export class ScholarshipStorage {
     }
   }
 
-  // Get scholarship by ID
+  // Get scholarship by ID (scholarshipId string)
   async getScholarshipById(scholarshipId: string): Promise<Scholarship | null> {
     try {
       const [scholarship] = await db
@@ -155,6 +155,22 @@ export class ScholarshipStorage {
 
     } catch (error) {
       console.error('[ScholarshipStorage] Get by ID error:', error);
+      throw new Error('Failed to get scholarship');
+    }
+  }
+
+  // Get scholarship by numeric ID (for admin routes)
+  async getScholarshipByNumericId(id: number): Promise<Scholarship | null> {
+    try {
+      const [scholarship] = await db
+        .select()
+        .from(scholarships)
+        .where(eq(scholarships.id, id));
+
+      return scholarship || null;
+
+    } catch (error) {
+      console.error('[ScholarshipStorage] Get by numeric ID error:', error);
       throw new Error('Failed to get scholarship');
     }
   }
