@@ -195,10 +195,7 @@ function setupGracefulShutdown(server: any) {
     const { setupOfferLetterInfoRoutes } = await import('./offerLetterInfoRoutes');
     setupOfferLetterInfoRoutes(app);
     
-    // Register scholarship research routes
-    const { scholarshipRoutes } = await import('./scholarshipRoutes');
-    app.use('/api/scholarships', scholarshipRoutes);
-    logWithLevel('✓ Scholarship research routes registered successfully');
+
     
     // Register COE information routes
     app.use('/api/coe-info', coeRoutes);
