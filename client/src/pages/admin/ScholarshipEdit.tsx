@@ -238,7 +238,14 @@ export default function ScholarshipEdit() {
                               <FormItem>
                                 <FormLabel>Description</FormLabel>
                                 <FormControl>
-                                  <Textarea {...field} rows={4} />
+                                  <Textarea 
+                                    value={field.value || ''} 
+                                    onChange={field.onChange}
+                                    onBlur={field.onBlur}
+                                    name={field.name}
+                                    ref={field.ref}
+                                    rows={4} 
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>

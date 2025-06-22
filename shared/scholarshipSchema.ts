@@ -11,6 +11,7 @@ export const scholarships = pgTable("scholarships", {
   providerName: text("provider_name").notNull(),
   providerType: text("provider_type").notNull(),
   providerCountry: text("provider_country").notNull(),
+  providerWebsite: text("provider_website"),
   hostCountries: json("host_countries"),
   eligibleCountries: json("eligible_countries"),
   studyLevels: json("study_levels"),

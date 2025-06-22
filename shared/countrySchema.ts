@@ -6,15 +6,13 @@ import { z } from "zod";
 export const countries = pgTable("countries", {
   id: serial("id").primaryKey(),
   countryName: text("country_name").notNull(),
-  isoAlpha2: text("iso_alpha2").notNull().unique(), // ISO 3166-1 Alpha-2 (e.g., US, AU, GB)
-  isoAlpha3: text("iso_alpha3").notNull().unique(), // ISO 3166-1 Alpha-3 (e.g., USA, AUS, GBR)
-  isoNumeric: text("iso_numeric").notNull().unique(), // ISO 3166-1 Numeric (e.g., 840, 036, 826)
-  currencyCode: text("currency_code"), // ISO 4217 Currency Code (e.g., USD, AUD, GBP)
-  currencyName: text("currency_name"), // Full currency name (e.g., US Dollar, Australian Dollar)
-  currencySymbol: text("currency_symbol"), // Currency symbol (e.g., $, £, €)
-  phoneCode: text("phone_code"), // International dialing code (e.g., +1, +61, +44)
-  region: text("region"), // Continent/Region (e.g., North America, Oceania, Europe)
-  subregion: text("subregion"), // Sub-region (e.g., Northern America, Australia and New Zealand)
+  isoAlpha2: text("iso_alpha2").notNull().unique(), // ISO 3166-1 Alpha-2 (2-digit country short code)
+  isoAlpha3: text("iso_alpha3").notNull().unique(), // ISO 3166-1 Alpha-3 (3-digit country short code)
+  currencyCode: text("currency_code"), // ISO 4217 Currency Code (3-digit currency short code)
+  currencyName: text("currency_name"), // Currency name (how it is named)
+  phoneCode: text("phone_code"), // International dialing code
+  region: text("region"), // Continent/Region
+  subregion: text("subregion"), // Sub-region
   isActive: integer("is_active").default(1), // 1 for active, 0 for inactive
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
@@ -40,6 +38,5 @@ export type CountryReference = {
   currency?: {
     code: string;
     name: string;
-    symbol: string;
   };
 };
