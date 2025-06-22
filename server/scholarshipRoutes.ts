@@ -1,6 +1,13 @@
 import { Router, Request, Response } from "express";
 import { scholarshipStorage } from "./scholarshipStorage";
 import { scholarshipSearchSchema, insertScholarshipSchema } from "@shared/scholarshipSchema";
+import multer from "multer";
+
+// Configure multer for file uploads
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
 
 const router = Router();
 
@@ -407,6 +414,182 @@ router.delete("/:id", requireAdmin, async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: "Failed to delete scholarship"
+    });
+  }
+});
+
+// Import scholarships from CSV/JSON file (admin endpoint)
+router.post("/admin/scholarships/import", requireAdmin, upload.single('file'), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: "No file uploaded"
+      });
+    }
+
+    const fileContent = req.file.buffer.toString('utf-8');
+    let scholarships: any[] = [];
+
+    // Parse JSON or CSV
+    if (req.file.mimetype === 'application/json') {
+      scholarships = JSON.parse(fileContent);
+    } else if (req.file.mimetype === 'text/csv' || req.file.originalname?.endsWith('.csv')) {
+      // Parse CSV
+      const lines = fileContent.split('\n');
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      
+      for (let i = 1; i < lines.length; i++) {
+        if (lines[i].trim()) {
+          const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+          const scholarship: any = {};
+          
+          headers.forEach((header, index) => {
+            const value = values[index];
+            if (value && value !== '') {
+              // Handle JSON fields
+              if (['hostCountries', 'eligibleCountries', 'studyLevels', 'fieldCategories', 'specificFields', 'degreeRequired', 'languageRequirements', 'documentsRequired', 'renewalCriteria', 'tags'].includes(header)) {
+                try {
+                  scholarship[header] = JSON.parse(value);
+                } catch {
+                  scholarship[header] = value.split(';').map(v => v.trim());
+                }
+              } else if (['minAge', 'maxAge', 'durationValue', 'totalApplicantsPerYear', 'minWorkExperience'].includes(header)) {
+                scholarship[header] = parseInt(value) || null;
+              } else if (['tuitionCoveragePercentage', 'livingAllowanceAmount', 'totalValueMin', 'totalValueMax', 'minGpa', 'gpaScale', 'applicationFeeAmount', 'acceptanceRate'].includes(header)) {
+                scholarship[header] = parseFloat(value) || null;
+              } else if (['leadershipRequired', 'feeWaiverAvailable', 'interviewRequired', 'essayRequired', 'renewable', 'mentorshipAvailable', 'networkingOpportunities', 'internshipOpportunities', 'researchOpportunities', 'verified'].includes(header)) {
+                scholarship[header] = value.toLowerCase() === 'true';
+              } else if (['applicationOpenDate', 'applicationDeadline', 'notificationDate', 'programStartDate'].includes(header)) {
+                scholarship[header] = value ? new Date(value).toISOString().split('T')[0] : null;
+              } else {
+                scholarship[header] = value;
+              }
+            }
+          });
+          
+          scholarships.push(scholarship);
+        }
+      }
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: "Unsupported file format. Please upload CSV or JSON files."
+      });
+    }
+
+    // Validate and import scholarships
+    let imported = 0;
+    let errors: string[] = [];
+
+    for (const scholarshipData of scholarships) {
+      try {
+        // Add required fields if missing
+        if (!scholarshipData.scholarshipId) {
+          scholarshipData.scholarshipId = `IMPORT_${Date.now()}_${imported}`;
+        }
+        
+        // Validate with schema
+        const validatedData = insertScholarshipSchema.parse(scholarshipData);
+        await scholarshipStorage.createScholarship(validatedData);
+        imported++;
+      } catch (error: any) {
+        errors.push(`Row ${imported + 1}: ${error.message}`);
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        imported,
+        total: scholarships.length,
+        errors: errors.slice(0, 10) // Limit error messages
+      }
+    });
+  } catch (error: any) {
+    console.error('[Scholarship Import] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to import scholarships"
+    });
+  }
+});
+
+// Export scholarships to CSV (admin endpoint)
+router.get("/admin/scholarships/export", requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const result = await scholarshipStorage.getAllScholarships();
+    const scholarships = result.scholarships;
+    
+    if (scholarships.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "No scholarships found to export"
+      });
+    }
+
+    // Define CSV headers (all database fields)
+    const headers = [
+      'id', 'scholarshipId', 'name', 'shortName', 'providerName', 'providerType', 'providerCountry',
+      'hostCountries', 'eligibleCountries', 'studyLevels', 'fieldCategories', 'specificFields',
+      'fundingType', 'fundingCurrency', 'tuitionCoveragePercentage', 'livingAllowanceAmount',
+      'livingAllowanceFrequency', 'totalValueMin', 'totalValueMax', 'applicationOpenDate',
+      'applicationDeadline', 'notificationDate', 'programStartDate', 'durationValue', 'durationUnit',
+      'minGpa', 'gpaScale', 'degreeRequired', 'minAge', 'maxAge', 'genderRequirement',
+      'minWorkExperience', 'leadershipRequired', 'languageRequirements', 'applicationUrl',
+      'applicationFeeAmount', 'applicationFeeCurrency', 'feeWaiverAvailable', 'documentsRequired',
+      'interviewRequired', 'essayRequired', 'renewable', 'maxRenewalDuration', 'renewalCriteria',
+      'workRestrictions', 'travelRestrictions', 'otherScholarshipsAllowed', 'mentorshipAvailable',
+      'networkingOpportunities', 'internshipOpportunities', 'researchOpportunities', 'description',
+      'tags', 'difficultyLevel', 'totalApplicantsPerYear', 'acceptanceRate', 'status',
+      'dataSource', 'verified', 'createdDate', 'updatedDate'
+    ];
+
+    // Generate CSV content
+    let csvContent = headers.join(',') + '\n';
+    
+    scholarships.forEach(scholarship => {
+      const row = headers.map(header => {
+        let value = scholarship[header as keyof typeof scholarship];
+        
+        // Handle null/undefined values
+        if (value === null || value === undefined) {
+          return '';
+        }
+        
+        // Handle arrays and objects (JSON fields)
+        if (typeof value === 'object') {
+          value = JSON.stringify(value);
+        }
+        
+        // Handle dates
+        if (value instanceof Date) {
+          value = value.toISOString().split('T')[0];
+        }
+        
+        // Escape quotes and wrap in quotes if contains comma or quote
+        const stringValue = String(value);
+        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+          return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        
+        return stringValue;
+      });
+      
+      csvContent += row.join(',') + '\n';
+    });
+
+    // Set headers for file download
+    const filename = `scholarships-export-${new Date().toISOString().split('T')[0]}.csv`;
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    
+    res.send(csvContent);
+  } catch (error: any) {
+    console.error('[Scholarship Export] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to export scholarships"
     });
   }
 });
