@@ -46,8 +46,8 @@ export class ScholarshipStorage {
         conditions.push(eq(scholarships.providerType, providerType));
       }
 
-      // Filter by provider country
-      if (providerCountry) {
+      // Filter by provider country (only if not 'all')
+      if (providerCountry && providerCountry !== 'all') {
         conditions.push(eq(scholarships.providerCountry, providerCountry));
       }
 
@@ -354,6 +354,14 @@ export class ScholarshipStorage {
           .flatMap(row => Array.isArray(row.fieldCategories) ? row.fieldCategories : [])
           .filter(Boolean)
       ));
+
+      // Country code to name mapping for better UX
+      const countryNames: { [key: string]: string } = {
+        'AU': 'Australia',
+        'US': 'United States', 
+        'GB': 'United Kingdom',
+        'EU': 'European Union'
+      };
 
       return {
         providerTypes: providerTypes.map(p => p.providerType).filter((type): type is string => Boolean(type)),

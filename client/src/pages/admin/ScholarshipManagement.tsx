@@ -381,9 +381,19 @@ export default function ScholarshipManagement() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Countries</SelectItem>
-                    {filterOptions?.data?.countries?.map((country: string) => (
-                      <SelectItem key={country} value={country}>{country}</SelectItem>
-                    ))}
+                    {filterOptions?.data?.countries?.map((country: string) => {
+                      const countryNames: { [key: string]: string } = {
+                        'AU': 'Australia',
+                        'US': 'United States', 
+                        'GB': 'United Kingdom',
+                        'EU': 'European Union'
+                      };
+                      return (
+                        <SelectItem key={country} value={country}>
+                          {countryNames[country] || country}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
               </div>
