@@ -214,9 +214,16 @@ export function ScholarshipFormLayout({
   const [currentSection, setCurrentSection] = useState(0);
   const [completedSections, setCompletedSections] = useState<number[]>([]);
   const [arrayFields, setArrayFields] = useState<{[key: string]: string[]}>({
-    targetCountries: [],
-    eligibilityRequirements: [],
-    languageRequirements: []
+    hostCountries: [],
+    eligibleCountries: [],
+    studyLevels: [],
+    fieldCategories: [],
+    specificFields: [],
+    degreeRequired: [],
+    languageRequirements: [],
+    documentsRequired: [],
+    renewalCriteria: [],
+    tags: []
   });
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
 
@@ -261,41 +268,50 @@ export function ScholarshipFormLayout({
       // Reset form with existing scholarship data
       form.reset({
         scholarshipId: existingData.scholarshipId || "",
-        scholarshipName: existingData.name || "",
+        name: existingData.name || "",
+        shortName: existingData.shortName || "",
         providerName: existingData.providerName || "",
         providerType: existingData.providerType || "government",
         providerCountry: existingData.providerCountry || "",
+        providerWebsite: existingData.providerWebsite || "",
         description: existingData.description || "",
-        shortDescription: existingData.shortDescription || "",
         applicationUrl: existingData.applicationUrl || "",
         applicationDeadline: existingData.applicationDeadline || "",
-        studyLevel: existingData.studyLevel || "",
-        fieldCategory: existingData.fieldCategory || "",
-        targetCountries: existingData.targetCountries || [],
         fundingType: existingData.fundingType || "full",
-        fundingAmount: existingData.fundingAmount || 0,
         fundingCurrency: existingData.fundingCurrency || "USD",
-        eligibilityRequirements: existingData.eligibilityRequirements || [],
-        languageRequirements: existingData.languageRequirements || [],
         difficultyLevel: existingData.difficultyLevel || "intermediate",
-        dataSource: existingData.dataSource || "",
-        verified: existingData.verified || false,
-        status: existingData.status || "pending",
+        dataSource: existingData.dataSource || "official",
+        verified: existingData.verified ?? true,
+        status: existingData.status || "active",
       });
 
       // Update array fields state
       setArrayFields({
-        targetCountries: existingData.targetCountries || [],
-        eligibilityRequirements: existingData.eligibilityRequirements || [],
-        languageRequirements: existingData.languageRequirements || []
+        hostCountries: existingData.hostCountries || [],
+        eligibleCountries: existingData.eligibleCountries || [],
+        studyLevels: existingData.studyLevels || [],
+        fieldCategories: existingData.fieldCategories || [],
+        specificFields: existingData.specificFields || [],
+        degreeRequired: existingData.degreeRequired || [],
+        languageRequirements: existingData.languageRequirements || [],
+        documentsRequired: existingData.documentsRequired || [],
+        renewalCriteria: existingData.renewalCriteria || [],
+        tags: existingData.tags || []
       });
     } else if (initialData && mode === 'create') {
       // Handle initial data for create mode
       form.reset(initialData);
       setArrayFields({
-        targetCountries: initialData.targetCountries || [],
-        eligibilityRequirements: initialData.eligibilityRequirements || [],
-        languageRequirements: initialData.languageRequirements || []
+        hostCountries: [],
+        eligibleCountries: [],
+        studyLevels: [],
+        fieldCategories: [],
+        specificFields: [],
+        degreeRequired: [],
+        languageRequirements: [],
+        documentsRequired: [],
+        renewalCriteria: [],
+        tags: []
       });
     }
   }, [existingData, initialData, mode, form]);
@@ -375,7 +391,7 @@ export function ScholarshipFormLayout({
     }
   };
 
-  const handleSubmit = async (data: ScholarshipFormData) => {
+  const handleSubmit = async (data: any) => {
     const isValid = await validateCurrentSection();
     if (isValid) {
       mutation.mutate(data);
@@ -779,7 +795,7 @@ function BasicInformationSection({ form, mode, errors }: any) {
 
         <FormField
           control={form.control}
-          name="scholarshipName"
+          name="name"
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-red-600">Scholarship Name *</FormLabel>
