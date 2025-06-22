@@ -1,16 +1,17 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
-import { useState } from "react";
+import { Save, X, Plus, Trash2 } from "lucide-react";
+import { z } from "zod";
 
 interface Scholarship {
   id: number;
@@ -45,50 +46,6 @@ interface ScholarshipSectionEditorProps {
   isLoading: boolean;
 }
 
-const providerTypes = [
-  { value: "government", label: "Government" },
-  { value: "private", label: "Private" },
-  { value: "institution", label: "Institution" },
-  { value: "other", label: "Other" }
-];
-
-const fundingTypes = [
-  { value: "full", label: "Full Scholarship" },
-  { value: "partial", label: "Partial Scholarship" },
-  { value: "tuition-only", label: "Tuition Only" },
-  { value: "living-allowance", label: "Living Allowance" },
-  { value: "travel-grant", label: "Travel Grant" }
-];
-
-const difficultyLevels = [
-  { value: "easy", label: "Easy" },
-  { value: "medium", label: "Medium" },
-  { value: "hard", label: "Hard" },
-  { value: "very-hard", label: "Very Hard" }
-];
-
-const statusOptions = [
-  { value: "active", label: "Active" },
-  { value: "inactive", label: "Inactive" },
-  { value: "pending", label: "Pending" }
-];
-
-const studyLevels = [
-  "Undergraduate", "Graduate", "Postgraduate", "Masters", "PhD", "Doctorate", "Certificate", "Diploma"
-];
-
-const fieldCategories = [
-  "Engineering", "Medicine", "Business", "Computer Science", "Arts", "Science", "Social Sciences", 
-  "Law", "Education", "Agriculture", "Environmental Studies", "Psychology", "Economics", "Mathematics"
-];
-
-const countries = [
-  "Australia", "Canada", "United States", "United Kingdom", "Germany", "France", "Netherlands", 
-  "Denmark", "Sweden", "Norway", "Finland", "New Zealand", "Singapore", "Japan", "South Korea"
-];
-
-const currencies = ["USD", "EUR", "GBP", "CAD", "AUD", "SGD", "JPY", "KRW", "DKK", "SEK", "NOK"];
-
 export default function ScholarshipSectionEditor({ 
   scholarship, 
   section, 
@@ -96,20 +53,23 @@ export default function ScholarshipSectionEditor({
   onCancel, 
   isLoading 
 }: ScholarshipSectionEditorProps) {
-  const [newEligibilityReq, setNewEligibilityReq] = useState("");
-  const [newLanguageReq, setNewLanguageReq] = useState("");
+  const [tempArrayItems, setTempArrayItems] = useState<{[key: string]: string[]}>({
+    targetCountries: scholarship.targetCountries || [],
+    eligibilityRequirements: scholarship.eligibilityRequirements || [],
+    languageRequirements: scholarship.languageRequirements || []
+  });
 
   // Create section-specific schema
   const createSectionSchema = (sectionKey: string) => {
-    const baseSchema = {
+    const baseSchemas = {
       basic: z.object({
+        scholarshipId: z.string().min(3, "Scholarship ID must be at least 3 characters"),
         scholarshipName: z.string().min(5, "Scholarship name must be at least 5 characters"),
         providerName: z.string().min(3, "Provider name must be at least 3 characters"),
         providerType: z.enum(["government", "private", "institution", "other"]),
         providerCountry: z.string().min(2, "Provider country is required"),
         description: z.string().min(20, "Description must be at least 20 characters"),
-        shortDescription: z.string().min(10, "Short description must be at least 10 characters"),
-        applicationUrl: z.string().url("Must be a valid URL")
+        shortDescription: z.string().min(10, "Short description must be at least 10 characters")
       }),
       funding: z.object({
         fundingType: z.enum(["full", "partial", "tuition-only", "living-allowance", "travel-grant"]),
@@ -124,6 +84,7 @@ export default function ScholarshipSectionEditor({
         languageRequirements: z.array(z.string())
       }),
       application: z.object({
+        applicationUrl: z.string().url("Must be a valid URL"),
         applicationDeadline: z.string().min(1, "Application deadline is required"),
         difficultyLevel: z.enum(["easy", "medium", "hard", "very-hard"])
       }),
@@ -134,7 +95,7 @@ export default function ScholarshipSectionEditor({
       })
     };
 
-    return baseSchema[sectionKey as keyof typeof baseSchema] || z.object({});
+    return baseSchemas[sectionKey as keyof typeof baseSchemas] || z.object({});
   };
 
   const schema = createSectionSchema(section);
@@ -142,565 +103,485 @@ export default function ScholarshipSectionEditor({
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: (() => {
-      const sectionFields = getSectionFields(section);
-      const defaultValues: any = {};
-      
-      sectionFields.forEach(field => {
-        defaultValues[field] = (scholarship as any)[field];
-      });
-      
-      return defaultValues;
-    })()
+    defaultValues: getSectionFields(section)
   });
 
   function getSectionFields(sectionKey: string) {
-    const fieldMap = {
-      basic: ['scholarshipName', 'providerName', 'providerType', 'providerCountry', 'description', 'shortDescription', 'applicationUrl'],
-      funding: ['fundingType', 'fundingAmount', 'fundingCurrency'],
-      eligibility: ['studyLevel', 'fieldCategory', 'targetCountries', 'eligibilityRequirements', 'languageRequirements'],
-      application: ['applicationDeadline', 'difficultyLevel'],
-      additional: ['dataSource', 'verified', 'status']
+    const fieldMappings = {
+      basic: {
+        scholarshipId: scholarship.scholarshipId,
+        scholarshipName: scholarship.scholarshipName,
+        providerName: scholarship.providerName,
+        providerType: scholarship.providerType,
+        providerCountry: scholarship.providerCountry,
+        description: scholarship.description,
+        shortDescription: scholarship.shortDescription
+      },
+      funding: {
+        fundingType: scholarship.fundingType,
+        fundingAmount: scholarship.fundingAmount,
+        fundingCurrency: scholarship.fundingCurrency
+      },
+      eligibility: {
+        studyLevel: scholarship.studyLevel,
+        fieldCategory: scholarship.fieldCategory,
+        targetCountries: scholarship.targetCountries || [],
+        eligibilityRequirements: scholarship.eligibilityRequirements || [],
+        languageRequirements: scholarship.languageRequirements || []
+      },
+      application: {
+        applicationUrl: scholarship.applicationUrl,
+        applicationDeadline: scholarship.applicationDeadline,
+        difficultyLevel: scholarship.difficultyLevel
+      },
+      additional: {
+        dataSource: scholarship.dataSource,
+        verified: scholarship.verified,
+        status: scholarship.status
+      }
     };
-    
-    return fieldMap[sectionKey as keyof typeof fieldMap] || [];
+
+    return fieldMappings[sectionKey as keyof typeof fieldMappings] || {};
   }
 
   const handleSubmit = (data: FormData) => {
-    onSubmit(data as Partial<Scholarship>);
+    // Include array fields in submission
+    const submissionData = {
+      ...data,
+      targetCountries: tempArrayItems.targetCountries,
+      eligibilityRequirements: tempArrayItems.eligibilityRequirements,
+      languageRequirements: tempArrayItems.languageRequirements
+    };
+    onSubmit(submissionData);
   };
 
-  const addEligibilityRequirement = () => {
-    if (newEligibilityReq.trim()) {
-      const currentReqs = form.getValues('eligibilityRequirements' as any) || [];
-      form.setValue('eligibilityRequirements' as any, [...currentReqs, newEligibilityReq.trim()]);
-      setNewEligibilityReq("");
+  const addArrayItem = (field: string, value: string) => {
+    if (value.trim()) {
+      setTempArrayItems(prev => ({
+        ...prev,
+        [field]: [...(prev[field] || []), value.trim()]
+      }));
     }
   };
 
-  const removeEligibilityRequirement = (index: number) => {
-    const currentReqs = form.getValues('eligibilityRequirements' as any) || [];
-    form.setValue('eligibilityRequirements' as any, currentReqs.filter((_: string, i: number) => i !== index));
+  const removeArrayItem = (field: string, index: number) => {
+    setTempArrayItems(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
   };
 
-  const addLanguageRequirement = () => {
-    if (newLanguageReq.trim()) {
-      const currentReqs = form.getValues('languageRequirements' as any) || [];
-      form.setValue('languageRequirements' as any, [...currentReqs, newLanguageReq.trim()]);
-      setNewLanguageReq("");
-    }
-  };
-
-  const removeLanguageRequirement = (index: number) => {
-    const currentReqs = form.getValues('languageRequirements' as any) || [];
-    form.setValue('languageRequirements' as any, currentReqs.filter((_: string, i: number) => i !== index));
-  };
-
-  const renderBasicFields = () => (
-    <div className="space-y-4">
-      <FormField
-        control={form.control}
-        name={"scholarshipName" as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Scholarship Name</FormLabel>
-            <FormControl>
-              <Input {...field} placeholder="Enter scholarship name" />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name={"providerName" as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Provider Name</FormLabel>
-            <FormControl>
-              <Input {...field} placeholder="Enter provider name" />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name={"providerType" as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Provider Type</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select provider type" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {providerTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name={"providerCountry" as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Provider Country</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select provider country" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {countries.map((country) => (
-                  <SelectItem key={country} value={country}>
-                    {country}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name={"shortDescription" as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Short Description</FormLabel>
-            <FormControl>
-              <Textarea {...field} placeholder="Enter short description" rows={2} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name={"description" as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Full Description</FormLabel>
-            <FormControl>
-              <Textarea {...field} placeholder="Enter full description" rows={4} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name={"applicationUrl" as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Application URL</FormLabel>
-            <FormControl>
-              <Input {...field} placeholder="https://..." type="url" />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
-  );
-
-  const renderFundingFields = () => (
-    <div className="space-y-4">
-      <FormField
-        control={form.control}
-        name={"fundingType" as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Funding Type</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select funding type" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {fundingTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <div className="grid grid-cols-2 gap-4">
-        <FormField
-          control={form.control}
-          name={"fundingAmount" as any}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Funding Amount</FormLabel>
-              <FormControl>
-                <Input 
-                  {...field} 
-                  type="number" 
-                  placeholder="0"
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name={"fundingCurrency" as any}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Currency</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select currency" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {currencies.map((currency) => (
-                    <SelectItem key={currency} value={currency}>
-                      {currency}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-    </div>
-  );
-
-  const renderEligibilityFields = () => {
-    const eligibilityReqs = form.watch('eligibilityRequirements' as any) || [];
-    const languageReqs = form.watch('languageRequirements' as any) || [];
-
+  const renderArrayField = (field: string, label: string) => {
+    const [newItem, setNewItem] = useState("");
+    
     return (
-      <div className="space-y-6">
-        <FormField
-          control={form.control}
-          name={"studyLevel" as any}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Study Level</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select study level" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {studyLevels.map((level) => (
-                    <SelectItem key={level} value={level}>
-                      {level}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name={"fieldCategory" as any}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Field Category</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select field category" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {fieldCategories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name={"targetCountries" as any}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Target Countries</FormLabel>
-              <div className="space-y-2">
-                <Select
-                  onValueChange={(value) => {
-                    const current = field.value || [];
-                    if (!current.includes(value)) {
-                      field.onChange([...current, value]);
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Add target country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map((country) => (
-                      <SelectItem key={country} value={country}>
-                        {country}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                <div className="flex flex-wrap gap-2">
-                  {(field.value || []).map((country: string, index: number) => (
-                    <Badge key={index} variant="secondary" className="flex items-center gap-2">
-                      {country}
-                      <X 
-                        className="w-3 h-3 cursor-pointer" 
-                        onClick={() => {
-                          const updated = (field.value || []).filter((_: string, i: number) => i !== index);
-                          field.onChange(updated);
-                        }}
-                      />
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div>
-          <Label>Eligibility Requirements</Label>
-          <div className="space-y-2 mt-2">
-            <div className="flex gap-2">
-              <Input
-                value={newEligibilityReq}
-                onChange={(e) => setNewEligibilityReq(e.target.value)}
-                placeholder="Add eligibility requirement"
-                onKeyPress={(e) => e.key === 'Enter' && addEligibilityRequirement()}
-              />
-              <Button type="button" onClick={addEligibilityRequirement}>Add</Button>
-            </div>
-            
-            <div className="space-y-2">
-              {eligibilityReqs.map((req: string, index: number) => (
-                <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                  <span className="flex-1 text-sm">{req}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeEligibilityRequirement(index)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="space-y-2">
+        <Label>{label}</Label>
+        <div className="flex gap-2">
+          <Input
+            value={newItem}
+            onChange={(e) => setNewItem(e.target.value)}
+            placeholder={`Add ${label.toLowerCase()}`}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addArrayItem(field, newItem);
+                setNewItem("");
+              }
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              addArrayItem(field, newItem);
+              setNewItem("");
+            }}
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
         </div>
-
-        <div>
-          <Label>Language Requirements</Label>
-          <div className="space-y-2 mt-2">
-            <div className="flex gap-2">
-              <Input
-                value={newLanguageReq}
-                onChange={(e) => setNewLanguageReq(e.target.value)}
-                placeholder="Add language requirement"
-                onKeyPress={(e) => e.key === 'Enter' && addLanguageRequirement()}
-              />
-              <Button type="button" onClick={addLanguageRequirement}>Add</Button>
-            </div>
-            
-            <div className="space-y-2">
-              {languageReqs.map((req: string, index: number) => (
-                <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                  <span className="flex-1 text-sm">{req}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeLanguageRequirement(index)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="flex flex-wrap gap-2">
+          {tempArrayItems[field]?.map((item, index) => (
+            <Badge key={index} variant="secondary" className="flex items-center gap-1">
+              {item}
+              <button
+                type="button"
+                onClick={() => removeArrayItem(field, index)}
+                className="ml-1 hover:text-destructive"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </Badge>
+          ))}
         </div>
       </div>
     );
   };
 
-  const renderApplicationFields = () => (
-    <div className="space-y-4">
-      <FormField
-        control={form.control}
-        name={"applicationDeadline" as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Application Deadline</FormLabel>
-            <FormControl>
-              <Input {...field} placeholder="e.g., March 31, 2024" />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name={"difficultyLevel" as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Difficulty Level</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select difficulty level" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {difficultyLevels.map((level) => (
-                  <SelectItem key={level.value} value={level.value}>
-                    {level.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
-  );
-
-  const renderAdditionalFields = () => (
-    <div className="space-y-4">
-      <FormField
-        control={form.control}
-        name={"dataSource" as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Data Source</FormLabel>
-            <FormControl>
-              <Input {...field} placeholder="e.g., official, website, manual" />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name={"verified" as any}
-        render={({ field }) => (
-          <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-            <FormControl>
-              <Checkbox
-                checked={field.value}
-                onCheckedChange={field.onChange}
-              />
-            </FormControl>
-            <div className="space-y-1 leading-none">
-              <FormLabel>Verified Scholarship</FormLabel>
-              <p className="text-sm text-muted-foreground">
-                Mark as verified if information has been confirmed
-              </p>
-            </div>
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name={"status" as any}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Status</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {statusOptions.map((status) => (
-                  <SelectItem key={status.value} value={status.value}>
-                    {status.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
-  );
-
   const renderSectionFields = () => {
     switch (section) {
       case 'basic':
-        return renderBasicFields();
+        return (
+          <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="scholarshipId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Scholarship ID *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="e.g. AUS_AWARDS_2025" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="scholarshipName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Scholarship Name *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="e.g. Australia Awards Scholarship" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="providerName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Provider Name *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="e.g. Australian Government" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="providerType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Provider Type *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select provider type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="government">Government</SelectItem>
+                        <SelectItem value="private">Private</SelectItem>
+                        <SelectItem value="institution">Institution</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="providerCountry"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Provider Country *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="e.g. Australia" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description *</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} rows={4} placeholder="Detailed scholarship description..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="shortDescription"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Short Description *</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} rows={2} placeholder="Brief summary..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        );
+
       case 'funding':
-        return renderFundingFields();
+        return (
+          <div className="grid gap-4 md:grid-cols-3">
+            <FormField
+              control={form.control}
+              name="fundingType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Funding Type *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select funding type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="full">Full Funding</SelectItem>
+                      <SelectItem value="partial">Partial Funding</SelectItem>
+                      <SelectItem value="tuition-only">Tuition Only</SelectItem>
+                      <SelectItem value="living-allowance">Living Allowance</SelectItem>
+                      <SelectItem value="travel-grant">Travel Grant</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="fundingAmount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Funding Amount *</FormLabel>
+                  <FormControl>
+                    <Input 
+                      {...field} 
+                      type="number" 
+                      placeholder="50000"
+                      onChange={e => field.onChange(Number(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="fundingCurrency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Currency *</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="e.g. USD, AUD, EUR" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        );
+
       case 'eligibility':
-        return renderEligibilityFields();
+        return (
+          <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="studyLevel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Study Level *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="e.g. Masters, PhD" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="fieldCategory"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Field Category *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="e.g. Engineering, Medicine" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            {renderArrayField('targetCountries', 'Target Countries')}
+            {renderArrayField('eligibilityRequirements', 'Eligibility Requirements')}
+            {renderArrayField('languageRequirements', 'Language Requirements')}
+          </div>
+        );
+
       case 'application':
-        return renderApplicationFields();
+        return (
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="applicationUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Application URL *</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="https://..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="applicationDeadline"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Application Deadline *</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="e.g. April 30, 2025" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="difficultyLevel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Difficulty Level *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select difficulty" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="easy">Easy</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="hard">Hard</SelectItem>
+                        <SelectItem value="very-hard">Very Hard</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+        );
+
       case 'additional':
-        return renderAdditionalFields();
+        return (
+          <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="dataSource"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Data Source</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="e.g. official, verified" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={form.control}
+              name="verified"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Verified Scholarship</FormLabel>
+                  </div>
+                </FormItem>
+              )}
+            />
+          </div>
+        );
+
       default:
-        return null;
+        return <div>Section not found</div>;
     }
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {renderSectionFields()}
-        
-        <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Updating..." : "Update Section"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          Edit {section.charAt(0).toUpperCase() + section.slice(1)} Information
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onCancel}
+            >
+              <X className="w-4 h-4 mr-2" />
+              Cancel
+            </Button>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            {renderSectionFields()}
+            <div className="flex justify-end">
+              <Button type="submit" disabled={isLoading}>
+                <Save className="w-4 h-4 mr-2" />
+                {isLoading ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 }

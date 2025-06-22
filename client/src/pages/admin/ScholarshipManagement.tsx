@@ -93,134 +93,92 @@ export default function ScholarshipManagement() {
     }
   });
 
-  // Category-based sections for editing
-  const editingSections = [
-    { 
-      key: 'basic', 
-      title: 'Basic Information', 
-      fields: ['scholarshipId', 'name', 'shortName', 'providerName', 'providerType', 'providerCountry']
+  // Create scholarship mutation
+  const createMutation = useMutation({
+    mutationFn: (data: ScholarshipFormData) => apiRequest('POST', '/api/admin/scholarships', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-scholarships'] });
+      toast({
+        title: "Success",
+        description: "Scholarship created successfully"
+      });
     },
-    { 
-      key: 'funding', 
-      title: 'Funding Details', 
-      fields: ['fundingType', 'fundingCurrency', 'totalValueMin', 'totalValueMax', 'tuitionCoveragePercentage']
-    },
-    { 
-      key: 'eligibility', 
-      title: 'Eligibility Requirements', 
-      fields: ['minGpa', 'minAge', 'maxAge', 'genderRequirement', 'minWorkExperience', 'leadershipRequired']
-    },
-    { 
-      key: 'application', 
-      title: 'Application Process', 
-      fields: ['applicationUrl', 'applicationFeeAmount', 'interviewRequired', 'essayRequired']
-    },
-    { 
-      key: 'additional', 
-      title: 'Additional Information', 
-      fields: ['description', 'difficultyLevel', 'status', 'verified']
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create scholarship",
+        variant: "destructive"
+      });
     }
-  ];
+  });
 
-  // Update scholarship mutation for category-based editing
+  // Update scholarship mutation
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<ScholarshipFormData> }) => {
-      return apiRequest('PUT', `/api/admin/scholarships/${id}`, data);
-    },
+    mutationFn: (data: { id: number; data: Partial<ScholarshipFormData> }) => 
+      apiRequest('PUT', `/api/admin/scholarships/${data.id}`, data.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-scholarships'] });
       setIsEditDialogOpen(false);
-      setSelectedScholarship(null);
       setEditingSection(null);
-      toast({ title: "Success", description: "Scholarship updated successfully" });
+      toast({
+        title: "Success",
+        description: "Scholarship updated successfully"
+      });
     },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to update scholarship", variant: "destructive" });
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update scholarship",
+        variant: "destructive"
+      });
     }
   });
 
   // Delete scholarship mutation
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      return apiRequest('DELETE', `/api/admin/scholarships/${id}`);
-    },
+    mutationFn: (id: number) => apiRequest('DELETE', `/api/admin/scholarships/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-scholarships'] });
-      toast({ title: "Success", description: "Scholarship deleted successfully" });
+      toast({
+        title: "Success",
+        description: "Scholarship deleted successfully"
+      });
     },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to delete scholarship", variant: "destructive" });
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete scholarship",
+        variant: "destructive"
+      });
     }
   });
 
   const form = useForm<ScholarshipFormData>({
     resolver: zodResolver(scholarshipFormSchema),
     defaultValues: {
+      scholarshipId: "",
+      scholarshipName: "",
+      providerName: "",
       providerType: "government",
+      providerCountry: "",
+      description: "",
+      shortDescription: "",
+      applicationUrl: "",
+      studyLevel: "",
+      fieldCategory: "",
+      targetCountries: [],
       fundingType: "full",
+      fundingAmount: 0,
+      fundingCurrency: "USD",
+      applicationDeadline: "",
+      eligibilityRequirements: [],
+      languageRequirements: [],
       difficultyLevel: "medium",
       dataSource: "official",
       verified: true,
-      status: "active",
-      targetCountries: [],
-      eligibilityRequirements: [],
-      languageRequirements: []
+      status: "active"
     }
   });
-
-  // Category-based editing handlers
-  const handleEditSection = (scholarship: Scholarship, section: string) => {
-    setSelectedScholarship(scholarship);
-    setEditingSection(section);
-    setIsEditDialogOpen(true);
-    
-    // Initialize form with current scholarship data
-    const currentSection = editingSections.find(s => s.key === section);
-    if (currentSection) {
-      const sectionData: Record<string, any> = {};
-      currentSection.fields.forEach(field => {
-        sectionData[field] = scholarship[field];
-      });
-      form.reset(sectionData);
-    }
-  };
-
-  const handleSectionSubmit = (data: Partial<ScholarshipFormData>) => {
-    if (selectedScholarship && editingSection) {
-      // Only send fields for the current section
-      const currentSection = editingSections.find(s => s.key === editingSection);
-      if (currentSection) {
-        const sectionData: any = {};
-        currentSection.fields.forEach(field => {
-          if ((data as any)[field] !== undefined) {
-            sectionData[field] = (data as any)[field];
-          }
-        });
-        updateMutation.mutate({ id: selectedScholarship.id, data: sectionData });
-      }
-    }
-  };
-
-  const handleUpdateSubmit = (data: ScholarshipFormData) => {
-    if (!selectedScholarship || !editingSection) return;
-    
-    // Only update the fields in the current editing section
-    const currentSection = editingSections.find(s => s.key === editingSection);
-    const updatedData: Partial<ScholarshipFormData> = {};
-    
-    if (currentSection) {
-      currentSection.fields.forEach(field => {
-        if (field in data) {
-          (updatedData as any)[field] = (data as any)[field];
-        }
-      });
-    }
-    
-    updateMutation.mutate({
-      id: selectedScholarship.id,
-      data: updatedData
-    });
-  };
 
   const handleEdit = (scholarship: Scholarship) => {
     setSelectedScholarship(scholarship);
@@ -266,6 +224,12 @@ export default function ScholarshipManagement() {
     return count;
   };
 
+  const handleUpdateSubmit = (data: ScholarshipFormData) => {
+    if (selectedScholarship) {
+      updateMutation.mutate({ id: selectedScholarship.id, data });
+    }
+  };
+
   const scholarships = scholarshipsData?.data?.scholarships || [];
   const totalScholarships = scholarshipsData?.data?.total || 0;
   const totalPages = Math.ceil(totalScholarships / 20);
@@ -287,7 +251,7 @@ export default function ScholarshipManagement() {
             <Upload className="w-4 h-4 mr-2" />
             Import
           </Button>
-          <Button onClick={() => window.location.href = '/admin/scholarships/create'}>
+          <Button onClick={() => setLocation('/admin/scholarships/create')}>
             <Plus className="w-4 h-4 mr-2" />
             Add Scholarship
           </Button>
@@ -486,23 +450,6 @@ export default function ScholarshipManagement() {
           )}
         </CardContent>
       </Card>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setSearchTerm("");
-                setFilterStatus("all");
-                setFilterProviderType("all");
-              }}
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Clear
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Scholarships Table */}
       <Card>
@@ -556,7 +503,16 @@ export default function ScholarshipManagement() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => handleViewDetails(scholarship)}
+                            title="View Details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleEdit(scholarship)}
+                            title="Quick Edit"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -564,6 +520,7 @@ export default function ScholarshipManagement() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDelete(scholarship.id)}
+                            title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -576,7 +533,7 @@ export default function ScholarshipManagement() {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
+                <div className="flex items-center justify-between pt-4">
                   <div className="text-sm text-muted-foreground">
                     Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalScholarships)} of {totalScholarships} scholarships
                   </div>
