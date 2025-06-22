@@ -272,7 +272,7 @@ export default function ScholarshipResearch() {
     selectedFieldCategory,
     selectedFundingType,
     selectedDifficultyLevel
-  ].filter(Boolean).length;
+  ].filter(value => value && value !== 'all').length;
 
   return (
     <div className="min-h-screen bg-gray-50">
