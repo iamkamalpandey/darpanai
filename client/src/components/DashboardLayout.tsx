@@ -58,8 +58,8 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
-  const [enrollmentInfoOpen, setEnrollmentInfoOpen] = useState(false);
-  const [enrollmentAnalysisOpen, setEnrollmentAnalysisOpen] = useState(false);
+  const [myAnalysisOpen, setMyAnalysisOpen] = useState(false);
+  const [enrollmentDetailsOpen, setEnrollmentDetailsOpen] = useState(false);
   const [location] = useLocation();
   const { unreadCount, hasUnread } = useUnreadUpdates();
   
@@ -208,10 +208,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         onClick={() => {
                           if (item.label === 'Resources') {
                             setResourcesOpen(!resourcesOpen);
-                          } else if (item.label === 'Enrollment Info') {
-                            setEnrollmentInfoOpen(!enrollmentInfoOpen);
-                          } else if (item.label === 'Enrollment Analysis') {
-                            setEnrollmentAnalysisOpen(!enrollmentAnalysisOpen);
+                          } else if (item.label === 'My Analysis') {
+                            setMyAnalysisOpen(!myAnalysisOpen);
+                          } else if (item.label === 'Enrollment Details') {
+                            setEnrollmentDetailsOpen(!enrollmentDetailsOpen);
                           }
                         }}
                         className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -221,16 +221,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         </span>
                         <span className="truncate flex-1 text-left">{item.label}</span>
                         {((item.label === 'Resources' && resourcesOpen) || 
-                          (item.label === 'Enrollment Info' && enrollmentInfoOpen) || 
-                          (item.label === 'Enrollment Analysis' && enrollmentAnalysisOpen)) ? (
+                          (item.label === 'My Analysis' && myAnalysisOpen) || 
+                          (item.label === 'Enrollment Details' && enrollmentDetailsOpen)) ? (
                           <ChevronDown className="h-4 w-4 text-gray-400" />
                         ) : (
                           <ChevronRight className="h-4 w-4 text-gray-400" />
                         )}
                       </button>
                       {((item.label === 'Resources' && resourcesOpen) || 
-                        (item.label === 'Enrollment Info' && enrollmentInfoOpen) || 
-                        (item.label === 'Enrollment Analysis' && enrollmentAnalysisOpen)) && item.submenuItems && (
+                        (item.label === 'My Analysis' && myAnalysisOpen) || 
+                        (item.label === 'Enrollment Details' && enrollmentDetailsOpen)) && item.submenuItems && (
                         <div className="ml-8 mt-1 space-y-1">
                           {item.submenuItems.map((subItem) => (
                             <div key={subItem.href} onClick={() => setSidebarOpen(false)}>
@@ -332,10 +332,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         onClick={() => {
                           if (item.label === 'Resources') {
                             setResourcesOpen(!resourcesOpen);
-                          } else if (item.label === 'Enrollment Info') {
-                            setEnrollmentInfoOpen(!enrollmentInfoOpen);
-                          } else if (item.label === 'Enrollment Analysis') {
-                            setEnrollmentAnalysisOpen(!enrollmentAnalysisOpen);
+                          } else if (item.label === 'My Analysis') {
+                            setMyAnalysisOpen(!myAnalysisOpen);
+                          } else if (item.label === 'Enrollment Details') {
+                            setEnrollmentDetailsOpen(!enrollmentDetailsOpen);
                           }
                         }}
                         className="w-full group flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 transition-all duration-200 text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -345,16 +345,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         </span>
                         <span className="truncate flex-1 text-left">{item.label}</span>
                         {((item.label === 'Resources' && resourcesOpen) || 
-                          (item.label === 'Enrollment Info' && enrollmentInfoOpen) || 
-                          (item.label === 'Enrollment Analysis' && enrollmentAnalysisOpen)) ? (
+                          (item.label === 'My Analysis' && myAnalysisOpen) || 
+                          (item.label === 'Enrollment Details' && enrollmentDetailsOpen)) ? (
                           <ChevronDown className="h-4 w-4 text-gray-400" />
                         ) : (
                           <ChevronRight className="h-4 w-4 text-gray-400" />
                         )}
                       </button>
                       {((item.label === 'Resources' && resourcesOpen) || 
-                        (item.label === 'Enrollment Info' && enrollmentInfoOpen) || 
-                        (item.label === 'Enrollment Analysis' && enrollmentAnalysisOpen)) && item.submenuItems && (
+                        (item.label === 'My Analysis' && myAnalysisOpen) || 
+                        (item.label === 'Enrollment Details' && enrollmentDetailsOpen)) && item.submenuItems && (
                         <div className="ml-8 mt-1 space-y-1">
                           {item.submenuItems.map((subItem) => (
                             <SidebarItem 
