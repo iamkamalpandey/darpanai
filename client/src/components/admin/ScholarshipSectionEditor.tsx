@@ -1,105 +1,186 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, Save } from "lucide-react";
+import { Save, Plus, X, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 // Section-specific validation schemas
 const basicInfoSchema = z.object({
+  scholarshipId: z.string().min(3, "Scholarship ID must be at least 3 characters"),
   scholarshipName: z.string().min(5, "Scholarship name must be at least 5 characters"),
   providerName: z.string().min(3, "Provider name must be at least 3 characters"),
   providerType: z.enum(["government", "private", "institution", "other"]),
   providerCountry: z.string().min(2, "Provider country is required"),
   description: z.string().min(20, "Description must be at least 20 characters"),
   shortDescription: z.string().min(10, "Short description must be at least 10 characters"),
-  applicationUrl: z.string().url("Must be a valid URL")
 });
 
 const studyInfoSchema = z.object({
   studyLevel: z.string().min(2, "Study level is required"),
   fieldCategory: z.string().min(2, "Field category is required"),
-  targetCountries: z.array(z.string()).min(1, "At least one target country is required")
+  targetCountries: z.array(z.string()).min(1, "At least one target country is required"),
 });
 
 const fundingInfoSchema = z.object({
   fundingType: z.enum(["full", "partial", "tuition-only", "living-allowance", "other"]),
   fundingAmount: z.number().min(1, "Funding amount must be greater than 0"),
   fundingCurrency: z.string().length(3, "Currency must be 3 characters"),
-  applicationDeadline: z.string().min(1, "Application deadline is required")
+  applicationUrl: z.string().url("Must be a valid URL"),
+  applicationDeadline: z.string().min(1, "Application deadline is required"),
 });
 
 const requirementsSchema = z.object({
   eligibilityRequirements: z.array(z.string()).min(1, "At least one eligibility requirement is required"),
   languageRequirements: z.array(z.string()).optional(),
-  difficultyLevel: z.enum(["beginner", "intermediate", "advanced", "expert"])
+  difficultyLevel: z.enum(["beginner", "intermediate", "advanced", "expert"]),
 });
 
 const settingsSchema = z.object({
   dataSource: z.string().min(2, "Data source is required"),
   verified: z.boolean(),
-  status: z.enum(["active", "inactive", "pending"])
+  status: z.enum(["active", "inactive", "pending"]),
 });
+
+type SectionType = 'basic' | 'study' | 'funding' | 'requirements' | 'settings';
 
 interface ScholarshipSectionEditorProps {
   isOpen: boolean;
-  onClose: () => void;
-  onSave: (data: any) => void;
-  section: string;
-  title: string;
-  initialData: any;
-  isLoading?: boolean;
+  onOpenChange: (open: boolean) => void;
+  section: SectionType;
+  scholarshipId: string;
+  scholarshipData: any;
 }
 
-export default function ScholarshipSectionEditor({
+export function ScholarshipSectionEditor({
   isOpen,
-  onClose,
-  onSave,
+  onOpenChange,
   section,
-  title,
-  initialData,
-  isLoading = false
+  scholarshipId,
+  scholarshipData
 }: ScholarshipSectionEditorProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [arrayFields, setArrayFields] = useState<{[key: string]: string[]}>({
-    targetCountries: initialData?.targetCountries || [],
-    eligibilityRequirements: initialData?.eligibilityRequirements || [],
-    languageRequirements: initialData?.languageRequirements || []
+    targetCountries: scholarshipData?.targetCountries || [],
+    eligibilityRequirements: scholarshipData?.eligibilityRequirements || [],
+    languageRequirements: scholarshipData?.languageRequirements || []
   });
 
-  // Select appropriate schema based on section
-  const getSchema = () => {
+  // Get section-specific schema and data
+  const getSectionConfig = () => {
     switch (section) {
-      case 'basic': return basicInfoSchema;
-      case 'study': return studyInfoSchema;
-      case 'funding': return fundingInfoSchema;
-      case 'requirements': return requirementsSchema;
-      case 'settings': return settingsSchema;
-      default: return basicInfoSchema;
+      case 'basic':
+        return {
+          schema: basicInfoSchema,
+          title: "Basic Information",
+          description: "Essential scholarship details and identification information",
+          fields: ['scholarshipId', 'scholarshipName', 'providerName', 'providerType', 'providerCountry', 'description', 'shortDescription']
+        };
+      case 'study':
+        return {
+          schema: studyInfoSchema,
+          title: "Study Information",
+          description: "Academic levels, fields, and target countries",
+          fields: ['studyLevel', 'fieldCategory', 'targetCountries']
+        };
+      case 'funding':
+        return {
+          schema: fundingInfoSchema,
+          title: "Funding Information",
+          description: "Financial details and application information",
+          fields: ['fundingType', 'fundingAmount', 'fundingCurrency', 'applicationUrl', 'applicationDeadline']
+        };
+      case 'requirements':
+        return {
+          schema: requirementsSchema,
+          title: "Requirements & Eligibility",
+          description: "Eligibility criteria and language requirements",
+          fields: ['eligibilityRequirements', 'languageRequirements', 'difficultyLevel']
+        };
+      case 'settings':
+        return {
+          schema: settingsSchema,
+          title: "Settings & Metadata",
+          description: "Administrative settings and verification status",
+          fields: ['dataSource', 'verified', 'status']
+        };
+      default:
+        return {
+          schema: basicInfoSchema,
+          title: "Basic Information",
+          description: "Essential scholarship details",
+          fields: []
+        };
     }
   };
 
+  const sectionConfig = getSectionConfig();
+  
+  // Extract section-specific default values
+  const getDefaultValues = () => {
+    const defaults: any = {};
+    sectionConfig.fields.forEach(field => {
+      if (scholarshipData && scholarshipData[field] !== undefined) {
+        defaults[field] = scholarshipData[field];
+      }
+    });
+    
+    // Handle array fields
+    if (scholarshipData?.targetCountries && sectionConfig.fields.includes('targetCountries')) {
+      defaults.targetCountries = scholarshipData.targetCountries;
+    }
+    if (scholarshipData?.eligibilityRequirements && sectionConfig.fields.includes('eligibilityRequirements')) {
+      defaults.eligibilityRequirements = scholarshipData.eligibilityRequirements;
+    }
+    if (scholarshipData?.languageRequirements && sectionConfig.fields.includes('languageRequirements')) {
+      defaults.languageRequirements = scholarshipData.languageRequirements;
+    }
+    
+    return defaults;
+  };
+
   const form = useForm({
-    resolver: zodResolver(getSchema()),
-    defaultValues: initialData || {}
+    resolver: zodResolver(sectionConfig.schema),
+    defaultValues: getDefaultValues(),
   });
 
-  // Update form when initialData changes
-  useEffect(() => {
-    if (initialData) {
-      form.reset(initialData);
-      setArrayFields({
-        targetCountries: initialData.targetCountries || [],
-        eligibilityRequirements: initialData.eligibilityRequirements || [],
-        languageRequirements: initialData.languageRequirements || []
+  // Update section mutation
+  const updateMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const updateData = { ...data, ...arrayFields };
+      return apiRequest("PATCH", `/api/admin/scholarships/${scholarshipId}`, updateData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: `${sectionConfig.title} updated successfully`,
       });
-    }
-  }, [initialData, form]);
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/scholarships/${scholarshipId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/scholarships"] });
+      onOpenChange(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || `Failed to update ${sectionConfig.title.toLowerCase()}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = async (data: any) => {
+    updateMutation.mutate(data);
+  };
 
   const handleArrayAdd = (fieldName: string, value: string) => {
     if (!value.trim()) return;
@@ -119,50 +200,24 @@ export default function ScholarshipSectionEditor({
     form.setValue(fieldName as any, updatedItems);
   };
 
-  const handleSave = (data: any) => {
-    // Merge array fields with form data
-    const finalData = {
-      ...data,
-      ...arrayFields
-    };
-    onSave(finalData);
-  };
-
-  const renderBasicInfoFields = () => (
+  const renderBasicFields = () => (
     <>
       <div className="grid gap-4 md:grid-cols-2">
         <FormField
           control={form.control}
-          name="scholarshipName"
+          name="scholarshipId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-red-600">Scholarship Name *</FormLabel>
+              <FormLabel className="text-red-600">Scholarship ID *</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="e.g. Australia Awards Scholarship" />
+                <Input {...field} placeholder="e.g. AUS_AWARDS_2025" />
               </FormControl>
-              <div className="text-sm text-red-600">Required</div>
+              <div className="text-xs text-gray-500">Unique identifier using uppercase letters, numbers, and underscores</div>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="providerName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-red-600">Provider Name *</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Australian Government" />
-              </FormControl>
-              <div className="text-sm text-red-600">Required</div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
         <FormField
           control={form.control}
           name="providerType"
@@ -182,7 +237,37 @@ export default function ScholarshipSectionEditor({
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
-              <div className="text-sm text-red-600">Required</div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <FormField
+        control={form.control}
+        name="scholarshipName"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-red-600">Scholarship Name *</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="e.g. Australia Awards Scholarship Program" />
+            </FormControl>
+            <div className="text-xs text-gray-500">Full official name of the scholarship program</div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <FormField
+          control={form.control}
+          name="providerName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-red-600">Provider Name *</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="e.g. Australian Government" />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -195,9 +280,8 @@ export default function ScholarshipSectionEditor({
             <FormItem>
               <FormLabel className="text-red-600">Provider Country *</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Australia" />
+                <Input {...field} placeholder="e.g. Australia" />
               </FormControl>
-              <div className="text-sm text-red-600">Required</div>
               <FormMessage />
             </FormItem>
           )}
@@ -214,11 +298,11 @@ export default function ScholarshipSectionEditor({
               <Textarea 
                 {...field} 
                 rows={4} 
-                placeholder="Detailed scholarship description..."
+                placeholder="Provide a comprehensive description of the scholarship program, its objectives, and key benefits..."
                 className="resize-none"
               />
             </FormControl>
-            <div className="text-sm text-red-600">Required</div>
+            <div className="text-xs text-gray-500">Detailed description (50-2000 characters) - Current: {field.value?.length || 0}</div>
             <FormMessage />
           </FormItem>
         )}
@@ -234,26 +318,11 @@ export default function ScholarshipSectionEditor({
               <Textarea 
                 {...field} 
                 rows={2} 
-                placeholder="Brief summary..."
+                placeholder="Brief summary for listing displays..."
                 className="resize-none"
               />
             </FormControl>
-            <div className="text-sm text-red-600">Required</div>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="applicationUrl"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-red-600">Application URL *</FormLabel>
-            <FormControl>
-              <Input {...field} placeholder="https://example.com/apply" type="url" />
-            </FormControl>
-            <div className="text-sm text-red-600">Required</div>
+            <div className="text-xs text-gray-500">Brief summary (20-300 characters) - Current: {field.value?.length || 0}</div>
             <FormMessage />
           </FormItem>
         )}
@@ -261,7 +330,7 @@ export default function ScholarshipSectionEditor({
     </>
   );
 
-  const renderStudyInfoFields = () => (
+  const renderStudyFields = () => (
     <>
       <div className="grid gap-4 md:grid-cols-2">
         <FormField
@@ -273,7 +342,6 @@ export default function ScholarshipSectionEditor({
               <FormControl>
                 <Input {...field} placeholder="e.g. Masters, PhD" />
               </FormControl>
-              <div className="text-sm text-red-600">Required</div>
               <FormMessage />
             </FormItem>
           )}
@@ -288,7 +356,6 @@ export default function ScholarshipSectionEditor({
               <FormControl>
                 <Input {...field} placeholder="e.g. Engineering, Medicine" />
               </FormControl>
-              <div className="text-sm text-red-600">Required</div>
               <FormMessage />
             </FormItem>
           )}
@@ -306,7 +373,7 @@ export default function ScholarshipSectionEditor({
     </>
   );
 
-  const renderFundingInfoFields = () => (
+  const renderFundingFields = () => (
     <>
       <FormField
         control={form.control}
@@ -328,7 +395,6 @@ export default function ScholarshipSectionEditor({
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
-            <div className="text-sm text-red-600">Required</div>
             <FormMessage />
           </FormItem>
         )}
@@ -350,7 +416,6 @@ export default function ScholarshipSectionEditor({
                   onChange={(e) => field.onChange(Number(e.target.value))}
                 />
               </FormControl>
-              <div className="text-sm text-red-600">Required</div>
               <FormMessage />
             </FormItem>
           )}
@@ -371,12 +436,25 @@ export default function ScholarshipSectionEditor({
                   onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                 />
               </FormControl>
-              <div className="text-sm text-red-600">Required</div>
               <FormMessage />
             </FormItem>
           )}
         />
       </div>
+
+      <FormField
+        control={form.control}
+        name="applicationUrl"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-red-600">Application URL *</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="https://example.com/apply" type="url" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
       <FormField
         control={form.control}
@@ -391,7 +469,6 @@ export default function ScholarshipSectionEditor({
                 min={new Date().toISOString().split('T')[0]}
               />
             </FormControl>
-            <div className="text-sm text-red-600">Required</div>
             <FormMessage />
           </FormItem>
         )}
@@ -437,7 +514,6 @@ export default function ScholarshipSectionEditor({
                 <SelectItem value="expert">Expert</SelectItem>
               </SelectContent>
             </Select>
-            <div className="text-sm text-red-600">Required</div>
             <FormMessage />
           </FormItem>
         )}
@@ -456,11 +532,33 @@ export default function ScholarshipSectionEditor({
             <FormControl>
               <Input {...field} placeholder="official website" />
             </FormControl>
-            <div className="text-sm text-red-600">Required</div>
             <FormMessage />
           </FormItem>
         )}
       />
+
+      <div className="flex items-center space-x-2">
+        <FormField
+          control={form.control}
+          name="verified"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+              <FormControl>
+                <input
+                  type="checkbox"
+                  checked={field.value}
+                  onChange={field.onChange}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>Verified Status</FormLabel>
+                <div className="text-xs text-gray-500">Mark as verified scholarship</div>
+              </div>
+            </FormItem>
+          )}
+        />
+      </div>
 
       <FormField
         control={form.control}
@@ -480,7 +578,6 @@ export default function ScholarshipSectionEditor({
                 <SelectItem value="pending">Pending</SelectItem>
               </SelectContent>
             </Select>
-            <div className="text-sm text-red-600">Required</div>
             <FormMessage />
           </FormItem>
         )}
@@ -490,36 +587,53 @@ export default function ScholarshipSectionEditor({
 
   const renderSectionFields = () => {
     switch (section) {
-      case 'basic': return renderBasicInfoFields();
-      case 'study': return renderStudyInfoFields();
-      case 'funding': return renderFundingInfoFields();
+      case 'basic': return renderBasicFields();
+      case 'study': return renderStudyFields();
+      case 'funding': return renderFundingFields();
       case 'requirements': return renderRequirementsFields();
       case 'settings': return renderSettingsFields();
-      default: return renderBasicInfoFields();
+      default: return null;
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit {title}</DialogTitle>
-          <DialogDescription>
-            Update scholarship information for the selected section
-          </DialogDescription>
+          <DialogTitle className="flex items-center gap-2">
+            Edit {sectionConfig.title}
+          </DialogTitle>
+          <p className="text-sm text-gray-600">{sectionConfig.description}</p>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSave)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             {renderSectionFields()}
 
-            <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={onClose}>
+            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={updateMutation.isPending}
+              >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
-                <Save className="w-4 h-4 mr-2" />
-                {isLoading ? "Saving..." : "Save Changes"}
+              <Button
+                type="submit"
+                disabled={updateMutation.isPending}
+              >
+                {updateMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
               </Button>
             </div>
           </form>
@@ -558,7 +672,7 @@ function ArrayFieldEditor({ label, items, onAdd, onRemove, placeholder, required
 
   return (
     <div className="space-y-3">
-      <div className={`text-sm font-medium ${required ? 'text-red-600' : ''}`}>
+      <div className={`text-sm font-medium ${required ? 'text-red-600' : 'text-gray-700'}`}>
         {label} {required && '*'}
       </div>
       
@@ -582,7 +696,7 @@ function ArrayFieldEditor({ label, items, onAdd, onRemove, placeholder, required
       </div>
       
       {required && items.length === 0 && (
-        <div className="text-sm text-red-600">Required</div>
+        <div className="text-sm text-red-600">At least one item is required</div>
       )}
       
       {items.length > 0 && (

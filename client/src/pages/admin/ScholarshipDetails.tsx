@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Edit, DollarSign, Globe, Calendar, Users, BookOpen, GraduationCap, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import ScholarshipSectionEditor from "../../components/admin/ScholarshipSectionEditor";
+import { ScholarshipSectionEditor } from "@/components/admin/ScholarshipSectionEditor";
 import { Label } from "@/components/ui/label";
 import { AdminLayout } from "@/components/AdminLayout";
 
@@ -77,7 +77,7 @@ export default function ScholarshipDetails() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [editingSection, setEditingSection] = useState<string | null>(null);
+  const [editSection, setEditSection] = useState<'basic' | 'study' | 'funding' | 'requirements' | 'settings' | null>(null);
 
   // Fetch scholarship data with proper preloading
   const { data: scholarship, isLoading, error } = useQuery({
@@ -417,15 +417,13 @@ export default function ScholarshipDetails() {
       </div>
 
       {/* Section Editor Dialog */}
-      {editingSection && currentSection && (
+      {editSection && scholarship && (
         <ScholarshipSectionEditor
-          isOpen={!!editingSection}
-          onClose={() => setEditingSection(null)}
-          onSave={handleSectionSave}
-          section={editingSection}
-          title={currentSection.title}
-          initialData={scholarship}
-          isLoading={updateMutation.isPending}
+          isOpen={!!editSection}
+          onOpenChange={(open) => setEditSection(open ? editSection : null)}
+          section={editSection}
+          scholarshipId={id!}
+          scholarshipData={scholarship}
         />
       )}
     </AdminLayout>
