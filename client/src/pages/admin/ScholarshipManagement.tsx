@@ -70,8 +70,8 @@ export default function ScholarshipManagement() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
-      if (filterStatus !== 'all') params.append('status', filterStatus);
-      if (filterProviderType !== 'all') params.append('providerType', filterProviderType);
+      if (filterStatus && filterStatus !== 'all') params.append('status', filterStatus);
+      if (filterProviderType && filterProviderType !== 'all') params.append('providerType', filterProviderType);
       params.append('limit', '20');
       params.append('offset', ((currentPage - 1) * 20).toString());
       
@@ -165,9 +165,9 @@ export default function ScholarshipManagement() {
     // Initialize form with current scholarship data
     const currentSection = editingSections.find(s => s.key === section);
     if (currentSection) {
-      const sectionData = {};
+      const sectionData: any = {};
       currentSection.fields.forEach(field => {
-        sectionData[field] = scholarship[field];
+        sectionData[field] = (scholarship as any)[field];
       });
       form.reset(sectionData);
     }
@@ -178,10 +178,10 @@ export default function ScholarshipManagement() {
       // Only send fields for the current section
       const currentSection = editingSections.find(s => s.key === editingSection);
       if (currentSection) {
-        const sectionData = {};
+        const sectionData: any = {};
         currentSection.fields.forEach(field => {
-          if (data[field] !== undefined) {
-            sectionData[field] = data[field];
+          if ((data as any)[field] !== undefined) {
+            sectionData[field] = (data as any)[field];
           }
         });
         updateMutation.mutate({ id: selectedScholarship.id, data: sectionData });
