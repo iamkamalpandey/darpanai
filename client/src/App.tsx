@@ -29,6 +29,7 @@ const ComprehensiveOfferLetterAnalysis = lazy(() => import("@/pages/Comprehensiv
 const OfferLetterAnalysisDisplay = lazy(() => import("@/pages/OfferLetterAnalysisDisplay"));
 const VisaAnalysisView = lazy(() => import("@/pages/VisaAnalysisView"));
 const ScholarshipResearch = lazy(() => import("@/pages/ScholarshipResearch"));
+const ScholarshipResearchSample = lazy(() => import("@/pages/ScholarshipResearchSample"));
 const UserVisaAnalysisView = lazy(() => import("@/pages/UserVisaAnalysisView"));
 const EnrollmentAnalysisResults = lazy(() => import("@/pages/EnrollmentAnalysisResults"));
 const VisaAnalysisResults = lazy(() => import("@/pages/VisaAnalysisResults"));
@@ -182,6 +183,13 @@ function Router() {
         <UserProtectedRoute path="/personalized-destination-analysis/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <PersonalizedDestinationAnalysis />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/scholarship-research">
+        <UserProtectedRoute path="/scholarship-research" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <ScholarshipResearchSample />
           </Suspense>
         )} />
       </Route>
