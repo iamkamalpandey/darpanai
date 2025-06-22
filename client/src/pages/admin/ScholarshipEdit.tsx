@@ -1,15 +1,13 @@
-import { useParams, useLocation } from 'wouter';
-import { ScholarshipFormLayout } from '@/components/admin/ScholarshipFormLayout';
+import { useParams } from 'wouter';
+import { ScholarshipEditor } from '@/components/admin/ScholarshipEditor';
 
 export default function ScholarshipEdit() {
   const { id } = useParams();
-  const [, setLocation] = useLocation();
 
   return (
-    <ScholarshipFormLayout
+    <ScholarshipEditor
+      scholarshipId={id || ''}
       mode="edit"
-      scholarshipId={id}
-      onSuccess={() => setLocation('/admin/scholarships')}
     />
   );
 }
