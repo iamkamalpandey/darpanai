@@ -101,13 +101,11 @@ export class ScholarshipStorage {
         conditions.push(eq(scholarships.leadershipRequired, leadershipRequired));
       }
 
-      // Filter by status (for admin operations, don't default to active only)
-      if (status) {
+      // Filter by status (for admin operations, show all if no status filter)
+      if (status && status !== 'all') {
         conditions.push(eq(scholarships.status, status));
-      } else {
-        // Only for non-admin searches, default to active
-        conditions.push(eq(scholarships.status, 'active'));
       }
+      // For admin endpoints, don't filter by status unless explicitly requested
 
       // Get total count
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,6 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Edit, Trash2, Search, Filter, Eye, Download, Upload } from "lucide-react";
+import { Link } from "wouter";
 import { z } from "zod";
 
 // Scholarship form validation schema
@@ -188,26 +189,12 @@ export default function ScholarshipManagement() {
             <Upload className="w-4 h-4 mr-2" />
             Import
           </Button>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Scholarship
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Create New Scholarship</DialogTitle>
-                <DialogDescription>Add a new scholarship to the database</DialogDescription>
-              </DialogHeader>
-              <ScholarshipForm 
-                form={form} 
-                onSubmit={handleCreateSubmit} 
-                isLoading={createMutation.isPending}
-                submitText="Create Scholarship"
-              />
-            </DialogContent>
-          </Dialog>
+          <Link href="/admin/scholarships/create">
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Scholarship
+            </Button>
+          </Link>
         </div>
       </div>
 
