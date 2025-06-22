@@ -591,10 +591,10 @@ router.post("/admin/scholarships/import", requireAdmin, upload.single('file'), a
 // Export scholarships to CSV (admin endpoint)
 router.get("/admin/scholarships/export", requireAdmin, async (req: Request, res: Response) => {
   try {
-    const result = await scholarshipStorage.getAllScholarships();
-    const scholarships = result.scholarships;
+    const result = await scholarshipStorage.getAllScholarships(1000, 0);
+    const allScholarships = result.scholarships;
     
-    if (!scholarships || scholarships.length === 0) {
+    if (!allScholarships || allScholarships.length === 0) {
       return res.status(404).json({
         success: false,
         error: "No scholarships found to export"
@@ -621,8 +621,8 @@ router.get("/admin/scholarships/export", requireAdmin, async (req: Request, res:
     // Generate CSV content
     let csvContent = headers.join(',') + '\n';
     
-    scholarships.forEach(scholarship => {
-      const row = headers.map(header => {
+    allScholarships.forEach((scholarship: any) => {
+      const row = headers.map((header: string) => {
         let value = scholarship[header as keyof typeof scholarship];
         
         // Handle null/undefined values

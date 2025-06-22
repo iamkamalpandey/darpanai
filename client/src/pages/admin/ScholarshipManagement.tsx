@@ -425,13 +425,9 @@ export default function ScholarshipManagement() {
                   <CardDescription className="break-words">Complete database of international scholarship opportunities</CardDescription>
                 </div>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setLocation('/admin/scholarships/bulk-edit')} className="w-full sm:w-auto">
-                    <FileSpreadsheet className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span className="break-words">Bulk Edit</span>
-                  </Button>
                   <Button variant="outline" size="sm" onClick={handleExport} className="w-full sm:w-auto">
                     <FileDown className="w-4 h-4 mr-2 flex-shrink-0" />
-                    <span className="break-words">Quick Export</span>
+                    <span className="break-words">Export Data</span>
                   </Button>
                 </div>
               </div>
