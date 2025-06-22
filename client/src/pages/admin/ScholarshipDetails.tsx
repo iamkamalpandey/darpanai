@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Edit, DollarSign, Globe, Calendar, Users, BookOpen, GraduationCap, Settings, CheckCircle, ExternalLink } from "lucide-react";
+import { ArrowLeft, Edit, DollarSign, Globe, Calendar, Users, BookOpen, GraduationCap, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import ScholarshipSectionEditor from "../../components/admin/ScholarshipSectionEditor";
@@ -15,60 +15,23 @@ import { AdminLayout } from "@/components/AdminLayout";
 interface Scholarship {
   id: number;
   scholarshipId: string;
-  name: string;
-  shortName: string;
+  scholarshipName: string;
   providerName: string;
   providerType: string;
   providerCountry: string;
-  hostCountries: string[];
-  eligibleCountries: string[];
-  studyLevels: string[];
-  fieldCategories: string[];
-  specificFields: string[];
   description: string;
+  shortDescription: string;
   applicationUrl: string;
+  studyLevel: string;
+  fieldCategory: string;
+  targetCountries: string[];
   fundingType: string;
+  fundingAmount: number;
   fundingCurrency: string;
-  tuitionCoveragePercentage: number;
-  livingAllowanceAmount: number;
-  livingAllowanceFrequency: string;
-  totalValueMin: number;
-  totalValueMax: number;
-  applicationOpenDate: string;
   applicationDeadline: string;
-  notificationDate: string;
-  programStartDate: string;
-  durationValue: number;
-  durationUnit: string;
-  minGpa: number;
-  gpaScale: number;
-  degreeRequired: string[];
-  minAge: number;
-  maxAge: number;
-  genderRequirement: string;
-  minWorkExperience: number;
-  leadershipRequired: boolean;
+  eligibilityRequirements: string[];
   languageRequirements: string[];
-  applicationFeeAmount: number;
-  applicationFeeCurrency: string;
-  feeWaiverAvailable: boolean;
-  documentsRequired: string[];
-  interviewRequired: boolean;
-  essayRequired: boolean;
-  renewable: boolean;
-  maxRenewalDuration: string;
-  renewalCriteria: string[];
-  workRestrictions: string;
-  travelRestrictions: string;
-  otherScholarshipsAllowed: boolean;
-  mentorshipAvailable: boolean;
-  networkingOpportunities: boolean;
-  internshipOpportunities: boolean;
-  researchOpportunities: boolean;
-  tags: string[];
   difficultyLevel: string;
-  totalApplicantsPerYear: number;
-  acceptanceRate: number;
   dataSource: string;
   verified: boolean;
   status: string;
@@ -81,31 +44,31 @@ const editingSections = [
     key: 'basic',
     title: 'Basic Information',
     icon: BookOpen,
-    fields: ['name', 'shortName', 'providerName', 'providerType', 'providerCountry', 'description', 'applicationUrl']
+    fields: 7
   },
   {
     key: 'study',
     title: 'Study Information',
     icon: GraduationCap,
-    fields: ['studyLevels', 'fieldCategories', 'hostCountries', 'eligibleCountries']
+    fields: 4
   },
   {
     key: 'funding',
     title: 'Funding Information',
     icon: DollarSign,
-    fields: ['fundingType', 'fundingCurrency', 'totalValueMin', 'totalValueMax', 'applicationDeadline']
+    fields: 5
   },
   {
     key: 'requirements',
     title: 'Requirements & Eligibility',
     icon: Users,
-    fields: ['degreeRequired', 'languageRequirements', 'minGpa', 'difficultyLevel']
+    fields: 4
   },
   {
     key: 'settings',
     title: 'Settings & Metadata',
     icon: Settings,
-    fields: ['dataSource', 'verified', 'status']
+    fields: 3
   }
 ];
 
@@ -117,15 +80,16 @@ export default function ScholarshipDetails() {
   const [editingSection, setEditingSection] = useState<string | null>(null);
 
   // Fetch scholarship data with proper preloading
-  const { data: scholarshipResponse, isLoading, error } = useQuery({
+  const { data: scholarship, isLoading, error } = useQuery({
     queryKey: ["/api/admin/scholarships", id],
-    queryFn: () => apiRequest("GET", `/api/admin/scholarships/${id}`),
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/admin/scholarships/${id}`);
+      return response as unknown as Scholarship;
+    },
     enabled: !!id,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: false
   });
-
-  const scholarship = scholarshipResponse as Scholarship;
 
   // Status change mutation (independent)
   const statusMutation = useMutation({
@@ -210,24 +174,18 @@ export default function ScholarshipDetails() {
     <AdminLayout>
       <div className="flex h-screen bg-gray-50">
         {/* Sidebar */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+        <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
           {/* Header */}
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-4 border-b border-gray-200">
+            <Button variant="ghost" size="sm" onClick={() => setLocation('/admin/scholarships')} className="mb-4">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Scholarships
+            </Button>
+            
             <div className="flex items-center gap-2 mb-4">
-              <Button variant="ghost" size="sm" onClick={() => setLocation('/admin/scholarships')}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Scholarships
-              </Button>
-            </div>
-            <h1 className="text-xl font-bold text-gray-900 mb-2">
-              {scholarship.name || scholarship.scholarshipId}
-            </h1>
-            <div className="flex items-center gap-2">
-              <Badge variant={scholarship.status === 'active' ? 'default' : 'secondary'}>
-                {scholarship.status}
-              </Badge>
-              <Badge variant={scholarship.verified ? 'default' : 'destructive'}>
-                {scholarship.verified ? 'Verified' : 'Unverified'}
+              <span className="text-sm text-gray-600">ID: {(scholarship as any)?.id}</span>
+              <Badge variant={(scholarship as any)?.verified ? 'default' : 'destructive'} className="text-xs">
+                {(scholarship as any)?.verified ? 'Verified' : 'Unverified'}
               </Badge>
             </div>
           </div>
@@ -238,7 +196,7 @@ export default function ScholarshipDetails() {
               Quick Status Change
             </Label>
             <Select 
-              value={scholarship?.status || 'active'} 
+              value={(scholarship as any)?.status || 'active'} 
               onValueChange={handleStatusChange}
               disabled={statusMutation.isPending}
             >
@@ -259,24 +217,24 @@ export default function ScholarshipDetails() {
               <Label className="text-sm font-medium text-gray-700 mb-3 block">
                 Edit Sections
               </Label>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {editingSections.map((section) => {
                   const IconComponent = section.icon;
                   return (
                     <Button
                       key={section.key}
                       variant="ghost"
-                      className="w-full justify-start h-auto p-3 text-left"
+                      className="w-full justify-start h-auto p-3 text-left hover:bg-gray-50"
                       onClick={() => handleSectionEdit(section.key)}
                     >
-                      <IconComponent className="w-4 h-4 mr-3 flex-shrink-0" />
-                      <div>
-                        <div className="font-medium text-sm">{section.title}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {section.fields.length} fields
+                      <IconComponent className="w-4 h-4 mr-3 flex-shrink-0 text-gray-500" />
+                      <div className="flex-1">
+                        <div className="font-medium text-sm text-gray-900">{section.title}</div>
+                        <div className="text-xs text-gray-500">
+                          {section.fields} fields
                         </div>
                       </div>
-                      <Edit className="w-3 h-3 ml-auto flex-shrink-0" />
+                      <Edit className="w-3 h-3 ml-auto flex-shrink-0 text-gray-400" />
                     </Button>
                   );
                 })}
@@ -286,119 +244,93 @@ export default function ScholarshipDetails() {
 
           {/* Footer */}
           <div className="p-4 border-t border-gray-200 bg-gray-50">
-            <div className="text-xs text-gray-500 space-y-1">
-              <div>ID: {scholarship.scholarshipId}</div>
-              <div>Created: {new Date(scholarship.createdDate).toLocaleDateString()}</div>
-              <div>Updated: {new Date(scholarship.updatedDate).toLocaleDateString()}</div>
+            <div className="text-xs text-gray-500">
+              ID: {(scholarship as any)?.scholarshipId}
             </div>
           </div>
         </div>
 
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="p-8">
-            {/* Header */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {scholarship.name}
-              </h1>
-              <p className="text-gray-600 mb-4">
-                {scholarship.description}
-              </p>
-              <div className="flex items-center gap-4">
-                <Badge variant="outline" className="px-3 py-1">
-                  {scholarship.providerType}
-                </Badge>
-                <Badge variant="outline" className="px-3 py-1">
-                  {scholarship.providerCountry}
-                </Badge>
-                <Badge variant="outline" className="px-3 py-1">
-                  {scholarship.fundingType}
-                </Badge>
-                {scholarship.applicationUrl && (
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={scholarship.applicationUrl} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Apply
-                    </a>
-                  </Button>
-                )}
-              </div>
-            </div>
+          <div className="p-6">
+            {/* Title */}
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">
+              {(scholarship as any)?.scholarshipName || 'Not specified'}
+            </h1>
 
             {/* Content Grid */}
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2">
               {/* Basic Information */}
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="w-5 h-5" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                  <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                    <BookOpen className="w-4 h-4" />
                     Basic Information
                   </CardTitle>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => handleSectionEdit('basic')}
+                    className="text-gray-600 hover:text-gray-900"
                   >
-                    <Edit className="w-4 h-4 mr-2" />
+                    <Edit className="w-4 h-4 mr-1" />
                     Edit
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3">
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Scholarship Name</Label>
-                    <div className="text-sm mt-1">{scholarship.name || 'Not specified'}</div>
+                    <div className="text-sm text-gray-600 mb-1">Scholarship Name</div>
+                    <div className="text-sm text-gray-900">{(scholarship as any)?.scholarshipName || 'Not specified'}</div>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Provider</Label>
-                    <div className="text-sm mt-1">{scholarship.providerName || 'Not specified'}</div>
+                    <div className="text-sm text-gray-600 mb-1">Provider</div>
+                    <div className="text-sm text-gray-900">{(scholarship as any)?.providerName || 'Not specified'}</div>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Provider Type</Label>
-                    <div className="text-sm mt-1 capitalize">{scholarship.providerType?.replace('-', ' ') || 'Not specified'}</div>
+                    <div className="text-sm text-gray-600 mb-1">Provider Type</div>
+                    <div className="text-sm text-gray-900 capitalize">{(scholarship as any)?.providerType || 'Not Specified'}</div>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Country</Label>
-                    <div className="text-sm mt-1">{scholarship.providerCountry || 'Not specified'}</div>
+                    <div className="text-sm text-gray-600 mb-1">Country</div>
+                    <div className="text-sm text-gray-900">{(scholarship as any)?.providerCountry || 'Not specified'}</div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Funding Information */}
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                  <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                    <DollarSign className="w-4 h-4" />
                     Funding Information
                   </CardTitle>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => handleSectionEdit('funding')}
+                    className="text-gray-600 hover:text-gray-900"
                   >
-                    <Edit className="w-4 h-4 mr-2" />
+                    <Edit className="w-4 h-4 mr-1" />
                     Edit
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3">
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Funding Type</Label>
-                    <Badge variant="outline" className="mt-1 capitalize">
-                      {scholarship.fundingType?.replace('-', ' ') || 'Not specified'}
-                    </Badge>
+                    <div className="text-sm text-gray-600 mb-1">Funding Type</div>
+                    <div className="text-sm text-gray-900">{scholarship.fundingType ? scholarship.fundingType.replace('-', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Not Specified'}</div>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Amount Range</Label>
-                    <div className="text-sm mt-1">
-                      {scholarship.totalValueMin && scholarship.totalValueMax ? 
-                        `${scholarship.fundingCurrency} ${scholarship.totalValueMin.toLocaleString()} - ${scholarship.totalValueMax.toLocaleString()}` :
+                    <div className="text-sm text-gray-600 mb-1">Amount Range</div>
+                    <div className="text-sm text-gray-900">
+                      {scholarship.fundingAmount && scholarship.fundingCurrency ? 
+                        `${scholarship.fundingCurrency} ${scholarship.fundingAmount.toLocaleString()}` :
                         'Not specified'
                       }
                     </div>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Application Deadline</Label>
-                    <div className="text-sm mt-1">
+                    <div className="text-sm text-gray-600 mb-1">Application Deadline</div>
+                    <div className="text-sm text-gray-900">
                       {scholarship.applicationDeadline ? 
                         new Date(scholarship.applicationDeadline).toLocaleDateString() : 
                         'Not specified'
@@ -410,105 +342,72 @@ export default function ScholarshipDetails() {
 
               {/* Study Information */}
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <GraduationCap className="w-5 h-5" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                  <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                    <GraduationCap className="w-4 h-4" />
                     Study Information
                   </CardTitle>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => handleSectionEdit('study')}
+                    className="text-gray-600 hover:text-gray-900"
                   >
-                    <Edit className="w-4 h-4 mr-2" />
+                    <Edit className="w-4 h-4 mr-1" />
                     Edit
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3">
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Study Levels</Label>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {scholarship.studyLevels?.length > 0 ? 
-                        scholarship.studyLevels.map((level: string, index: number) => (
-                          <Badge key={index} variant="secondary">{level}</Badge>
-                        )) : 
-                        <span className="text-sm text-gray-500">Not specified</span>
-                      }
-                    </div>
+                    <div className="text-sm text-gray-600 mb-1">Study Levels</div>
+                    <div className="text-sm text-gray-900">{scholarship.studyLevel || 'Not specified'}</div>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Field Categories</Label>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {scholarship.fieldCategories?.length > 0 ? 
-                        scholarship.fieldCategories.map((field: string, index: number) => (
-                          <Badge key={index} variant="secondary">{field}</Badge>
-                        )) : 
-                        <span className="text-sm text-gray-500">Not specified</span>
-                      }
-                    </div>
+                    <div className="text-sm text-gray-600 mb-1">Field Categories</div>
+                    <div className="text-sm text-gray-900">{scholarship.fieldCategory || 'Not specified'}</div>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Host Countries</Label>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {scholarship.hostCountries?.length > 0 ? 
-                        scholarship.hostCountries.map((country: string, index: number) => (
-                          <Badge key={index} variant="secondary">{country}</Badge>
-                        )) : 
-                        <span className="text-sm text-gray-500">Not specified</span>
+                    <div className="text-sm text-gray-600 mb-1">Host Countries</div>
+                    <div className="text-sm text-gray-900">
+                      {scholarship.targetCountries?.length > 0 ? 
+                        scholarship.targetCountries.join(', ') : 
+                        'Not specified'
                       }
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Requirements */}
+              {/* Requirements & Eligibility */}
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                  <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                    <Users className="w-4 h-4" />
                     Requirements & Eligibility
                   </CardTitle>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => handleSectionEdit('requirements')}
+                    className="text-gray-600 hover:text-gray-900"
                   >
-                    <Edit className="w-4 h-4 mr-2" />
+                    <Edit className="w-4 h-4 mr-1" />
                     Edit
                   </Button>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3">
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Degree Required</Label>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {scholarship.degreeRequired?.length > 0 ? 
-                        scholarship.degreeRequired.map((degree: string, index: number) => (
-                          <Badge key={index} variant="secondary">{degree}</Badge>
-                        )) : 
-                        <span className="text-sm text-gray-500">Not specified</span>
+                    <div className="text-sm text-gray-600 mb-1">Degree Required</div>
+                    <div className="text-sm text-gray-900">
+                      {scholarship.eligibilityRequirements?.length > 0 ? 
+                        scholarship.eligibilityRequirements.join(', ') : 
+                        'Not specified'
                       }
                     </div>
                   </div>
-                  
-                  {scholarship.languageRequirements?.length > 0 && (
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">Language Requirements</Label>
-                      <ul className="mt-2 space-y-2">
-                        {scholarship.languageRequirements.map((req: string, index: number) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <span className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></span>
-                            <span className="text-sm">{req}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Difficulty Level</Label>
-                    <Badge variant="outline" className="mt-1 capitalize">
-                      {scholarship.difficultyLevel || 'Not specified'}
-                    </Badge>
+                    <div className="text-sm text-gray-600 mb-1">Difficulty Level</div>
+                    <div className="text-sm text-gray-900">{scholarship.difficultyLevel ? scholarship.difficultyLevel.charAt(0).toUpperCase() + scholarship.difficultyLevel.slice(1) : 'Not Specified'}</div>
                   </div>
                 </CardContent>
               </Card>
