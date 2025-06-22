@@ -161,8 +161,10 @@ export default function ScholarshipDetailsRedesign() {
               Back to Scholarships
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 break-words">{scholarship.name}</h1>
-              <p className="text-gray-600 mt-1">Scholarship ID: {scholarship.scholarshipId}</p>
+              <h1 className="text-3xl font-bold text-gray-900 break-words overflow-hidden text-wrap">{scholarship.name || 'Scholarship Details'}</h1>
+              <p className="text-gray-600 mt-1 break-words overflow-hidden text-wrap">
+                Scholarship ID: <span className="font-mono">{scholarship.scholarshipId}</span>
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3">

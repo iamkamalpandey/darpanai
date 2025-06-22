@@ -696,7 +696,7 @@ router.post("/admin/scholarships/import", requireAdmin, async (req: Request, res
         
         // Parse CSV file
         await new Promise((resolve, reject) => {
-          fs.createReadStream(req.file.path)
+          fs.createReadStream(req.file!.path)
             .pipe(csv())
             .on('data', (row: any) => {
               // Parse JSON fields

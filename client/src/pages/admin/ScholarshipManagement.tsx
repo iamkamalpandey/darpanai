@@ -163,6 +163,35 @@ export default function ScholarshipManagement() {
     }
   };
 
+  // Download sample CSV template
+  const handleDownloadSample = async () => {
+    try {
+      const response = await fetch('/api/admin/scholarships/sample-csv');
+      if (!response.ok) throw new Error('Failed to download sample');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `scholarship-import-template-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Success",
+        description: "Sample CSV template downloaded successfully"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to download sample",
+        variant: "destructive"
+      });
+    }
+  };
+
   const scholarships = scholarshipsData?.data?.scholarships || [];
   const totalScholarships = scholarshipsData?.data?.total || 0;
   const totalPages = Math.ceil(totalScholarships / 20);
