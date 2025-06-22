@@ -109,8 +109,10 @@ function Router() {
   }
   return (
     <Switch>
-      {/* Public Routes */}
+      {/* Public Authentication Routes */}
       <Route path="/auth" component={SimplifiedAuth} />
+      <Route path="/login" component={SimplifiedAuth} />
+      <Route path="/register" component={SimplifiedAuth} />
       
       {/* Home Route - Shows Landing for guests, Dashboard for authenticated users */}
       <Route path="/" component={HomePage} />

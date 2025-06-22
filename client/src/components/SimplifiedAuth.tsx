@@ -57,11 +57,31 @@ const countries = [
 ];
 
 export default function SimplifiedAuth() {
-  const [showLogin, setShowLogin] = useState(true);
+  const [location, setLocation] = useLocation();
+  // Determine default form based on route
+  const [showLogin, setShowLogin] = useState(location === '/login' || location === '/auth');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [, setLocation] = useLocation();
-  const { loginMutation, registerMutation } = useAuth();
+  const { loginMutation, registerMutation, user, isLoading } = useAuth();
+
+  // Redirect authenticated users to their dashboard
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (user) {
+    if (user.role === 'admin') {
+      setLocation("/admin");
+      return null;
+    } else {
+      setLocation("/");
+      return null;
+    }
+  }
 
   // Login Form
   const loginForm = useForm<LoginData>({
@@ -92,8 +112,13 @@ export default function SimplifiedAuth() {
 
   const onLoginSubmit = async (data: LoginData) => {
     try {
-      await loginMutation.mutateAsync(data);
-      setLocation("/");
+      const result = await loginMutation.mutateAsync(data);
+      // Role-based redirection after login
+      if (result?.role === 'admin') {
+        setLocation("/admin");
+      } else {
+        setLocation("/");
+      }
     } catch (error) {
       console.error("Login failed:", error);
     }
@@ -122,8 +147,13 @@ export default function SimplifiedAuth() {
         receiveUpdates: data.receiveUpdates || false,
       };
 
-      await registerMutation.mutateAsync(registrationData);
-      setLocation("/");
+      const result = await registerMutation.mutateAsync(registrationData);
+      // Role-based redirection after registration
+      if (result?.role === 'admin') {
+        setLocation("/admin");
+      } else {
+        setLocation("/");
+      }
     } catch (error) {
       console.error("Registration failed:", error);
     }
