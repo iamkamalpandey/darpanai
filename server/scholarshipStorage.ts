@@ -140,7 +140,7 @@ export class ScholarshipStorage {
         .delete(scholarships)
         .where(eq(scholarships.id, parseInt(scholarshipId)));
 
-      return result.rowCount > 0;
+      return (result.rowCount || 0) > 0;
 
     } catch (error) {
       console.error('[ScholarshipStorage] Delete error:', error);
@@ -223,9 +223,9 @@ export class ScholarshipStorage {
         .where(sql`${scholarships.fundingType} IS NOT NULL`);
 
       return {
-        programLevels: programLevels.map(p => p.programLevel).filter(Boolean),
-        institutions: institutions.map(i => i.institutionName).filter(Boolean),
-        fundingTypes: fundingTypes.map(f => f.fundingType).filter(Boolean)
+        programLevels: programLevels.map(p => p.programLevel).filter((level): level is string => Boolean(level)),
+        institutions: institutions.map(i => i.institutionName).filter((inst): inst is string => Boolean(inst)),
+        fundingTypes: fundingTypes.map(f => f.fundingType).filter((type): type is string => Boolean(type))
       };
 
     } catch (error) {

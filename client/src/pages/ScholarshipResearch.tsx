@@ -58,9 +58,9 @@ export default function ScholarshipResearch() {
   const { data: scholarshipData, isLoading, error } = useQuery<ScholarshipSearchResponse>({
     queryKey: ['/api/scholarships/search', {
       search: searchTerm,
-      programLevel: programLevelFilter,
-      institutionName: institutionFilter,
-      fundingType: fundingTypeFilter,
+      programLevel: programLevelFilter === "all" ? "" : programLevelFilter,
+      institutionName: institutionFilter === "all" ? "" : institutionFilter,
+      fundingType: fundingTypeFilter === "all" ? "" : fundingTypeFilter,
       limit: 20,
       offset: (page - 1) * 20
     }],
@@ -205,8 +205,8 @@ export default function ScholarshipResearch() {
                   <SelectValue placeholder="Program Level" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Levels</SelectItem>
-                  {filters.programLevels.map(level => (
+                  <SelectItem value="all">All Levels</SelectItem>
+                  {filters.programLevels.filter(level => level && level.trim()).map(level => (
                     <SelectItem key={level} value={level}>{level}</SelectItem>
                   ))}
                 </SelectContent>
@@ -217,8 +217,8 @@ export default function ScholarshipResearch() {
                   <SelectValue placeholder="Institution" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Institutions</SelectItem>
-                  {filters.institutions.slice(0, 10).map(institution => (
+                  <SelectItem value="all">All Institutions</SelectItem>
+                  {filters.institutions.filter(institution => institution && institution.trim()).slice(0, 10).map(institution => (
                     <SelectItem key={institution} value={institution}>{institution}</SelectItem>
                   ))}
                 </SelectContent>
@@ -229,8 +229,8 @@ export default function ScholarshipResearch() {
                   <SelectValue placeholder="Funding Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
-                  {filters.fundingTypes.map(type => (
+                  <SelectItem value="all">All Types</SelectItem>
+                  {filters.fundingTypes.filter(type => type && type.trim()).map(type => (
                     <SelectItem key={type} value={type}>{type}</SelectItem>
                   ))}
                 </SelectContent>
