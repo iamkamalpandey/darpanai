@@ -60,6 +60,8 @@ export const scholarships = pgTable("scholarships", {
   totalApplicantsPerYear: integer("total_applicants_per_year"),
   acceptanceRate: decimal("acceptance_rate", { precision: 5, scale: 2 }),
   status: text("status").default("active"),
+  dataSource: text("data_source").default("official"),
+  verified: boolean("verified").default(true),
   createdDate: timestamp("created_date").defaultNow(),
   updatedDate: timestamp("updated_date").defaultNow()
 });

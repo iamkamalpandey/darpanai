@@ -109,12 +109,12 @@ export default function ScholarshipResearch() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
-      if (selectedProviderType) params.append('providerType', selectedProviderType);
-      if (selectedCountry) params.append('providerCountry', selectedCountry);
-      if (selectedStudyLevel) params.append('studyLevel', selectedStudyLevel);
-      if (selectedFieldCategory) params.append('fieldCategory', selectedFieldCategory);
-      if (selectedFundingType) params.append('fundingType', selectedFundingType);
-      if (selectedDifficultyLevel) params.append('difficultyLevel', selectedDifficultyLevel);
+      if (selectedProviderType && selectedProviderType !== 'all') params.append('providerType', selectedProviderType);
+      if (selectedCountry && selectedCountry !== 'all') params.append('providerCountry', selectedCountry);
+      if (selectedStudyLevel && selectedStudyLevel !== 'all') params.append('studyLevel', selectedStudyLevel);
+      if (selectedFieldCategory && selectedFieldCategory !== 'all') params.append('fieldCategory', selectedFieldCategory);
+      if (selectedFundingType && selectedFundingType !== 'all') params.append('fundingType', selectedFundingType);
+      if (selectedDifficultyLevel && selectedDifficultyLevel !== 'all') params.append('difficultyLevel', selectedDifficultyLevel);
       params.append('limit', '20');
       params.append('offset', ((page - 1) * 20).toString());
 
@@ -256,12 +256,12 @@ export default function ScholarshipResearch() {
 
   const clearAllFilters = () => {
     setSearchTerm("");
-    setSelectedProviderType("");
-    setSelectedCountry("");
-    setSelectedStudyLevel("");
-    setSelectedFieldCategory("");
-    setSelectedFundingType("");
-    setSelectedDifficultyLevel("");
+    setSelectedProviderType("all");
+    setSelectedCountry("all");
+    setSelectedStudyLevel("all");
+    setSelectedFieldCategory("all");
+    setSelectedFundingType("all");
+    setSelectedDifficultyLevel("all");
     setPage(1);
   };
 
@@ -402,8 +402,8 @@ export default function ScholarshipResearch() {
                         <SelectValue placeholder="Select country" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Countries</SelectItem>
-                        {filters.countries.map((country) => (
+                        <SelectItem value="all">All Countries</SelectItem>
+                        {filters.countries.filter(country => country && country.trim()).map((country) => (
                           <SelectItem key={country} value={country}>
                             {country}
                           </SelectItem>
@@ -435,8 +435,8 @@ export default function ScholarshipResearch() {
                         <SelectValue placeholder="Select level" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Levels</SelectItem>
-                        {filters.studyLevels.map((level) => (
+                        <SelectItem value="all">All Levels</SelectItem>
+                        {filters.studyLevels.filter(level => level && level.trim()).map((level) => (
                           <SelectItem key={level} value={level}>
                             {level.charAt(0).toUpperCase() + level.slice(1)}
                           </SelectItem>
@@ -468,8 +468,8 @@ export default function ScholarshipResearch() {
                         <SelectValue placeholder="Select field" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Fields</SelectItem>
-                        {filters.fieldCategories.map((field) => (
+                        <SelectItem value="all">All Fields</SelectItem>
+                        {filters.fieldCategories.filter(field => field && field.trim()).map((field) => (
                           <SelectItem key={field} value={field}>
                             {field}
                           </SelectItem>
@@ -536,8 +536,8 @@ export default function ScholarshipResearch() {
                           <SelectValue placeholder="Difficulty level" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All Levels</SelectItem>
-                          {filters.difficultyLevels.map((level) => (
+                          <SelectItem value="all">All Levels</SelectItem>
+                          {filters.difficultyLevels.filter(level => level && level.trim()).map((level) => (
                             <SelectItem key={level} value={level}>
                               {level.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                             </SelectItem>
