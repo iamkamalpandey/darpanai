@@ -37,16 +37,18 @@ export default function ScholarshipManagement() {
       if (searchTerm) params.append('search', searchTerm);
       if (filterStatus && filterStatus !== 'all') params.append('status', filterStatus);
       if (filterProviderType && filterProviderType !== 'all') params.append('providerType', filterProviderType);
-      if (filterCountry && filterCountry !== 'all') params.append('country', filterCountry);
+      if (filterCountry && filterCountry !== 'all') params.append('providerCountry', filterCountry); // Fixed parameter name
       if (filterFundingType && filterFundingType !== 'all') params.append('fundingType', filterFundingType);
-      if (filterDifficulty && filterDifficulty !== 'all') params.append('difficulty', filterDifficulty);
+      if (filterDifficulty && filterDifficulty !== 'all') params.append('difficultyLevel', filterDifficulty); // Fixed parameter name
       params.append('limit', '20');
       params.append('offset', ((currentPage - 1) * 20).toString());
       
       const response = await fetch(`/api/admin/scholarships?${params}`);
       if (!response.ok) throw new Error('Failed to fetch scholarships');
       return response.json();
-    }
+    },
+    staleTime: 30000, // Cache for 30 seconds to prevent constant refetching
+    refetchOnWindowFocus: false // Prevent refetch on window focus
   });
 
   // Fetch scholarship statistics
@@ -56,7 +58,9 @@ export default function ScholarshipManagement() {
       const response = await fetch('/api/scholarships/stats/overview');
       if (!response.ok) throw new Error('Failed to fetch stats');
       return response.json();
-    }
+    },
+    staleTime: 300000, // Cache for 5 minutes
+    refetchOnWindowFocus: false
   });
 
   // Delete scholarship mutation
