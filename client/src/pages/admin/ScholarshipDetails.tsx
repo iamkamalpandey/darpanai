@@ -224,7 +224,7 @@ export default function ScholarshipDetails() {
               <Globe className="w-8 h-8 text-blue-600" />
               <div>
                 <p className="text-sm text-gray-600">Target Countries</p>
-                <p className="font-semibold">{scholarship.targetCountries.length} Countries</p>
+                <p className="font-semibold">{scholarship.targetCountries?.length || 0} Countries</p>
               </div>
             </div>
           </CardContent>
@@ -344,9 +344,9 @@ export default function ScholarshipDetails() {
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Target Countries</Label>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {scholarship.targetCountries.map((country: string, index: number) => (
+                    {scholarship.targetCountries?.map((country: string, index: number) => (
                       <Badge key={index} variant="outline">{country}</Badge>
-                    ))}
+                    )) || <p className="text-gray-500">No countries specified</p>}
                   </div>
                 </div>
               </CardContent>
@@ -375,7 +375,7 @@ export default function ScholarshipDetails() {
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Funding Type</Label>
                   <Badge variant="outline" className="mt-1 capitalize">
-                    {scholarship.fundingType.replace('-', ' ')}
+                    {scholarship.fundingType?.replace('-', ' ') || 'Not specified'}
                   </Badge>
                 </div>
                 <div>
@@ -413,16 +413,16 @@ export default function ScholarshipDetails() {
               <div>
                 <Label className="text-sm font-medium text-gray-600">Eligibility Requirements</Label>
                 <ul className="mt-2 space-y-2">
-                  {scholarship.eligibilityRequirements.map((req: string, index: number) => (
+                  {scholarship.eligibilityRequirements?.map((req: string, index: number) => (
                     <li key={index} className="flex items-start gap-2">
                       <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></span>
                       <span className="text-sm">{req}</span>
                     </li>
-                  ))}
+                  )) || <p className="text-gray-500">No requirements specified</p>}
                 </ul>
               </div>
               
-              {scholarship.languageRequirements.length > 0 && (
+              {scholarship.languageRequirements?.length > 0 && (
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Language Requirements</Label>
                   <ul className="mt-2 space-y-2">
