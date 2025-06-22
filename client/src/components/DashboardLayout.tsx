@@ -18,6 +18,9 @@ import {
   FolderOpen,
   GraduationCap,
   Globe,
+  BarChart3,
+  TrendingUp,
+  Award,
   MapPin
 } from 'lucide-react';
 import { Footer } from '@/components/Footer';
@@ -81,28 +84,29 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const sidebarItems = [
     { icon: <Home size={20} />, label: 'Dashboard', href: '/' },
-    { icon: <FileText size={20} />, label: 'My Analysis', href: '/my-analysis' },
-    { icon: <Shield size={20} />, label: 'Visa Analysis', href: '/visa-analysis' },
     { 
-      icon: <User size={20} />, 
-      label: 'Enrollment Analysis', 
+      icon: <BarChart3 size={20} />, 
+      label: 'My Analysis', 
       isSubmenu: true,
       submenuItems: [
+        { icon: <Shield size={18} />, label: 'Visa Analysis', href: '/visa-analysis' },
+        { icon: <MapPin size={18} />, label: 'AI Destination Recommendation', href: '/personalized-destination-analysis' },
+        { icon: <FileText size={18} />, label: 'Analysis History', href: '/my-analysis' },
+      ]
+    },
+    { 
+      icon: <GraduationCap size={20} />, 
+      label: 'Enrollment Details', 
+      isSubmenu: true,
+      submenuItems: [
+        { icon: <TrendingUp size={18} />, label: 'Enrollment Analysis', href: '/enrollment-analysis' },
         { icon: <FileText size={18} />, label: 'COE Analysis', href: '/coe-analysis' },
-        { icon: <GraduationCap size={18} />, label: 'Offer Letter Analysis', href: '/offer-letter-analysis' },
+        { icon: <FileCheck size={18} />, label: 'Offer Letter Analysis', href: '/offer-letter-analysis' },
+        { icon: <FileCheck size={18} />, label: 'Offer Letter Info', href: '/offer-letter-info' },
+        { icon: <FileText size={18} />, label: 'COE Information', href: '/coe-info' },
       ]
     },
-    { 
-      icon: <FileText size={20} />, 
-      label: 'Enrollment Info', 
-      isSubmenu: true,
-      submenuItems: [
-        { icon: <GraduationCap size={18} />, label: 'Offer Letter Info', href: '/offer-letter-info' },
-        { icon: <FileCheck size={18} />, label: 'COE Information', href: '/coe-info' },
-      ]
-    },
-    { icon: <GraduationCap size={20} />, label: 'Scholarship Research', href: '/scholarship-research' },
-    { icon: <MapPin size={20} />, label: 'Personalized Destination Analysis', href: '/personalized-destination-analysis' },
+    { icon: <Award size={20} />, label: 'My Scholarships', href: '/scholarship-research' },
 
     { icon: <Calendar size={20} />, label: 'Appointments', href: '/consultations' },
     { 
