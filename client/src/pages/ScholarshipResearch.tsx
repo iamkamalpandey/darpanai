@@ -90,6 +90,18 @@ export default function ScholarshipResearch() {
   // Fetch filter options
   const { data: statsData } = useQuery({
     queryKey: ['/api/scholarships/stats/overview'],
+    queryFn: async () => {
+      const response = await fetch('/api/scholarships/stats/overview', {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch statistics');
+      }
+      
+      const result = await response.json();
+      return result.data;
+    },
     enabled: true
   });
 
