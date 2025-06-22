@@ -195,8 +195,8 @@ const requireAdmin = (req: Request, res: Response, next: any) => {
 
 // ADMIN ROUTES - Protected by authentication
 
-// Get all scholarships for admin management with filtering (temporary fix for authentication)
-router.get("/admin/scholarships", async (req: Request, res: Response) => {
+// Get all scholarships for admin management with filtering
+router.get("/admin/scholarships", requireAdmin, async (req: Request, res: Response) => {
   try {
     const { 
       search = '', 

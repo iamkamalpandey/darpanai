@@ -204,6 +204,7 @@ function setupGracefulShutdown(server: any) {
     // Register scholarship routes
     const scholarshipRoutes = await import('./scholarshipRoutes');
     app.use('/api/scholarships', scholarshipRoutes.default);
+    app.use('/api', scholarshipRoutes.default); // Add direct API mount for admin routes
     logWithLevel('✓ Scholarship routes registered successfully');
     
     // Step 5: Setup error handling middleware
