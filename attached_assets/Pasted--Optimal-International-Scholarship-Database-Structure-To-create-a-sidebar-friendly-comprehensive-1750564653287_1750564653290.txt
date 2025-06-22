@@ -1,0 +1,185 @@
+## Optimal International Scholarship Database Structure
+
+To create a sidebar-friendly, comprehensive, and non-redundant structure for international scholarships—including type (Government, Private, Institution, Other) and country—a unified, normalized table is proposed below. This merges best practices from research and your sample data, ensuring scalability, clarity, and completeness for a global scholarship directory[1][2].
+
+---
+
+### **Sidebar Structure (for UI Navigation)**
+
+- **Scholarship Type**
+  - Government
+  - Private
+  - Institution
+  - Other
+- **Country**
+  - Australia
+  - UK
+  - USA
+  - EU (and individual countries)
+  - ... (expandable)
+- **Study Level**
+  - Undergraduate
+  - Masters
+  - PhD
+  - Postdoc
+  - Diploma
+- **Field of Study**
+  - STEM
+  - Social Sciences
+  - Arts
+  - ... (expandable)
+- **Funding Type**
+  - Full
+  - Partial
+  - Variable
+- **Other Filters**
+  - Renewable
+  - Work Experience Required
+  - Leadership Required
+  - Application Deadline
+
+---
+
+### **Unified Scholarship Table Format**
+
+| Field                        | Data Type        | Description                                                                                   | Example                                         |
+|------------------------------|------------------|-----------------------------------------------------------------------------------------------|-------------------------------------------------|
+| scholarship_id               | VARCHAR(50)      | Unique identifier                                                                            | AUS_AWARDS_2025                                 |
+| name                         | VARCHAR(255)     | Scholarship name                                                                             | Australia Awards Scholarship                    |
+| short_name                   | VARCHAR(100)     | Short display name (optional)                                                                | Australia Awards                                |
+| provider_name                | VARCHAR(255)     | Name of providing organization                                                               | Australian Government                           |
+| provider_type                | ENUM             | government, private, institution, other                                                      | government                                      |
+| provider_country             | CHAR(2)          | ISO country code of provider                                                                 | AU                                              |
+| host_countries               | JSON/Text        | List of countries where scholarship is tenable                                                | ["AU"]                                          |
+| eligible_countries           | JSON/Text        | List of eligible applicant citizenships                                                      | ["NP","IN","BD","LK"]                           |
+| study_levels                 | JSON/Text        | List: undergraduate, masters, phd, postdoc, diploma                                          | ["masters"]                                     |
+| field_categories             | JSON/Text        | Broad fields (e.g., STEM, Arts, Social Sciences)                                             | ["STEM","Social Sciences"]                      |
+| specific_fields              | JSON/Text        | More specific fields (optional)                                                              | ["Computer Science"]                            |
+| funding_type                 | ENUM             | full, partial, variable                                                                      | full                                            |
+| funding_currency             | CHAR(3)          | ISO currency code                                                                            | AUD                                             |
+| tuition_coverage_percentage  | DECIMAL(5,2)     | Tuition coverage as percent                                                                  | 100.00                                          |
+| living_allowance_amount      | DECIMAL(15,2)    | Living allowance (if any)                                                                    | 31000.00                                        |
+| living_allowance_frequency   | ENUM             | monthly, annually, one-time                                                                  | annually                                        |
+| total_value_min              | DECIMAL(15,2)    | Minimum total value (optional)                                                               | 100000.00                                       |
+| total_value_max              | DECIMAL(15,2)    | Maximum total value (optional)                                                               | 150000.00                                       |
+| application_open_date        | DATE             | Application opens                                                                            | 2024-10-01                                      |
+| application_deadline         | DATE             | Application closes                                                                           | 2025-04-30                                      |
+| notification_date            | DATE             | Notification date (optional)                                                                 | 2025-08-15                                      |
+| program_start_date           | DATE             | Program start (optional)                                                                     | 2026-02-15                                      |
+| duration_value               | INT              | Duration length                                                                              | 2                                               |
+| duration_unit                | ENUM             | months, years, semesters                                                                     | years                                           |
+| min_gpa                      | DECIMAL(3,2)     | Minimum GPA (optional)                                                                       | 3.00                                            |
+| gpa_scale                    | DECIMAL(3,1)     | GPA scale (optional)                                                                         | 4.0                                             |
+| degree_required              | JSON/Text        | Required degree(s)                                                                           | ["Bachelor"]                                    |
+| min_age                      | INT              | Minimum age (optional)                                                                       | 18                                              |
+| max_age                      | INT              | Maximum age (optional)                                                                       | 35                                              |
+| gender_requirement           | ENUM             | any, male, female, non-binary (optional)                                                     | any                                             |
+| min_work_experience          | INT              | Years of work experience required (optional)                                                  | 2                                               |
+| leadership_required          | BOOLEAN          | Leadership experience required                                                               | TRUE                                            |
+| language_requirements        | JSON/Text        | Language and proficiency required                                                            | [{"language":"en","level":"IELTS 6.5"}]         |
+| application_url              | VARCHAR(500)     | Application portal URL                                                                       | https://www.australiaawards.gov.au/apply        |
+| application_fee_amount       | DECIMAL(10,2)    | Application fee (optional)                                                                   | 0.00                                            |
+| application_fee_currency     | CHAR(3)          | Fee currency (optional)                                                                      | AUD                                             |
+| fee_waiver_available         | BOOLEAN          | Fee waiver available                                                                         | TRUE                                            |
+| documents_required           | JSON/Text        | Required documents                                                                           | ["Transcripts","CV","Personal Statement"]       |
+| interview_required           | BOOLEAN          | Interview required                                                                           | TRUE                                            |
+| essay_required               | BOOLEAN          | Essay required                                                                               | TRUE                                            |
+| renewable                    | BOOLEAN          | Scholarship renewable                                                                        | TRUE                                            |
+| max_renewal_duration         | VARCHAR(50)      | Maximum renewal period (optional)                                                            | 4 years                                         |
+| renewal_criteria             | JSON/Text        | Renewal requirements (optional)                                                              | ["GPA 3.0+","Annual review"]                    |
+| work_restrictions            | TEXT             | Work permission restrictions (optional)                                                      | 20 hours per week maximum                       |
+| travel_restrictions          | TEXT             | Travel limitations (optional)                                                                | NULL                                            |
+| other_scholarships_allowed   | ENUM             | allowed, prohibited, case-by-case (optional)                                                 | prohibited                                      |
+| mentorship_available         | BOOLEAN          | Mentorship program included                                                                  | TRUE                                            |
+| networking_opportunities     | BOOLEAN          | Networking events included                                                                   | TRUE                                            |
+| internship_opportunities     | BOOLEAN          | Internship programs included                                                                 | FALSE                                           |
+| research_opportunities       | BOOLEAN          | Research opportunities included                                                              | TRUE                                            |
+| description                  | TEXT             | Full description                                                                             | Prestigious scholarship covering full tuition...|
+| tags                         | JSON/Text        | Tags for search/filter                                                                       | ["government","full-funding"]                   |
+| difficulty_level             | ENUM             | low, medium, high, very-high                                                                | high                                            |
+| total_applicants_per_year    | INT              | Annual applicants (optional)                                                                 | 200                                             |
+| acceptance_rate              | DECIMAL(5,2)     | Acceptance percentage (optional)                                                             | 5.00                                            |
+| status                       | ENUM             | active, inactive, suspended, closed                                                          | active                                          |
+| created_date                 | TIMESTAMP        | Record creation                                                                              | 2025-06-21T21:49:13.698Z                        |
+| last_updated                 | TIMESTAMP        | Last modification                                                                            | 2025-06-21T21:49:13.698Z                        |
+| data_source                  | VARCHAR(100)     | Data source identifier                                                                       | official                                        |
+| verified                     | BOOLEAN          | Data verified status                                                                         | TRUE                                            |
+
+---
+
+### **Key Features of This Structure**
+
+- **No redundancy:** Each field is unique and non-overlapping, with JSON arrays used for multi-value fields (countries, fields, documents)[2].
+- **Extensible filtering:** Sidebar and database can filter by type, country, level, field, and more.
+- **International compatibility:** ISO country codes, currency codes, and flexible ENUMs for types.
+- **Comprehensive eligibility and funding details:** Covers everything from GPA, age, and work experience to funding specifics and renewal criteria.
+- **Ready for advanced search and AI matching:** Tags, difficulty, and match score fields can be leveraged for smart recommendations.
+
+---
+
+### **Sample Sidebar UI Structure**
+
+```
+[Scholarship Type]
+- Government
+- Private
+- Institution
+- Other
+
+[Country]
+- Australia
+- UK
+- USA
+- Germany
+- ...
+
+[Study Level]
+- Undergraduate
+- Masters
+- PhD
+- Postdoc
+
+[Field of Study]
+- STEM
+- Arts
+- Social Sciences
+- ...
+
+[Funding Type]
+- Full
+- Partial
+- Variable
+
+[Other Filters]
+- Renewable
+- Work Experience Required
+- Leadership Required
+- Application Deadline
+```
+
+---
+
+This structure is optimal for an international scholarship database, providing both a rich backend for data integrity and a user-friendly sidebar for intuitive filtering and navigation[1][2].
+
+[1] https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/44626384/1400f961-44b2-4d0a-b71f-ba968ff8b679/scholarships.csv
+[2] https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/44626384/48de4593-5158-44b8-b6aa-fa8a52d197e6/paste-2.txt
+[3] https://www.canva.com/templates/s/scholarship/?continuation=50
+[4] https://syekhnurjati.ac.id/journal/index.php/itej/article/view/111
+[5] https://www.slideshare.net/slideshow/scholarship-database-management-system/72053771
+[6] https://www.reviewr.com/systematizing-scholarship-management/
+[7] https://shiny.posit.co/py/api/core/ui.layout_sidebar.html
+[8] https://www.smarterselect.com/blog/best-practices-for-scholarship-administration
+[9] https://www.reviewr.com/5-best-practices-for-running-an-online-scholarship-program/
+[10] https://www.pinterest.com/d3fton3s/sidebar-website/
+[11] https://www.behance.net/search/projects/scholarship%20app
+[12] https://www.submittable.com/blog/scholarship-fund/
+[13] https://dribbble.com/search/scholarship-landing-page
+[14] https://99designs.com/inspiration/logos/scholarship
+[15] https://wordpress.org/themes/scholarship/
+[16] https://sample.clas.ufl.edu/create/sidebars/
+[17] https://www.geteducated.com/online-college-financial-aid/financial-aid/scholarships-2/
+[18] https://www.uwlax.edu/globalassets/offices-services/scholarships/documents/tools/how-to-use-outside-scholarship-database.pdf
+[19] https://thescholarshipsystem.com/blog-for-students-families/5-tips-to-organize-scholarship-materials-to-save-time/
+[20] https://www.youtube.com/watch?v=7SbJH33O6jE
+[21] https://quantumuniversity.edu.in/qlib/document/pdf/scholasrship_database.pdf
+[22] https://moldstud.com/articles/p-leveraging-analytics-in-admissions-to-identify-potential-scholarship-recipients

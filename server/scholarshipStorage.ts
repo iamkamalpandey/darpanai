@@ -1,16 +1,27 @@
 import { db } from "./db";
-import { scholarships, type Scholarship, type InsertScholarship, type ScholarshipSearch, type ScholarshipSearchResponse } from "@shared/scholarshipSchema";
-import { eq, and, or, ilike, desc, asc, sql, count } from "drizzle-orm";
+import { scholarships } from "@shared/scholarshipSchema";
+import { eq, ilike, or, and, desc, count, sql } from "drizzle-orm";
+import type { ScholarshipSearch, Scholarship, ScholarshipSearchResponse, ScholarshipStatistics } from "@shared/scholarshipSchema";
 
 export class ScholarshipStorage {
-  // Search scholarships with filtering and pagination
+  
+  // Search scholarships with comprehensive filtering
   async searchScholarships(searchParams: ScholarshipSearch): Promise<ScholarshipSearchResponse> {
     try {
       const { 
         search, 
-        programLevel, 
-        institutionName, 
+        providerType,
+        providerCountry,
+        studyLevel,
+        fieldCategory,
         fundingType,
+        difficultyLevel,
+        minAmount,
+        maxAmount,
+        deadlineFrom,
+        deadlineTo,
+        renewable,
+        leadershipRequired,
         limit = 20, 
         offset = 0 
       } = searchParams;
@@ -22,28 +33,75 @@ export class ScholarshipStorage {
       if (search) {
         conditions.push(
           or(
-            ilike(scholarships.scholarshipName, `%${search}%`),
-            ilike(scholarships.institutionName, `%${search}%`),
-            ilike(scholarships.programName, `%${search}%`),
+            ilike(scholarships.name, `%${search}%`),
+            ilike(scholarships.providerName, `%${search}%`),
             ilike(scholarships.description, `%${search}%`)
           )
         );
       }
 
-      // Filter by program level
-      if (programLevel) {
-        conditions.push(ilike(scholarships.programLevel, `%${programLevel}%`));
+      // Filter by provider type
+      if (providerType) {
+        conditions.push(eq(scholarships.providerType, providerType));
       }
 
-      // Filter by institution
-      if (institutionName) {
-        conditions.push(ilike(scholarships.institutionName, `%${institutionName}%`));
+      // Filter by provider country
+      if (providerCountry) {
+        conditions.push(eq(scholarships.providerCountry, providerCountry));
+      }
+
+      // Filter by study level (JSON array search)
+      if (studyLevel) {
+        conditions.push(
+          sql`${scholarships.studyLevels} @> ${JSON.stringify([studyLevel])}`
+        );
+      }
+
+      // Filter by field category (JSON array search)
+      if (fieldCategory) {
+        conditions.push(
+          sql`${scholarships.fieldCategories} @> ${JSON.stringify([fieldCategory])}`
+        );
       }
 
       // Filter by funding type
       if (fundingType) {
-        conditions.push(ilike(scholarships.fundingType, `%${fundingType}%`));
+        conditions.push(eq(scholarships.fundingType, fundingType));
       }
+
+      // Filter by difficulty level
+      if (difficultyLevel) {
+        conditions.push(eq(scholarships.difficultyLevel, difficultyLevel));
+      }
+
+      // Filter by amount range
+      if (minAmount) {
+        conditions.push(sql`${scholarships.totalValueMin} >= ${minAmount}`);
+      }
+      if (maxAmount) {
+        conditions.push(sql`${scholarships.totalValueMax} <= ${maxAmount}`);
+      }
+
+      // Filter by deadline range
+      if (deadlineFrom) {
+        conditions.push(sql`${scholarships.applicationDeadline} >= ${deadlineFrom}`);
+      }
+      if (deadlineTo) {
+        conditions.push(sql`${scholarships.applicationDeadline} <= ${deadlineTo}`);
+      }
+
+      // Filter by renewable status
+      if (renewable !== undefined) {
+        conditions.push(eq(scholarships.renewable, renewable));
+      }
+
+      // Filter by leadership requirement
+      if (leadershipRequired !== undefined) {
+        conditions.push(eq(scholarships.leadershipRequired, leadershipRequired));
+      }
+
+      // Only active scholarships
+      conditions.push(eq(scholarships.status, 'active'));
 
       // Get total count
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -60,7 +118,7 @@ export class ScholarshipStorage {
         .select()
         .from(scholarships)
         .where(whereClause)
-        .orderBy(desc(scholarships.createdAt))
+        .orderBy(desc(scholarships.createdDate))
         .limit(limit)
         .offset(offset);
 
@@ -87,7 +145,7 @@ export class ScholarshipStorage {
       const [scholarship] = await db
         .select()
         .from(scholarships)
-        .where(eq(scholarships.id, parseInt(scholarshipId)));
+        .where(eq(scholarships.scholarshipId, scholarshipId));
 
       return scholarship || null;
 
@@ -98,7 +156,7 @@ export class ScholarshipStorage {
   }
 
   // Create new scholarship
-  async createScholarship(scholarshipData: InsertScholarship): Promise<Scholarship> {
+  async createScholarship(scholarshipData: Partial<Scholarship>): Promise<Scholarship> {
     try {
       const [scholarship] = await db
         .insert(scholarships)
@@ -114,15 +172,15 @@ export class ScholarshipStorage {
   }
 
   // Update scholarship
-  async updateScholarship(scholarshipId: string, updateData: Partial<InsertScholarship>): Promise<Scholarship | null> {
+  async updateScholarship(scholarshipId: string, scholarshipData: Partial<Scholarship>): Promise<Scholarship | null> {
     try {
       const [scholarship] = await db
         .update(scholarships)
-        .set({
-          ...updateData,
-          updatedAt: new Date()
+        .set({ 
+          ...scholarshipData,
+          updatedDate: new Date()
         })
-        .where(eq(scholarships.id, parseInt(scholarshipId)))
+        .where(eq(scholarships.scholarshipId, scholarshipId))
         .returning();
 
       return scholarship || null;
@@ -138,7 +196,7 @@ export class ScholarshipStorage {
     try {
       const result = await db
         .delete(scholarships)
-        .where(eq(scholarships.id, parseInt(scholarshipId)));
+        .where(eq(scholarships.scholarshipId, scholarshipId));
 
       return (result.rowCount || 0) > 0;
 
@@ -148,132 +206,152 @@ export class ScholarshipStorage {
     }
   }
 
-  // Get featured scholarships
-  async getFeaturedScholarships(limit: number = 5): Promise<Scholarship[]> {
+  // Get all scholarships with pagination
+  async getAllScholarships(limit: number = 50, offset: number = 0): Promise<{ scholarships: Scholarship[], total: number }> {
     try {
-      return await db
+      const [totalResult] = await db
+        .select({ count: count() })
+        .from(scholarships)
+        .where(eq(scholarships.status, 'active'));
+
+      const total = totalResult.count;
+
+      const scholarshipResults = await db
         .select()
         .from(scholarships)
-        .orderBy(desc(scholarships.createdAt))
-        .limit(limit);
+        .where(eq(scholarships.status, 'active'))
+        .orderBy(desc(scholarships.createdDate))
+        .limit(limit)
+        .offset(offset);
+
+      return {
+        scholarships: scholarshipResults,
+        total
+      };
 
     } catch (error) {
-      console.error('[ScholarshipStorage] Featured scholarships error:', error);
-      throw new Error('Failed to get featured scholarships');
+      console.error('[ScholarshipStorage] Get all error:', error);
+      throw new Error('Failed to get scholarships');
     }
   }
 
-  // Get scholarships by provider
-  async getScholarshipsByProvider(providerName: string): Promise<Scholarship[]> {
+  // Get filter options for the frontend
+  async getFilterOptions() {
     try {
-      return await db
-        .select()
+      const providerTypes = await db
+        .selectDistinct({ providerType: scholarships.providerType })
         .from(scholarships)
-        .where(ilike(scholarships.institutionName, `%${providerName}%`))
-        .orderBy(desc(scholarships.createdAt));
+        .where(and(
+          sql`${scholarships.providerType} IS NOT NULL`,
+          eq(scholarships.status, 'active')
+        ));
 
-    } catch (error) {
-      console.error('[ScholarshipStorage] Provider scholarships error:', error);
-      throw new Error('Failed to get scholarships by provider');
-    }
-  }
-
-  // Get upcoming deadlines
-  async getUpcomingDeadlines(days: number = 30): Promise<Scholarship[]> {
-    try {
-      const futureDate = new Date();
-      futureDate.setDate(futureDate.getDate() + days);
-      
-      return await db
-        .select()
+      const countries = await db
+        .selectDistinct({ providerCountry: scholarships.providerCountry })
         .from(scholarships)
-        .where(
-          and(
-            sql`${scholarships.applicationDeadline} IS NOT NULL`,
-            sql`${scholarships.applicationDeadline} != ''`
-          )
-        )
-        .orderBy(asc(scholarships.applicationDeadline));
+        .where(and(
+          sql`${scholarships.providerCountry} IS NOT NULL`,
+          eq(scholarships.status, 'active')
+        ));
 
-    } catch (error) {
-      console.error('[ScholarshipStorage] Upcoming deadlines error:', error);
-      throw new Error('Failed to get upcoming deadlines');
-    }
-  }
-
-  // Get filter options
-  private async getFilterOptions() {
-    try {
-      // Get distinct program levels
-      const programLevels = await db
-        .selectDistinct({ programLevel: scholarships.programLevel })
-        .from(scholarships)
-        .where(sql`${scholarships.programLevel} IS NOT NULL`);
-
-      // Get distinct institutions
-      const institutions = await db
-        .selectDistinct({ institutionName: scholarships.institutionName })
-        .from(scholarships)
-        .where(sql`${scholarships.institutionName} IS NOT NULL`);
-
-      // Get distinct funding types
       const fundingTypes = await db
         .selectDistinct({ fundingType: scholarships.fundingType })
         .from(scholarships)
-        .where(sql`${scholarships.fundingType} IS NOT NULL`);
+        .where(and(
+          sql`${scholarships.fundingType} IS NOT NULL`,
+          eq(scholarships.status, 'active')
+        ));
+
+      const difficultyLevels = await db
+        .selectDistinct({ difficultyLevel: scholarships.difficultyLevel })
+        .from(scholarships)
+        .where(and(
+          sql`${scholarships.difficultyLevel} IS NOT NULL`,
+          eq(scholarships.status, 'active')
+        ));
+
+      // Extract unique study levels and field categories from JSON arrays
+      const studyLevelsQuery = await db
+        .select({ studyLevels: scholarships.studyLevels })
+        .from(scholarships)
+        .where(and(
+          sql`${scholarships.studyLevels} IS NOT NULL`,
+          eq(scholarships.status, 'active')
+        ));
+
+      const fieldCategoriesQuery = await db
+        .select({ fieldCategories: scholarships.fieldCategories })
+        .from(scholarships)
+        .where(and(
+          sql`${scholarships.fieldCategories} IS NOT NULL`,
+          eq(scholarships.status, 'active')
+        ));
+
+      // Extract unique values from JSON arrays
+      const studyLevels = [...new Set(
+        studyLevelsQuery
+          .flatMap(row => Array.isArray(row.studyLevels) ? row.studyLevels : [])
+          .filter(Boolean)
+      )];
+
+      const fieldCategories = [...new Set(
+        fieldCategoriesQuery
+          .flatMap(row => Array.isArray(row.fieldCategories) ? row.fieldCategories : [])
+          .filter(Boolean)
+      )];
 
       return {
-        programLevels: programLevels.map(p => p.programLevel).filter((level): level is string => Boolean(level)),
-        institutions: institutions.map(i => i.institutionName).filter((inst): inst is string => Boolean(inst)),
-        fundingTypes: fundingTypes.map(f => f.fundingType).filter((type): type is string => Boolean(type))
+        providerTypes: providerTypes.map(p => p.providerType).filter((type): type is string => Boolean(type)),
+        countries: countries.map(c => c.providerCountry).filter((country): country is string => Boolean(country)),
+        studyLevels: studyLevels as string[],
+        fieldCategories: fieldCategories as string[],
+        fundingTypes: fundingTypes.map(f => f.fundingType).filter((type): type is string => Boolean(type)),
+        difficultyLevels: difficultyLevels.map(d => d.difficultyLevel).filter((level): level is string => Boolean(level))
       };
 
     } catch (error) {
       console.error('[ScholarshipStorage] Filter options error:', error);
       return {
-        programLevels: [],
-        institutions: [],
-        fundingTypes: []
+        providerTypes: [],
+        countries: [],
+        studyLevels: [],
+        fieldCategories: [],
+        fundingTypes: [],
+        difficultyLevels: []
       };
     }
   }
 
-  // Get statistics
-  async getStatistics() {
+  // Get scholarship statistics
+  async getStatistics(): Promise<ScholarshipStatistics> {
     try {
       const [stats] = await db
         .select({
           totalScholarships: count(),
-          totalAmount: sql<number>`SUM(CASE WHEN ${scholarships.availableFunds} ~ '^[0-9]+' THEN CAST(regexp_replace(${scholarships.availableFunds}, '[^0-9]', '', 'g') AS INTEGER) ELSE 0 END)`,
-          avgAmount: sql<number>`AVG(CASE WHEN ${scholarships.availableFunds} ~ '^[0-9]+' THEN CAST(regexp_replace(${scholarships.availableFunds}, '[^0-9]', '', 'g') AS INTEGER) ELSE NULL END)`
+          totalProviders: sql<number>`COUNT(DISTINCT ${scholarships.providerName})`,
+          totalCountries: sql<number>`COUNT(DISTINCT ${scholarships.providerCountry})`,
+          avgMinValue: sql<number>`AVG(CASE WHEN ${scholarships.totalValueMin} IS NOT NULL THEN ${scholarships.totalValueMin} END)`,
+          avgMaxValue: sql<number>`AVG(CASE WHEN ${scholarships.totalValueMax} IS NOT NULL THEN ${scholarships.totalValueMax} END)`,
+          totalMinValue: sql<number>`SUM(CASE WHEN ${scholarships.totalValueMin} IS NOT NULL THEN ${scholarships.totalValueMin} END)`,
+          totalMaxValue: sql<number>`SUM(CASE WHEN ${scholarships.totalValueMax} IS NOT NULL THEN ${scholarships.totalValueMax} END)`
         })
-        .from(scholarships);
+        .from(scholarships)
+        .where(eq(scholarships.status, 'active'));
 
-      const distinctInstitutions = await db
-        .selectDistinct({ institutionName: scholarships.institutionName })
-        .from(scholarships);
-
-      const distinctProgramLevels = await db
-        .selectDistinct({ programLevel: scholarships.programLevel })
-        .from(scholarships);
+      const averageAmount = (stats.avgMinValue + stats.avgMaxValue) / 2 || 0;
+      const totalFunding = (stats.totalMinValue + stats.totalMaxValue) / 2 || 0;
 
       return {
         totalScholarships: stats.totalScholarships,
-        totalInstitutions: distinctInstitutions.length,
-        totalProgramLevels: distinctProgramLevels.length,
-        estimatedTotalValue: stats.totalAmount || 0,
-        averageAmount: stats.avgAmount || 0
+        totalProviders: stats.totalProviders,
+        totalCountries: stats.totalCountries,
+        averageAmount: Math.round(averageAmount),
+        totalFunding: `$${(totalFunding / 1000000).toFixed(1)}M`
       };
 
     } catch (error) {
       console.error('[ScholarshipStorage] Statistics error:', error);
-      return {
-        totalScholarships: 0,
-        totalInstitutions: 0,
-        totalProgramLevels: 0,
-        estimatedTotalValue: 0,
-        averageAmount: 0
-      };
+      throw new Error('Failed to get statistics');
     }
   }
 }
