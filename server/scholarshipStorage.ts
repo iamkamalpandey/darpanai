@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { scholarships } from "@shared/scholarshipSchema";
 import { eq, ilike, or, and, desc, count, sql } from "drizzle-orm";
-import type { ScholarshipSearch, Scholarship, ScholarshipSearchResponse, ScholarshipStatistics } from "@shared/scholarshipSchema";
+import type { ScholarshipSearch, Scholarship, ScholarshipSearchResponse, ScholarshipStatistics, ScholarshipFilterOptions } from "@shared/scholarshipSchema";
 
 export class ScholarshipStorage {
   
@@ -291,7 +291,7 @@ export class ScholarshipStorage {
   }
 
   // Get filter options for the frontend
-  async getFilterOptions() {
+  async getFilterOptions(): Promise<ScholarshipFilterOptions> {
     try {
       const providerTypes = await db
         .selectDistinct({ providerType: scholarships.providerType })
@@ -384,7 +384,7 @@ export class ScholarshipStorage {
         studyLevels: studyLevels as string[],
         fieldCategories: fieldCategories as string[],
         fundingTypes: fundingTypes.map(f => f.fundingType).filter((type): type is string => Boolean(type)),
-        difficultyLevels: difficultyLevels.map(d => d.difficultyLevel).filter((level): type is string => Boolean(level))
+        difficultyLevels: difficultyLevels.map(d => d.difficultyLevel).filter((level): level is string => Boolean(level))
       };
 
     } catch (error) {
@@ -396,7 +396,7 @@ export class ScholarshipStorage {
         fieldCategories: [],
         fundingTypes: [],
         difficultyLevels: []
-      };
+      } as ScholarshipFilterOptions;
     }
   }
 

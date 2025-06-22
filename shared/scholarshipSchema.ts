@@ -108,14 +108,7 @@ export interface ScholarshipSearchResponse {
   total: number;
   page: number;
   totalPages: number;
-  filters: {
-    providerTypes: string[];
-    countries: string[];
-    studyLevels: string[];
-    fieldCategories: string[];
-    fundingTypes: string[];
-    difficultyLevels: string[];
-  };
+  filters: ScholarshipFilterOptions;
 }
 
 // Statistics response
