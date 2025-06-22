@@ -790,12 +790,12 @@ router.post("/admin/scholarships/import", requireAdmin, upload.single('file'), a
           applicationFeeAmount: rawData.applicationFeeAmount || null,
           applicationFeeCurrency: rawData.applicationFeeCurrency || null,
           feeWaiverAvailable: rawData.feeWaiverAvailable === 'true',
-          documentsRequired: rawData.documentsRequired ? rawData.documentsRequired.split(';').map(s => s.trim()).filter(s => s) : null,
+          documentsRequired: rawData.documentsRequired ? rawData.documentsRequired.split(';').map((s: string) => s.trim()).filter((s: string) => s) : null,
           interviewRequired: rawData.interviewRequired === 'true',
           essayRequired: rawData.essayRequired === 'true',
           renewable: rawData.renewable === 'true',
           maxRenewalDuration: rawData.maxRenewalDuration || null,
-          renewalCriteria: rawData.renewalCriteria ? rawData.renewalCriteria.split(';').map(s => s.trim()).filter(s => s) : null,
+          renewalCriteria: rawData.renewalCriteria ? rawData.renewalCriteria.split(';').map((s: string) => s.trim()).filter((s: string) => s) : null,
           workRestrictions: rawData.workRestrictions || null,
           travelRestrictions: rawData.travelRestrictions || null,
           otherScholarshipsAllowed: rawData.otherScholarshipsAllowed || null,
@@ -804,21 +804,21 @@ router.post("/admin/scholarships/import", requireAdmin, upload.single('file'), a
           internshipOpportunities: rawData.internshipOpportunities === 'true',
           researchOpportunities: rawData.researchOpportunities === 'true',
           description: rawData.description || '',
-          tags: rawData.tags ? rawData.tags.split(';').map(s => s.trim()).filter(s => s) : null,
+          tags: rawData.tags ? rawData.tags.split(';').map((s: string) => s.trim()).filter((s: string) => s) : null,
           difficultyLevel: rawData.difficultyLevel || null,
           totalApplicantsPerYear: rawData.totalApplicantsPerYear ? parseInt(rawData.totalApplicantsPerYear) : null,
-          acceptanceRate: rawData.acceptanceRate ? parseFloat(rawData.acceptanceRate) : null,
+          acceptanceRate: rawData.acceptanceRate ? rawData.acceptanceRate.toString() : null,
           status: rawData.status || 'active',
           dataSource: rawData.dataSource || 'import',
           verified: rawData.verified === 'true'
         };
 
         // Check for existing scholarship by scholarshipId
-        const existingScholarship = await scholarshipStorage.getScholarshipByScholarshipId(scholarshipData.scholarshipId);
+        const existingScholarship = await scholarshipStorage.getScholarshipById(scholarshipData.scholarshipId);
 
         if (existingScholarship) {
           // Update existing scholarship
-          await scholarshipStorage.updateScholarship(existingScholarship.id, scholarshipData);
+          await scholarshipStorage.updateScholarship(scholarshipData.scholarshipId, scholarshipData);
           updated++;
           console.log(`[Import] Updated scholarship: ${scholarshipData.name}`);
         } else {
