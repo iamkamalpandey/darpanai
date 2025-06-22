@@ -85,7 +85,7 @@ export default function ScholarshipDetails() {
     queryFn: () => apiRequest('GET', `/api/admin/scholarships/${id}`)
   });
 
-  const scholarship = scholarshipResponse?.data;
+  const scholarship = scholarshipResponse as Scholarship;
 
   const updateMutation = useMutation({
     mutationFn: (data: { id: number; data: Partial<Scholarship> }) => 
@@ -343,7 +343,7 @@ export default function ScholarshipDetails() {
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Target Countries</Label>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {scholarship.targetCountries.map((country, index) => (
+                    {scholarship.targetCountries.map((country: string, index: number) => (
                       <Badge key={index} variant="outline">{country}</Badge>
                     ))}
                   </div>
@@ -412,7 +412,7 @@ export default function ScholarshipDetails() {
               <div>
                 <Label className="text-sm font-medium text-gray-600">Eligibility Requirements</Label>
                 <ul className="mt-2 space-y-2">
-                  {scholarship.eligibilityRequirements.map((req, index) => (
+                  {scholarship.eligibilityRequirements.map((req: string, index: number) => (
                     <li key={index} className="flex items-start gap-2">
                       <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></span>
                       <span className="text-sm">{req}</span>
@@ -425,7 +425,7 @@ export default function ScholarshipDetails() {
                 <div>
                   <Label className="text-sm font-medium text-gray-600">Language Requirements</Label>
                   <ul className="mt-2 space-y-2">
-                    {scholarship.languageRequirements.map((req, index) => (
+                    {scholarship.languageRequirements.map((req: string, index: number) => (
                       <li key={index} className="flex items-start gap-2">
                         <span className="w-2 h-2 bg-green-600 rounded-full mt-2 flex-shrink-0"></span>
                         <span className="text-sm">{req}</span>
