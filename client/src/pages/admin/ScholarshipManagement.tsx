@@ -57,6 +57,11 @@ export default function ScholarshipManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterProviderType, setFilterProviderType] = useState<string>("all");
+  const [filterCountry, setFilterCountry] = useState<string>("all");
+  const [filterFundingType, setFilterFundingType] = useState<string>("all");
+  const [filterDifficulty, setFilterDifficulty] = useState<string>("all");
+  const [filterVerified, setFilterVerified] = useState<string>("all");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedScholarship, setSelectedScholarship] = useState<Scholarship | null>(null);
   const [editingSection, setEditingSection] = useState<string | null>(null);
