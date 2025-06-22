@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   ArrowLeft, 
@@ -30,13 +30,7 @@ import {
   GraduationCap,
   Calendar as CalendarIcon,
   Check,
-  AlertTriangle,
-  Building2,
-  Globe,
-  Calendar,
-  RefreshCw,
-  Star,
-  BarChart
+  AlertTriangle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -146,14 +140,14 @@ const formSections = [
   {
     id: "provider",
     title: "Provider Details", 
-    icon: Building2,
+    icon: Users,
     description: "Scholarship provider information and contact details",
     fields: ["providerName", "providerType", "providerCountry", "providerWebsite"]
   },
   {
     id: "target",
     title: "Target Information",
-    icon: Globe,
+    icon: Settings,
     description: "Host countries, eligible nationalities, and study fields",
     fields: ["hostCountries", "eligibleCountries", "studyLevels", "fieldCategories", "specificFields"]
   },
@@ -167,7 +161,7 @@ const formSections = [
   {
     id: "timeline",
     title: "Timeline & Deadlines",
-    icon: Calendar,
+    icon: CalendarIcon,
     description: "Important dates and program duration",
     fields: ["applicationOpenDate", "applicationDeadline", "notificationDate", "programStartDate", "durationValue", "durationUnit"]
   },
@@ -188,21 +182,21 @@ const formSections = [
   {
     id: "renewal",
     title: "Renewal & Restrictions",
-    icon: RefreshCw,
+    icon: Settings,
     description: "Renewal policies and scholarship restrictions",
     fields: ["renewable", "maxRenewalDuration", "renewalCriteria", "workRestrictions", "travelRestrictions", "otherScholarshipsAllowed"]
   },
   {
     id: "benefits",
     title: "Additional Benefits",
-    icon: Star,
+    icon: Users,
     description: "Extra opportunities and support services",
     fields: ["mentorshipAvailable", "networkingOpportunities", "internshipOpportunities", "researchOpportunities"]
   },
   {
     id: "metadata",
     title: "Statistics & Metadata",
-    icon: BarChart,
+    icon: FileText,
     description: "Administrative data and scholarship statistics",
     fields: ["tags", "difficultyLevel", "totalApplicantsPerYear", "acceptanceRate", "status", "dataSource", "verified"]
   }
@@ -244,26 +238,20 @@ export function ScholarshipFormLayout({
     resolver: zodResolver(scholarshipSchema),
     defaultValues: {
       scholarshipId: "",
-      scholarshipName: "",
+      name: "",
+      shortName: "",
       providerName: "",
       providerType: "government",
       providerCountry: "",
+      providerWebsite: "",
       description: "",
-      shortDescription: "",
       applicationUrl: "",
-      applicationDeadline: "",
-      studyLevel: "",
-      fieldCategory: "",
-      targetCountries: [],
       fundingType: "full",
-      fundingAmount: 0,
       fundingCurrency: "USD",
-      eligibilityRequirements: [],
-      languageRequirements: [],
       difficultyLevel: "intermediate",
-      dataSource: "",
-      verified: false,
-      status: "pending",
+      dataSource: "official",
+      verified: true,
+      status: "active",
     },
   });
 
