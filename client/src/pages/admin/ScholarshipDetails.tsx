@@ -317,13 +317,13 @@ export default function ScholarshipDetails() {
                 <CardContent className="space-y-3">
                   <div>
                     <div className="text-sm text-gray-600 mb-1">Funding Type</div>
-                    <div className="text-sm text-gray-900">{scholarship.fundingType ? scholarship.fundingType.replace('-', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Not Specified'}</div>
+                    <div className="text-sm text-gray-900">{(scholarship as any)?.fundingType ? (scholarship as any).fundingType.replace('-', ' ').split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') : 'Not Specified'}</div>
                   </div>
                   <div>
                     <div className="text-sm text-gray-600 mb-1">Amount Range</div>
                     <div className="text-sm text-gray-900">
-                      {scholarship.fundingAmount && scholarship.fundingCurrency ? 
-                        `${scholarship.fundingCurrency} ${scholarship.fundingAmount.toLocaleString()}` :
+                      {(scholarship as any)?.fundingAmount && (scholarship as any)?.fundingCurrency ? 
+                        `${(scholarship as any).fundingCurrency} ${(scholarship as any).fundingAmount.toLocaleString()}` :
                         'Not specified'
                       }
                     </div>
@@ -331,8 +331,8 @@ export default function ScholarshipDetails() {
                   <div>
                     <div className="text-sm text-gray-600 mb-1">Application Deadline</div>
                     <div className="text-sm text-gray-900">
-                      {scholarship.applicationDeadline ? 
-                        new Date(scholarship.applicationDeadline).toLocaleDateString() : 
+                      {(scholarship as any)?.applicationDeadline ? 
+                        new Date((scholarship as any).applicationDeadline).toLocaleDateString() : 
                         'Not specified'
                       }
                     </div>
@@ -360,17 +360,17 @@ export default function ScholarshipDetails() {
                 <CardContent className="space-y-3">
                   <div>
                     <div className="text-sm text-gray-600 mb-1">Study Levels</div>
-                    <div className="text-sm text-gray-900">{scholarship.studyLevel || 'Not specified'}</div>
+                    <div className="text-sm text-gray-900">{(scholarship as any)?.studyLevel || 'Not specified'}</div>
                   </div>
                   <div>
                     <div className="text-sm text-gray-600 mb-1">Field Categories</div>
-                    <div className="text-sm text-gray-900">{scholarship.fieldCategory || 'Not specified'}</div>
+                    <div className="text-sm text-gray-900">{(scholarship as any)?.fieldCategory || 'Not specified'}</div>
                   </div>
                   <div>
                     <div className="text-sm text-gray-600 mb-1">Host Countries</div>
                     <div className="text-sm text-gray-900">
-                      {scholarship.targetCountries?.length > 0 ? 
-                        scholarship.targetCountries.join(', ') : 
+                      {(scholarship as any)?.targetCountries?.length > 0 ? 
+                        (scholarship as any).targetCountries.join(', ') : 
                         'Not specified'
                       }
                     </div>
@@ -399,15 +399,15 @@ export default function ScholarshipDetails() {
                   <div>
                     <div className="text-sm text-gray-600 mb-1">Degree Required</div>
                     <div className="text-sm text-gray-900">
-                      {scholarship.eligibilityRequirements?.length > 0 ? 
-                        scholarship.eligibilityRequirements.join(', ') : 
+                      {(scholarship as any)?.eligibilityRequirements?.length > 0 ? 
+                        (scholarship as any).eligibilityRequirements.join(', ') : 
                         'Not specified'
                       }
                     </div>
                   </div>
                   <div>
                     <div className="text-sm text-gray-600 mb-1">Difficulty Level</div>
-                    <div className="text-sm text-gray-900">{scholarship.difficultyLevel ? scholarship.difficultyLevel.charAt(0).toUpperCase() + scholarship.difficultyLevel.slice(1) : 'Not Specified'}</div>
+                    <div className="text-sm text-gray-900">{(scholarship as any)?.difficultyLevel ? (scholarship as any).difficultyLevel.charAt(0).toUpperCase() + (scholarship as any).difficultyLevel.slice(1) : 'Not Specified'}</div>
                   </div>
                 </CardContent>
               </Card>
