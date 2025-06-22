@@ -78,9 +78,11 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const sidebarItems = [
+    // Priority 1: Core user actions
     { icon: <Home size={20} />, label: 'Dashboard', href: '/' },
+    { icon: <Calendar size={20} />, label: 'Consultation Booking', href: '/consultations' },
     
-    // AI Analysis Tools
+    // Priority 2: Analysis tools (most used features)
     { 
       icon: <BarChart3 size={20} />, 
       label: 'AI Analysis Tools', 
@@ -92,13 +94,14 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
       ]
     },
 
-    // Main Menu Items
+    // Priority 3: User data and results
     { icon: <FileText size={20} />, label: 'My Analysis', href: '/my-analysis' },
+    
+    // Priority 4: Research and planning tools
     { icon: <MapPin size={20} />, label: 'AI Study Destination', href: '/personalized-destination-analysis' },
     { icon: <Award size={20} />, label: 'Scholarship Research', href: '/scholarship-research' },
-    { icon: <Calendar size={20} />, label: 'Consultation Booking', href: '/consultations' },
 
-    // Document Information
+    // Priority 5: Document information
     { 
       icon: <FolderOpen size={20} />, 
       label: 'Document Information', 
@@ -286,7 +289,7 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
         )}
 
         {/* Mobile Content */}
-        <main className="flex-1 min-h-0">
+        <main className="flex-1 overflow-y-auto">
           {children}
         </main>
       </div>
@@ -380,7 +383,7 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         {/* Desktop Content */}
-        <main className="flex-1 overflow-hidden">
+        <main className="flex-1 overflow-y-auto">
           {children}
         </main>
       </div>
