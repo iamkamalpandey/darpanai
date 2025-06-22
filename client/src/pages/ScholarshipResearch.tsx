@@ -403,7 +403,7 @@ export default function ScholarshipResearch() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Countries</SelectItem>
-                        {filters.countries.filter(country => country && country.trim()).map((country) => (
+                        {filters.countries.filter(country => country && typeof country === 'string' && country.trim()).map((country) => (
                           <SelectItem key={country} value={country}>
                             {country}
                           </SelectItem>
