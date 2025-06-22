@@ -1,7 +1,6 @@
-import { Router, type Request, Response } from "express";
+import { Router, Request, Response } from "express";
 import { scholarshipStorage } from "./scholarshipStorage";
 import { scholarshipSearchSchema, insertScholarshipSchema } from "@shared/scholarshipSchema";
-import { z } from "zod";
 
 const router = Router();
 
@@ -33,13 +32,11 @@ router.get("/search", async (req: Request, res: Response) => {
       success: true,
       data: result
     });
-
   } catch (error) {
     console.error('[Scholarship Search] Error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to search scholarships',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: "Failed to search scholarships"
     });
   }
 });
@@ -48,99 +45,97 @@ router.get("/search", async (req: Request, res: Response) => {
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        error: 'Scholarship ID is required'
-      });
-    }
-
     const scholarship = await scholarshipStorage.getScholarshipById(id);
     
     if (!scholarship) {
       return res.status(404).json({
         success: false,
-        error: 'Scholarship not found'
+        error: "Scholarship not found"
       });
     }
-
+    
     res.json({
       success: true,
       data: scholarship
     });
-
   } catch (error) {
     console.error('[Scholarship Get] Error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to get scholarship',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: "Failed to get scholarship"
     });
   }
 });
 
-// Get featured scholarships
+// Get featured scholarships (using getAllScholarships with limit)
 router.get("/featured/list", async (req: Request, res: Response) => {
   try {
-    const limit = req.query.limit ? Number(req.query.limit) : 5;
-    const scholarships = await scholarshipStorage.getFeaturedScholarships(limit);
+    const limit = Number(req.query.limit) || 10;
+    const result = await scholarshipStorage.getAllScholarships(limit, 0);
     
     res.json({
       success: true,
-      data: scholarships
+      data: result.scholarships
     });
-
   } catch (error) {
     console.error('[Featured Scholarships] Error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to get featured scholarships',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: "Failed to get featured scholarships"
     });
   }
 });
 
-// Get scholarships by provider
+// Get scholarships by provider (using search functionality)
 router.get("/provider/:providerName", async (req: Request, res: Response) => {
   try {
     const { providerName } = req.params;
-    const decodedProvider = decodeURIComponent(providerName);
+    const limit = Number(req.query.limit) || 20;
+    const offset = Number(req.query.offset) || 0;
     
-    const scholarships = await scholarshipStorage.getScholarshipsByProvider(decodedProvider);
+    const result = await scholarshipStorage.searchScholarships({
+      search: providerName,
+      limit,
+      offset
+    });
     
     res.json({
       success: true,
-      data: scholarships
+      data: result
     });
-
   } catch (error) {
     console.error('[Provider Scholarships] Error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to get scholarships by provider',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: "Failed to get provider scholarships"
     });
   }
 });
 
-// Get upcoming deadline scholarships
+// Get upcoming deadlines (using search with date filtering)
 router.get("/deadlines/upcoming", async (req: Request, res: Response) => {
   try {
-    const days = req.query.days ? Number(req.query.days) : 30;
-    const scholarships = await scholarshipStorage.getUpcomingDeadlines(days);
+    const limit = Number(req.query.limit) || 10;
+    const today = new Date().toISOString().split('T')[0];
+    const oneYearLater = new Date();
+    oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
+    
+    const result = await scholarshipStorage.searchScholarships({
+      deadlineFrom: today,
+      deadlineTo: oneYearLater.toISOString().split('T')[0],
+      limit,
+      offset: 0
+    });
     
     res.json({
       success: true,
-      data: scholarships
+      data: result.scholarships
     });
-
   } catch (error) {
     console.error('[Upcoming Deadlines] Error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to get upcoming deadlines',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: "Failed to get upcoming deadlines"
     });
   }
 });
@@ -154,102 +149,90 @@ router.get("/stats/overview", async (req: Request, res: Response) => {
       success: true,
       data: stats
     });
-
   } catch (error) {
     console.error('[Scholarship Stats] Error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to get scholarship statistics',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: "Failed to get statistics"
     });
   }
 });
 
-// Admin routes (require authentication)
+// Authentication middleware for admin operations
 const requireAuth = (req: Request, res: Response, next: any) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ error: 'Authentication required' });
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      error: "Authentication required"
+    });
   }
   next();
 };
 
+// Admin role check
 const requireAdmin = (req: Request, res: Response, next: any) => {
-  if (!req.isAuthenticated() || (req.user as any)?.role !== 'admin') {
-    return res.status(403).json({ error: 'Admin access required' });
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      error: "Admin access required"
+    });
   }
   next();
 };
 
-// Create new scholarship (Admin only)
+// ADMIN ROUTES - Protected by authentication
+
+// Create new scholarship
 router.post("/", requireAdmin, async (req: Request, res: Response) => {
   try {
     const scholarshipData = insertScholarshipSchema.parse(req.body);
-    const scholarship = await scholarshipStorage.createScholarship(scholarshipData);
+    const scholarship = await scholarshipStorage.createScholarship({
+      ...scholarshipData,
+      scholarshipId: `${scholarshipData.providerType.toUpperCase()}_${Date.now()}`
+    });
     
     res.status(201).json({
       success: true,
       data: scholarship
     });
-
   } catch (error) {
-    console.error('[Create Scholarship] Error:', error);
-    
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid scholarship data',
-        details: error.errors
-      });
-    }
-
+    console.error('[Scholarship Create] Error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to create scholarship',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: "Failed to create scholarship"
     });
   }
 });
 
-// Update scholarship (Admin only)
+// Update scholarship
 router.put("/:id", requireAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const updateData = insertScholarshipSchema.partial().parse(req.body);
+    const scholarshipData = insertScholarshipSchema.parse(req.body);
     
-    const scholarship = await scholarshipStorage.updateScholarship(id, updateData);
+    const scholarship = await scholarshipStorage.updateScholarship(id, scholarshipData);
     
     if (!scholarship) {
       return res.status(404).json({
         success: false,
-        error: 'Scholarship not found'
+        error: "Scholarship not found"
       });
     }
-
+    
     res.json({
       success: true,
       data: scholarship
     });
-
   } catch (error) {
-    console.error('[Update Scholarship] Error:', error);
-    
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid update data',
-        details: error.errors
-      });
-    }
-
+    console.error('[Scholarship Update] Error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to update scholarship',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: "Failed to update scholarship"
     });
   }
 });
 
-// Delete scholarship (Admin only)
+// Delete scholarship
 router.delete("/:id", requireAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -258,23 +241,21 @@ router.delete("/:id", requireAdmin, async (req: Request, res: Response) => {
     if (!success) {
       return res.status(404).json({
         success: false,
-        error: 'Scholarship not found'
+        error: "Scholarship not found"
       });
     }
-
+    
     res.json({
       success: true,
-      message: 'Scholarship deleted successfully'
+      message: "Scholarship deleted successfully"
     });
-
   } catch (error) {
-    console.error('[Delete Scholarship] Error:', error);
+    console.error('[Scholarship Delete] Error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to delete scholarship',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      error: "Failed to delete scholarship"
     });
   }
 });
 
-export { router as scholarshipRoutes };
+export default router;

@@ -160,7 +160,7 @@ export class ScholarshipStorage {
     try {
       const [scholarship] = await db
         .insert(scholarships)
-        .values(scholarshipData)
+        .values([scholarshipData as any])
         .returning();
 
       return scholarship;
@@ -288,17 +288,17 @@ export class ScholarshipStorage {
         ));
 
       // Extract unique values from JSON arrays
-      const studyLevels = [...new Set(
+      const studyLevels = Array.from(new Set(
         studyLevelsQuery
           .flatMap(row => Array.isArray(row.studyLevels) ? row.studyLevels : [])
           .filter(Boolean)
-      )];
+      ));
 
-      const fieldCategories = [...new Set(
+      const fieldCategories = Array.from(new Set(
         fieldCategoriesQuery
           .flatMap(row => Array.isArray(row.fieldCategories) ? row.fieldCategories : [])
           .filter(Boolean)
-      )];
+      ));
 
       return {
         providerTypes: providerTypes.map(p => p.providerType).filter((type): type is string => Boolean(type)),

@@ -202,8 +202,8 @@ function setupGracefulShutdown(server: any) {
     logWithLevel('✓ COE information routes registered successfully');
     
     // Register scholarship routes
-    const { scholarshipRoutes } = await import('./scholarshipRoutes');
-    app.use('/api/scholarships', scholarshipRoutes);
+    const scholarshipRoutes = await import('./scholarshipRoutes');
+    app.use('/api/scholarships', scholarshipRoutes.default);
     logWithLevel('✓ Scholarship routes registered successfully');
     
     // Step 5: Setup error handling middleware
