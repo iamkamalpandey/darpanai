@@ -667,4 +667,229 @@ router.get("/admin/scholarships/export", requireAdmin, async (req: Request, res:
   }
 });
 
+// Import scholarships from CSV (admin endpoint)
+router.post("/admin/scholarships/import", requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const multer = require('multer');
+    const upload = multer({ dest: 'uploads/' });
+    const fs = require('fs');
+    const csv = require('csv-parser');
+
+    // Handle file upload
+    upload.single('file')(req, res, async (err: any) => {
+      if (err) {
+        return res.status(400).json({
+          success: false,
+          error: "File upload failed"
+        });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          error: "No file provided"
+        });
+      }
+
+      try {
+        const scholarshipData: any[] = [];
+        
+        // Parse CSV file
+        await new Promise((resolve, reject) => {
+          fs.createReadStream(req.file.path)
+            .pipe(csv())
+            .on('data', (row: any) => {
+              // Parse JSON fields
+              try {
+                if (row.hostCountries) row.hostCountries = JSON.parse(row.hostCountries);
+                if (row.eligibleCountries) row.eligibleCountries = JSON.parse(row.eligibleCountries);
+                if (row.studyLevels) row.studyLevels = JSON.parse(row.studyLevels);
+                if (row.fieldCategories) row.fieldCategories = JSON.parse(row.fieldCategories);
+                if (row.specificFields) row.specificFields = JSON.parse(row.specificFields);
+                if (row.degreeRequired) row.degreeRequired = JSON.parse(row.degreeRequired);
+                if (row.languageRequirements) row.languageRequirements = JSON.parse(row.languageRequirements);
+                if (row.documentsRequired) row.documentsRequired = JSON.parse(row.documentsRequired);
+                if (row.tags) row.tags = JSON.parse(row.tags);
+              } catch (e) {
+                // Keep as string if JSON parsing fails
+              }
+
+              // Convert string numbers to actual numbers
+              const numericFields = [
+                'tuitionCoveragePercentage', 'livingAllowanceAmount', 'totalValueMin', 'totalValueMax',
+                'durationValue', 'minGpa', 'gpaScale', 'minAge', 'maxAge', 'minWorkExperience',
+                'applicationFeeAmount', 'totalApplicantsPerYear', 'acceptanceRate'
+              ];
+
+              numericFields.forEach(field => {
+                if (row[field] && row[field] !== '') {
+                  row[field] = parseFloat(row[field]);
+                }
+              });
+
+              // Convert string booleans to actual booleans
+              const booleanFields = [
+                'leadershipRequired', 'feeWaiverAvailable', 'interviewRequired', 'essayRequired',
+                'renewable', 'workRestrictions', 'travelRestrictions', 'otherScholarshipsAllowed',
+                'mentorshipAvailable', 'networkingOpportunities', 'internshipOpportunities',
+                'researchOpportunities', 'verified'
+              ];
+
+              booleanFields.forEach(field => {
+                if (row[field] && row[field] !== '') {
+                  row[field] = row[field].toLowerCase() === 'true' || row[field] === '1';
+                }
+              });
+
+              // Remove empty string values
+              Object.keys(row).forEach(key => {
+                if (row[key] === '') {
+                  delete row[key];
+                }
+              });
+
+              scholarshipData.push(row);
+            })
+            .on('end', resolve)
+            .on('error', reject);
+        });
+
+        // Import data using storage method
+        const result = await scholarshipStorage.bulkCreateScholarships(scholarshipData);
+
+        // Clean up uploaded file
+        fs.unlinkSync(req.file.path);
+
+        res.json({
+          success: true,
+          imported: result.imported,
+          errors: result.errors,
+          message: `Successfully imported ${result.imported} scholarships${result.errors.length > 0 ? ` with ${result.errors.length} errors` : ''}`
+        });
+
+      } catch (parseError: any) {
+        // Clean up uploaded file on error
+        if (req.file?.path) {
+          try {
+            fs.unlinkSync(req.file.path);
+          } catch (e) {
+            // Ignore cleanup errors
+          }
+        }
+
+        console.error('[Scholarship Import] Parse error:', parseError);
+        res.status(500).json({
+          success: false,
+          error: "Failed to parse CSV file"
+        });
+      }
+    });
+
+  } catch (error: any) {
+    console.error('[Scholarship Import] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to import scholarships"
+    });
+  }
+});
+
+// Generate sample CSV template (admin endpoint)
+router.get("/admin/scholarships/sample-csv", requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const headers = [
+      'scholarshipId', 'name', 'shortName', 'providerName', 'providerType', 'providerCountry',
+      'hostCountries', 'eligibleCountries', 'studyLevels', 'fieldCategories', 'specificFields',
+      'fundingType', 'fundingCurrency', 'tuitionCoveragePercentage', 'livingAllowanceAmount',
+      'livingAllowanceFrequency', 'totalValueMin', 'totalValueMax', 'applicationOpenDate',
+      'applicationDeadline', 'notificationDate', 'programStartDate', 'durationValue', 'durationUnit',
+      'minGpa', 'gpaScale', 'degreeRequired', 'minAge', 'maxAge', 'genderRequirement',
+      'minWorkExperience', 'leadershipRequired', 'languageRequirements', 'applicationUrl',
+      'applicationFeeAmount', 'applicationFeeCurrency', 'feeWaiverAvailable', 'documentsRequired',
+      'interviewRequired', 'essayRequired', 'renewable', 'maxRenewalDuration', 'renewalCriteria',
+      'workRestrictions', 'travelRestrictions', 'otherScholarshipsAllowed', 'mentorshipAvailable',
+      'networkingOpportunities', 'internshipOpportunities', 'researchOpportunities', 'description',
+      'tags', 'difficultyLevel', 'totalApplicantsPerYear', 'acceptanceRate', 'status',
+      'dataSource', 'verified'
+    ];
+
+    // Sample data
+    const sampleData = [
+      'SAMPLE_SCHOLARSHIP_2025',
+      'Sample International Scholarship',
+      'Sample Scholarship',
+      'Sample University',
+      'institution',
+      'US',
+      '["US","CA"]',
+      '["IN","CN","BR"]',
+      '["masters","phd"]',
+      '["STEM","Engineering"]',
+      '["Computer Science","Electrical Engineering"]',
+      'full',
+      'USD',
+      '100',
+      '24000',
+      'annually',
+      '50000',
+      '60000',
+      '2025-01-01',
+      '2025-12-31',
+      '2026-02-15',
+      '2026-09-01',
+      '2',
+      'years',
+      '3.5',
+      '4.0',
+      '["Bachelor","Masters"]',
+      '18',
+      '35',
+      'any',
+      '0',
+      'true',
+      '[{"test":"IELTS","minScore":6.5},{"test":"TOEFL","minScore":90}]',
+      'https://example.com/apply',
+      '50',
+      'USD',
+      'true',
+      '["Transcripts","SOP","LOR","CV"]',
+      'true',
+      'true',
+      'true',
+      '4 years',
+      'Maintain 3.0 GPA',
+      'false',
+      'false',
+      'true',
+      'true',
+      'true',
+      'true',
+      'true',
+      'A comprehensive scholarship for international students pursuing STEM fields',
+      '["STEM","Full Funding","International"]',
+      'moderate',
+      '1000',
+      '5.5',
+      'active',
+      'official',
+      'true'
+    ];
+
+    let csvContent = headers.join(',') + '\n';
+    csvContent += sampleData.join(',') + '\n';
+
+    const filename = `scholarship-import-template-${new Date().toISOString().split('T')[0]}.csv`;
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    
+    res.send(csvContent);
+  } catch (error: any) {
+    console.error('[Sample CSV] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to generate sample CSV"
+    });
+  }
+});
+
 export default router;

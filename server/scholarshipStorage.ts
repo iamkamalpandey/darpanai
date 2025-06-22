@@ -261,20 +261,18 @@ export class ScholarshipStorage {
     }
   }
 
-  // Get all scholarships with pagination
-  async getAllScholarships(limit: number = 50, offset: number = 0): Promise<{ scholarships: Scholarship[], total: number }> {
+  // Get all scholarships with pagination (admin version - includes all statuses)
+  async getAllScholarships(limit: number = 1000, offset: number = 0): Promise<{ scholarships: Scholarship[], total: number }> {
     try {
       const [totalResult] = await db
         .select({ count: count() })
-        .from(scholarships)
-        .where(eq(scholarships.status, 'active'));
+        .from(scholarships);
 
       const total = totalResult.count;
 
       const scholarshipResults = await db
         .select()
         .from(scholarships)
-        .where(eq(scholarships.status, 'active'))
         .orderBy(desc(scholarships.createdDate))
         .limit(limit)
         .offset(offset);
@@ -287,6 +285,57 @@ export class ScholarshipStorage {
     } catch (error) {
       console.error('[ScholarshipStorage] Get all error:', error);
       throw new Error('Failed to get scholarships');
+    }
+  }
+
+  // Bulk create scholarships from import
+  async bulkCreateScholarships(scholarshipData: Partial<Scholarship>[]): Promise<{ imported: number, errors: string[] }> {
+    try {
+      const imported = [];
+      const errors = [];
+
+      for (const data of scholarshipData) {
+        try {
+          // Validate required fields
+          if (!data.scholarshipId || !data.name || !data.providerName) {
+            errors.push(`Missing required fields for row: ${data.name || 'unknown'}`);
+            continue;
+          }
+
+          // Check for duplicates by scholarshipId
+          try {
+            const existingScholarships = await db
+              .select()
+              .from(scholarships)
+              .where(eq(scholarships.scholarshipId, data.scholarshipId))
+              .limit(1);
+            
+            if (existingScholarships.length > 0) {
+              errors.push(`Scholarship ID already exists: ${data.scholarshipId}`);
+              continue;
+            }
+          } catch (checkError) {
+            errors.push(`Error checking duplicate for ${data.scholarshipId}`);
+            continue;
+          }
+
+          // Create scholarship
+          const created = await this.createScholarship(data);
+          if (created) {
+            imported.push(created);
+          }
+        } catch (error: any) {
+          errors.push(`Error importing ${data.scholarshipId}: ${error.message}`);
+        }
+      }
+
+      return {
+        imported: imported.length,
+        errors
+      };
+    } catch (error) {
+      console.error('[ScholarshipStorage] Bulk create error:', error);
+      throw new Error('Failed to bulk import scholarships');
     }
   }
 
