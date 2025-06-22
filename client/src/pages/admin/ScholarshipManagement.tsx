@@ -291,7 +291,7 @@ export default function ScholarshipManagement() {
               </Button>
             )}
             <Badge variant="outline" className="px-3 py-1">
-              {scholarships.length} of {totalScholarships} scholarships
+              {isLoading ? 'Loading...' : `${scholarships.length} of ${totalScholarships} scholarships`}
             </Badge>
           </div>
         </div>
