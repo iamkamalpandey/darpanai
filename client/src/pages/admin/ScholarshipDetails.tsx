@@ -202,7 +202,7 @@ export default function ScholarshipDetails() {
               </div>
 
               <Button 
-                onClick={() => setLocation(`/admin/scholarships/edit/${scholarship.id}`)}
+                onClick={() => setLocation(`/admin/scholarship/edit/${scholarship.id}`)}
                 className="w-full"
                 size="sm"
               >

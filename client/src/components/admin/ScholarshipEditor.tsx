@@ -97,7 +97,8 @@ const PROVIDER_TYPES = [
   { value: 'private', label: 'Private' },
   { value: 'institution', label: 'Institution' },
   { value: 'foundation', label: 'Foundation' },
-  { value: 'corporate', label: 'Corporate' }
+  { value: 'corporate', label: 'Corporate' },
+  { value: 'other', label: 'Other' }
 ];
 
 const STUDY_LEVELS = [
@@ -106,7 +107,8 @@ const STUDY_LEVELS = [
   { value: 'phd', label: 'PhD' },
   { value: 'postdoc', label: 'Postdoc' },
   { value: 'diploma', label: 'Diploma' },
-  { value: 'certificate', label: 'Certificate' }
+  { value: 'certificate', label: 'Certificate' },
+  { value: 'other', label: 'Other' }
 ];
 
 const FUNDING_TYPES = [
@@ -114,7 +116,9 @@ const FUNDING_TYPES = [
   { value: 'partial', label: 'Partial Funding' },
   { value: 'tuition_only', label: 'Tuition Only' },
   { value: 'living_allowance', label: 'Living Allowance Only' },
-  { value: 'travel_grant', label: 'Travel Grant' }
+  { value: 'travel_grant', label: 'Travel Grant' },
+  { value: 'research_grant', label: 'Research Grant' },
+  { value: 'other', label: 'Other' }
 ];
 
 const FUNDING_CURRENCIES = [
@@ -123,26 +127,38 @@ const FUNDING_CURRENCIES = [
   { value: 'EUR', label: 'EUR (€)' },
   { value: 'GBP', label: 'GBP (£)' },
   { value: 'CAD', label: 'CAD ($)' },
-  { value: 'INR', label: 'INR (₹)' }
+  { value: 'INR', label: 'INR (₹)' },
+  { value: 'JPY', label: 'JPY (¥)' },
+  { value: 'CNY', label: 'CNY (¥)' },
+  { value: 'SGD', label: 'SGD ($)' },
+  { value: 'NZD', label: 'NZD ($)' },
+  { value: 'other', label: 'Other' }
 ];
 
 const DURATION_UNITS = [
   { value: 'months', label: 'Months' },
   { value: 'years', label: 'Years' },
-  { value: 'semesters', label: 'Semesters' }
+  { value: 'semesters', label: 'Semesters' },
+  { value: 'quarters', label: 'Quarters' },
+  { value: 'other', label: 'Other' }
 ];
 
 const DEGREE_REQUIREMENTS = [
   { value: 'High School', label: 'High School' },
   { value: 'Bachelor', label: 'Bachelor\'s Degree' },
   { value: 'Masters', label: 'Master\'s Degree' },
-  { value: 'PhD', label: 'PhD' }
+  { value: 'PhD', label: 'PhD' },
+  { value: 'Associate', label: 'Associate Degree' },
+  { value: 'Professional', label: 'Professional Degree' },
+  { value: 'other', label: 'Other' }
 ];
 
 const GENDER_REQUIREMENTS = [
   { value: 'any', label: 'Any Gender' },
   { value: 'male', label: 'Male Only' },
-  { value: 'female', label: 'Female Only' }
+  { value: 'female', label: 'Female Only' },
+  { value: 'non_binary', label: 'Non-Binary Inclusive' },
+  { value: 'other', label: 'Other' }
 ];
 
 const FIELD_CATEGORIES = [
@@ -153,14 +169,30 @@ const FIELD_CATEGORIES = [
   { value: 'Arts', label: 'Arts & Humanities' },
   { value: 'Social Sciences', label: 'Social Sciences' },
   { value: 'Law', label: 'Law' },
-  { value: 'Education', label: 'Education' }
+  { value: 'Education', label: 'Education' },
+  { value: 'Agriculture', label: 'Agriculture' },
+  { value: 'Environmental', label: 'Environmental Studies' },
+  { value: 'Psychology', label: 'Psychology' },
+  { value: 'Communications', label: 'Communications' },
+  { value: 'other', label: 'Other' }
 ];
 
 const SCHOLARSHIP_STATUS = [
   { value: 'active', label: 'Active' },
   { value: 'inactive', label: 'Inactive' },
   { value: 'pending', label: 'Pending Review' },
-  { value: 'draft', label: 'Draft' }
+  { value: 'draft', label: 'Draft' },
+  { value: 'suspended', label: 'Suspended' },
+  { value: 'archived', label: 'Archived' }
+];
+
+const LIVING_ALLOWANCE_FREQUENCY = [
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'quarterly', label: 'Quarterly' },
+  { value: 'semester', label: 'Per Semester' },
+  { value: 'annually', label: 'Annually' },
+  { value: 'lump_sum', label: 'Lump Sum' },
+  { value: 'other', label: 'Other' }
 ];
 
 interface ScholarshipEditorProps {
@@ -794,6 +826,47 @@ function ScholarshipSectionEditor({
           />
         </div>
       </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="tuitionCoveragePercentage">Tuition Coverage %</Label>
+          <Input
+            id="tuitionCoveragePercentage"
+            type="number"
+            min="0"
+            max="100"
+            value={formData.tuitionCoveragePercentage || ''}
+            onChange={(e) => onInputChange('tuitionCoveragePercentage', e.target.value)}
+            placeholder="100"
+          />
+        </div>
+        <div>
+          <Label htmlFor="livingAllowanceAmount">Living Allowance Amount</Label>
+          <Input
+            id="livingAllowanceAmount"
+            type="number"
+            value={formData.livingAllowanceAmount || ''}
+            onChange={(e) => onInputChange('livingAllowanceAmount', e.target.value)}
+            placeholder="18000"
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="livingAllowanceFrequency">Living Allowance Frequency</Label>
+        <Select value={formData.livingAllowanceFrequency || ''} onValueChange={(value) => onInputChange('livingAllowanceFrequency', value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select frequency" />
+          </SelectTrigger>
+          <SelectContent>
+            {LIVING_ALLOWANCE_FREQUENCY.map((frequency) => (
+              <SelectItem key={frequency.value} value={frequency.value}>
+                {frequency.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 
@@ -847,20 +920,87 @@ function ScholarshipSectionEditor({
         </div>
       </div>
 
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="minWorkExperience">Min Work Experience (Years)</Label>
+          <Input
+            id="minWorkExperience"
+            type="number"
+            min="0"
+            value={formData.minWorkExperience || ''}
+            onChange={(e) => onInputChange('minWorkExperience', e.target.value)}
+            placeholder="2"
+          />
+        </div>
+        <div>
+          <Label htmlFor="genderRequirement">Gender Requirement</Label>
+          <Select value={formData.genderRequirement || ''} onValueChange={(value) => onInputChange('genderRequirement', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select gender requirement" />
+            </SelectTrigger>
+            <SelectContent>
+              {GENDER_REQUIREMENTS.map((requirement) => (
+                <SelectItem key={requirement.value} value={requirement.value}>
+                  {requirement.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       <div>
-        <Label htmlFor="genderRequirement">Gender Requirement</Label>
-        <Select value={formData.genderRequirement || ''} onValueChange={(value) => onInputChange('genderRequirement', value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select gender requirement" />
-          </SelectTrigger>
-          <SelectContent>
-            {GENDER_REQUIREMENTS.map((requirement) => (
-              <SelectItem key={requirement.value} value={requirement.value}>
-                {requirement.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Label>Degree Requirements</Label>
+        <div className="space-y-2">
+          <Select 
+            value="" 
+            onValueChange={(value) => {
+              const currentValues = formData.degreeRequired || [];
+              if (value && !currentValues.includes(value)) {
+                onArrayFieldChange('degreeRequired', [...currentValues, value]);
+              }
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Add degree requirement" />
+            </SelectTrigger>
+            <SelectContent>
+              {DEGREE_REQUIREMENTS
+                .filter(degree => !(formData.degreeRequired || []).includes(degree.value))
+                .map((degree) => (
+                  <SelectItem key={degree.value} value={degree.value}>
+                    {degree.label}
+                  </SelectItem>
+                ))
+              }
+            </SelectContent>
+          </Select>
+          
+          {formData.degreeRequired && formData.degreeRequired.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {formData.degreeRequired.map((degreeValue: string) => {
+                const degree = DEGREE_REQUIREMENTS.find(d => d.value === degreeValue);
+                return (
+                  <Badge key={degreeValue} variant="secondary" className="flex items-center gap-1">
+                    {degree?.label || degreeValue}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-auto p-0 text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        const newValues = (formData.degreeRequired || []).filter((d: string) => d !== degreeValue);
+                        onArrayFieldChange('degreeRequired', newValues);
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       <div>

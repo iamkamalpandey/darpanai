@@ -501,7 +501,7 @@ export default function ScholarshipManagement() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => setLocation(`/admin/scholarships/edit/${scholarship.id}`)}
+                                onClick={() => setLocation(`/admin/scholarship/edit/${scholarship.id}`)}
                                 title="Edit Scholarship"
                               >
                                 <Edit className="w-4 h-4" />

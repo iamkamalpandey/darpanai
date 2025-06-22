@@ -173,7 +173,7 @@ export default function ScholarshipDetailsRedesign() {
               {scholarship.status?.charAt(0).toUpperCase() + scholarship.status?.slice(1)}
             </Badge>
             <Button 
-              onClick={() => setLocation(`/admin/scholarships/edit/${scholarship.id}`)}
+              onClick={() => setLocation(`/admin/scholarship/edit/${scholarship.id}`)}
               className="flex items-center gap-2"
             >
               <Edit className="w-4 h-4" />
