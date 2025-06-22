@@ -301,7 +301,10 @@ router.get("/admin/scholarships/:id", requireAdmin, async (req: Request, res: Re
       });
     }
     
-    res.json(scholarship);
+    res.json({
+      success: true,
+      data: scholarship
+    });
   } catch (error) {
     console.error('[Admin Scholarship Get] Error:', error);
     res.status(500).json({
