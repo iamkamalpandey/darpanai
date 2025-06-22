@@ -182,6 +182,116 @@ const requireAdmin = (req: Request, res: Response, next: any) => {
 
 // ADMIN ROUTES - Protected by authentication
 
+// Get all scholarships for admin management with filtering
+router.get("/admin/scholarships", requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { 
+      search = '', 
+      status = '', 
+      providerType = '',
+      limit = '20', 
+      offset = '0' 
+    } = req.query;
+
+    const result = await scholarshipStorage.searchScholarships({
+      search: search as string,
+      status: status as string,
+      providerType: providerType as string,
+      limit: parseInt(limit as string),
+      offset: parseInt(offset as string)
+    });
+
+    res.json({
+      success: true,
+      data: {
+        scholarships: result.scholarships,
+        total: result.total || result.scholarships.length,
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching admin scholarships:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch scholarships'
+    });
+  }
+});
+
+// Create new scholarship (admin endpoint)
+router.post("/admin/scholarships", requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const scholarshipData = insertScholarshipSchema.parse(req.body);
+    const scholarship = await scholarshipStorage.createScholarship(scholarshipData);
+    
+    res.status(201).json({
+      success: true,
+      data: scholarship
+    });
+  } catch (error) {
+    console.error('[Admin Scholarship Create] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to create scholarship"
+    });
+  }
+});
+
+// Update scholarship (admin endpoint)
+router.put("/admin/scholarships/:id", requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    const scholarshipData = insertScholarshipSchema.parse(req.body);
+    
+    const scholarship = await scholarshipStorage.updateScholarship(id, scholarshipData);
+    
+    if (!scholarship) {
+      return res.status(404).json({
+        success: false,
+        error: "Scholarship not found"
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: scholarship
+    });
+  } catch (error) {
+    console.error('[Admin Scholarship Update] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to update scholarship"
+    });
+  }
+});
+
+// Delete scholarship (admin endpoint)
+router.delete("/admin/scholarships/:id", requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    const success = await scholarshipStorage.deleteScholarship(id);
+    
+    if (!success) {
+      return res.status(404).json({
+        success: false,
+        error: "Scholarship not found"
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: "Scholarship deleted successfully"
+    });
+  } catch (error) {
+    console.error('[Admin Scholarship Delete] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to delete scholarship"
+    });
+  }
+});
+
 // Create new scholarship
 router.post("/", requireAdmin, async (req: Request, res: Response) => {
   try {

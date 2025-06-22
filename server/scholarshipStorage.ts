@@ -191,6 +191,26 @@ export class ScholarshipStorage {
     }
   }
 
+  // Update scholarship by numeric ID (for admin CRUD)
+  async updateScholarshipById(id: number, scholarshipData: Partial<Scholarship>): Promise<Scholarship | null> {
+    try {
+      const [scholarship] = await db
+        .update(scholarships)
+        .set({ 
+          ...scholarshipData,
+          updatedDate: new Date()
+        })
+        .where(eq(scholarships.id, id))
+        .returning();
+
+      return scholarship || null;
+
+    } catch (error) {
+      console.error('[ScholarshipStorage] Update by ID error:', error);
+      throw new Error('Failed to update scholarship');
+    }
+  }
+
   // Delete scholarship
   async deleteScholarship(scholarshipId: string): Promise<boolean> {
     try {
@@ -202,6 +222,21 @@ export class ScholarshipStorage {
 
     } catch (error) {
       console.error('[ScholarshipStorage] Delete error:', error);
+      throw new Error('Failed to delete scholarship');
+    }
+  }
+
+  // Delete scholarship by numeric ID (for admin CRUD)
+  async deleteScholarshipById(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(scholarships)
+        .where(eq(scholarships.id, id));
+
+      return (result.rowCount || 0) > 0;
+
+    } catch (error) {
+      console.error('[ScholarshipStorage] Delete by ID error:', error);
       throw new Error('Failed to delete scholarship');
     }
   }

@@ -1,10 +1,11 @@
-import { pgTable, text, integer, timestamp, decimal, boolean, date, json } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, timestamp, decimal, boolean, date, json, serial } from "drizzle-orm/pg-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Comprehensive scholarships table schema
 export const scholarships = pgTable("scholarships", {
-  scholarshipId: text("scholarship_id").primaryKey(),
+  id: serial("id").primaryKey(),
+  scholarshipId: text("scholarship_id").notNull().unique(),
   name: text("name").notNull(),
   shortName: text("short_name"),
   providerName: text("provider_name").notNull(),
