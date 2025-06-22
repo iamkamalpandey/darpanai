@@ -290,20 +290,22 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Mobile Content */}
         <main className="flex-1 overflow-y-auto">
-          {children}
+          <div className="p-4 sm:p-6">
+            {children}
+          </div>
         </main>
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden md:flex h-screen bg-gray-50">
+      <div className="hidden md:flex h-screen bg-white">
         {/* Desktop Sidebar */}
-        <div className="w-72 lg:w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm">
-          <div className="flex items-center h-16 px-6 border-b border-gray-200 bg-white flex-shrink-0">
+        <div className="w-72 lg:w-80 bg-white border-r border-gray-100 flex flex-col">
+          <div className="flex items-center h-16 px-6 border-b border-gray-100 bg-white flex-shrink-0">
             <Shield className="h-7 w-7 text-blue-600 mr-3 flex-shrink-0" />
             <span className="text-xl font-semibold text-gray-900 truncate">Darpan Intelligence</span>
           </div>
           
-          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-h-0">
+          <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto min-h-0 bg-gray-50/30">
             {sidebarItems.map((item, index) => (
               <div key={item.href || `submenu-${index}`}>
                 {item.isSubmenu ? (
@@ -383,8 +385,10 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         {/* Desktop Content */}
-        <main className="flex-1 overflow-y-auto">
-          {children}
+        <main className="flex-1 overflow-y-auto bg-gray-50">
+          <div className="p-6 lg:p-8">
+            {children}
+          </div>
         </main>
       </div>
     </>
