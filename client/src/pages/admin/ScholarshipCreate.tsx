@@ -23,7 +23,7 @@ type ScholarshipFormData = {
   fundingAmount: number;
   fundingCurrency: string;
   eligibilityRequirements: string[];
-  languageRequirements: string[];
+  languageRequirements?: string[];
   difficultyLevel: "beginner" | "intermediate" | "advanced" | "expert";
   dataSource: string;
   verified: boolean;
