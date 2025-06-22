@@ -139,52 +139,42 @@ export default function StudentAIDashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {educationServices.map((service, index) => {
               const IconComponent = service.icon;
-              return (
-                <Card key={index} className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className={`p-3 rounded-2xl bg-gradient-to-br ${service.color} text-white`}>
-                        <IconComponent className="h-6 w-6" />
-                      </div>
-                      <div className="text-right">
-                        <Badge variant={service.available ? "default" : "secondary"} className="mb-2">
-                          {service.available ? "Available" : "Coming Soon"}
-                        </Badge>
-                        <div className="text-sm text-gray-600">
-                          <div className="font-bold text-lg text-gray-900">{service.accuracy}</div>
-                          <div>Accuracy</div>
+              
+              if (!service.available) {
+                return (
+                  <Card key={index} className="group relative overflow-hidden border-0 shadow-lg opacity-60">
+                    <div className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-5`}></div>
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className={`p-3 rounded-2xl bg-gradient-to-br ${service.color} text-white`}>
+                          <IconComponent className="h-6 w-6" />
+                        </div>
+                        <div className="text-right">
+                          <Badge variant="secondary" className="mb-2">Coming Soon</Badge>
+                          <div className="text-sm text-gray-600">
+                            <div className="font-bold text-lg text-gray-900">{service.accuracy}</div>
+                            <div>Accuracy</div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{service.title}</h3>
-                    <p className="text-gray-600 mb-4">{service.description}</p>
-                    
-                    <div className="space-y-2 mb-4">
-                      {service.features.map((feature, idx) => (
-                        <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
-                          {feature}
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <Clock className="h-4 w-4" />
-                        {service.processingTime}
+                      
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">{service.title}</h3>
+                      <p className="text-gray-600 mb-4">{service.description}</p>
+                      
+                      <div className="space-y-2 mb-4">
+                        {service.features.map((feature, idx) => (
+                          <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            {feature}
+                          </div>
+                        ))}
                       </div>
-                      {service.available ? (
-                        <Link href={service.route}>
-                          <Button 
-                            className={`bg-gradient-to-r ${service.color} text-white border-0 hover:shadow-lg transition-all duration-300`}
-                          >
-                            Start Analysis
-                            <ChevronRight className="ml-2 h-4 w-4" />
-                          </Button>
-                        </Link>
-                      ) : (
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <Clock className="h-4 w-4" />
+                          {service.processingTime}
+                        </div>
                         <Button 
                           className={`bg-gradient-to-r ${service.color} text-white border-0 opacity-50`}
                           disabled
@@ -192,10 +182,57 @@ export default function StudentAIDashboard() {
                           Coming Soon
                           <ChevronRight className="ml-2 h-4 w-4" />
                         </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              }
+              
+              return (
+                <Link key={index} href={service.route} className="block">
+                  <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                    <div className={`absolute inset-0 bg-gradient-to-br ${service.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className={`p-3 rounded-2xl bg-gradient-to-br ${service.color} text-white`}>
+                          <IconComponent className="h-6 w-6" />
+                        </div>
+                        <div className="text-right">
+                          <Badge variant="default" className="mb-2">Available</Badge>
+                          <div className="text-sm text-gray-600">
+                            <div className="font-bold text-lg text-gray-900">{service.accuracy}</div>
+                            <div>Accuracy</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">{service.title}</h3>
+                      <p className="text-gray-600 mb-4">{service.description}</p>
+                      
+                      <div className="space-y-2 mb-4">
+                        {service.features.map((feature, idx) => (
+                          <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            {feature}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <Clock className="h-4 w-4" />
+                          {service.processingTime}
+                        </div>
+                        <Button 
+                          className={`bg-gradient-to-r ${service.color} text-white border-0 hover:shadow-lg transition-all duration-300 group-hover:scale-105`}
+                        >
+                          Start Analysis
+                          <ChevronRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               );
             })}
           </div>
