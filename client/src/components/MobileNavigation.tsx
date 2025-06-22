@@ -44,6 +44,7 @@ const adminNavItems: NavItem[] = [
   { icon: <Calendar className="h-5 w-5" />, label: "Appointments", href: "/admin/appointments" },
   { icon: <Building2 className="h-5 w-5" />, label: "Professional Applications", href: "/admin/professional-applications" },
   { icon: <Bell className="h-5 w-5" />, label: "Updates & Notifications", href: "/admin/updates" },
+  { icon: <FileText className="h-5 w-5" />, label: "Scholarship Management", href: "/admin/scholarships" },
   { icon: <FileCheck className="h-5 w-5" />, label: "Document Templates", href: "/admin/document-templates" },
   { icon: <CheckSquare className="h-5 w-5" />, label: "Document Checklists", href: "/admin/document-checklists" },
   { icon: <Settings className="h-5 w-5" />, label: "System Settings", href: "/admin/settings" },

@@ -79,6 +79,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: <Calendar size={20} />, label: 'Appointments', href: '/admin/appointments' },
     { icon: <Briefcase size={20} />, label: 'Professional Applications', href: '/admin/professional-applications' },
     { icon: <Bell size={20} />, label: 'Updates & Notifications', href: '/admin/updates' },
+    { icon: <FileText size={20} />, label: 'Scholarship Management', href: '/admin/scholarships' },
     { 
       icon: <FolderOpen size={20} />, 
       label: 'Resources Management', 

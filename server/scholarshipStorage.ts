@@ -22,6 +22,7 @@ export class ScholarshipStorage {
         deadlineTo,
         renewable,
         leadershipRequired,
+        status,
         limit = 20, 
         offset = 0 
       } = searchParams;

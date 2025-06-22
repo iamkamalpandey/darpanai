@@ -38,6 +38,7 @@ const DocumentTemplates = lazy(() => import("@/pages/document-templates"));
 const DocumentChecklist = lazy(() => import("@/pages/document-checklist"));
 const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
 const AdminAnalyses = lazy(() => import("@/pages/admin-analyses"));
+const ScholarshipManagement = lazy(() => import("@/pages/admin/ScholarshipManagement"));
 const AdminAppointments = lazy(() => import("@/pages/admin-appointments"));
 const AdminUsers = lazy(() => import("@/pages/admin-users"));
 const AdminProfessionalApplications = lazy(() => import("@/pages/admin-professional-applications"));
@@ -374,6 +375,13 @@ function Router() {
         <AdminProtectedRoute path="/admin/professional-applications" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <AdminProfessionalApplications />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/scholarships">
+        <AdminProtectedRoute path="/admin/scholarships" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <ScholarshipManagement />
           </Suspense>
         )} />
       </Route>
