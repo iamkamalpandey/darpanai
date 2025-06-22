@@ -521,7 +521,7 @@ router.get("/admin/scholarships/export", requireAdmin, async (req: Request, res:
     const result = await scholarshipStorage.getAllScholarships();
     const scholarships = result.scholarships;
     
-    if (scholarships.length === 0) {
+    if (!scholarships || scholarships.length === 0) {
       return res.status(404).json({
         success: false,
         error: "No scholarships found to export"
