@@ -324,7 +324,7 @@ export default function ScholarshipEdit() {
                               <FormLabel>Provider Website</FormLabel>
                               <FormControl>
                                 <Input 
-                                  value={field.value || ''} 
+                                  value={field.value ?? ''} 
                                   onChange={field.onChange}
                                   onBlur={field.onBlur}
                                   name={field.name}
