@@ -50,18 +50,29 @@ export function ScholarshipEditor({ scholarshipId, mode }: ScholarshipEditorProp
   // Update mutation - similar to user profile update
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log('Sending scholarship update:', data);
+      
       const response = await fetch(`/api/admin/scholarships/${scholarshipId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       
+      console.log('Response status:', response.status);
+      
+      const responseData = await response.json();
+      console.log('Response data:', responseData);
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update scholarship');
+        throw new Error(responseData.error || 'Failed to update scholarship');
       }
       
-      return response.json();
+      // Check if the response indicates success
+      if (responseData.success === false) {
+        throw new Error(responseData.error || 'Update failed');
+      }
+      
+      return responseData;
     },
     onSuccess: (data) => {
       console.log('Scholarship updated successfully:', data);

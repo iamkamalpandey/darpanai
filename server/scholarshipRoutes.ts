@@ -333,7 +333,7 @@ router.post("/admin/scholarships", requireAdmin, async (req: Request, res: Respo
   }
 });
 
-// Update scholarship (admin endpoint)
+// Update scholarship (admin endpoint) - PUT for full updates
 router.put("/admin/scholarships/:id", requireAdmin, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
@@ -354,6 +354,34 @@ router.put("/admin/scholarships/:id", requireAdmin, async (req: Request, res: Re
     });
   } catch (error) {
     console.error('[Admin Scholarship Update] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to update scholarship"
+    });
+  }
+});
+
+// Update scholarship (admin endpoint) - PATCH for partial updates
+router.patch("/admin/scholarships/:id", requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    const scholarshipData = req.body; // Allow partial updates without full schema validation
+    
+    const scholarship = await scholarshipStorage.updateScholarshipById(id, scholarshipData);
+    
+    if (!scholarship) {
+      return res.status(404).json({
+        success: false,
+        error: "Scholarship not found"
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: scholarship
+    });
+  } catch (error) {
+    console.error('[Admin Scholarship Patch] Error:', error);
     res.status(500).json({
       success: false,
       error: "Failed to update scholarship"
