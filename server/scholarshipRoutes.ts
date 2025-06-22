@@ -711,7 +711,12 @@ router.post("/admin/scholarships/import", requireAdmin, upload.single('file'), a
               } else if (['leadershipRequired', 'feeWaiverAvailable', 'interviewRequired', 'essayRequired', 'renewable', 'mentorshipAvailable', 'networkingOpportunities', 'internshipOpportunities', 'researchOpportunities', 'verified'].includes(header)) {
                 scholarship[header] = value.toLowerCase() === 'true';
               } else if (['applicationOpenDate', 'applicationDeadline', 'notificationDate', 'programStartDate'].includes(header)) {
-                scholarship[header] = value ? new Date(value).toISOString().split('T')[0] : null;
+                if (value && value.trim()) {
+                  const parsedDate = new Date(value);
+                  scholarship[header] = !isNaN(parsedDate.getTime()) ? parsedDate.toISOString().split('T')[0] : null;
+                } else {
+                  scholarship[header] = null;
+                }
               } else {
                 scholarship[header] = value;
               }
@@ -739,11 +744,15 @@ router.post("/admin/scholarships/import", requireAdmin, upload.single('file'), a
           scholarshipData.scholarshipId = `IMPORT_${Date.now()}_${imported}`;
         }
         
+        console.log(`[Import] Processing scholarship: ${scholarshipData.name || 'Unknown'}`);
+        
         // Validate with schema
         const validatedData = insertScholarshipSchema.parse(scholarshipData);
         await scholarshipStorage.createScholarship(validatedData);
         imported++;
       } catch (error: any) {
+        console.error(`[Import] Error processing scholarship ${imported + 1}:`, error.message);
+        console.error(`[Import] Data:`, JSON.stringify(scholarshipData, null, 2));
         errors.push(`Row ${imported + 1}: ${error.message}`);
       }
     }

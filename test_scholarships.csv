@@ -1,0 +1,3 @@
+scholarshipId,name,providerName,providerType,providerCountry,fundingType,status,applicationDeadline,description
+TEST001,Test Scholarship 1,Test University,Institution,Australia,Full,Active,2025-12-31,A test scholarship for import testing
+TEST002,Test Scholarship 2,Test Government,Government,Canada,Partial,Active,2025-06-30,Another test scholarship for validation
