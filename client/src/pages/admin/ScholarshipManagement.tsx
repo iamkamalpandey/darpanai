@@ -1,57 +1,41 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { AdminLayout } from "@/components/AdminLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Edit, Trash2, Search, Filter, Eye, Download, Upload, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Filter, Eye, Download, Upload, ChevronDown, ChevronUp, Database, Users, Globe, DollarSign, Calendar, BookOpen } from "lucide-react";
 import { useLocation } from "wouter";
+import type { Scholarship } from "@shared/scholarshipSchema";
 
-import { z } from "zod";
+// Stats card component
+interface StatsCardProps {
+  title: string;
+  value: string | number;
+  description: string;
+  icon: React.ElementType;
+  trend?: string;
+}
 
-// Scholarship form validation schema
-const scholarshipFormSchema = z.object({
-  scholarshipId: z.string().min(3, "Scholarship ID must be at least 3 characters"),
-  scholarshipName: z.string().min(5, "Scholarship name must be at least 5 characters"),
-  providerName: z.string().min(3, "Provider name must be at least 3 characters"),
-  providerType: z.enum(["government", "private", "institution", "other"]),
-  providerCountry: z.string().min(2, "Provider country is required"),
-  description: z.string().min(20, "Description must be at least 20 characters"),
-  shortDescription: z.string().min(10, "Short description must be at least 10 characters"),
-  applicationUrl: z.string().url("Must be a valid URL"),
-  studyLevel: z.string().min(1, "Study level is required"),
-  fieldCategory: z.string().min(1, "Field category is required"),
-  targetCountries: z.array(z.string()).min(1, "At least one target country is required"),
-  fundingType: z.enum(["full", "partial", "tuition-only", "living-allowance", "travel-grant"]),
-  fundingAmount: z.number().min(0, "Funding amount must be positive"),
-  fundingCurrency: z.string().min(3, "Currency is required"),
-  applicationDeadline: z.string().min(1, "Application deadline is required"),
-  eligibilityRequirements: z.array(z.string()).min(1, "At least one eligibility requirement is required"),
-  languageRequirements: z.array(z.string()),
-  difficultyLevel: z.enum(["easy", "medium", "hard", "very-hard"]),
-  dataSource: z.string().default("official"),
-  verified: z.boolean().default(true),
-  status: z.enum(["active", "inactive", "pending"]).default("active")
-});
-
-type ScholarshipFormData = z.infer<typeof scholarshipFormSchema>;
-
-interface Scholarship extends ScholarshipFormData {
-  id: number;
-  createdDate: string;
-  updatedDate: string;
-  [key: string]: any; // Allow dynamic property access for category-based editing
+function StatsCard({ title, value, description, icon: Icon, trend }: StatsCardProps) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <p className="text-xs text-muted-foreground">{description}</p>
+        {trend && <p className="text-xs text-green-600 mt-1">{trend}</p>}
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function ScholarshipManagement() {
@@ -61,11 +45,7 @@ export default function ScholarshipManagement() {
   const [filterCountry, setFilterCountry] = useState<string>("all");
   const [filterFundingType, setFilterFundingType] = useState<string>("all");
   const [filterDifficulty, setFilterDifficulty] = useState<string>("all");
-  const [filterVerified, setFilterVerified] = useState<string>("all");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedScholarship, setSelectedScholarship] = useState<Scholarship | null>(null);
-  const [editingSection, setEditingSection] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   
   const { toast } = useToast();
@@ -74,7 +54,7 @@ export default function ScholarshipManagement() {
 
   // Fetch scholarships with pagination and filtering
   const { data: scholarshipsData, isLoading } = useQuery({
-    queryKey: ['admin-scholarships', searchTerm, filterStatus, filterProviderType, filterCountry, filterFundingType, filterDifficulty, filterVerified, currentPage],
+    queryKey: ['admin-scholarships', searchTerm, filterStatus, filterProviderType, filterCountry, filterFundingType, filterDifficulty, currentPage],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
@@ -83,7 +63,6 @@ export default function ScholarshipManagement() {
       if (filterCountry && filterCountry !== 'all') params.append('country', filterCountry);
       if (filterFundingType && filterFundingType !== 'all') params.append('fundingType', filterFundingType);
       if (filterDifficulty && filterDifficulty !== 'all') params.append('difficulty', filterDifficulty);
-      if (filterVerified && filterVerified !== 'all') params.append('verified', filterVerified);
       params.append('limit', '20');
       params.append('offset', ((currentPage - 1) * 20).toString());
       
@@ -93,44 +72,13 @@ export default function ScholarshipManagement() {
     }
   });
 
-  // Create scholarship mutation
-  const createMutation = useMutation({
-    mutationFn: (data: ScholarshipFormData) => apiRequest('POST', '/api/admin/scholarships', data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-scholarships'] });
-      toast({
-        title: "Success",
-        description: "Scholarship created successfully"
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create scholarship",
-        variant: "destructive"
-      });
-    }
-  });
-
-  // Update scholarship mutation
-  const updateMutation = useMutation({
-    mutationFn: (data: { id: number; data: Partial<ScholarshipFormData> }) => 
-      apiRequest('PUT', `/api/admin/scholarships/${data.id}`, data.data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-scholarships'] });
-      setIsEditDialogOpen(false);
-      setEditingSection(null);
-      toast({
-        title: "Success",
-        description: "Scholarship updated successfully"
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update scholarship",
-        variant: "destructive"
-      });
+  // Fetch scholarship statistics
+  const { data: statsData } = useQuery({
+    queryKey: ['scholarship-stats'],
+    queryFn: async () => {
+      const response = await fetch('/api/scholarships/stats/overview');
+      if (!response.ok) throw new Error('Failed to fetch stats');
+      return response.json();
     }
   });
 
@@ -153,43 +101,9 @@ export default function ScholarshipManagement() {
     }
   });
 
-  const form = useForm<ScholarshipFormData>({
-    resolver: zodResolver(scholarshipFormSchema),
-    defaultValues: {
-      scholarshipId: "",
-      scholarshipName: "",
-      providerName: "",
-      providerType: "government",
-      providerCountry: "",
-      description: "",
-      shortDescription: "",
-      applicationUrl: "",
-      studyLevel: "",
-      fieldCategory: "",
-      targetCountries: [],
-      fundingType: "full",
-      fundingAmount: 0,
-      fundingCurrency: "USD",
-      applicationDeadline: "",
-      eligibilityRequirements: [],
-      languageRequirements: [],
-      difficultyLevel: "medium",
-      dataSource: "official",
-      verified: true,
-      status: "active"
-    }
-  });
-
-  const handleEdit = (scholarship: Scholarship) => {
-    setSelectedScholarship(scholarship);
-    form.reset({
-      ...scholarship,
-      targetCountries: Array.isArray(scholarship.targetCountries) ? scholarship.targetCountries : [],
-      eligibilityRequirements: Array.isArray(scholarship.eligibilityRequirements) ? scholarship.eligibilityRequirements : [],
-      languageRequirements: Array.isArray(scholarship.languageRequirements) ? scholarship.languageRequirements : []
-    });
-    setIsEditDialogOpen(true);
-  };
+  const scholarships = scholarshipsData?.data?.scholarships || [];
+  const totalScholarships = scholarshipsData?.data?.total || 0;
+  const totalPages = Math.ceil(totalScholarships / 20);
 
   const handleDelete = (id: number) => {
     if (confirm('Are you sure you want to delete this scholarship?')) {
@@ -197,717 +111,382 @@ export default function ScholarshipManagement() {
     }
   };
 
-  const handleViewDetails = (scholarship: Scholarship) => {
-    setLocation(`/admin/scholarship-details/${scholarship.id}`);
-  };
-
-  const clearAllFilters = () => {
-    setSearchTerm("");
-    setFilterStatus("all");
-    setFilterProviderType("all");
-    setFilterCountry("all");
-    setFilterFundingType("all");
-    setFilterDifficulty("all");
-    setFilterVerified("all");
-    setCurrentPage(1);
-  };
-
-  const getActiveFilterCount = () => {
-    let count = 0;
-    if (searchTerm) count++;
-    if (filterStatus !== "all") count++;
-    if (filterProviderType !== "all") count++;
-    if (filterCountry !== "all") count++;
-    if (filterFundingType !== "all") count++;
-    if (filterDifficulty !== "all") count++;
-    if (filterVerified !== "all") count++;
-    return count;
-  };
-
-  const handleUpdateSubmit = (data: ScholarshipFormData) => {
-    if (selectedScholarship) {
-      updateMutation.mutate({ id: selectedScholarship.id, data });
-    }
-  };
-
-  const scholarships = scholarshipsData?.data?.scholarships || [];
-  const totalScholarships = scholarshipsData?.data?.total || 0;
-  const totalPages = Math.ceil(totalScholarships / 20);
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Scholarship Management</h1>
-          <p className="text-muted-foreground">Manage scholarship database with full CRUD operations</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </Button>
-          <Button variant="outline" size="sm">
-            <Upload className="w-4 h-4 mr-2" />
-            Import
-          </Button>
-          <Button onClick={() => setLocation('/admin/scholarships/create')}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Scholarship
-          </Button>
-        </div>
-      </div>
+    <AdminLayout>
+      <div className="flex h-screen bg-gray-50">
+        {/* Sidebar */}
+        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+          {/* Header */}
+          <div className="p-6 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              Scholarship Management
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Comprehensive database-driven scholarship system with advanced filtering and management capabilities
+            </p>
+            
+            <div className="flex items-center gap-2 mb-4">
+              <Badge variant="default" className="text-xs">
+                Database Driven
+              </Badge>
+              <Badge variant="outline" className="text-xs">
+                {totalScholarships} Records
+              </Badge>
+            </div>
 
-      {/* Statistics */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Scholarships</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalScholarships}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {scholarships.filter((s: Scholarship) => s.status === 'active').length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Verified</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {scholarships.filter((s: Scholarship) => s.verified).length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Government</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">
-              {scholarships.filter((s: Scholarship) => s.providerType === 'government').length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Enhanced Filters */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Filter className="w-5 h-5" />
-            Filters & Search
-            {getActiveFilterCount() > 0 && (
-              <Badge variant="secondary">{getActiveFilterCount()} active</Badge>
-            )}
-          </CardTitle>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            >
-              {showAdvancedFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              Advanced
-            </Button>
-            {getActiveFilterCount() > 0 && (
-              <Button variant="outline" size="sm" onClick={clearAllFilters}>
-                Clear All
+            {/* Quick Actions */}
+            <div className="space-y-2">
+              <Button 
+                onClick={() => setLocation('/admin/scholarships/create')} 
+                className="w-full justify-start"
+                size="sm"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add New Scholarship
               </Button>
-            )}
+              <Button variant="outline" size="sm" className="w-full justify-start">
+                <Upload className="w-4 h-4 mr-2" />
+                Import Data
+              </Button>
+              <Button variant="outline" size="sm" className="w-full justify-start">
+                <Download className="w-4 h-4 mr-2" />
+                Export Database
+              </Button>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Basic Filters Row */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <Label htmlFor="search">Search</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="search"
-                  placeholder="Search scholarships..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+
+          {/* Statistics */}
+          <div className="p-6 border-b border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Database Statistics</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Database className="w-4 h-4 text-blue-500" />
+                  <span className="text-xs text-gray-600">Total Scholarships</span>
+                </div>
+                <span className="text-sm font-semibold">{statsData?.totalScholarships || 0}</span>
               </div>
-            </div>
-            <div>
-              <Label htmlFor="status-filter">Status</Label>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="provider-filter">Provider Type</Label>
-              <Select value={filterProviderType} onValueChange={setFilterProviderType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="government">Government</SelectItem>
-                  <SelectItem value="private">Private</SelectItem>
-                  <SelectItem value="institution">Institution</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="verified-filter">Verification</Label>
-              <Select value={filterVerified} onValueChange={setFilterVerified}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="true">Verified Only</SelectItem>
-                  <SelectItem value="false">Unverified Only</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-green-500" />
+                  <span className="text-xs text-gray-600">Providers</span>
+                </div>
+                <span className="text-sm font-semibold">{statsData?.totalProviders || 0}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-purple-500" />
+                  <span className="text-xs text-gray-600">Countries</span>
+                </div>
+                <span className="text-sm font-semibold">{statsData?.totalCountries || 0}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 text-orange-500" />
+                  <span className="text-xs text-gray-600">Total Funding</span>
+                </div>
+                <span className="text-sm font-semibold">${statsData?.totalFunding || 0}M+</span>
+              </div>
             </div>
           </div>
 
           {/* Advanced Filters */}
-          {showAdvancedFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
-              <div>
-                <Label htmlFor="country-filter">Target Country</Label>
-                <Select value={filterCountry} onValueChange={setFilterCountry}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Countries" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Countries</SelectItem>
-                    <SelectItem value="Australia">Australia</SelectItem>
-                    <SelectItem value="Canada">Canada</SelectItem>
-                    <SelectItem value="United States">United States</SelectItem>
-                    <SelectItem value="United Kingdom">United Kingdom</SelectItem>
-                    <SelectItem value="Germany">Germany</SelectItem>
-                    <SelectItem value="France">France</SelectItem>
-                    <SelectItem value="Netherlands">Netherlands</SelectItem>
-                    <SelectItem value="Denmark">Denmark</SelectItem>
-                    <SelectItem value="Sweden">Sweden</SelectItem>
-                    <SelectItem value="Norway">Norway</SelectItem>
-                    <SelectItem value="Finland">Finland</SelectItem>
-                    <SelectItem value="New Zealand">New Zealand</SelectItem>
-                    <SelectItem value="Singapore">Singapore</SelectItem>
-                    <SelectItem value="Japan">Japan</SelectItem>
-                    <SelectItem value="South Korea">South Korea</SelectItem>
-                  </SelectContent>
-                </Select>
+          <div className="p-6 flex-1 overflow-y-auto">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-900">Advanced Filters</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              >
+                {showAdvancedFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </Button>
+            </div>
+
+            {showAdvancedFilters && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-medium text-gray-700 mb-1 block">Status</label>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="h-8">
+                      <SelectValue placeholder="All Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="pending">Pending Review</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-gray-700 mb-1 block">Provider Type</label>
+                  <Select value={filterProviderType} onValueChange={setFilterProviderType}>
+                    <SelectTrigger className="h-8">
+                      <SelectValue placeholder="All Types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="government">Government</SelectItem>
+                      <SelectItem value="private">Private</SelectItem>
+                      <SelectItem value="institution">Institution</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-gray-700 mb-1 block">Funding Type</label>
+                  <Select value={filterFundingType} onValueChange={setFilterFundingType}>
+                    <SelectTrigger className="h-8">
+                      <SelectValue placeholder="All Funding" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Funding</SelectItem>
+                      <SelectItem value="full">Full Scholarship</SelectItem>
+                      <SelectItem value="partial">Partial Funding</SelectItem>
+                      <SelectItem value="tuition-only">Tuition Only</SelectItem>
+                      <SelectItem value="living-allowance">Living Allowance</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-gray-700 mb-1 block">Difficulty Level</label>
+                  <Select value={filterDifficulty} onValueChange={setFilterDifficulty}>
+                    <SelectTrigger className="h-8">
+                      <SelectValue placeholder="All Levels" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Levels</SelectItem>
+                      <SelectItem value="easy">Easy</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="hard">Hard</SelectItem>
+                      <SelectItem value="very-hard">Very Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-gray-700 mb-1 block">Country</label>
+                  <Select value={filterCountry} onValueChange={setFilterCountry}>
+                    <SelectTrigger className="h-8">
+                      <SelectValue placeholder="All Countries" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Countries</SelectItem>
+                      <SelectItem value="australia">Australia</SelectItem>
+                      <SelectItem value="united-kingdom">United Kingdom</SelectItem>
+                      <SelectItem value="united-states">United States</SelectItem>
+                      <SelectItem value="canada">Canada</SelectItem>
+                      <SelectItem value="germany">Germany</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => {
+                    setFilterStatus("all");
+                    setFilterProviderType("all");
+                    setFilterCountry("all");
+                    setFilterFundingType("all");
+                    setFilterDifficulty("all");
+                    setSearchTerm("");
+                  }}
+                >
+                  Clear All Filters
+                </Button>
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Content Header */}
+          <div className="bg-white border-b border-gray-200 p-6">
+            <div className="flex items-center justify-between mb-4">
               <div>
-                <Label htmlFor="funding-filter">Funding Type</Label>
-                <Select value={filterFundingType} onValueChange={setFilterFundingType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Funding" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Funding</SelectItem>
-                    <SelectItem value="full">Full Scholarship</SelectItem>
-                    <SelectItem value="partial">Partial Scholarship</SelectItem>
-                    <SelectItem value="tuition-only">Tuition Only</SelectItem>
-                    <SelectItem value="living-allowance">Living Allowance</SelectItem>
-                    <SelectItem value="travel-grant">Travel Grant</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="difficulty-filter">Difficulty Level</Label>
-                <Select value={filterDifficulty} onValueChange={setFilterDifficulty}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Levels" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Levels</SelectItem>
-                    <SelectItem value="easy">Easy</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="hard">Hard</SelectItem>
-                    <SelectItem value="very-hard">Very Hard</SelectItem>
-                  </SelectContent>
-                </Select>
+                <h1 className="text-2xl font-bold text-gray-900">Scholarship Database</h1>
+                <p className="text-gray-600">Manage comprehensive scholarship records with advanced filtering</p>
               </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Scholarships Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Scholarships ({totalScholarships})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center h-32">
-              <div className="text-muted-foreground">Loading scholarships...</div>
+            {/* Search and Quick Stats */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="flex-1 max-w-md">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search scholarships, providers, or countries..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <Badge variant="outline" className="px-3 py-1">
+                {scholarships.length} of {totalScholarships} scholarships
+              </Badge>
             </div>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Provider</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Country</TableHead>
-                    <TableHead>Funding</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Verified</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {scholarships.map((scholarship: Scholarship) => (
-                    <TableRow key={scholarship.id}>
-                      <TableCell className="font-medium">{scholarship.scholarshipId}</TableCell>
-                      <TableCell className="max-w-48 truncate">{scholarship.scholarshipName}</TableCell>
-                      <TableCell>{scholarship.providerName}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{scholarship.providerType}</Badge>
-                      </TableCell>
-                      <TableCell>{scholarship.providerCountry}</TableCell>
-                      <TableCell>{scholarship.fundingAmount} {scholarship.fundingCurrency}</TableCell>
-                      <TableCell>
-                        <Badge variant={scholarship.status === 'active' ? 'default' : 'secondary'}>
-                          {scholarship.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={scholarship.verified ? 'default' : 'destructive'}>
-                          {scholarship.verified ? 'Yes' : 'No'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewDetails(scholarship)}
-                            title="View Details"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleEdit(scholarship)}
-                            title="Quick Edit"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(scholarship.id)}
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4">
-                  <div className="text-sm text-muted-foreground">
-                    Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, totalScholarships)} of {totalScholarships} scholarships
+            {/* Quick Stats Cards */}
+            <div className="grid grid-cols-4 gap-4">
+              <StatsCard
+                title="Active Scholarships"
+                value={statsData?.activeScholarships || 0}
+                description="Currently available"
+                icon={BookOpen}
+                trend="+12% from last month"
+              />
+              <StatsCard
+                title="Total Providers"
+                value={statsData?.totalProviders || 0}
+                description="Scholarship providers"
+                icon={Users}
+              />
+              <StatsCard
+                title="Countries Covered"
+                value={statsData?.totalCountries || 0}
+                description="Global coverage"
+                icon={Globe}
+              />
+              <StatsCard
+                title="Average Funding"
+                value="$25,000"
+                description="Per scholarship"
+                icon={DollarSign}
+              />
+            </div>
+          </div>
+
+          {/* Scholarship Table */}
+          <div className="flex-1 overflow-auto p-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Scholarship Records</CardTitle>
+                <CardDescription>Complete database of international scholarship opportunities</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-2"></div>
+                      <p className="text-gray-600">Loading scholarships...</p>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={currentPage <= 1}
-                      onClick={() => setCurrentPage(prev => prev - 1)}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={currentPage >= totalPages}
-                      onClick={() => setCurrentPage(prev => prev + 1)}
-                    >
-                      Next
-                    </Button>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Scholarship Name</TableHead>
+                        <TableHead>Provider</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Country</TableHead>
+                        <TableHead>Funding</TableHead>
+                        <TableHead>Deadline</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {scholarships.map((scholarship: Scholarship) => (
+                        <TableRow key={scholarship.id}>
+                          <TableCell className="font-medium">{scholarship.name}</TableCell>
+                          <TableCell>{scholarship.providerName}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{scholarship.providerType}</Badge>
+                          </TableCell>
+                          <TableCell>{scholarship.providerCountry}</TableCell>
+                          <TableCell>
+                            <Badge variant={scholarship.fundingType === 'full' ? 'default' : 'secondary'}>
+                              {scholarship.fundingType}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-gray-600">
+                            {scholarship.applicationDeadline ? 
+                              new Date(scholarship.applicationDeadline).toLocaleDateString() : 
+                              'Not specified'
+                            }
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={scholarship.status === 'active' ? 'default' : 'secondary'}
+                            >
+                              {scholarship.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setLocation(`/admin/scholarship-details/${scholarship.id}`)}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setLocation(`/admin/scholarships/edit/${scholarship.id}`)}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDelete(scholarship.id)}
+                                disabled={deleteMutation.isPending}
+                              >
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-6">
+                    <p className="text-sm text-gray-600">
+                      Showing {(currentPage - 1) * 20 + 1} to {Math.min(currentPage * 20, totalScholarships)} of {totalScholarships} scholarships
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                      >
+                        Previous
+                      </Button>
+                      <span className="text-sm text-gray-600">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                      >
+                        Next
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Scholarship</DialogTitle>
-            <DialogDescription>Update scholarship information</DialogDescription>
-          </DialogHeader>
-          <ScholarshipForm 
-            form={form} 
-            onSubmit={handleUpdateSubmit} 
-            isLoading={updateMutation.isPending}
-            submitText="Update Scholarship"
-          />
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
-
-// Scholarship Form Component
-interface ScholarshipFormProps {
-  form: any;
-  onSubmit: (data: ScholarshipFormData) => void;
-  isLoading: boolean;
-  submitText: string;
-}
-
-function ScholarshipForm({ form, onSubmit, isLoading, submitText }: ScholarshipFormProps) {
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Basic Information */}
-          <FormField
-            control={form.control}
-            name="scholarshipId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Scholarship ID *</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="e.g. AUS_AWARDS_2025" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="scholarshipName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Scholarship Name *</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="e.g. Australia Awards Scholarship" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="providerName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Provider Name *</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="e.g. Australian Government" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="providerType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Provider Type *</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select provider type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="government">Government</SelectItem>
-                    <SelectItem value="private">Private</SelectItem>
-                    <SelectItem value="institution">Institution</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="providerCountry"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Provider Country *</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="e.g. Australia" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="applicationUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Application URL *</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="https://..." />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="studyLevel"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Study Level *</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="e.g. Masters, PhD" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="fieldCategory"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Field Category *</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="e.g. Engineering, Medicine" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="fundingType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Funding Type *</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select funding type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="full">Full Funding</SelectItem>
-                    <SelectItem value="partial">Partial Funding</SelectItem>
-                    <SelectItem value="tuition-only">Tuition Only</SelectItem>
-                    <SelectItem value="living-allowance">Living Allowance</SelectItem>
-                    <SelectItem value="travel-grant">Travel Grant</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="fundingAmount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Funding Amount *</FormLabel>
-                <FormControl>
-                  <Input 
-                    {...field} 
-                    type="number" 
-                    placeholder="50000"
-                    onChange={e => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="fundingCurrency"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Currency *</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="e.g. USD, AUD, EUR" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="applicationDeadline"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Application Deadline *</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="e.g. April 30, 2025" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="difficultyLevel"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Difficulty Level *</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select difficulty" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="easy">Easy</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="hard">Hard</SelectItem>
-                    <SelectItem value="very-hard">Very Hard</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status *</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
-
-        {/* Description */}
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description *</FormLabel>
-              <FormControl>
-                <Textarea {...field} rows={4} placeholder="Detailed scholarship description..." />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="shortDescription"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Short Description *</FormLabel>
-              <FormControl>
-                <Textarea {...field} rows={2} placeholder="Brief summary..." />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Additional Fields */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="dataSource"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data Source</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="e.g. official, verified" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="verified"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Verified Scholarship</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {/* Submit Button */}
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Saving..." : submitText}
-          </Button>
-        </div>
-      </form>
-    </Form>
+      </div>
+    </AdminLayout>
   );
 }

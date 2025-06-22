@@ -6,10 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, BookOpen, GraduationCap, DollarSign, Users, Settings, Edit, Calendar, Globe, FileText } from "lucide-react";
+import { ArrowLeft, BookOpen, GraduationCap, DollarSign, Users, Settings, Edit, Calendar, Globe, FileText, Database, Award, MapPin } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { ScholarshipSectionEditor } from "@/components/admin/ScholarshipSectionEditor";
 import type { Scholarship } from "@shared/scholarshipSchema";
 
 // InfoItem component for displaying scholarship information
@@ -28,7 +27,11 @@ function InfoItem({ label, value, isArray = false }: InfoItemProps) {
     } else if (typeof value === 'boolean') {
       displayValue = value ? 'Yes' : 'No';
     } else if (typeof value === 'object') {
-      displayValue = JSON.stringify(value);
+      try {
+        displayValue = Array.isArray(value) ? value.join(', ') : JSON.stringify(value);
+      } catch {
+        displayValue = String(value);
+      }
     } else {
       displayValue = String(value);
     }
@@ -37,7 +40,7 @@ function InfoItem({ label, value, isArray = false }: InfoItemProps) {
   return (
     <div className="flex flex-col space-y-1">
       <dt className="text-sm font-medium text-gray-500">{label}</dt>
-      <dd className="text-sm text-gray-900 break-words overflow-hidden">
+      <dd className="text-sm text-gray-900 break-words overflow-hidden text-wrap">
         {displayValue}
       </dd>
     </div>
@@ -50,31 +53,31 @@ const editingSections = [
     key: 'basic',
     title: 'Basic Information',
     icon: BookOpen,
-    fields: 8
+    fields: ['name', 'shortName', 'description', 'providerName', 'providerType', 'providerCountry', 'applicationUrl', 'dataSource']
   },
   {
     key: 'study',
-    title: 'Study Information',
+    title: 'Study Information', 
     icon: GraduationCap,
-    fields: 6
+    fields: ['studyLevels', 'fieldCategories', 'hostCountries', 'targetCountries', 'programDuration', 'startDate']
   },
   {
     key: 'funding',
     title: 'Funding Information',
     icon: DollarSign,
-    fields: 8
+    fields: ['fundingType', 'fundingAmount', 'fundingCurrency', 'fundingDuration', 'renewable', 'renewalCriteria', 'additionalBenefits', 'livingAllowance']
   },
   {
     key: 'requirements',
     title: 'Requirements & Eligibility',
     icon: Users,
-    fields: 12
+    fields: ['eligibleCountries', 'eligibilityRequirements', 'academicRequirements', 'languageRequirements', 'ageLimit', 'gpaRequirement', 'workExperienceRequired', 'leadershipRequired']
   },
   {
     key: 'settings',
-    title: 'Additional Details',
+    title: 'Management & Settings',
     icon: Settings,
-    fields: 10
+    fields: ['status', 'applicationDeadline', 'notificationDate', 'difficultyLevel', 'verified', 'tags', 'remarks']
   }
 ];
 
@@ -83,7 +86,7 @@ export default function ScholarshipDetails() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [editSection, setEditSection] = useState<'basic' | 'study' | 'funding' | 'requirements' | 'settings' | null>(null);
+  const [editSection, setEditSection] = useState<string | null>(null);
 
   // Fetch scholarship data
   const { data: scholarship, isLoading, error } = useQuery({
@@ -99,41 +102,33 @@ export default function ScholarshipDetails() {
 
   // Status change mutation
   const statusMutation = useMutation({
-    mutationFn: async (status: string) => {
-      return apiRequest("PUT", `/api/admin/scholarships/${id}`, {
-        ...scholarship,
-        status
-      });
+    mutationFn: async (newStatus: string) => {
+      return apiRequest("PUT", `/api/admin/scholarships/${id}`, { status: newStatus });
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/scholarships", id] });
       toast({
         title: "Success",
-        description: "Scholarship status updated successfully",
+        description: "Scholarship status updated successfully"
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/scholarships", id] });
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
+        title: "Error", 
         description: error.message || "Failed to update status",
-        variant: "destructive",
+        variant: "destructive"
       });
-    },
+    }
   });
-
-  const handleStatusChange = (status: string) => {
-    statusMutation.mutate(status);
-  };
-
-  const handleSectionEdit = (section: 'basic' | 'study' | 'funding' | 'requirements' | 'settings') => {
-    setEditSection(section);
-  };
 
   if (isLoading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-muted-foreground">Loading scholarship details...</div>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading scholarship details...</p>
+          </div>
         </div>
       </AdminLayout>
     );
@@ -142,8 +137,13 @@ export default function ScholarshipDetails() {
   if (error || !scholarship) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-red-600">Failed to load scholarship details</div>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">Failed to load scholarship details</p>
+            <Button onClick={() => setLocation('/admin/scholarships')}>
+              Back to Scholarships
+            </Button>
+          </div>
         </div>
       </AdminLayout>
     );
@@ -161,311 +161,284 @@ export default function ScholarshipDetails() {
               Back to Scholarships
             </Button>
             
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
+            <h2 className="text-xl font-bold text-gray-900 mb-2 break-words overflow-hidden text-wrap">
               {scholarship?.name || 'Loading...'}
             </h2>
             <p className="text-sm text-gray-600 mb-4">
-              Comprehensive scholarship management with complete database field coverage and editing capabilities
+              Comprehensive scholarship details with complete database field coverage and editing capabilities
             </p>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
               <Badge variant={scholarship?.verified ? 'default' : 'destructive'} className="text-xs">
                 {scholarship?.verified ? 'Verified' : 'Unverified'}
               </Badge>
               <Badge variant="outline" className="text-xs">
                 ID: {scholarship?.scholarshipId}
               </Badge>
+              <Badge variant="secondary" className="text-xs">
+                {scholarship?.providerType}
+              </Badge>
+            </div>
+
+            {/* Status Management */}
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-gray-700 mb-1 block">Status Management</label>
+                <Select 
+                  value={scholarship?.status || 'active'} 
+                  onValueChange={(value) => statusMutation.mutate(value)}
+                  disabled={statusMutation.isPending}
+                >
+                  <SelectTrigger className="h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="pending">Pending Review</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button 
+                onClick={() => setLocation(`/admin/scholarships/edit/${scholarship.id}`)}
+                className="w-full"
+                size="sm"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Scholarship
+              </Button>
             </div>
           </div>
 
-          {/* Status Controls */}
-          <div className="p-4 border-b border-gray-200">
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Status Management</label>
-            <Select 
-              value={scholarship?.status || 'active'} 
-              onValueChange={handleStatusChange}
-              disabled={statusMutation.isPending}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-                <SelectItem value="pending">Pending Review</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Edit Sections */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-4">
-              <h3 className="text-sm font-medium text-gray-900 mb-4">Edit Sections</h3>
-              <div className="space-y-3">
-                {editingSections.map((section) => {
-                  const IconComponent = section.icon;
-                  
-                  return (
-                    <div
-                      key={section.key}
-                      className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200 border-2 ${
-                        editSection === section.key 
-                          ? 'bg-blue-50 border-blue-200 shadow-sm' 
-                          : 'bg-white border-gray-100 hover:bg-gray-50 hover:border-gray-200'
-                      }`}
-                      onClick={() => handleSectionEdit(section.key as 'basic' | 'study' | 'funding' | 'requirements' | 'settings')}
-                    >
-                      <div className={`p-3 rounded-lg ${
-                        editSection === section.key ? 'bg-blue-100' : 'bg-gray-100'
-                      }`}>
-                        <IconComponent className={`w-5 h-5 ${
-                          editSection === section.key ? 'text-blue-600' : 'text-gray-500'
-                        }`} />
-                      </div>
-                      <div className="flex-1">
-                        <div className={`font-semibold text-sm ${
-                          editSection === section.key ? 'text-blue-900' : 'text-gray-700'
-                        }`}>
-                          {section.title}
-                        </div>
-                        <div className="text-xs text-gray-500">{section.fields} database fields</div>
-                      </div>
-                    </div>
-                  );
-                })}
+          {/* Metadata */}
+          <div className="p-6 border-b border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Scholarship Metadata</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Database className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                  <span className="text-xs text-gray-600">Database ID</span>
+                </div>
+                <span className="text-sm font-semibold">{scholarship.id}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Award className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  <span className="text-xs text-gray-600">Funding Type</span>
+                </div>
+                <span className="text-sm font-semibold capitalize">{scholarship.fundingType}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                  <span className="text-xs text-gray-600">Provider Country</span>
+                </div>
+                <span className="text-sm font-semibold">{scholarship.providerCountry}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                  <span className="text-xs text-gray-600">Application Deadline</span>
+                </div>
+                <span className="text-sm font-semibold">
+                  {scholarship.applicationDeadline ? 
+                    new Date(scholarship.applicationDeadline).toLocaleDateString() : 
+                    'Not specified'
+                  }
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="p-4 border-t border-gray-200 bg-gray-50">
-            <div className="text-xs text-gray-500 space-y-1">
-              <div>Created: {scholarship?.createdDate ? new Date(scholarship.createdDate).toLocaleDateString() : 'Unknown'}</div>
-              <div>Updated: {scholarship?.updatedDate ? new Date(scholarship.updatedDate).toLocaleDateString() : 'Never'}</div>
-              <div>Data Source: {scholarship?.dataSource || 'Manual Entry'}</div>
+          {/* Edit Sections */}
+          <div className="p-6 flex-1 overflow-y-auto">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Edit Sections</h3>
+            <div className="space-y-2">
+              {editingSections.map((section) => (
+                <Button
+                  key={section.key}
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={() => setEditSection(section.key)}
+                >
+                  <section.icon className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <div className="flex-1 text-left">
+                    <div className="text-sm font-medium">{section.title}</div>
+                    <div className="text-xs text-gray-500">{section.fields.length} fields</div>
+                  </div>
+                </Button>
+              ))}
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-8">
-            {/* Title */}
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Scholarship Database Overview
-              </h1>
-              <p className="text-gray-600">
-                Complete database field coverage with {editingSections.reduce((acc, section) => acc + section.fields, 0)} manageable fields across 5 comprehensive sections
-              </p>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Content Header */}
+          <div className="bg-white border-b border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 break-words overflow-hidden text-wrap">
+                  {scholarship.name}
+                </h1>
+                <p className="text-gray-600">{scholarship.providerName} • {scholarship.providerCountry}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant={scholarship.status === 'active' ? 'default' : 'secondary'}>
+                  {scholarship.status}
+                </Badge>
+                <Badge variant={scholarship.fundingType === 'full' ? 'default' : 'outline'}>
+                  {scholarship.fundingType} funding
+                </Badge>
+              </div>
             </div>
+          </div>
 
-            {/* Content Grid */}
-            <div className="grid gap-6 lg:grid-cols-2">
+          {/* Scholarship Information */}
+          <div className="flex-1 overflow-auto p-6">
+            <div className="grid gap-6">
               {/* Basic Information */}
               <Card className="border-l-4 border-l-blue-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                  <CardTitle className="flex items-center gap-3 text-lg font-bold">
-                    <BookOpen className="w-5 h-5 text-blue-600" />
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-blue-500 flex-shrink-0" />
                     Basic Information
                   </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSectionEdit('basic')}
-                    className="hover:bg-blue-50"
-                  >
-                    <Edit className="w-3 h-3 mr-1" />
-                    Edit
-                  </Button>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <InfoItem label="Scholarship Name" value={scholarship?.name} />
-                  <InfoItem label="Short Name" value={scholarship?.shortName} />
-                  <InfoItem label="Provider Name" value={scholarship?.providerName} />
-                  <InfoItem label="Provider Type" value={scholarship?.providerType} />
-                  <InfoItem label="Provider Country" value={scholarship?.providerCountry} />
-                  <InfoItem label="Host Countries" value={scholarship?.hostCountries} isArray />
-                  <InfoItem label="Eligible Countries" value={scholarship?.eligibleCountries} isArray />
-                  <InfoItem label="Description" value={scholarship?.description} />
+                <CardContent>
+                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <InfoItem label="Scholarship Name" value={scholarship.name} />
+                    <InfoItem label="Short Name" value={scholarship.shortName} />
+                    <InfoItem label="Scholarship ID" value={scholarship.scholarshipId} />
+                    <InfoItem label="Provider Name" value={scholarship.providerName} />
+                    <InfoItem label="Provider Type" value={scholarship.providerType} />
+                    <InfoItem label="Provider Country" value={scholarship.providerCountry} />
+                    <InfoItem label="Application URL" value={scholarship.applicationUrl} />
+                    <InfoItem label="Data Source" value={scholarship.dataSource} />
+                    <div className="md:col-span-2">
+                      <InfoItem label="Description" value={scholarship.description} />
+                    </div>
+                  </dl>
                 </CardContent>
               </Card>
 
               {/* Study Information */}
               <Card className="border-l-4 border-l-green-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                  <CardTitle className="flex items-center gap-3 text-lg font-bold">
-                    <GraduationCap className="w-5 h-5 text-green-600" />
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <GraduationCap className="w-5 h-5 text-green-500 flex-shrink-0" />
                     Study Information
                   </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSectionEdit('study')}
-                    className="hover:bg-green-50"
-                  >
-                    <Edit className="w-3 h-3 mr-1" />
-                    Edit
-                  </Button>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <InfoItem label="Study Levels" value={scholarship?.studyLevels} isArray />
-                  <InfoItem label="Field Categories" value={scholarship?.fieldCategories} isArray />
-                  <InfoItem label="Specific Fields" value={scholarship?.specificFields} isArray />
-                  <InfoItem label="Application URL" value={scholarship?.applicationUrl} />
-                  <InfoItem label="Application Deadline" value={scholarship?.applicationDeadline} />
-                  <InfoItem label="Program Start Date" value={scholarship?.programStartDate} />
+                <CardContent>
+                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <InfoItem label="Study Levels" value={scholarship.studyLevels} isArray />
+                    <InfoItem label="Field Categories" value={scholarship.fieldCategories} isArray />
+                    <InfoItem label="Host Countries" value={scholarship.hostCountries} isArray />
+                    <InfoItem label="Target Countries" value={scholarship.targetCountries} isArray />
+                    <InfoItem label="Program Duration" value={scholarship.programDuration} />
+                    <InfoItem label="Start Date" value={scholarship.startDate} />
+                  </dl>
                 </CardContent>
               </Card>
 
               {/* Funding Information */}
-              <Card className="border-l-4 border-l-yellow-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                  <CardTitle className="flex items-center gap-3 text-lg font-bold">
-                    <DollarSign className="w-5 h-5 text-yellow-600" />
+              <Card className="border-l-4 border-l-orange-500">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-orange-500 flex-shrink-0" />
                     Funding Information
                   </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSectionEdit('funding')}
-                    className="hover:bg-yellow-50"
-                  >
-                    <Edit className="w-3 h-3 mr-1" />
-                    Edit
-                  </Button>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <InfoItem label="Funding Type" value={scholarship?.fundingType} />
-                  <InfoItem label="Currency" value={scholarship?.fundingCurrency} />
-                  <InfoItem label="Tuition Coverage %" value={scholarship?.tuitionCoveragePercentage} />
-                  <InfoItem label="Living Allowance" value={scholarship?.livingAllowanceAmount} />
-                  <InfoItem label="Total Value (Min)" value={scholarship?.totalValueMin} />
-                  <InfoItem label="Total Value (Max)" value={scholarship?.totalValueMax} />
-                  <InfoItem label="Duration" value={`${scholarship?.durationValue || ''} ${scholarship?.durationUnit || ''}`.trim()} />
-                  <InfoItem label="Renewable" value={scholarship?.renewable} />
+                <CardContent>
+                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <InfoItem label="Funding Type" value={scholarship.fundingType} />
+                    <InfoItem label="Funding Amount" value={scholarship.fundingAmount} />
+                    <InfoItem label="Currency" value={scholarship.fundingCurrency} />
+                    <InfoItem label="Funding Duration" value={scholarship.fundingDuration} />
+                    <InfoItem label="Renewable" value={scholarship.renewable} />
+                    <InfoItem label="Renewal Criteria" value={scholarship.renewalCriteria} />
+                    <InfoItem label="Additional Benefits" value={scholarship.additionalBenefits} />
+                    <InfoItem label="Living Allowance" value={scholarship.livingAllowance} />
+                  </dl>
                 </CardContent>
               </Card>
 
               {/* Requirements & Eligibility */}
               <Card className="border-l-4 border-l-purple-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                  <CardTitle className="flex items-center gap-3 text-lg font-bold">
-                    <Users className="w-5 h-5 text-purple-600" />
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-purple-500 flex-shrink-0" />
                     Requirements & Eligibility
                   </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSectionEdit('requirements')}
-                    className="hover:bg-purple-50"
-                  >
-                    <Edit className="w-3 h-3 mr-1" />
-                    Edit
-                  </Button>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <InfoItem label="Minimum GPA" value={scholarship?.minGpa} />
-                  <InfoItem label="GPA Scale" value={scholarship?.gpaScale} />
-                  <InfoItem label="Degree Required" value={scholarship?.degreeRequired} isArray />
-                  <InfoItem label="Age Range" value={`${scholarship?.minAge || ''} - ${scholarship?.maxAge || ''}`.replace(' - ', ' to ').trim()} />
-                  <InfoItem label="Gender Requirement" value={scholarship?.genderRequirement} />
-                  <InfoItem label="Work Experience (Years)" value={scholarship?.minWorkExperience} />
-                  <InfoItem label="Leadership Required" value={scholarship?.leadershipRequired} />
-                  <InfoItem label="Language Requirements" value={scholarship?.languageRequirements} isArray />
-                  <InfoItem label="Documents Required" value={scholarship?.documentsRequired} isArray />
-                  <InfoItem label="Interview Required" value={scholarship?.interviewRequired} />
-                  <InfoItem label="Essay Required" value={scholarship?.essayRequired} />
-                  <InfoItem label="Application Fee" value={`${scholarship?.applicationFeeAmount || '0'} ${scholarship?.applicationFeeCurrency || 'USD'}`} />
-                </CardContent>
-              </Card>
-
-              {/* Application & Process Information */}
-              <Card className="lg:col-span-2 border-l-4 border-l-indigo-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                  <CardTitle className="flex items-center gap-3 text-lg font-bold">
-                    <Calendar className="w-5 h-5 text-indigo-600" />
-                    Application Timeline & Process
-                  </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSectionEdit('settings')}
-                    className="hover:bg-indigo-50"
-                  >
-                    <Edit className="w-3 h-3 mr-1" />
-                    Edit
-                  </Button>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <InfoItem label="Application Open Date" value={scholarship?.applicationOpenDate} />
-                    <InfoItem label="Application Deadline" value={scholarship?.applicationDeadline} />
-                    <InfoItem label="Notification Date" value={scholarship?.notificationDate} />
-                    <InfoItem label="Fee Waiver Available" value={scholarship?.feeWaiverAvailable} />
-                    <InfoItem label="Max Renewal Duration" value={scholarship?.maxRenewalDuration} />
-                    <InfoItem label="Renewal Criteria" value={scholarship?.renewalCriteria} isArray />
-                    <InfoItem label="Work Restrictions" value={scholarship?.workRestrictions} />
-                    <InfoItem label="Family Support" value={scholarship?.familySupport} />
-                    <InfoItem label="Health Insurance" value={scholarship?.healthInsurance} />
-                  </div>
+                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <InfoItem label="Eligible Countries" value={scholarship.eligibleCountries} isArray />
+                    <InfoItem label="Age Limit" value={scholarship.ageLimit} />
+                    <InfoItem label="GPA Requirement" value={scholarship.gpaRequirement} />
+                    <InfoItem label="Work Experience Required" value={scholarship.workExperienceRequired} />
+                    <InfoItem label="Leadership Required" value={scholarship.leadershipRequired} />
+                    <div className="md:col-span-2">
+                      <InfoItem label="Eligibility Requirements" value={scholarship.eligibilityRequirements} isArray />
+                    </div>
+                    <div className="md:col-span-2">
+                      <InfoItem label="Academic Requirements" value={scholarship.academicRequirements} />
+                    </div>
+                    <div className="md:col-span-2">
+                      <InfoItem label="Language Requirements" value={scholarship.languageRequirements} isArray />
+                    </div>
+                  </dl>
                 </CardContent>
               </Card>
 
               {/* Additional Details */}
-              <Card className="lg:col-span-2 border-l-4 border-l-gray-500">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                  <CardTitle className="flex items-center gap-3 text-lg font-bold">
-                    <FileText className="w-5 h-5 text-gray-600" />
-                    Additional Details & Metadata
+              <Card className="border-l-4 border-l-gray-500">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                    Additional Details
                   </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleSectionEdit('settings')}
-                    className="hover:bg-gray-50"
-                  >
-                    <Edit className="w-3 h-3 mr-1" />
-                    Edit
-                  </Button>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <InfoItem label="Official Website" value={scholarship?.officialWebsite} />
-                    <InfoItem label="Contact Email" value={scholarship?.contactEmail} />
-                    <InfoItem label="Contact Phone" value={scholarship?.contactPhone} />
-                    <InfoItem label="Social Media" value={scholarship?.socialMedia} />
-                    <InfoItem label="Data Source" value={scholarship?.dataSource} />
-                    <InfoItem label="Source URL" value={scholarship?.sourceUrl} />
-                    <InfoItem label="Verified" value={scholarship?.verified} />
-                    <InfoItem label="Verification Date" value={scholarship?.verificationDate} />
-                    <InfoItem label="Status" value={scholarship?.status} />
-                    <InfoItem label="Tags" value={scholarship?.tags} isArray />
-                    <InfoItem label="Notes" value={scholarship?.notes} />
-                    <InfoItem label="Internal Reference" value={scholarship?.internalReference} />
-                  </div>
+                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <InfoItem label="Status" value={scholarship.status} />
+                    <InfoItem label="Difficulty Level" value={scholarship.difficultyLevel} />
+                    <InfoItem label="Verified" value={scholarship.verified} />
+                    <InfoItem label="Application Deadline" value={
+                      scholarship.applicationDeadline ? 
+                        new Date(scholarship.applicationDeadline).toLocaleDateString() : 
+                        null
+                    } />
+                    <InfoItem label="Notification Date" value={
+                      scholarship.notificationDate ? 
+                        new Date(scholarship.notificationDate).toLocaleDateString() : 
+                        null
+                    } />
+                    <InfoItem label="Tags" value={scholarship.tags} isArray />
+                    <div className="md:col-span-2">
+                      <InfoItem label="Remarks" value={scholarship.remarks} />
+                    </div>
+                    <InfoItem label="Created Date" value={
+                      scholarship.createdDate ? 
+                        new Date(scholarship.createdDate).toLocaleDateString() : 
+                        null
+                    } />
+                    <InfoItem label="Updated Date" value={
+                      scholarship.updatedDate ? 
+                        new Date(scholarship.updatedDate).toLocaleDateString() : 
+                        null
+                    } />
+                  </dl>
                 </CardContent>
               </Card>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Edit Dialog */}
-      {editSection && (
-        <ScholarshipSectionEditor
-          section={editSection}
-          isOpen={!!editSection}
-          onClose={() => setEditSection(null)}
-          onSave={() => {
-            setEditSection(null);
-            queryClient.invalidateQueries({ queryKey: ["/api/admin/scholarships", id] });
-          }}
-          scholarshipId={id!}
-          scholarshipData={scholarship}
-        />
-      )}
     </AdminLayout>
   );
 }
