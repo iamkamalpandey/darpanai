@@ -381,19 +381,11 @@ export default function ScholarshipManagement() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Countries</SelectItem>
-                    {filterOptions?.data?.countries?.map((country: string) => {
-                      const countryNames: { [key: string]: string } = {
-                        'AU': 'Australia',
-                        'US': 'United States', 
-                        'GB': 'United Kingdom',
-                        'EU': 'European Union'
-                      };
-                      return (
-                        <SelectItem key={country} value={country}>
-                          {countryNames[country] || country}
-                        </SelectItem>
-                      );
-                    })}
+                    {filterOptions?.data?.countries?.map((country: any) => (
+                      <SelectItem key={country.code} value={country.code}>
+                        {country.name} {country.currencySymbol ? `(${country.currencySymbol})` : ''}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
