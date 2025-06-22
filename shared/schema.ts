@@ -1,6 +1,7 @@
 import { pgTable, text, serial, integer, boolean, jsonb, timestamp, primaryKey } from "drizzle-orm/pg-core";
 export * from "./offerLetterSchema";
 export * from "./coeSchema";
+export * from "./scholarshipSchema";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 

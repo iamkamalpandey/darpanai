@@ -201,6 +201,11 @@ function setupGracefulShutdown(server: any) {
     app.use('/api/coe-info', coeRoutes);
     logWithLevel('✓ COE information routes registered successfully');
     
+    // Register scholarship routes
+    const { scholarshipRoutes } = await import('./scholarshipRoutes');
+    app.use('/api/scholarships', scholarshipRoutes);
+    logWithLevel('✓ Scholarship routes registered successfully');
+    
     // Step 5: Setup error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
