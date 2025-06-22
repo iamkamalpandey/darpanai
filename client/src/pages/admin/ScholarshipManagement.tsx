@@ -351,10 +351,9 @@ export default function ScholarshipManagement() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Funding</SelectItem>
-                    <SelectItem value="full">Full Scholarship</SelectItem>
-                    <SelectItem value="partial">Partial Funding</SelectItem>
-                    <SelectItem value="tuition-only">Tuition Only</SelectItem>
-                    <SelectItem value="living-allowance">Living Allowance</SelectItem>
+                    {filterOptions?.data?.fundingTypes?.map((type: string) => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -367,10 +366,9 @@ export default function ScholarshipManagement() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Levels</SelectItem>
-                    <SelectItem value="easy">Easy</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="hard">Hard</SelectItem>
-                    <SelectItem value="very-hard">Very Hard</SelectItem>
+                    {filterOptions?.data?.difficultyLevels?.map((level: string) => (
+                      <SelectItem key={level} value={level}>{level}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -383,11 +381,9 @@ export default function ScholarshipManagement() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Countries</SelectItem>
-                    <SelectItem value="Australia">Australia</SelectItem>
-                    <SelectItem value="United Kingdom">United Kingdom</SelectItem>
-                    <SelectItem value="United States">United States</SelectItem>
-                    <SelectItem value="Canada">Canada</SelectItem>
-                    <SelectItem value="Germany">Germany</SelectItem>
+                    {filterOptions?.data?.countries?.map((country: string) => (
+                      <SelectItem key={country} value={country}>{country}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
