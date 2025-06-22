@@ -218,7 +218,7 @@ export default function ScholarshipManagement() {
                   <Database className="h-8 w-8 text-blue-500" />
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Total Scholarships</p>
-                    <p className="text-2xl font-bold">{statsData?.totalScholarships || 0}</p>
+                    <p className="text-2xl font-bold">{statsData?.data?.totalScholarships || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -229,7 +229,7 @@ export default function ScholarshipManagement() {
                   <Users className="h-8 w-8 text-green-500" />
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Total Providers</p>
-                    <p className="text-2xl font-bold">{statsData?.totalProviders || 0}</p>
+                    <p className="text-2xl font-bold">{statsData?.data?.totalProviders || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -240,7 +240,7 @@ export default function ScholarshipManagement() {
                   <Globe className="h-8 w-8 text-purple-500" />
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Countries Covered</p>
-                    <p className="text-2xl font-bold">{statsData?.totalCountries || 0}</p>
+                    <p className="text-2xl font-bold">{statsData?.data?.totalCountries || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -251,7 +251,7 @@ export default function ScholarshipManagement() {
                   <DollarSign className="h-8 w-8 text-orange-500" />
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">Total Funding</p>
-                    <p className="text-2xl font-bold">${statsData?.totalFunding || 0}M+</p>
+                    <p className="text-2xl font-bold">{statsData?.data?.totalFunding || '$0M+'}</p>
                   </div>
                 </div>
               </CardContent>
@@ -368,11 +368,11 @@ export default function ScholarshipManagement() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Countries</SelectItem>
-                    <SelectItem value="australia">Australia</SelectItem>
-                    <SelectItem value="united-kingdom">United Kingdom</SelectItem>
-                    <SelectItem value="united-states">United States</SelectItem>
-                    <SelectItem value="canada">Canada</SelectItem>
-                    <SelectItem value="germany">Germany</SelectItem>
+                    <SelectItem value="Australia">Australia</SelectItem>
+                    <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+                    <SelectItem value="United States">United States</SelectItem>
+                    <SelectItem value="Canada">Canada</SelectItem>
+                    <SelectItem value="Germany">Germany</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

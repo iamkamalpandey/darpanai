@@ -209,6 +209,9 @@ router.get("/admin/scholarships", requireAdmin, async (req: Request, res: Respon
       search = '', 
       status = '', 
       providerType = '',
+      country = '',
+      fundingType = '',
+      difficulty = '',
       limit = '20', 
       offset = '0' 
     } = req.query;
@@ -217,6 +220,9 @@ router.get("/admin/scholarships", requireAdmin, async (req: Request, res: Respon
       search: search as string,
       status: status as string,
       providerType: providerType as string,
+      providerCountry: country as string,
+      fundingType: fundingType as string,
+      difficultyLevel: difficulty as string,
       limit: parseInt(limit as string),
       offset: parseInt(offset as string)
     });
