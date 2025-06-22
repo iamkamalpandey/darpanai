@@ -45,21 +45,11 @@ interface PlatformStats {
 export default function StudentAIDashboard() {
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
 
-  const { data: userStats } = useQuery<UserStats>({
-    queryKey: ['/api/user/stats'],
-  });
 
-  const { data: platformStats } = useQuery<PlatformStats>({
-    queryKey: ['/api/platform-stats'],
-  });
 
   const { data: profileCompletion } = useQuery({
     queryKey: ['/api/user/profile-completion'],
   });
-
-  const analysisUsagePercentage = userStats 
-    ? (userStats.analysisCount / userStats.maxAnalyses) * 100 
-    : 0;
 
   const educationServices = [
     {
@@ -108,46 +98,9 @@ export default function StudentAIDashboard() {
     }
   ];
 
-  const quickStats = [
-    {
-      label: "Documents Analyzed",
-      value: platformStats?.totalAnalyses || "0",
-      sublabel: "Successfully processed",
-      icon: FileText,
-      color: "blue"
-    },
-    {
-      label: "Global Coverage",
-      value: platformStats?.totalCountries || "0",
-      sublabel: "Countries supported",
-      icon: Globe,
-      color: "emerald"
-    },
-    {
-      label: "AI Accuracy Rate",
-      value: "96.8%",
-      sublabel: "Analysis precision",
-      icon: Target,
-      color: "purple"
-    },
-    {
-      label: "Average Processing",
-      value: "2-5 sec",
-      sublabel: "Response time",
-      icon: Zap,
-      color: "orange"
-    }
-  ];
 
-  const yourProgress = [
-    {
-      title: "Analysis Credits",
-      current: userStats?.analysisCount || 0,
-      total: userStats?.maxAnalyses || 0,
-      remaining: userStats?.remainingAnalyses || 0,
-      description: "Use AI analysis for your education documents"
-    }
-  ];
+
+
 
   return (
     <DashboardLayout>
@@ -167,21 +120,7 @@ export default function StudentAIDashboard() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-8">
-                {quickStats.map((stat, index) => {
-                  const IconComponent = stat.icon;
-                  return (
-                    <div key={index} className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-                      <div className="flex items-center gap-3 mb-2">
-                        <IconComponent className="h-6 w-6 text-white" />
-                        <span className="font-semibold">{stat.label}</span>
-                      </div>
-                      <p className="text-3xl font-bold">{stat.value}</p>
-                      <p className="text-blue-100 text-sm">{stat.sublabel}</p>
-                    </div>
-                  );
-                })}
-              </div>
+
             </div>
             
             {/* Background decoration */}
@@ -236,15 +175,14 @@ export default function StudentAIDashboard() {
                         <Clock className="h-4 w-4" />
                         {service.processingTime}
                       </div>
-                      <Link href={service.route}>
-                        <Button 
-                          className={`bg-gradient-to-r ${service.color} text-white border-0 hover:shadow-lg transition-all duration-300`}
-                          disabled={!service.available}
-                        >
-                          {service.available ? "Start Analysis" : "Coming Soon"}
-                          <ChevronRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </Link>
+                      <Button 
+                        className={`bg-gradient-to-r ${service.color} text-white border-0 hover:shadow-lg transition-all duration-300`}
+                        disabled={!service.available}
+                        onClick={() => window.location.href = service.route}
+                      >
+                        {service.available ? "Start Analysis" : "Coming Soon"}
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -253,50 +191,7 @@ export default function StudentAIDashboard() {
           </div>
         </div>
 
-        {/* Your Progress */}
-        <div className="mb-8">
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <BarChart3 className="h-6 w-6 text-indigo-600" />
-                <CardTitle>Your Education Journey Progress</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-indigo-600 mb-2">
-                    {userStats?.analysisCount || 0}
-                  </div>
-                  <p className="text-gray-600">Documents Analyzed</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-emerald-600 mb-2">
-                    {userStats?.remainingAnalyses || 0}
-                  </div>
-                  <p className="text-gray-600">Credits Remaining</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600 mb-2">
-                    {Math.round(analysisUsagePercentage)}%
-                  </div>
-                  <p className="text-gray-600">Plan Usage</p>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Analysis Credits</span>
-                  <span className="font-medium">{userStats?.analysisCount || 0} / {userStats?.maxAnalyses || 0}</span>
-                </div>
-                <Progress value={analysisUsagePercentage} className="h-3" />
-                <p className="text-sm text-gray-500">
-                  Each analysis provides detailed insights to help you make informed education decisions
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
