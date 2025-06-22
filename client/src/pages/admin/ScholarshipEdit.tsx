@@ -323,7 +323,14 @@ export default function ScholarshipEdit() {
                             <FormItem>
                               <FormLabel>Provider Website</FormLabel>
                               <FormControl>
-                                <Input {...field} type="url" />
+                                <Input 
+                                  value={field.value || ''} 
+                                  onChange={field.onChange}
+                                  onBlur={field.onBlur}
+                                  name={field.name}
+                                  ref={field.ref}
+                                  type="url" 
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>

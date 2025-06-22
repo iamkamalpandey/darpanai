@@ -301,14 +301,13 @@ export class ScholarshipStorage {
           eq(scholarships.status, 'active')
         ));
 
-      // Get countries from standardized countries table with currency symbols and ISO codes
+      // Get countries from standardized countries table with currency codes and ISO codes
       const countries = await db.execute(sql`
         SELECT DISTINCT 
           c.iso_alpha2 as code,
           c.country_name as name,
           c.currency_code,
-          c.currency_name,
-          c.currency_symbol
+          c.currency_name
         FROM countries c
         INNER JOIN scholarships s ON c.iso_alpha2 = s.provider_country
         WHERE c.is_active = 1 AND s.status = 'active'
@@ -369,13 +368,13 @@ export class ScholarshipStorage {
         'EU': 'European Union'
       };
 
-      // Map countries from database result with proper typing
+      // Map countries from database result with proper typing and currency symbols
       const countryList = (countries.rows || []).map((row: any) => ({
         code: row.code as string,
         name: row.name as string,
         currencyCode: row.currency_code as string,
         currencyName: row.currency_name as string,
-        currencySymbol: row.currency_symbol as string
+        currencySymbol: this.getCurrencySymbol(row.currency_code)
       }));
 
       return {
@@ -431,6 +430,18 @@ export class ScholarshipStorage {
       console.error('[ScholarshipStorage] Statistics error:', error);
       throw new Error('Failed to get statistics');
     }
+  }
+
+  // Get currency symbol from currency code
+  private getCurrencySymbol(currencyCode?: string | null): string {
+    const currencySymbols: { [key: string]: string } = {
+      'USD': '$', 'AUD': '$', 'CAD': '$', 'NZD': '$',
+      'GBP': '£', 'EUR': '€', 'JPY': '¥', 'CNY': '¥',
+      'INR': '₹', 'KRW': '₩', 'SGD': 'S$', 'HKD': 'HK$',
+      'CHF': 'Fr', 'SEK': 'kr', 'NOK': 'kr', 'DKK': 'kr'
+    };
+    
+    return currencySymbols[currencyCode || ''] || '';
   }
 }
 
