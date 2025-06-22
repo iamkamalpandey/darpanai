@@ -281,6 +281,183 @@ router.get("/admin/scholarships", requireAdmin, async (req: Request, res: Respon
   }
 });
 
+// Export scholarships to CSV (admin endpoint) - MUST BE BEFORE /:id route
+router.get("/admin/scholarships/export", requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const result = await scholarshipStorage.getAllScholarships(1000, 0);
+    const allScholarships = result.scholarships;
+    
+    if (!allScholarships || allScholarships.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "No scholarships found to export"
+      });
+    }
+
+    // Define CSV headers (all database fields)
+    const headers = [
+      'id', 'scholarshipId', 'name', 'shortName', 'providerName', 'providerType', 'providerCountry',
+      'hostCountries', 'eligibleCountries', 'studyLevels', 'fieldCategories', 'specificFields',
+      'fundingType', 'fundingCurrency', 'tuitionCoveragePercentage', 'livingAllowanceAmount',
+      'livingAllowanceFrequency', 'totalValueMin', 'totalValueMax', 'applicationOpenDate',
+      'applicationDeadline', 'notificationDate', 'programStartDate', 'durationValue', 'durationUnit',
+      'minGpa', 'gpaScale', 'degreeRequired', 'minAge', 'maxAge', 'genderRequirement',
+      'minWorkExperience', 'leadershipRequired', 'languageRequirements', 'applicationUrl',
+      'applicationFeeAmount', 'applicationFeeCurrency', 'feeWaiverAvailable', 'documentsRequired',
+      'interviewRequired', 'essayRequired', 'renewable', 'maxRenewalDuration', 'renewalCriteria',
+      'workRestrictions', 'travelRestrictions', 'otherScholarshipsAllowed', 'mentorshipAvailable',
+      'networkingOpportunities', 'internshipOpportunities', 'researchOpportunities', 'description',
+      'tags', 'difficultyLevel', 'totalApplicantsPerYear', 'acceptanceRate', 'status',
+      'dataSource', 'verified', 'createdDate', 'updatedDate'
+    ];
+
+    // Generate CSV content
+    let csvContent = headers.join(',') + '\n';
+    
+    allScholarships.forEach((scholarship: any) => {
+      const row = headers.map((header: string) => {
+        let value = scholarship[header as keyof typeof scholarship];
+        
+        // Handle null/undefined values
+        if (value === null || value === undefined) {
+          return '';
+        }
+        
+        // Handle arrays and objects (JSON fields)
+        if (typeof value === 'object') {
+          value = JSON.stringify(value);
+        }
+        
+        // Handle dates
+        if (value instanceof Date) {
+          value = value.toISOString().split('T')[0];
+        }
+        
+        // Escape quotes and wrap in quotes if contains comma or quote
+        const stringValue = String(value);
+        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+          return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        
+        return stringValue;
+      });
+      
+      csvContent += row.join(',') + '\n';
+    });
+
+    // Set headers for file download
+    const filename = `scholarships-export-${new Date().toISOString().split('T')[0]}.csv`;
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    
+    res.send(csvContent);
+  } catch (error: any) {
+    console.error('[Scholarship Export] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to export scholarships"
+    });
+  }
+});
+
+// Generate sample CSV template (admin endpoint) - MUST BE BEFORE /:id route
+router.get("/admin/scholarships/sample-csv", requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const headers = [
+      'scholarshipId', 'name', 'shortName', 'providerName', 'providerType', 'providerCountry',
+      'hostCountries', 'eligibleCountries', 'studyLevels', 'fieldCategories', 'specificFields',
+      'fundingType', 'fundingCurrency', 'tuitionCoveragePercentage', 'livingAllowanceAmount',
+      'livingAllowanceFrequency', 'totalValueMin', 'totalValueMax', 'applicationOpenDate',
+      'applicationDeadline', 'notificationDate', 'programStartDate', 'durationValue', 'durationUnit',
+      'minGpa', 'gpaScale', 'degreeRequired', 'minAge', 'maxAge', 'genderRequirement',
+      'minWorkExperience', 'leadershipRequired', 'languageRequirements', 'applicationUrl',
+      'applicationFeeAmount', 'applicationFeeCurrency', 'feeWaiverAvailable', 'documentsRequired',
+      'interviewRequired', 'essayRequired', 'renewable', 'maxRenewalDuration', 'renewalCriteria',
+      'workRestrictions', 'travelRestrictions', 'otherScholarshipsAllowed', 'mentorshipAvailable',
+      'networkingOpportunities', 'internshipOpportunities', 'researchOpportunities', 'description',
+      'tags', 'difficultyLevel', 'totalApplicantsPerYear', 'acceptanceRate', 'status',
+      'dataSource', 'verified'
+    ];
+
+    // Sample data
+    const sampleData = [
+      'SAMPLE_SCHOLARSHIP_2025',
+      'Sample International Scholarship',
+      'Sample Scholarship',
+      'Sample University',
+      'institution',
+      'AU',
+      '["AU","US","CA"]',
+      '["global"]',
+      '["undergraduate","postgraduate"]',
+      '["STEM","Business"]',
+      'Computer Science',
+      'full',
+      'AUD',
+      '100',
+      '25000',
+      'annually',
+      '50000',
+      '60000',
+      '2025-01-01',
+      '2025-06-30',
+      '2025-08-15',
+      '2026-02-01',
+      '4',
+      'years',
+      '3.5',
+      '4.0',
+      'bachelors',
+      '18',
+      '35',
+      'any',
+      '0',
+      'false',
+      '{"IELTS": 6.5, "TOEFL": 90}',
+      'https://university.edu/scholarships',
+      '100',
+      'AUD',
+      'true',
+      '["transcript","recommendation","essay"]',
+      'true',
+      'true',
+      'true',
+      '3',
+      'Academic excellence maintained',
+      'No restrictions',
+      'No restrictions',
+      'true',
+      'true',
+      'true',
+      'true',
+      'true',
+      'Comprehensive scholarship for international students',
+      '["merit-based","international","STEM"]',
+      'medium',
+      '1000',
+      '10',
+      'active',
+      'university_website',
+      'true'
+    ];
+
+    let csvContent = headers.join(',') + '\n';
+    csvContent += sampleData.join(',') + '\n';
+
+    const filename = `scholarship-template-${new Date().toISOString().split('T')[0]}.csv`;
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    
+    res.send(csvContent);
+  } catch (error: any) {
+    console.error('[Sample CSV] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to generate sample CSV"
+    });
+  }
+});
+
 // Get individual scholarship by ID (admin endpoint)
 router.get("/admin/scholarships/:id", requireAdmin, async (req: Request, res: Response) => {
   try {
@@ -584,210 +761,6 @@ router.post("/admin/scholarships/import", requireAdmin, upload.single('file'), a
     res.status(500).json({
       success: false,
       error: "Failed to import scholarships"
-    });
-  }
-});
-
-// Export scholarships to CSV (admin endpoint)
-router.get("/admin/scholarships/export", requireAdmin, async (req: Request, res: Response) => {
-  try {
-    const result = await scholarshipStorage.getAllScholarships(1000, 0);
-    const allScholarships = result.scholarships;
-    
-    if (!allScholarships || allScholarships.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: "No scholarships found to export"
-      });
-    }
-
-    // Define CSV headers (all database fields)
-    const headers = [
-      'id', 'scholarshipId', 'name', 'shortName', 'providerName', 'providerType', 'providerCountry',
-      'hostCountries', 'eligibleCountries', 'studyLevels', 'fieldCategories', 'specificFields',
-      'fundingType', 'fundingCurrency', 'tuitionCoveragePercentage', 'livingAllowanceAmount',
-      'livingAllowanceFrequency', 'totalValueMin', 'totalValueMax', 'applicationOpenDate',
-      'applicationDeadline', 'notificationDate', 'programStartDate', 'durationValue', 'durationUnit',
-      'minGpa', 'gpaScale', 'degreeRequired', 'minAge', 'maxAge', 'genderRequirement',
-      'minWorkExperience', 'leadershipRequired', 'languageRequirements', 'applicationUrl',
-      'applicationFeeAmount', 'applicationFeeCurrency', 'feeWaiverAvailable', 'documentsRequired',
-      'interviewRequired', 'essayRequired', 'renewable', 'maxRenewalDuration', 'renewalCriteria',
-      'workRestrictions', 'travelRestrictions', 'otherScholarshipsAllowed', 'mentorshipAvailable',
-      'networkingOpportunities', 'internshipOpportunities', 'researchOpportunities', 'description',
-      'tags', 'difficultyLevel', 'totalApplicantsPerYear', 'acceptanceRate', 'status',
-      'dataSource', 'verified', 'createdDate', 'updatedDate'
-    ];
-
-    // Generate CSV content
-    let csvContent = headers.join(',') + '\n';
-    
-    allScholarships.forEach((scholarship: any) => {
-      const row = headers.map((header: string) => {
-        let value = scholarship[header as keyof typeof scholarship];
-        
-        // Handle null/undefined values
-        if (value === null || value === undefined) {
-          return '';
-        }
-        
-        // Handle arrays and objects (JSON fields)
-        if (typeof value === 'object') {
-          value = JSON.stringify(value);
-        }
-        
-        // Handle dates
-        if (value instanceof Date) {
-          value = value.toISOString().split('T')[0];
-        }
-        
-        // Escape quotes and wrap in quotes if contains comma or quote
-        const stringValue = String(value);
-        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-          return `"${stringValue.replace(/"/g, '""')}"`;
-        }
-        
-        return stringValue;
-      });
-      
-      csvContent += row.join(',') + '\n';
-    });
-
-    // Set headers for file download
-    const filename = `scholarships-export-${new Date().toISOString().split('T')[0]}.csv`;
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    
-    res.send(csvContent);
-  } catch (error: any) {
-    console.error('[Scholarship Export] Error:', error);
-    res.status(500).json({
-      success: false,
-      error: "Failed to export scholarships"
-    });
-  }
-});
-
-// Import scholarships from CSV (admin endpoint) - Simplified implementation
-router.post("/admin/scholarships/import", requireAdmin, upload.single('file'), async (req: Request, res: Response) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        error: "No file provided"
-      });
-    }
-
-    // For now, return a success message indicating import is being processed
-    res.json({
-      success: true,
-      message: "CSV import functionality is being enhanced. Please use the form interface for now.",
-      imported: 0,
-      errors: []
-    });
-
-  } catch (error: any) {
-    console.error('[Scholarship Import] Error:', error);
-    res.status(500).json({
-      success: false,
-      error: "Failed to import scholarships"
-    });
-  }
-});
-
-// Generate sample CSV template (admin endpoint)
-router.get("/admin/scholarships/sample-csv", requireAdmin, async (req: Request, res: Response) => {
-  try {
-    const headers = [
-      'scholarshipId', 'name', 'shortName', 'providerName', 'providerType', 'providerCountry',
-      'hostCountries', 'eligibleCountries', 'studyLevels', 'fieldCategories', 'specificFields',
-      'fundingType', 'fundingCurrency', 'tuitionCoveragePercentage', 'livingAllowanceAmount',
-      'livingAllowanceFrequency', 'totalValueMin', 'totalValueMax', 'applicationOpenDate',
-      'applicationDeadline', 'notificationDate', 'programStartDate', 'durationValue', 'durationUnit',
-      'minGpa', 'gpaScale', 'degreeRequired', 'minAge', 'maxAge', 'genderRequirement',
-      'minWorkExperience', 'leadershipRequired', 'languageRequirements', 'applicationUrl',
-      'applicationFeeAmount', 'applicationFeeCurrency', 'feeWaiverAvailable', 'documentsRequired',
-      'interviewRequired', 'essayRequired', 'renewable', 'maxRenewalDuration', 'renewalCriteria',
-      'workRestrictions', 'travelRestrictions', 'otherScholarshipsAllowed', 'mentorshipAvailable',
-      'networkingOpportunities', 'internshipOpportunities', 'researchOpportunities', 'description',
-      'tags', 'difficultyLevel', 'totalApplicantsPerYear', 'acceptanceRate', 'status',
-      'dataSource', 'verified'
-    ];
-
-    // Sample data
-    const sampleData = [
-      'SAMPLE_SCHOLARSHIP_2025',
-      'Sample International Scholarship',
-      'Sample Scholarship',
-      'Sample University',
-      'institution',
-      'US',
-      '["US","CA"]',
-      '["IN","CN","BR"]',
-      '["masters","phd"]',
-      '["STEM","Engineering"]',
-      '["Computer Science","Electrical Engineering"]',
-      'full',
-      'USD',
-      '100',
-      '24000',
-      'annually',
-      '50000',
-      '60000',
-      '2025-01-01',
-      '2025-12-31',
-      '2026-02-15',
-      '2026-09-01',
-      '2',
-      'years',
-      '3.5',
-      '4.0',
-      '["Bachelor","Masters"]',
-      '18',
-      '35',
-      'any',
-      '0',
-      'true',
-      '[{"test":"IELTS","minScore":6.5},{"test":"TOEFL","minScore":90}]',
-      'https://example.com/apply',
-      '50',
-      'USD',
-      'true',
-      '["Transcripts","SOP","LOR","CV"]',
-      'true',
-      'true',
-      'true',
-      '4 years',
-      'Maintain 3.0 GPA',
-      'false',
-      'false',
-      'true',
-      'true',
-      'true',
-      'true',
-      'true',
-      'A comprehensive scholarship for international students pursuing STEM fields',
-      '["STEM","Full Funding","International"]',
-      'moderate',
-      '1000',
-      '5.5',
-      'active',
-      'official',
-      'true'
-    ];
-
-    let csvContent = headers.join(',') + '\n';
-    csvContent += sampleData.join(',') + '\n';
-
-    const filename = `scholarship-import-template-${new Date().toISOString().split('T')[0]}.csv`;
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    
-    res.send(csvContent);
-  } catch (error: any) {
-    console.error('[Sample CSV] Error:', error);
-    res.status(500).json({
-      success: false,
-      error: "Failed to generate sample CSV"
     });
   }
 });
