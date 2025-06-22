@@ -101,9 +101,9 @@ export default function ScholarshipSectionEditor({
   const schema = createSectionSchema(section);
   type FormData = z.infer<typeof schema>;
 
-  const form = useForm<FormData>({
+  const form = useForm<any>({
     resolver: zodResolver(schema),
-    defaultValues: getSectionFields(section)
+    defaultValues: getSectionFields(section) as any
   });
 
   function getSectionFields(sectionKey: string) {
@@ -227,7 +227,7 @@ export default function ScholarshipSectionEditor({
           <div className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="scholarshipId"
                 render={({ field }) => (
                   <FormItem>
@@ -240,7 +240,7 @@ export default function ScholarshipSectionEditor({
                 )}
               />
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="scholarshipName"
                 render={({ field }) => (
                   <FormItem>

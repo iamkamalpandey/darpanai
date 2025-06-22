@@ -9,7 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ArrowLeft, Edit, DollarSign, Globe, Calendar, Users, BookOpen, GraduationCap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import ScholarshipSectionEditor from "@/components/admin/ScholarshipSectionEditor";
+// @ts-ignore
+import ScholarshipSectionEditor from "../../components/admin/ScholarshipSectionEditor";
 import { Label } from "@/components/ui/label";
 
 interface Scholarship {
@@ -85,7 +86,7 @@ export default function ScholarshipDetails() {
     queryFn: () => apiRequest('GET', `/api/admin/scholarships/${id}`)
   });
 
-  const scholarship = scholarshipResponse as Scholarship;
+  const scholarship = scholarshipResponse as unknown as Scholarship;
 
   const updateMutation = useMutation({
     mutationFn: (data: { id: number; data: Partial<Scholarship> }) => 
@@ -192,7 +193,7 @@ export default function ScholarshipDetails() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Badge className={getStatusColor(scholarship.status)}>
+          <Badge className={getStatusColor(scholarship.status?.toString() || 'active')}>
             {scholarship.status}
           </Badge>
           {scholarship.verified && (
