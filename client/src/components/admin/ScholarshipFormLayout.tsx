@@ -14,8 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   ArrowLeft, 
   Save, 
@@ -28,1293 +26,552 @@ import {
   Settings, 
   BookOpen, 
   GraduationCap,
-  Calendar as CalendarIcon,
   Check,
-  AlertTriangle
+  AlertTriangle,
+  Globe,
+  Calendar
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { AdminLayout } from "@/components/AdminLayout";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 
-// Comprehensive validation schema with all 57+ database fields
+// Predefined options for dropdown fields
+const PROVIDER_TYPES = [
+  { value: 'government', label: 'Government' },
+  { value: 'private', label: 'Private' },
+  { value: 'institution', label: 'Institution' },
+  { value: 'foundation', label: 'Foundation' },
+  { value: 'corporate', label: 'Corporate' },
+  { value: 'other', label: 'Other' }
+];
+
+const STUDY_LEVELS = [
+  { value: 'undergraduate', label: 'Undergraduate' },
+  { value: 'masters', label: 'Masters' },
+  { value: 'phd', label: 'PhD' },
+  { value: 'postdoc', label: 'Postdoc' },
+  { value: 'diploma', label: 'Diploma' },
+  { value: 'certificate', label: 'Certificate' },
+  { value: 'other', label: 'Other' }
+];
+
+const FUNDING_TYPES = [
+  { value: 'full', label: 'Full Funding' },
+  { value: 'partial', label: 'Partial Funding' },
+  { value: 'tuition_only', label: 'Tuition Only' },
+  { value: 'living_allowance', label: 'Living Allowance Only' },
+  { value: 'travel_grant', label: 'Travel Grant' },
+  { value: 'research_grant', label: 'Research Grant' },
+  { value: 'other', label: 'Other' }
+];
+
+const FUNDING_CURRENCIES = [
+  { value: 'USD', label: 'USD ($)' },
+  { value: 'AUD', label: 'AUD ($)' },
+  { value: 'EUR', label: 'EUR (€)' },
+  { value: 'GBP', label: 'GBP (£)' },
+  { value: 'CAD', label: 'CAD ($)' },
+  { value: 'INR', label: 'INR (₹)' },
+  { value: 'JPY', label: 'JPY (¥)' },
+  { value: 'CNY', label: 'CNY (¥)' },
+  { value: 'SGD', label: 'SGD ($)' },
+  { value: 'NZD', label: 'NZD ($)' },
+  { value: 'other', label: 'Other' }
+];
+
+const DURATION_UNITS = [
+  { value: 'months', label: 'Months' },
+  { value: 'years', label: 'Years' },
+  { value: 'semesters', label: 'Semesters' },
+  { value: 'quarters', label: 'Quarters' },
+  { value: 'other', label: 'Other' }
+];
+
+const DEGREE_REQUIREMENTS = [
+  { value: 'High School', label: 'High School' },
+  { value: 'Bachelor', label: 'Bachelor\'s Degree' },
+  { value: 'Masters', label: 'Master\'s Degree' },
+  { value: 'PhD', label: 'PhD' },
+  { value: 'Associate', label: 'Associate Degree' },
+  { value: 'Professional', label: 'Professional Degree' },
+  { value: 'other', label: 'Other' }
+];
+
+const GENDER_REQUIREMENTS = [
+  { value: 'any', label: 'Any Gender' },
+  { value: 'male', label: 'Male Only' },
+  { value: 'female', label: 'Female Only' },
+  { value: 'non_binary', label: 'Non-Binary Inclusive' },
+  { value: 'other', label: 'Other' }
+];
+
+const FIELD_CATEGORIES = [
+  { value: 'STEM', label: 'STEM' },
+  { value: 'Engineering', label: 'Engineering' },
+  { value: 'Medicine', label: 'Medicine' },
+  { value: 'Business', label: 'Business' },
+  { value: 'Arts', label: 'Arts & Humanities' },
+  { value: 'Social Sciences', label: 'Social Sciences' },
+  { value: 'Law', label: 'Law' },
+  { value: 'Education', label: 'Education' },
+  { value: 'Agriculture', label: 'Agriculture' },
+  { value: 'Environmental', label: 'Environmental Studies' },
+  { value: 'Psychology', label: 'Psychology' },
+  { value: 'Communications', label: 'Communications' },
+  { value: 'other', label: 'Other' }
+];
+
+const SCHOLARSHIP_STATUS = [
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+  { value: 'pending', label: 'Pending Review' },
+  { value: 'draft', label: 'Draft' },
+  { value: 'suspended', label: 'Suspended' },
+  { value: 'archived', label: 'Archived' }
+];
+
+const LIVING_ALLOWANCE_FREQUENCY = [
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'quarterly', label: 'Quarterly' },
+  { value: 'semester', label: 'Per Semester' },
+  { value: 'annually', label: 'Annually' },
+  { value: 'lump_sum', label: 'Lump Sum' },
+  { value: 'other', label: 'Other' }
+];
+
+// Streamlined validation schema for efficient creation
 const scholarshipSchema = z.object({
-  // Basic Information
+  // Essential Information (Step 1)
   scholarshipId: z.string().min(3, "Scholarship ID must be at least 3 characters").max(50),
   name: z.string().min(5, "Name must be at least 5 characters").max(200),
-  shortName: z.string().optional(),
-  
-  // Provider Details
   providerName: z.string().min(3, "Provider name required").max(100),
-  providerType: z.enum(["government", "private", "institution", "other"]),
+  providerType: z.string().min(1, "Provider type required"),
   providerCountry: z.string().min(2, "Provider country required"),
-  providerWebsite: z.string().url("Must be a valid URL").optional().or(z.literal("")),
   
-  // Target Information
-  hostCountries: z.array(z.string()).optional(),
-  eligibleCountries: z.array(z.string()).optional(),
-  studyLevels: z.array(z.string()).optional(),
-  fieldCategories: z.array(z.string()).optional(),
-  specificFields: z.array(z.string()).optional(),
-  
-  // Funding Details
+  // Funding Information (Step 2)
   fundingType: z.string().min(1, "Funding type required"),
-  fundingCurrency: z.string().length(3, "Currency must be 3 characters").default("USD"),
-  tuitionCoveragePercentage: z.number().min(0).max(100).optional(),
-  livingAllowanceAmount: z.number().min(0).optional(),
-  livingAllowanceFrequency: z.string().optional(),
+  fundingCurrency: z.string().length(3, "Currency must be 3 characters"),
   totalValueMin: z.number().min(0).optional(),
   totalValueMax: z.number().min(0).optional(),
   
-  // Timeline
-  applicationOpenDate: z.string().optional(),
+  // Eligibility Criteria (Step 3)
+  studyLevels: z.array(z.string()).optional(),
+  fieldCategories: z.array(z.string()).optional(),
+  hostCountries: z.array(z.string()).optional(),
+  
+  // Application Details (Step 4)
   applicationDeadline: z.string().optional(),
-  notificationDate: z.string().optional(),
-  programStartDate: z.string().optional(),
   durationValue: z.number().min(1).optional(),
   durationUnit: z.string().optional(),
   
-  // Academic Requirements
+  // Optional fields
+  shortName: z.string().optional(),
+  providerWebsite: z.string().url("Must be a valid URL").optional().or(z.literal("")),
+  description: z.string().optional(),
+  tuitionCoveragePercentage: z.number().min(0).max(100).optional(),
+  livingAllowanceAmount: z.number().min(0).optional(),
+  livingAllowanceFrequency: z.string().optional(),
   minGpa: z.number().min(0).max(4).optional(),
   gpaScale: z.number().min(1).max(10).optional(),
-  degreeRequired: z.array(z.string()).optional(),
   minAge: z.number().min(16).max(100).optional(),
   maxAge: z.number().min(16).max(100).optional(),
   genderRequirement: z.string().default("any"),
   minWorkExperience: z.number().min(0).optional(),
-  leadershipRequired: z.boolean().default(false),
-  languageRequirements: z.array(z.string()).optional(),
-  
-  // Application Process
-  applicationUrl: z.string().url("Must be a valid URL").optional().or(z.literal("")),
-  applicationFeeAmount: z.number().min(0).default(0),
-  applicationFeeCurrency: z.string().length(3).default("USD"),
-  feeWaiverAvailable: z.boolean().default(false),
-  documentsRequired: z.array(z.string()).optional(),
-  interviewRequired: z.boolean().default(false),
-  essayRequired: z.boolean().default(false),
-  
-  // Renewal & Restrictions
-  renewable: z.boolean().default(false),
-  maxRenewalDuration: z.string().optional(),
-  renewalCriteria: z.array(z.string()).optional(),
-  workRestrictions: z.string().optional(),
-  travelRestrictions: z.string().optional(),
-  otherScholarshipsAllowed: z.string().optional(),
-  
-  // Additional Benefits
-  mentorshipAvailable: z.boolean().default(false),
-  networkingOpportunities: z.boolean().default(false),
-  internshipOpportunities: z.boolean().default(false),
-  researchOpportunities: z.boolean().default(false),
-  
-  // Metadata
-  description: z.string().min(50, "Description must be at least 50 characters").max(2000),
-  tags: z.array(z.string()).optional(),
-  difficultyLevel: z.string().optional(),
-  totalApplicantsPerYear: z.number().min(1).optional(),
-  acceptanceRate: z.number().min(0).max(100).optional(),
-  status: z.enum(["active", "inactive", "pending", "draft"]).default("active"),
-  dataSource: z.string().default("official"),
-  verified: z.boolean().default(true),
+  status: z.string().default("draft")
 });
 
 type ScholarshipFormData = z.infer<typeof scholarshipSchema>;
 
 interface ScholarshipFormLayoutProps {
-  mode: 'create' | 'edit' | 'view';
+  mode: 'create' | 'edit';
   scholarshipId?: string;
-  initialData?: Partial<ScholarshipFormData>;
   onSuccess?: () => void;
 }
 
-const formSections = [
-  {
-    id: "basic",
-    title: "Basic Information",
-    icon: FileText,
-    description: "Essential scholarship details and identification",
-    fields: ["scholarshipId", "name", "shortName", "description"]
-  },
-  {
-    id: "provider",
-    title: "Provider Details", 
-    icon: Users,
-    description: "Scholarship provider information and contact details",
-    fields: ["providerName", "providerType", "providerCountry", "providerWebsite"]
-  },
-  {
-    id: "target",
-    title: "Target Information",
-    icon: Settings,
-    description: "Host countries, eligible nationalities, and study fields",
-    fields: ["hostCountries", "eligibleCountries", "studyLevels", "fieldCategories", "specificFields"]
-  },
-  {
-    id: "funding",
-    title: "Funding & Financial Details",
-    icon: DollarSign,
-    description: "Complete funding structure and financial coverage",
-    fields: ["fundingType", "fundingCurrency", "tuitionCoveragePercentage", "livingAllowanceAmount", "livingAllowanceFrequency", "totalValueMin", "totalValueMax"]
-  },
-  {
-    id: "timeline",
-    title: "Timeline & Deadlines",
-    icon: CalendarIcon,
-    description: "Important dates and program duration",
-    fields: ["applicationOpenDate", "applicationDeadline", "notificationDate", "programStartDate", "durationValue", "durationUnit"]
-  },
-  {
-    id: "academic",
-    title: "Academic Requirements",
-    icon: GraduationCap,
-    description: "Educational prerequisites and academic standards",
-    fields: ["minGpa", "gpaScale", "degreeRequired", "minAge", "maxAge", "genderRequirement", "minWorkExperience", "leadershipRequired", "languageRequirements"]
-  },
-  {
-    id: "application",
-    title: "Application Process",
-    icon: FileText,
-    description: "Application procedures, fees, and required documents",
-    fields: ["applicationUrl", "applicationFeeAmount", "applicationFeeCurrency", "feeWaiverAvailable", "documentsRequired", "interviewRequired", "essayRequired"]
-  },
-  {
-    id: "renewal",
-    title: "Renewal & Restrictions",
-    icon: Settings,
-    description: "Renewal policies and scholarship restrictions",
-    fields: ["renewable", "maxRenewalDuration", "renewalCriteria", "workRestrictions", "travelRestrictions", "otherScholarshipsAllowed"]
-  },
-  {
-    id: "benefits",
-    title: "Additional Benefits",
-    icon: Users,
-    description: "Extra opportunities and support services",
-    fields: ["mentorshipAvailable", "networkingOpportunities", "internshipOpportunities", "researchOpportunities"]
-  },
-  {
-    id: "metadata",
-    title: "Statistics & Metadata",
-    icon: FileText,
-    description: "Administrative data and scholarship statistics",
-    fields: ["tags", "difficultyLevel", "totalApplicantsPerYear", "acceptanceRate", "status", "dataSource", "verified"]
-  }
-];
+// Multi-select component for array fields
+interface MultiSelectProps {
+  value: string[];
+  onChange: (value: string[]) => void;
+  options: { value: string; label: string }[];
+  placeholder: string;
+}
 
-export function ScholarshipFormLayout({ 
-  mode, 
-  scholarshipId, 
-  initialData = {}, 
-  onSuccess 
-}: ScholarshipFormLayoutProps) {
-  const [, setLocation] = useLocation();
+function MultiSelect({ value, onChange, options, placeholder }: MultiSelectProps) {
+  const [selectedValue, setSelectedValue] = useState('');
+
+  const addValue = (newValue: string) => {
+    if (newValue && !value.includes(newValue)) {
+      onChange([...value, newValue]);
+      setSelectedValue('');
+    }
+  };
+
+  const removeValue = (valueToRemove: string) => {
+    onChange(value.filter(v => v !== valueToRemove));
+  };
+
+  const getOptionLabel = (optionValue: string) => {
+    const option = options.find(opt => opt.value === optionValue);
+    return option ? option.label : optionValue;
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        <Select value={selectedValue} onValueChange={addValue}>
+          <SelectTrigger className="flex-1">
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {options
+              .filter(option => !value.includes(option.value))
+              .map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))
+            }
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {value.map((val) => (
+            <Badge key={val} variant="secondary" className="flex items-center gap-1">
+              {getOptionLabel(val)}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-auto p-0 text-muted-foreground hover:text-foreground"
+                onClick={() => removeValue(val)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: ScholarshipFormLayoutProps) {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState<Partial<ScholarshipFormData>>({
+    fundingCurrency: 'USD',
+    genderRequirement: 'any',
+    status: 'draft'
+  });
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [currentSection, setCurrentSection] = useState(0);
-  const [completedSections, setCompletedSections] = useState<number[]>([]);
-  const [arrayFields, setArrayFields] = useState<{[key: string]: string[]}>({
-    hostCountries: [],
-    eligibleCountries: [],
-    studyLevels: [],
-    fieldCategories: [],
-    specificFields: [],
-    degreeRequired: [],
-    languageRequirements: [],
-    documentsRequired: [],
-    renewalCriteria: [],
-    tags: []
-  });
-  const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
+  const [, setLocation] = useLocation();
 
-  // Fetch existing scholarship data for edit mode
-  const { data: scholarshipData, isLoading } = useQuery({
-    queryKey: ['admin-scholarship', scholarshipId],
+  // Fetch countries for dropdown options
+  const { data: countries } = useQuery({
+    queryKey: ['/api/countries'],
     queryFn: async () => {
-      const response = await fetch(`/api/admin/scholarships/${scholarshipId}`);
-      if (!response.ok) throw new Error('Failed to fetch scholarship');
-      return response.json();
+      const response = await fetch('/api/countries');
+      if (!response.ok) throw new Error('Failed to fetch countries');
+      const result = await response.json();
+      return result.data || [];
     },
-    enabled: mode === 'edit' && !!scholarshipId
+    staleTime: 60000 * 30, // Cache for 30 minutes
   });
 
-  const existingData = mode === 'edit' ? scholarshipData?.data : null;
-
-  // Initialize form with comprehensive default values
   const form = useForm<ScholarshipFormData>({
     resolver: zodResolver(scholarshipSchema),
-    defaultValues: {
-      scholarshipId: "",
-      name: "",
-      shortName: "",
-      providerName: "",
-      providerType: "government",
-      providerCountry: "",
-      providerWebsite: "",
-      description: "",
-      applicationUrl: "",
-      fundingType: "full",
-      fundingCurrency: "USD",
-      difficultyLevel: "intermediate",
-      dataSource: "official",
-      verified: true,
-      status: "active",
-    },
+    defaultValues: formData
   });
 
-  // Update form when scholarship data is loaded (for edit mode)
-  useEffect(() => {
-    if (existingData && mode === 'edit') {
-      // Reset form with existing scholarship data
-      form.reset({
-        scholarshipId: existingData.scholarshipId || "",
-        name: existingData.name || "",
-        shortName: existingData.shortName || "",
-        providerName: existingData.providerName || "",
-        providerType: existingData.providerType || "government",
-        providerCountry: existingData.providerCountry || "",
-        providerWebsite: existingData.providerWebsite || "",
-        description: existingData.description || "",
-        applicationUrl: existingData.applicationUrl || "",
-        applicationDeadline: existingData.applicationDeadline || "",
-        fundingType: existingData.fundingType || "full",
-        fundingCurrency: existingData.fundingCurrency || "USD",
-        difficultyLevel: existingData.difficultyLevel || "intermediate",
-        dataSource: existingData.dataSource || "official",
-        verified: existingData.verified ?? true,
-        status: existingData.status || "active",
-      });
-
-      // Update array fields state
-      setArrayFields({
-        hostCountries: existingData.hostCountries || [],
-        eligibleCountries: existingData.eligibleCountries || [],
-        studyLevels: existingData.studyLevels || [],
-        fieldCategories: existingData.fieldCategories || [],
-        specificFields: existingData.specificFields || [],
-        degreeRequired: existingData.degreeRequired || [],
-        languageRequirements: existingData.languageRequirements || [],
-        documentsRequired: existingData.documentsRequired || [],
-        renewalCriteria: existingData.renewalCriteria || [],
-        tags: existingData.tags || []
-      });
-    } else if (initialData && mode === 'create') {
-      // Handle initial data for create mode
-      form.reset(initialData);
-      setArrayFields({
-        hostCountries: [],
-        eligibleCountries: [],
-        studyLevels: [],
-        fieldCategories: [],
-        specificFields: [],
-        degreeRequired: [],
-        languageRequirements: [],
-        documentsRequired: [],
-        renewalCriteria: [],
-        tags: []
-      });
-    }
-  }, [existingData, initialData, mode, form]);
-
   // Create/Update mutation
-  const mutation = useMutation({
+  const createMutation = useMutation({
     mutationFn: async (data: ScholarshipFormData) => {
-      const finalData = { ...data, ...arrayFields };
+      const endpoint = mode === 'create' ? '/api/admin/scholarships' : `/api/admin/scholarships/${scholarshipId}`;
+      const method = mode === 'create' ? 'POST' : 'PATCH';
       
-      if (mode === 'create') {
-        return apiRequest("POST", "/api/admin/scholarships", finalData);
-      } else {
-        return apiRequest("PUT", `/api/admin/scholarships/${scholarshipId}`, finalData);
-      }
-    },
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: mode === 'create' ? "Scholarship created successfully" : "Scholarship updated successfully",
+      const response = await fetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/scholarships"] });
-      if (scholarshipId) {
-        queryClient.invalidateQueries({ queryKey: [`/api/admin/scholarships/${scholarshipId}`] });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || `Failed to ${mode} scholarship`);
       }
-      onSuccess?.();
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: mode === 'create' ? 'Scholarship Created' : 'Scholarship Updated',
+        description: `Scholarship has been successfully ${mode === 'create' ? 'created' : 'updated'}.`,
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/scholarships'] });
+      
+      if (onSuccess) {
+        onSuccess();
+      } else if (mode === 'create') {
+        setLocation('/admin/scholarships');
+      }
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
-        description: error.message || `Failed to ${mode} scholarship`,
-        variant: "destructive",
+        title: `${mode === 'create' ? 'Creation' : 'Update'} Failed`,
+        description: error.message || `Failed to ${mode} scholarship. Please try again.`,
+        variant: 'destructive',
       });
     },
   });
 
-  // Progress calculation
-  const progress = Math.round(((completedSections.length + (currentSection > 0 ? 1 : 0)) / formSections.length) * 100);
+  const onSubmit = (data: ScholarshipFormData) => {
+    createMutation.mutate(data);
+  };
 
-  // Section validation and navigation
-  const validateCurrentSection = async () => {
-    const currentSectionConfig = formSections[currentSection];
-    const fieldsToValidate = currentSectionConfig.fields;
-    
-    const isValid = await form.trigger(fieldsToValidate as any);
-    
-    if (isValid) {
-      if (!completedSections.includes(currentSection)) {
-        setCompletedSections([...completedSections, currentSection]);
-      }
-      setFormErrors({});
-      return true;
-    } else {
-      const errors = form.formState.errors;
-      const sectionErrors: {[key: string]: string} = {};
-      
-      fieldsToValidate.forEach(field => {
-        if (errors[field as keyof ScholarshipFormData]) {
-          sectionErrors[field] = errors[field as keyof ScholarshipFormData]?.message || 'Invalid field';
-        }
-      });
-      
-      setFormErrors(sectionErrors);
-      return false;
+  const steps = [
+    { 
+      id: 1, 
+      title: "Essential Information", 
+      icon: FileText,
+      fields: ['scholarshipId', 'name', 'providerName', 'providerType', 'providerCountry']
+    },
+    { 
+      id: 2, 
+      title: "Funding Details", 
+      icon: DollarSign,
+      fields: ['fundingType', 'fundingCurrency', 'totalValueMin', 'totalValueMax']
+    },
+    { 
+      id: 3, 
+      title: "Eligibility Criteria", 
+      icon: Users,
+      fields: ['studyLevels', 'fieldCategories', 'hostCountries']
+    },
+    { 
+      id: 4, 
+      title: "Application Details", 
+      icon: Calendar,
+      fields: ['applicationDeadline', 'durationValue', 'durationUnit']
+    }
+  ];
+
+  const currentStepData = steps[currentStep - 1];
+  const totalSteps = steps.length;
+  const progress = (currentStep / totalSteps) * 100;
+
+  const nextStep = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
     }
   };
 
-  const handleNext = async () => {
-    const isValid = await validateCurrentSection();
-    if (isValid && currentSection < formSections.length - 1) {
-      setCurrentSection(currentSection + 1);
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
-  const handlePrevious = () => {
-    if (currentSection > 0) {
-      setCurrentSection(currentSection - 1);
-    }
-  };
-
-  const handleSubmit = async (data: any) => {
-    const isValid = await validateCurrentSection();
-    if (isValid) {
-      mutation.mutate(data);
-    }
-  };
-
-  // Array field management
-  const handleArrayAdd = (fieldName: string, value: string) => {
-    if (!value.trim()) return;
-    
-    const currentItems = arrayFields[fieldName] || [];
-    if (currentItems.includes(value.trim())) return;
-    
-    const updatedItems = [...currentItems, value.trim()];
-    setArrayFields(prev => ({ ...prev, [fieldName]: updatedItems }));
-    form.setValue(fieldName as any, updatedItems);
-  };
-
-  const handleArrayRemove = (fieldName: string, index: number) => {
-    const currentItems = arrayFields[fieldName] || [];
-    const updatedItems = currentItems.filter((_, i) => i !== index);
-    setArrayFields(prev => ({ ...prev, [fieldName]: updatedItems }));
-    form.setValue(fieldName as any, updatedItems);
-  };
-
-  // Render section content
-  const renderSectionContent = () => {
-    const section = formSections[currentSection];
-    
-    switch (section.id) {
-      case "basic":
-        return <BasicInformationSection form={form} mode={mode} errors={formErrors} />;
-      case "application":
-        return <ApplicationSection form={form} mode={mode} errors={formErrors} />;
-      case "study":
-        return <StudyInformationSection 
-          form={form} 
-          mode={mode} 
-          errors={formErrors}
-          arrayFields={arrayFields}
-          onArrayAdd={handleArrayAdd}
-          onArrayRemove={handleArrayRemove}
-        />;
-      case "funding":
-        return <FundingInformationSection form={form} mode={mode} errors={formErrors} />;
-      case "requirements":
-        return <RequirementsSection 
-          form={form} 
-          mode={mode} 
-          errors={formErrors}
-          arrayFields={arrayFields}
-          onArrayAdd={handleArrayAdd}
-          onArrayRemove={handleArrayRemove}
-        />;
-      case "settings":
-        return <SettingsSection form={form} mode={mode} errors={formErrors} />;
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return renderEssentialInformation();
+      case 2:
+        return renderFundingDetails();
+      case 3:
+        return renderEligibilityCriteria();
+      case 4:
+        return renderApplicationDetails();
       default:
         return null;
     }
   };
 
-  const getPageTitle = () => {
-    switch (mode) {
-      case 'create': return 'Create New Scholarship';
-      case 'edit': return 'Edit Scholarship';
-      case 'view': return 'Scholarship Details';
-      default: return 'Scholarship Management';
-    }
-  };
-
-  const getPageDescription = () => {
-    switch (mode) {
-      case 'create': return 'Add a new scholarship to the database with comprehensive validation and Google Material Design standards';
-      case 'edit': return 'Update scholarship information with real-time validation and immediate data persistence';
-      case 'view': return 'View comprehensive scholarship details with option to edit individual sections';
-      default: return 'Manage scholarship information';
-    }
-  };
-
-  // Show loading state for edit mode
-  if (mode === 'edit' && isLoading) {
-    return (
-      <AdminLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-            <p className="text-gray-600">Loading scholarship data...</p>
-          </div>
-        </div>
-      </AdminLayout>
-    );
-  }
-
-  return (
-    <AdminLayout>
-      <div className="flex h-screen bg-gray-50">
-        {/* Sidebar Navigation */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-          {/* Header */}
-          <div className="p-6 border-b border-gray-200">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setLocation('/admin/scholarships')} 
-              className="mb-4 text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Scholarships
-            </Button>
-            
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">{getPageTitle()}</h2>
-            <p className="text-sm text-gray-600 mb-4">{getPageDescription()}</p>
-          </div>
-
-          {/* Progress Indicator */}
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-gray-700">Form Progress</span>
-              <span className="text-sm text-blue-600 font-medium">{progress}%</span>
-            </div>
-            <Progress value={progress} className="h-2 mb-2" />
-            <p className="text-xs text-gray-500">
-              {mode === 'view' ? 'All sections completed' : 'Complete all required fields to submit'}
-            </p>
-          </div>
-
-          {/* Section Navigation */}
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-4">Form Sections</h3>
-              <div className="space-y-2">
-                {formSections.map((section, index) => {
-                  const IconComponent = section.icon;
-                  const isCompleted = completedSections.includes(index);
-                  const isCurrent = currentSection === index;
-                  const hasErrors = section.fields.some(field => formErrors[field]);
-                  
-                  return (
-                    <div
-                      key={section.id}
-                      className={cn(
-                        "flex items-center gap-3 p-4 rounded-lg cursor-pointer transition-all duration-200",
-                        isCurrent 
-                          ? "bg-blue-50 border-2 border-blue-200 shadow-sm" 
-                          : isCompleted 
-                            ? "bg-green-50 border border-green-200 hover:bg-green-100" 
-                            : hasErrors
-                              ? "bg-red-50 border border-red-200 hover:bg-red-100"
-                              : "bg-gray-50 border border-gray-200 hover:bg-gray-100"
-                      )}
-                      onClick={() => mode !== 'view' ? setCurrentSection(index) : undefined}
-                    >
-                      <div className={cn(
-                        "p-2 rounded-lg flex-shrink-0",
-                        isCurrent 
-                          ? "bg-blue-100" 
-                          : isCompleted 
-                            ? "bg-green-100" 
-                            : hasErrors
-                              ? "bg-red-100"
-                              : "bg-gray-100"
-                      )}>
-                        <IconComponent className={cn(
-                          "w-4 h-4",
-                          isCurrent 
-                            ? "text-blue-600" 
-                            : isCompleted 
-                              ? "text-green-600" 
-                              : hasErrors
-                                ? "text-red-600"
-                                : "text-gray-500"
-                        )} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className={cn(
-                          "font-medium text-sm truncate",
-                          isCurrent 
-                            ? "text-blue-900" 
-                            : isCompleted 
-                              ? "text-green-900" 
-                              : hasErrors
-                                ? "text-red-900"
-                                : "text-gray-700"
-                        )}>
-                          {section.title}
-                        </div>
-                        <div className="text-xs text-gray-500 truncate">{section.fields.length} fields</div>
-                      </div>
-                      <div className="flex-shrink-0">
-                        {isCompleted && (
-                          <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                            <Check className="w-3 h-3 text-white" />
-                          </div>
-                        )}
-                        {hasErrors && !isCompleted && (
-                          <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
-                            <AlertTriangle className="w-3 h-3 text-white" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="p-6 border-t border-gray-200 bg-gray-50">
-            <div className="text-xs text-gray-500 space-y-1">
-              <div>Mode: {mode.charAt(0).toUpperCase() + mode.slice(1)}</div>
-              <div>Progress: {progress}% complete</div>
-              {Object.keys(formErrors).length > 0 && (
-                <div className="text-red-600">
-                  {Object.keys(formErrors).length} validation error(s)
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-8">
-            {/* Section Header */}
-            <div className="mb-8">
-              <div className="flex items-center gap-4 mb-4">
-                <Badge variant="outline" className="px-3 py-1">
-                  Section {currentSection + 1} of {formSections.length}
-                </Badge>
-                <Badge variant="outline" className="px-3 py-1 capitalize">
-                  {mode} Mode
-                </Badge>
-              </div>
-              
-              <Card className="border-l-4 border-l-blue-500">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    {(() => {
-                      const IconComponent = formSections[currentSection].icon;
-                      return <IconComponent className="w-5 h-5" />;
-                    })()}
-                    {formSections[currentSection].title}
-                  </CardTitle>
-                  <CardDescription>
-                    {formSections[currentSection].description}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </div>
-
-            {/* Form Content */}
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-                {renderSectionContent()}
-
-                {/* Navigation Controls */}
-                {mode !== 'view' && (
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex justify-between items-center">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={handlePrevious}
-                          disabled={currentSection === 0}
-                        >
-                          <ArrowLeft className="w-4 h-4 mr-2" />
-                          Previous
-                        </Button>
-
-                        <div className="flex gap-3">
-                          <Button 
-                            type="button"
-                            variant="outline" 
-                            onClick={() => setLocation('/admin/scholarships')}
-                          >
-                            Cancel
-                          </Button>
-                          
-                          {currentSection === formSections.length - 1 ? (
-                            <Button 
-                              type="submit"
-                              disabled={mutation.isPending}
-                              className="min-w-[140px]"
-                            >
-                              {mutation.isPending ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                  {mode === 'create' ? 'Creating...' : 'Updating...'}
-                                </>
-                              ) : (
-                                <>
-                                  <Save className="w-4 h-4 mr-2" />
-                                  {mode === 'create' ? 'Create Scholarship' : 'Update Scholarship'}
-                                </>
-                              )}
-                            </Button>
-                          ) : (
-                            <Button 
-                              type="button"
-                              onClick={handleNext}
-                              className="min-w-[100px]"
-                            >
-                              Next
-                              <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </form>
-            </Form>
-          </div>
-        </div>
+  const renderEssentialInformation = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="scholarshipId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Scholarship ID *</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="e.g., AUS_AWARDS_2025" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="providerType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Provider Type *</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select provider type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {PROVIDER_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
-    </AdminLayout>
+
+      <FormField
+        control={form.control}
+        name="name"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Scholarship Name *</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="Enter scholarship name" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <div className="grid grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="providerName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Provider Name *</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Organization providing the scholarship" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="providerCountry"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Provider Country *</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select provider country" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {countries?.map((country: any) => (
+                    <SelectItem key={country.isoAlpha2} value={country.isoAlpha2}>
+                      {country.countryName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <FormField
+        control={form.control}
+        name="description"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Description</FormLabel>
+            <FormControl>
+              <Textarea {...field} placeholder="Brief description of the scholarship" rows={3} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
   );
-}
 
-// Section Components with comprehensive validation
-
-function BasicInformationSection({ form, mode, errors }: any) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Basic Information</CardTitle>
-        <CardDescription>
-          Essential scholarship details and identification information
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="scholarshipId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-red-600 flex items-center gap-1">
-                  Scholarship ID *
-                  <span className="text-xs text-gray-500">(Unique identifier)</span>
-                </FormLabel>
-                <FormControl>
-                  <Input 
-                    {...field} 
-                    placeholder="e.g. AUS_AWARDS_2025" 
-                    disabled={mode === 'view'}
-                    className={cn(
-                      errors.scholarshipId && "border-red-300 focus:border-red-500"
-                    )}
-                  />
-                </FormControl>
-                <div className="text-xs text-gray-500">
-                  3-50 characters. Use uppercase letters, numbers, underscores, and hyphens only.
-                </div>
-                {errors.scholarshipId && (
-                  <div className="text-sm text-red-600">{errors.scholarshipId}</div>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="providerType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-red-600">Provider Type *</FormLabel>
-                {mode === 'view' ? (
-                  <div className="p-3 bg-gray-50 rounded-md capitalize">
-                    {field.value}
-                  </div>
-                ) : (
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className={cn(
-                        errors.providerType && "border-red-300 focus:border-red-500"
-                      )}>
-                        <SelectValue placeholder="Select provider type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="government">Government</SelectItem>
-                      <SelectItem value="private">Private Organization</SelectItem>
-                      <SelectItem value="institution">Educational Institution</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-                {errors.providerType && (
-                  <div className="text-sm text-red-600">{errors.providerType}</div>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-red-600">Scholarship Name *</FormLabel>
-              <FormControl>
-                <Input 
-                  {...field} 
-                  placeholder="e.g. Australia Awards Scholarship Program" 
-                  disabled={mode === 'view'}
-                  className={cn(
-                    errors.scholarshipName && "border-red-300 focus:border-red-500"
-                  )}
-                />
-              </FormControl>
-              <div className="text-xs text-gray-500">
-                5-200 characters. Full official name of the scholarship program.
-              </div>
-              {errors.scholarshipName && (
-                <div className="text-sm text-red-600">{errors.scholarshipName}</div>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid gap-6 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="providerName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-red-600">Provider Name *</FormLabel>
-                <FormControl>
-                  <Input 
-                    {...field} 
-                    placeholder="e.g. Australian Government" 
-                    disabled={mode === 'view'}
-                    className={cn(
-                      errors.providerName && "border-red-300 focus:border-red-500"
-                    )}
-                  />
-                </FormControl>
-                <div className="text-xs text-gray-500">
-                  3-100 characters. Official name of the organization providing the scholarship.
-                </div>
-                {errors.providerName && (
-                  <div className="text-sm text-red-600">{errors.providerName}</div>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="providerCountry"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-red-600">Provider Country *</FormLabel>
-                <FormControl>
-                  <Input 
-                    {...field} 
-                    placeholder="e.g. Australia" 
-                    disabled={mode === 'view'}
-                    className={cn(
-                      errors.providerCountry && "border-red-300 focus:border-red-500"
-                    )}
-                  />
-                </FormControl>
-                <div className="text-xs text-gray-500">
-                  2-50 characters. Country where the scholarship provider is based.
-                </div>
-                {errors.providerCountry && (
-                  <div className="text-sm text-red-600">{errors.providerCountry}</div>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-red-600">Detailed Description *</FormLabel>
-              <FormControl>
-                <Textarea 
-                  {...field} 
-                  rows={6} 
-                  placeholder="Provide a comprehensive description of the scholarship program, its objectives, key benefits, target audience, and selection criteria..."
-                  className={cn(
-                    "resize-none",
-                    errors.description && "border-red-300 focus:border-red-500"
-                  )}
-                  disabled={mode === 'view'}
-                />
-              </FormControl>
-              <div className="text-xs text-gray-500 flex justify-between">
-                <span>50-2000 characters. Comprehensive program description.</span>
-                <span>{field.value?.length || 0}/2000</span>
-              </div>
-              {errors.description && (
-                <div className="text-sm text-red-600">{errors.description}</div>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="shortDescription"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-red-600">Short Description *</FormLabel>
-              <FormControl>
-                <Textarea 
-                  {...field} 
-                  rows={3} 
-                  placeholder="Brief summary for listing displays and quick reference..."
-                  className={cn(
-                    "resize-none",
-                    errors.shortDescription && "border-red-300 focus:border-red-500"
-                  )}
-                  disabled={mode === 'view'}
-                />
-              </FormControl>
-              <div className="text-xs text-gray-500 flex justify-between">
-                <span>20-300 characters. Brief summary for listings.</span>
-                <span>{field.value?.length || 0}/300</span>
-              </div>
-              {errors.shortDescription && (
-                <div className="text-sm text-red-600">{errors.shortDescription}</div>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </CardContent>
-    </Card>
-  );
-}
-
-function ApplicationSection({ form, mode, errors }: any) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Application Details</CardTitle>
-        <CardDescription>
-          Application process and deadline information
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <FormField
-          control={form.control}
-          name="applicationUrl"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-red-600">Application URL *</FormLabel>
-              <FormControl>
-                <Input 
-                  {...field} 
-                  placeholder="https://example.com/apply" 
-                  type="url"
-                  disabled={mode === 'view'}
-                  className={cn(
-                    errors.applicationUrl && "border-red-300 focus:border-red-500"
-                  )}
-                />
-              </FormControl>
-              <div className="text-xs text-gray-500">
-                Valid URL (max 500 characters). Direct link to the application form or process.
-              </div>
-              {errors.applicationUrl && (
-                <div className="text-sm text-red-600">{errors.applicationUrl}</div>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="applicationDeadline"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-red-600">Application Deadline *</FormLabel>
-              <FormControl>
-                <Input 
-                  {...field} 
-                  type="date"
-                  min={new Date().toISOString().split('T')[0]}
-                  disabled={mode === 'view'}
-                  className={cn(
-                    errors.applicationDeadline && "border-red-300 focus:border-red-500"
-                  )}
-                />
-              </FormControl>
-              <div className="text-xs text-gray-500">
-                Final date for application submission. Must be a future date.
-              </div>
-              {errors.applicationDeadline && (
-                <div className="text-sm text-red-600">{errors.applicationDeadline}</div>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </CardContent>
-    </Card>
-  );
-}
-
-function StudyInformationSection({ form, mode, errors, arrayFields, onArrayAdd, onArrayRemove }: any) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Study Information</CardTitle>
-        <CardDescription>
-          Academic levels, fields, and target countries
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="studyLevel"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-red-600">Study Level *</FormLabel>
-                <FormControl>
-                  <Input 
-                    {...field} 
-                    placeholder="e.g. Masters, PhD, Undergraduate" 
-                    disabled={mode === 'view'}
-                    className={cn(
-                      errors.studyLevel && "border-red-300 focus:border-red-500"
-                    )}
-                  />
-                </FormControl>
-                <div className="text-xs text-gray-500">
-                  2-100 characters. Academic level(s) supported by this scholarship.
-                </div>
-                {errors.studyLevel && (
-                  <div className="text-sm text-red-600">{errors.studyLevel}</div>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="fieldCategory"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-red-600">Field Category *</FormLabel>
-                <FormControl>
-                  <Input 
-                    {...field} 
-                    placeholder="e.g. Engineering, Medicine, Arts" 
-                    disabled={mode === 'view'}
-                    className={cn(
-                      errors.fieldCategory && "border-red-300 focus:border-red-500"
-                    )}
-                  />
-                </FormControl>
-                <div className="text-xs text-gray-500">
-                  2-100 characters. Academic field(s) or subject area(s).
-                </div>
-                {errors.fieldCategory && (
-                  <div className="text-sm text-red-600">{errors.fieldCategory}</div>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <ArrayFieldEditor
-          label="Target Countries"
-          items={arrayFields.targetCountries}
-          onAdd={(value) => onArrayAdd('targetCountries', value)}
-          onRemove={(index) => onArrayRemove('targetCountries', index)}
-          placeholder="e.g. Australia, United States, Canada"
-          required
-          disabled={mode === 'view'}
-          maxItems={20}
-          error={errors.targetCountries}
-          description="Countries where scholarship recipients can study (1-20 countries)"
-        />
-      </CardContent>
-    </Card>
-  );
-}
-
-function FundingInformationSection({ form, mode, errors }: any) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Funding Information</CardTitle>
-        <CardDescription>
-          Financial details and funding structure
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+  const renderFundingDetails = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
         <FormField
           control={form.control}
           name="fundingType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-red-600">Funding Type *</FormLabel>
-              {mode === 'view' ? (
-                <div className="p-3 bg-gray-50 rounded-md capitalize">
-                  {field.value?.replace('-', ' ')}
-                </div>
-              ) : (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger className={cn(
-                      errors.fundingType && "border-red-300 focus:border-red-500"
-                    )}>
-                      <SelectValue placeholder="Select funding type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="full">Full Funding (Tuition + Living)</SelectItem>
-                    <SelectItem value="partial">Partial Funding</SelectItem>
-                    <SelectItem value="tuition-only">Tuition Only</SelectItem>
-                    <SelectItem value="living-allowance">Living Allowance Only</SelectItem>
-                    <SelectItem value="other">Other Type</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-              {errors.fundingType && (
-                <div className="text-sm text-red-600">{errors.fundingType}</div>
-              )}
+              <FormLabel>Funding Type *</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select funding type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {FUNDING_TYPES.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="fundingAmount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-red-600">Funding Amount *</FormLabel>
-                <FormControl>
-                  <Input 
-                    {...field} 
-                    type="number"
-                    min="1"
-                    max="1000000"
-                    placeholder="50000"
-                    disabled={mode === 'view'}
-                    className={cn(
-                      errors.fundingAmount && "border-red-300 focus:border-red-500"
-                    )}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <div className="text-xs text-gray-500">
-                  1-1,000,000. Total or maximum funding amount.
-                </div>
-                {errors.fundingAmount && (
-                  <div className="text-sm text-red-600">{errors.fundingAmount}</div>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="fundingCurrency"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-red-600">Currency *</FormLabel>
-                <FormControl>
-                  <Input 
-                    {...field} 
-                    placeholder="USD"
-                    maxLength={3}
-                    disabled={mode === 'view'}
-                    className={cn(
-                      "uppercase",
-                      errors.fundingCurrency && "border-red-300 focus:border-red-500"
-                    )}
-                    onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                  />
-                </FormControl>
-                <div className="text-xs text-gray-500">
-                  3 characters. ISO currency code (e.g., USD, EUR, GBP).
-                </div>
-                {errors.fundingCurrency && (
-                  <div className="text-sm text-red-600">{errors.fundingCurrency}</div>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function RequirementsSection({ form, mode, errors, arrayFields, onArrayAdd, onArrayRemove }: any) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Requirements & Eligibility</CardTitle>
-        <CardDescription>
-          Eligibility criteria and language requirements
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <ArrayFieldEditor
-          label="Eligibility Requirements"
-          items={arrayFields.eligibilityRequirements}
-          onAdd={(value) => onArrayAdd('eligibilityRequirements', value)}
-          onRemove={(index) => onArrayRemove('eligibilityRequirements', index)}
-          placeholder="e.g. Bachelor's degree with 3.0 GPA"
-          required
-          disabled={mode === 'view'}
-          maxItems={50}
-          error={errors.eligibilityRequirements}
-          description="Academic and other eligibility criteria (1-50 requirements)"
-        />
-
-        <ArrayFieldEditor
-          label="Language Requirements (Optional)"
-          items={arrayFields.languageRequirements}
-          onAdd={(value) => onArrayAdd('languageRequirements', value)}
-          onRemove={(index) => onArrayRemove('languageRequirements', index)}
-          placeholder="e.g. IELTS 6.5 overall, TOEFL 90+"
-          disabled={mode === 'view'}
-          maxItems={20}
-          error={errors.languageRequirements}
-          description="Language proficiency requirements (0-20 requirements)"
-        />
-
         <FormField
           control={form.control}
-          name="difficultyLevel"
+          name="fundingCurrency"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-red-600">Difficulty Level *</FormLabel>
-              {mode === 'view' ? (
-                <div className="p-3 bg-gray-50 rounded-md capitalize">
-                  {field.value}
-                </div>
-              ) : (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger className={cn(
-                      errors.difficultyLevel && "border-red-300 focus:border-red-500"
-                    )}>
-                      <SelectValue placeholder="Select difficulty level" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="beginner">Beginner (Basic requirements)</SelectItem>
-                    <SelectItem value="intermediate">Intermediate (Moderate requirements)</SelectItem>
-                    <SelectItem value="advanced">Advanced (Stringent requirements)</SelectItem>
-                    <SelectItem value="expert">Expert (Exceptional requirements)</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-              <div className="text-xs text-gray-500">
-                Application difficulty based on requirements and competition level.
-              </div>
-              {errors.difficultyLevel && (
-                <div className="text-sm text-red-600">{errors.difficultyLevel}</div>
-              )}
+              <FormLabel>Currency *</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {FUNDING_CURRENCIES.map((currency) => (
+                    <SelectItem key={currency.value} value={currency.value}>
+                      {currency.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
         />
-      </CardContent>
-    </Card>
-  );
-}
+      </div>
 
-function SettingsSection({ form, mode, errors }: any) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Settings & Metadata</CardTitle>
-        <CardDescription>
-          Administrative settings and verification status
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
         <FormField
           control={form.control}
-          name="dataSource"
+          name="totalValueMin"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-red-600">Data Source *</FormLabel>
+              <FormLabel>Minimum Amount</FormLabel>
               <FormControl>
                 <Input 
                   {...field} 
-                  placeholder="e.g. Official website, Government portal" 
-                  disabled={mode === 'view'}
-                  className={cn(
-                    errors.dataSource && "border-red-300 focus:border-red-500"
-                  )}
+                  type="number" 
+                  placeholder="5000"
+                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                 />
               </FormControl>
-              <div className="text-xs text-gray-500">
-                2-200 characters. Source of scholarship information for verification.
-              </div>
-              {errors.dataSource && (
-                <div className="text-sm text-red-600">{errors.dataSource}</div>
-              )}
               <FormMessage />
             </FormItem>
           )}
@@ -1322,184 +579,448 @@ function SettingsSection({ form, mode, errors }: any) {
 
         <FormField
           control={form.control}
-          name="verified"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">Verified Status</FormLabel>
-                <div className="text-sm text-gray-500">
-                  Mark this scholarship as verified and accurate
-                </div>
-              </div>
-              <FormControl>
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  disabled={mode === 'view'}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="status"
+          name="totalValueMax"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-red-600">Publication Status *</FormLabel>
-              {mode === 'view' ? (
-                <div className="p-3 bg-gray-50 rounded-md capitalize">
-                  {field.value}
-                </div>
-              ) : (
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger className={cn(
-                      errors.status && "border-red-300 focus:border-red-500"
-                    )}>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="active">Active (Publicly visible)</SelectItem>
-                    <SelectItem value="inactive">Inactive (Hidden from public)</SelectItem>
-                    <SelectItem value="pending">Pending (Under review)</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-              <div className="text-xs text-gray-500">
-                Publication status determines visibility to users.
-              </div>
-              {errors.status && (
-                <div className="text-sm text-red-600">{errors.status}</div>
-              )}
+              <FormLabel>Maximum Amount</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  type="number" 
+                  placeholder="50000"
+                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-      </CardContent>
-    </Card>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="tuitionCoveragePercentage"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tuition Coverage %</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  type="number" 
+                  min="0" 
+                  max="100" 
+                  placeholder="100"
+                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="livingAllowanceAmount"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Living Allowance Amount</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  type="number" 
+                  placeholder="18000"
+                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <FormField
+        control={form.control}
+        name="livingAllowanceFrequency"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Living Allowance Frequency</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select frequency" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {LIVING_ALLOWANCE_FREQUENCY.map((frequency) => (
+                  <SelectItem key={frequency.value} value={frequency.value}>
+                    {frequency.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
   );
-}
 
-// Array Field Editor Component
-interface ArrayFieldEditorProps {
-  label: string;
-  items: string[];
-  onAdd: (value: string) => void;
-  onRemove: (index: number) => void;
-  placeholder: string;
-  required?: boolean;
-  disabled?: boolean;
-  maxItems?: number;
-  error?: string;
-  description?: string;
-}
+  const renderEligibilityCriteria = () => (
+    <div className="space-y-6">
+      <FormField
+        control={form.control}
+        name="hostCountries"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Host Countries</FormLabel>
+            <FormControl>
+              <MultiSelect
+                value={field.value || []}
+                onChange={field.onChange}
+                options={countries?.map((country: any) => ({
+                  value: country.isoAlpha2,
+                  label: country.countryName
+                })) || []}
+                placeholder="Select host countries"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
-function ArrayFieldEditor({ 
-  label, 
-  items, 
-  onAdd, 
-  onRemove, 
-  placeholder, 
-  required = false, 
-  disabled = false,
-  maxItems = 50,
-  error,
-  description 
-}: ArrayFieldEditorProps) {
-  const [inputValue, setInputValue] = useState("");
+      <FormField
+        control={form.control}
+        name="studyLevels"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Study Levels</FormLabel>
+            <FormControl>
+              <MultiSelect
+                value={field.value || []}
+                onChange={field.onChange}
+                options={STUDY_LEVELS}
+                placeholder="Select study levels"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
-  const handleAdd = () => {
-    if (inputValue.trim() && items.length < maxItems) {
-      onAdd(inputValue.trim());
-      setInputValue("");
-    }
-  };
+      <FormField
+        control={form.control}
+        name="fieldCategories"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Field Categories</FormLabel>
+            <FormControl>
+              <MultiSelect
+                value={field.value || []}
+                onChange={field.onChange}
+                options={FIELD_CATEGORIES}
+                placeholder="Select field categories"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAdd();
-    }
-  };
+      <div className="grid grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="minGpa"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Minimum GPA</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  type="number" 
+                  step="0.1" 
+                  placeholder="3.0"
+                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="gpaScale"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>GPA Scale</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  type="number" 
+                  step="0.1" 
+                  placeholder="4.0"
+                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <FormField
+        control={form.control}
+        name="genderRequirement"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Gender Requirement</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select gender requirement" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {GENDER_REQUIREMENTS.map((requirement) => (
+                  <SelectItem key={requirement.value} value={requirement.value}>
+                    {requirement.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+
+  const renderApplicationDetails = () => (
+    <div className="space-y-6">
+      <FormField
+        control={form.control}
+        name="applicationDeadline"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Application Deadline</FormLabel>
+            <FormControl>
+              <Input {...field} type="date" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <div className="grid grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
+          name="durationValue"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Duration Value</FormLabel>
+              <FormControl>
+                <Input 
+                  {...field} 
+                  type="number" 
+                  placeholder="2"
+                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="durationUnit"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Duration Unit</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select duration unit" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {DURATION_UNITS.map((unit) => (
+                    <SelectItem key={unit.value} value={unit.value}>
+                      {unit.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <FormField
+        control={form.control}
+        name="status"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Status</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {SCHOLARSHIP_STATUS.map((status) => (
+                  <SelectItem key={status.value} value={status.value}>
+                    {status.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="providerWebsite"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Provider Website</FormLabel>
+            <FormControl>
+              <Input {...field} placeholder="https://example.com" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
 
   return (
-    <div className="space-y-4">
-      <div className={cn(
-        "text-sm font-medium",
-        required ? 'text-red-600' : 'text-gray-700'
-      )}>
-        {label} {required && '*'}
-      </div>
-      
-      {description && (
-        <div className="text-xs text-gray-500">{description}</div>
-      )}
-      
-      {!disabled && (
-        <div className="flex gap-2">
-          <Input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder={placeholder}
-            className={cn(
-              "flex-1",
-              error && "border-red-300 focus:border-red-500"
-            )}
-            disabled={items.length >= maxItems}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleAdd}
-            disabled={!inputValue.trim() || items.length >= maxItems}
-          >
-            <Plus className="w-4 h-4" />
-          </Button>
-        </div>
-      )}
-      
-      {required && items.length === 0 && (
-        <div className="text-sm text-red-600">At least one item is required</div>
-      )}
-      
-      {error && (
-        <div className="text-sm text-red-600">{error}</div>
-      )}
-      
-      {items.length >= maxItems && (
-        <div className="text-sm text-amber-600">
-          Maximum {maxItems} items reached
-        </div>
-      )}
-      
-      {items.length > 0 && (
-        <div className="space-y-2">
-          <div className="text-xs text-gray-500">
-            {items.length} item{items.length !== 1 ? 's' : ''} {maxItems && `(max ${maxItems})`}
+    <AdminLayout>
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setLocation('/admin/scholarships')}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Scholarships
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {mode === 'create' ? 'Create New Scholarship' : 'Edit Scholarship'}
+              </h1>
+              <p className="text-gray-600 mt-1">Step {currentStep} of {totalSteps}: {currentStepData.title}</p>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {items.map((item, index) => (
-              <Badge key={index} variant="secondary" className="flex items-center gap-1 pr-1">
-                <span className="text-sm break-all">{item}</span>
-                {!disabled && (
-                  <button
-                    type="button"
-                    onClick={() => onRemove(index)}
-                    className="ml-1 hover:bg-destructive hover:text-destructive-foreground rounded-sm p-0.5 transition-colors"
+        </div>
+
+        {/* Progress Bar */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-medium text-gray-600">Progress</span>
+              <span className="text-sm font-medium text-gray-900">{Math.round(progress)}%</span>
+            </div>
+            <Progress value={progress} className="mb-4" />
+            
+            {/* Step Navigation */}
+            <div className="flex items-center justify-between">
+              {steps.map((step, index) => {
+                const StepIcon = step.icon;
+                const isActive = step.id === currentStep;
+                const isCompleted = step.id < currentStep;
+                
+                return (
+                  <div key={step.id} className="flex items-center">
+                    <div className={`
+                      flex items-center justify-center w-10 h-10 rounded-full border-2 
+                      ${isActive ? 'border-blue-600 bg-blue-600 text-white' : 
+                        isCompleted ? 'border-green-600 bg-green-600 text-white' : 
+                        'border-gray-300 bg-white text-gray-400'}
+                    `}>
+                      {isCompleted ? (
+                        <Check className="w-5 h-5" />
+                      ) : (
+                        <StepIcon className="w-5 h-5" />
+                      )}
+                    </div>
+                    <div className="ml-3 hidden md:block">
+                      <p className={`text-sm font-medium ${isActive ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-500'}`}>
+                        {step.title}
+                      </p>
+                    </div>
+                    {index < steps.length - 1 && (
+                      <div className="flex-1 h-0.5 bg-gray-200 mx-4 hidden md:block" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Form Content */}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <currentStepData.icon className="h-5 w-5" />
+                  {currentStepData.title}
+                </CardTitle>
+                <CardDescription>
+                  Fill in the required information for this step
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {renderStepContent()}
+              </CardContent>
+            </Card>
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={prevStep}
+                disabled={currentStep === 1}
+              >
+                Previous
+              </Button>
+              
+              <div className="flex gap-2">
+                {currentStep < totalSteps ? (
+                  <Button type="button" onClick={nextStep}>
+                    Next
+                  </Button>
+                ) : (
+                  <Button 
+                    type="submit" 
+                    disabled={createMutation.isPending}
+                    className="flex items-center gap-2"
                   >
-                    <X className="w-3 h-3" />
-                  </button>
+                    {createMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
+                    {mode === 'create' ? 'Create Scholarship' : 'Update Scholarship'}
+                  </Button>
                 )}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+              </div>
+            </div>
+          </form>
+        </Form>
+      </div>
+    </AdminLayout>
   );
 }
