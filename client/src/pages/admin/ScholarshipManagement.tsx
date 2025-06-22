@@ -50,6 +50,7 @@ interface Scholarship extends ScholarshipFormData {
   id: number;
   createdDate: string;
   updatedDate: string;
+  [key: string]: any; // Allow dynamic property access for category-based editing
 }
 
 export default function ScholarshipManagement() {
@@ -165,9 +166,9 @@ export default function ScholarshipManagement() {
     // Initialize form with current scholarship data
     const currentSection = editingSections.find(s => s.key === section);
     if (currentSection) {
-      const sectionData: any = {};
+      const sectionData: Record<string, any> = {};
       currentSection.fields.forEach(field => {
-        sectionData[field] = (scholarship as any)[field];
+        sectionData[field] = scholarship[field];
       });
       form.reset(sectionData);
     }
@@ -190,9 +191,24 @@ export default function ScholarshipManagement() {
   };
 
   const handleUpdateSubmit = (data: ScholarshipFormData) => {
-    if (selectedScholarship) {
-      updateMutation.mutate({ id: selectedScholarship.id, data });
+    if (!selectedScholarship || !editingSection) return;
+    
+    // Only update the fields in the current editing section
+    const currentSection = editingSections.find(s => s.key === editingSection);
+    const updatedData: Partial<ScholarshipFormData> = {};
+    
+    if (currentSection) {
+      currentSection.fields.forEach(field => {
+        if (field in data) {
+          (updatedData as any)[field] = (data as any)[field];
+        }
+      });
     }
+    
+    updateMutation.mutate({
+      id: selectedScholarship.id,
+      data: updatedData
+    });
   };
 
   const handleEdit = (scholarship: Scholarship) => {
