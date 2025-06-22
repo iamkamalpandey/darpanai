@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { DashboardLayout } from '../components/DashboardLayout';
+import { ProfileCompletionPrompt } from '../components/ProfileCompletionPrompt';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -42,12 +43,18 @@ interface PlatformStats {
 }
 
 export default function StudentAIDashboard() {
+  const [showProfilePrompt, setShowProfilePrompt] = useState(false);
+
   const { data: userStats } = useQuery<UserStats>({
     queryKey: ['/api/user/stats'],
   });
 
   const { data: platformStats } = useQuery<PlatformStats>({
     queryKey: ['/api/platform-stats'],
+  });
+
+  const { data: profileCompletion } = useQuery({
+    queryKey: ['/api/user/profile-completion'],
   });
 
   const analysisUsagePercentage = userStats 
@@ -342,6 +349,14 @@ export default function StudentAIDashboard() {
           </Link>
         </div>
       </div>
+
+      {/* Profile Completion Prompt */}
+      {profileCompletion && (
+        <ProfileCompletionPrompt
+          profileData={profileCompletion}
+          onDismiss={() => setShowProfilePrompt(false)}
+        />
+      )}
     </DashboardLayout>
   );
 }

@@ -1,219 +1,172 @@
-import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Circle, User, GraduationCap, Globe, DollarSign, MapPin, Briefcase, Languages, X, Trophy, Target, FileText, Clock } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
+import { Button } from './ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
+import { Progress } from './ui/progress';
 import { Link } from 'wouter';
+import { 
+  User,
+  X,
+  CheckCircle2,
+  AlertCircle,
+  TrendingUp,
+  Star,
+  ArrowRight
+} from 'lucide-react';
 
-const PROFILE_SECTIONS = [
-  { id: 'personal', label: 'Personal Information', icon: User, description: 'Basic details for accurate analysis' },
-  { id: 'academic', label: 'Academic Qualification', icon: GraduationCap, description: 'Education history for program matching' },
-  { id: 'study', label: 'Study Preferences', icon: Globe, description: 'Course and country preferences' },
-  { id: 'budget', label: 'Budget Range', icon: DollarSign, description: 'Financial planning for accurate recommendations' },
-  { id: 'countries', label: 'Preferred Countries', icon: MapPin, description: 'Target destinations for personalized analysis' },
-  { id: 'employment', label: 'Employment Status', icon: Briefcase, description: 'Work experience for visa applications' },
-  { id: 'tests', label: 'Tests & English Proficiency', icon: Languages, description: 'Language scores for admission requirements' }
-];
-
-interface ProfileCompletionPromptProps {
-  open: boolean;
-  onClose: () => void;
+interface ProfileCompletionData {
+  isComplete: boolean;
+  completionPercentage: number;
+  missingFields: string[];
+  completedSections: string[];
+  pendingSections: string[];
 }
 
-export function ProfileCompletionPrompt({ open, onClose }: ProfileCompletionPromptProps) {
-  const { data: user } = useQuery({
-    queryKey: ['/api/user'],
-  }) as { data: any };
+interface ProfileCompletionPromptProps {
+  profileData: ProfileCompletionData;
+  onDismiss: () => void;
+}
 
-  // Calculate completion based on actual user data
-  const COMPULSORY_FIELDS = [
-    'firstName', 'lastName', 'dateOfBirth', 'gender', 'nationality', 'phoneNumber',
-    'highestQualification', 'highestInstitution', 'highestGpa', 'graduationYear',
-    'interestedCourse', 'fieldOfStudy', 'preferredIntake', 'budgetRange',
-    'preferredCountries', 'currentEmploymentStatus', 'englishProficiencyTests'
-  ];
+export function ProfileCompletionPrompt({ profileData, onDismiss }: ProfileCompletionPromptProps) {
+  const [isVisible, setIsVisible] = useState(false);
 
-  const calculateCompletion = () => {
-    if (!user) return { percentage: 0, completedFields: 0, totalFields: COMPULSORY_FIELDS.length, missingFields: COMPULSORY_FIELDS };
-    
-    const completedFields = COMPULSORY_FIELDS.filter(field => {
-      const value = user[field];
-      if (Array.isArray(value)) return value.length > 0;
-      return value !== null && value !== undefined && value !== '';
-    });
-    
-    const missingFields = COMPULSORY_FIELDS.filter(field => {
-      const value = user[field];
-      if (Array.isArray(value)) return value.length === 0;
-      return value === null || value === undefined || value === '';
-    });
-    
-    const percentage = Math.round((completedFields.length / COMPULSORY_FIELDS.length) * 100);
-    
-    return {
-      percentage,
-      completedFields: completedFields.length,
-      totalFields: COMPULSORY_FIELDS.length,
-      missingFields
-    };
+  useEffect(() => {
+    // Show popup only if profile is not 100% complete
+    if (!profileData.isComplete && profileData.completionPercentage < 100) {
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 2000); // Show after 2 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [profileData.isComplete, profileData.completionPercentage]);
+
+  const handleDismiss = () => {
+    setIsVisible(false);
+    onDismiss();
   };
 
-  const completion = calculateCompletion();
-  const completionPercentage = completion.percentage;
+  if (!isVisible || profileData.isComplete || profileData.completionPercentage >= 100) {
+    return null;
+  }
 
-  const getSectionStatus = (sectionId: string) => {
-    if (!user) return false;
-    
-    const sectionFieldMap: { [key: string]: string[] } = {
-      personal: ['dateOfBirth', 'gender', 'nationality', 'passportNumber'],
-      academic: ['highestQualification', 'highestInstitution', 'highestGpa', 'graduationYear'],
-      study: ['interestedCourse', 'fieldOfStudy', 'preferredIntake'],
-      budget: ['budgetRange'],
-      countries: ['preferredCountries'],
-      employment: ['currentEmploymentStatus', 'workExperienceYears'],
-      tests: ['englishProficiencyTests']
-    };
+  const getCompletionMessage = () => {
+    if (profileData.completionPercentage >= 80) {
+      return "You're almost there! Complete your profile for better AI matching.";
+    } else if (profileData.completionPercentage >= 50) {
+      return "Halfway done! Complete your profile to unlock full AI capabilities.";
+    } else {
+      return "Complete your profile to get personalized AI recommendations.";
+    }
+  };
 
-    const sectionFields = sectionFieldMap[sectionId] || [];
-    const completedSectionFields = sectionFields.filter(field => {
-      const value = user[field];
-      if (Array.isArray(value)) return value.length > 0;
-      return value !== null && value !== undefined && value !== '';
-    });
-    
-    return completedSectionFields.length === sectionFields.length;
+  const getCompletionColor = () => {
+    if (profileData.completionPercentage >= 80) return "text-green-600";
+    if (profileData.completionPercentage >= 50) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  const getBadgeVariant = () => {
+    if (profileData.completionPercentage >= 80) return "default";
+    if (profileData.completionPercentage >= 50) return "secondary";
+    return "destructive";
   };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gray-900">
-            Complete Your Profile for Better AI Analysis
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-2xl border-0">
+          <CardHeader className="relative">
+            <button
+              onClick={handleDismiss}
+              className="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <X className="h-4 w-4 text-gray-500" />
+            </button>
+            
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-blue-100 rounded-xl">
+                <User className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <CardTitle className="text-xl">Complete Your Profile</CardTitle>
+                <CardDescription>Unlock AI-powered recommendations</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
 
-        <div className="space-y-6">
-          {/* Progress Overview */}
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-gray-900">Profile Completion</h3>
-              <Badge variant={completionPercentage >= 80 ? 'default' : completionPercentage >= 50 ? 'secondary' : 'destructive'}>
-                {Math.round(completionPercentage)}% Complete
+          <CardContent className="space-y-6">
+            {/* Progress Section */}
+            <div className="text-center">
+              <div className={`text-3xl font-bold mb-2 ${getCompletionColor()}`}>
+                {Math.round(profileData.completionPercentage)}%
+              </div>
+              <p className="text-gray-600 mb-4">{getCompletionMessage()}</p>
+              <Progress value={profileData.completionPercentage} className="h-3 mb-2" />
+              <Badge variant={getBadgeVariant()} className="px-3 py-1">
+                {profileData.completionPercentage >= 80 ? "Almost Complete" : 
+                 profileData.completionPercentage >= 50 ? "In Progress" : "Getting Started"}
               </Badge>
             </div>
-            <Progress value={completionPercentage} className="mb-3" />
-            <p className="text-sm text-gray-600">
-              A complete profile helps our AI provide more accurate study destination recommendations and document analysis.
-            </p>
-          </div>
 
-          {/* Enhanced Benefits Section */}
-          <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg border border-green-200">
-            <h4 className="font-bold text-green-800 mb-4 text-lg">🎯 Unlock Premium AI Analysis Features</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <div className="flex items-start">
-                  <div className="bg-green-100 p-2 rounded-full mr-3 mt-1">
-                    <Trophy className="h-4 w-4 text-green-600" />
-                  </div>
-                  <div>
-                    <h5 className="font-semibold text-green-800">Personalized Study Destinations</h5>
-                    <p className="text-sm text-green-700">AI matches 50+ countries based on your academic profile, budget, and preferences</p>
-                  </div>
+            {/* Benefits Section */}
+            <div className="space-y-3">
+              <h4 className="font-semibold text-gray-900 mb-3">Complete profile unlocks:</h4>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
+                  <span className="text-sm text-gray-600">Better AI analysis accuracy</span>
                 </div>
-                <div className="flex items-start">
-                  <div className="bg-blue-100 p-2 rounded-full mr-3 mt-1">
-                    <Target className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <h5 className="font-semibold text-blue-800">Smart Scholarship Matching</h5>
-                    <p className="text-sm text-blue-700">Find scholarships worth $10K-$100K+ tailored to your nationality and field</p>
-                  </div>
+                <div className="flex items-center gap-3">
+                  <Star className="h-5 w-5 text-yellow-500 flex-shrink-0" />
+                  <span className="text-sm text-gray-600">Personalized scholarship matching</span>
                 </div>
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-start">
-                  <div className="bg-purple-100 p-2 rounded-full mr-3 mt-1">
-                    <FileText className="h-4 w-4 text-purple-600" />
-                  </div>
-                  <div>
-                    <h5 className="font-semibold text-purple-800">Enhanced Document Analysis</h5>
-                    <p className="text-sm text-purple-700">90% more accurate visa analysis with your complete academic history</p>
-                  </div>
-                </div>
-                <div className="flex items-start">
-                  <div className="bg-orange-100 p-2 rounded-full mr-3 mt-1">
-                    <Clock className="h-4 w-4 text-orange-600" />
-                  </div>
-                  <div>
-                    <h5 className="font-semibold text-orange-800">Priority Support</h5>
-                    <p className="text-sm text-orange-700">Get faster consultation booking and premium expert guidance</p>
-                  </div>
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                  <span className="text-sm text-gray-600">Success probability predictions</span>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Profile Sections */}
-          <div className="space-y-3">
-            <h4 className="font-semibold text-gray-900">Profile Sections</h4>
-            <div className="grid gap-3">
-              {PROFILE_SECTIONS.map((section) => {
-                const isComplete = getSectionStatus(section.id);
-                const Icon = section.icon;
-                
-                return (
-                  <div
-                    key={section.id}
-                    className={`flex items-center p-3 rounded-lg border transition-colors ${
-                      isComplete 
-                        ? 'bg-green-50 border-green-200' 
-                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-                    }`}
-                  >
-                    <div className="flex-shrink-0 mr-3">
-                      {isComplete ? (
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                      ) : (
-                        <Circle className="w-5 h-5 text-gray-400" />
-                      )}
-                    </div>
-                    <div className="flex-shrink-0 mr-3">
-                      <Icon className={`w-5 h-5 ${isComplete ? 'text-green-600' : 'text-gray-500'}`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`font-medium ${isComplete ? 'text-green-900' : 'text-gray-900'}`}>
-                        {section.label}
-                      </p>
-                      <p className={`text-sm ${isComplete ? 'text-green-700' : 'text-gray-600'}`}>
-                        {section.description}
-                      </p>
-                    </div>
-                    <Badge variant={isComplete ? 'default' : 'secondary'} className="ml-3">
-                      {isComplete ? 'Complete' : 'Pending'}
+            {/* Missing Sections */}
+            {profileData.pendingSections && profileData.pendingSections.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-semibold text-gray-900 text-sm">Pending sections:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {profileData.pendingSections.slice(0, 3).map((section, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {section}
                     </Badge>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+                  ))}
+                  {profileData.pendingSections.length > 3 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{profileData.pendingSections.length - 3} more
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-4 border-t">
-            <Link href="/profile" className="flex-1">
-              <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                Complete Profile Now
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <Link href="/profile" className="flex-1">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                  Complete Profile
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+              <Button variant="outline" onClick={handleDismiss} className="px-4">
+                Later
               </Button>
-            </Link>
-            <Button variant="outline" onClick={onClose} className="px-6">
-              Later
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+            </div>
+
+            {/* Help Text */}
+            <p className="text-xs text-gray-500 text-center">
+              Takes 2-3 minutes to complete • Improves AI accuracy by up to 40%
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </>
   );
 }
