@@ -42,6 +42,7 @@ const ScholarshipManagement = lazy(() => import("@/pages/admin/ScholarshipManage
 const ScholarshipCreate = lazy(() => import("@/pages/admin/ScholarshipCreate"));
 const ScholarshipDetails = lazy(() => import("@/pages/admin/ScholarshipDetails"));
 const ScholarshipDetailsRedesign = lazy(() => import("@/pages/admin/ScholarshipDetailsRedesign"));
+const ScholarshipEdit = lazy(() => import("@/pages/admin/ScholarshipEdit"));
 const AdminAppointments = lazy(() => import("@/pages/admin-appointments"));
 const AdminUsers = lazy(() => import("@/pages/admin-users"));
 const AdminProfessionalApplications = lazy(() => import("@/pages/admin-professional-applications"));
@@ -399,6 +400,13 @@ function Router() {
         <AdminProtectedRoute path="/admin/scholarship-details/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <ScholarshipDetailsRedesign />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/scholarships/edit/:id">
+        <AdminProtectedRoute path="/admin/scholarships/edit/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <ScholarshipEdit />
           </Suspense>
         )} />
       </Route>
