@@ -264,6 +264,8 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
     genderRequirement: 'any',
     status: 'draft'
   });
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -282,12 +284,86 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
 
   const form = useForm<ScholarshipFormData>({
     resolver: zodResolver(scholarshipSchema),
-    defaultValues: formData
+    defaultValues: formData,
+    mode: 'onChange' // Enable real-time validation
   });
+
+  // Load saved draft on component mount
+  useEffect(() => {
+    const savedDraft = localStorage.getItem(`scholarship-draft-${mode}-${scholarshipId || 'new'}`);
+    if (savedDraft && mode === 'create') {
+      try {
+        const parsedDraft = JSON.parse(savedDraft);
+        setFormData(parsedDraft);
+        form.reset(parsedDraft);
+        toast({
+          title: "Draft Restored",
+          description: "Your previous work has been restored.",
+        });
+      } catch (error) {
+        console.error('Failed to parse saved draft:', error);
+      }
+    }
+  }, [mode, scholarshipId, form, toast]);
+
+  // Auto-save functionality
+  const autoSaveMutation = useMutation({
+    mutationFn: async (data: Partial<ScholarshipFormData>) => {
+      // Save to localStorage as backup
+      localStorage.setItem(`scholarship-draft-${mode}-${scholarshipId || 'new'}`, JSON.stringify(data));
+      
+      // For edit mode, save to database as draft
+      if (mode === 'edit' && scholarshipId) {
+        const response = await fetch(`/api/admin/scholarships/${scholarshipId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...data, status: 'draft' }),
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to auto-save');
+        }
+        
+        return response.json();
+      }
+    },
+    onSuccess: () => {
+      setLastSaved(new Date());
+      setIsAutoSaving(false);
+    },
+    onError: () => {
+      setIsAutoSaving(false);
+    },
+  });
+
+  // Watch form changes and auto-save
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      setIsAutoSaving(true);
+      
+      // Debounce auto-save by 2 seconds
+      const timeoutId = setTimeout(() => {
+        const cleanedValues = Object.fromEntries(
+          Object.entries(values).filter(([_, value]) => value !== undefined && value !== '')
+        );
+        autoSaveMutation.mutate(cleanedValues);
+      }, 2000);
+
+      return () => clearTimeout(timeoutId);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [form, autoSaveMutation]);
 
   // Create/Update mutation
   const createMutation = useMutation({
     mutationFn: async (data: ScholarshipFormData) => {
+      // Final validation before submission
+      const finalValidation = await form.trigger();
+      if (!finalValidation) {
+        throw new Error('Please fix all validation errors before submitting');
+      }
+
       const endpoint = mode === 'create' ? '/api/admin/scholarships' : `/api/admin/scholarships/${scholarshipId}`;
       const method = mode === 'create' ? 'POST' : 'PATCH';
       
@@ -305,6 +381,8 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
       return response.json();
     },
     onSuccess: (data) => {
+      clearDraft(); // Clear saved draft on success
+      
       toast({
         title: mode === 'create' ? 'Scholarship Created' : 'Scholarship Updated',
         description: `Scholarship has been successfully ${mode === 'create' ? 'created' : 'updated'}.`,
@@ -336,25 +414,29 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
       id: 1, 
       title: "Essential Information", 
       icon: FileText,
-      fields: ['scholarshipId', 'name', 'providerName', 'providerType', 'providerCountry']
+      requiredFields: ['scholarshipId', 'name', 'providerName', 'providerType', 'providerCountry'],
+      optionalFields: ['description']
     },
     { 
       id: 2, 
       title: "Funding Details", 
       icon: DollarSign,
-      fields: ['fundingType', 'fundingCurrency', 'totalValueMin', 'totalValueMax']
+      requiredFields: ['fundingType', 'fundingCurrency'],
+      optionalFields: ['totalValueMin', 'totalValueMax', 'tuitionCoveragePercentage', 'livingAllowanceAmount', 'livingAllowanceFrequency']
     },
     { 
       id: 3, 
       title: "Eligibility Criteria", 
       icon: Users,
-      fields: ['studyLevels', 'fieldCategories', 'hostCountries']
+      requiredFields: [],
+      optionalFields: ['studyLevels', 'fieldCategories', 'hostCountries', 'minGpa', 'gpaScale', 'genderRequirement']
     },
     { 
       id: 4, 
       title: "Application Details", 
       icon: Calendar,
-      fields: ['applicationDeadline', 'durationValue', 'durationUnit']
+      requiredFields: [],
+      optionalFields: ['applicationDeadline', 'durationValue', 'durationUnit', 'status', 'providerWebsite']
     }
   ];
 
@@ -362,9 +444,66 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
   const totalSteps = steps.length;
   const progress = (currentStep / totalSteps) * 100;
 
-  const nextStep = () => {
+  // Step validation function
+  const validateCurrentStep = async () => {
+    const currentFields = [...currentStepData.requiredFields, ...currentStepData.optionalFields];
+    const fieldsToValidate = currentStepData.requiredFields.reduce((acc, field) => {
+      acc[field] = true;
+      return acc;
+    }, {} as Record<string, boolean>);
+
+    const isValid = await form.trigger(currentFields as any);
+    
+    // Check required fields specifically
+    const formValues = form.getValues();
+    const hasRequiredFields = currentStepData.requiredFields.every(field => {
+      const value = formValues[field as keyof ScholarshipFormData];
+      return value !== undefined && value !== '' && value !== null;
+    });
+
+    return isValid && hasRequiredFields;
+  };
+
+  // Get step completion status
+  const getStepCompletionStatus = (stepId: number) => {
+    const stepData = steps[stepId - 1];
+    const formValues = form.getValues();
+    
+    const requiredComplete = stepData.requiredFields.every(field => {
+      const value = formValues[field as keyof ScholarshipFormData];
+      return value !== undefined && value !== '' && value !== null;
+    });
+
+    const optionalFilled = stepData.optionalFields.some(field => {
+      const value = formValues[field as keyof ScholarshipFormData];
+      return value !== undefined && value !== '' && value !== null;
+    });
+
+    if (requiredComplete && optionalFilled) return 'complete';
+    if (requiredComplete) return 'partial';
+    return 'incomplete';
+  };
+
+  const nextStep = async () => {
     if (currentStep < totalSteps) {
+      const isValid = await validateCurrentStep();
+      
+      if (!isValid) {
+        toast({
+          title: "Validation Error",
+          description: "Please complete all required fields before proceeding to the next step.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       setCurrentStep(currentStep + 1);
+      
+      // Save step progress
+      toast({
+        title: "Progress Saved",
+        description: `Step ${currentStep} completed successfully.`,
+      });
     }
   };
 
@@ -372,6 +511,11 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
+  };
+
+  // Clear draft when successfully submitted
+  const clearDraft = () => {
+    localStorage.removeItem(`scholarship-draft-${mode}-${scholarshipId || 'new'}`);
   };
 
   const renderStepContent = () => {
@@ -921,6 +1065,21 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
               <p className="text-gray-600 mt-1">Step {currentStep} of {totalSteps}: {currentStepData.title}</p>
             </div>
           </div>
+          
+          {/* Auto-save Status */}
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            {isAutoSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : lastSaved ? (
+              <>
+                <Check className="h-4 w-4 text-green-600" />
+                <span>Saved {lastSaved.toLocaleTimeString()}</span>
+              </>
+            ) : null}
+          </div>
         </div>
 
         {/* Progress Bar */}
@@ -938,25 +1097,63 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
                 const StepIcon = step.icon;
                 const isActive = step.id === currentStep;
                 const isCompleted = step.id < currentStep;
+                const completionStatus = getStepCompletionStatus(step.id);
+                
+                // Determine colors based on completion status
+                let borderColor, bgColor, textColor, titleColor;
+                
+                if (isActive) {
+                  borderColor = 'border-blue-600';
+                  bgColor = 'bg-blue-600';
+                  textColor = 'text-white';
+                  titleColor = 'text-blue-600';
+                } else if (isCompleted) {
+                  if (completionStatus === 'complete') {
+                    borderColor = 'border-green-600';
+                    bgColor = 'bg-green-600';
+                    textColor = 'text-white';
+                    titleColor = 'text-green-600';
+                  } else if (completionStatus === 'partial') {
+                    borderColor = 'border-yellow-500';
+                    bgColor = 'bg-yellow-500';
+                    textColor = 'text-white';
+                    titleColor = 'text-yellow-600';
+                  } else {
+                    borderColor = 'border-gray-300';
+                    bgColor = 'bg-white';
+                    textColor = 'text-gray-400';
+                    titleColor = 'text-gray-500';
+                  }
+                } else {
+                  borderColor = 'border-gray-300';
+                  bgColor = 'bg-white';
+                  textColor = 'text-gray-400';
+                  titleColor = 'text-gray-500';
+                }
                 
                 return (
                   <div key={step.id} className="flex items-center">
                     <div className={`
                       flex items-center justify-center w-10 h-10 rounded-full border-2 
-                      ${isActive ? 'border-blue-600 bg-blue-600 text-white' : 
-                        isCompleted ? 'border-green-600 bg-green-600 text-white' : 
-                        'border-gray-300 bg-white text-gray-400'}
+                      ${borderColor} ${bgColor} ${textColor}
                     `}>
-                      {isCompleted ? (
+                      {isCompleted && completionStatus === 'complete' ? (
                         <Check className="w-5 h-5" />
+                      ) : isCompleted && completionStatus === 'partial' ? (
+                        <AlertTriangle className="w-5 h-5" />
                       ) : (
                         <StepIcon className="w-5 h-5" />
                       )}
                     </div>
                     <div className="ml-3 hidden md:block">
-                      <p className={`text-sm font-medium ${isActive ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-500'}`}>
+                      <p className={`text-sm font-medium ${titleColor}`}>
                         {step.title}
                       </p>
+                      {step.requiredFields.length > 0 && (
+                        <p className="text-xs text-gray-400">
+                          {step.requiredFields.length} required field{step.requiredFields.length !== 1 ? 's' : ''}
+                        </p>
+                      )}
                     </div>
                     {index < steps.length - 1 && (
                       <div className="flex-1 h-0.5 bg-gray-200 mx-4 hidden md:block" />
