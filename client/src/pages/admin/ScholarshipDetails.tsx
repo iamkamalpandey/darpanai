@@ -125,7 +125,7 @@ export default function ScholarshipDetails() {
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/scholarships", id] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/scholarships"] });
-      setEditingSection(null);
+      setEditSection(null);
     },
     onError: (error: any) => {
       toast({
@@ -136,8 +136,8 @@ export default function ScholarshipDetails() {
     },
   });
 
-  const handleSectionEdit = (section: string) => {
-    setEditingSection(section);
+  const handleSectionEdit = (section: 'basic' | 'study' | 'funding' | 'requirements' | 'settings') => {
+    setEditSection(section);
   };
 
   const handleSectionSave = (data: any) => {
@@ -168,7 +168,7 @@ export default function ScholarshipDetails() {
     );
   }
 
-  const currentSection = editingSections.find(s => s.key === editingSection);
+  // Remove old section references
 
   return (
     <AdminLayout>
