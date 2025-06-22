@@ -175,14 +175,24 @@ export default function StudentAIDashboard() {
                         <Clock className="h-4 w-4" />
                         {service.processingTime}
                       </div>
-                      <Button 
-                        className={`bg-gradient-to-r ${service.color} text-white border-0 hover:shadow-lg transition-all duration-300`}
-                        disabled={!service.available}
-                        onClick={() => window.location.href = service.route}
-                      >
-                        {service.available ? "Start Analysis" : "Coming Soon"}
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                      </Button>
+                      {service.available ? (
+                        <Link href={service.route}>
+                          <Button 
+                            className={`bg-gradient-to-r ${service.color} text-white border-0 hover:shadow-lg transition-all duration-300`}
+                          >
+                            Start Analysis
+                            <ChevronRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Button 
+                          className={`bg-gradient-to-r ${service.color} text-white border-0 opacity-50`}
+                          disabled
+                        >
+                          Coming Soon
+                          <ChevronRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
