@@ -377,7 +377,7 @@ export default function ScholarshipSectionEditor({
               )}
             />
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="fundingCurrency"
               render={({ field }) => (
                 <FormItem>
@@ -397,7 +397,7 @@ export default function ScholarshipSectionEditor({
           <div className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="studyLevel"
                 render={({ field }) => (
                   <FormItem>
@@ -410,7 +410,7 @@ export default function ScholarshipSectionEditor({
                 )}
               />
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="fieldCategory"
                 render={({ field }) => (
                   <FormItem>
@@ -433,7 +433,7 @@ export default function ScholarshipSectionEditor({
         return (
           <div className="space-y-4">
             <FormField
-              control={form.control}
+              control={form.control as any}
               name="applicationUrl"
               render={({ field }) => (
                 <FormItem>
@@ -447,7 +447,7 @@ export default function ScholarshipSectionEditor({
             />
             <div className="grid gap-4 md:grid-cols-2">
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="applicationDeadline"
                 render={({ field }) => (
                   <FormItem>
@@ -460,7 +460,7 @@ export default function ScholarshipSectionEditor({
                 )}
               />
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="difficultyLevel"
                 render={({ field }) => (
                   <FormItem>
@@ -491,7 +491,7 @@ export default function ScholarshipSectionEditor({
           <div className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <FormField
-                control={form.control}
+                control={form.control as any}
                 name="dataSource"
                 render={({ field }) => (
                   <FormItem>
