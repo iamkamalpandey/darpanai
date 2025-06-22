@@ -245,24 +245,7 @@ export default function StudentAIDashboard() {
         </div>
       </div>
 
-      {/* Profile Completion Prompt */}
-      {profileCompletion && 
-       typeof profileCompletion === 'object' && 
-       'isComplete' in profileCompletion && 
-       'completionPercentage' in profileCompletion &&
-       !profileCompletion.isComplete && 
-       profileCompletion.completionPercentage < 100 && (
-        <ProfileCompletionPrompt
-          profileData={{
-            isComplete: profileCompletion.isComplete as boolean,
-            completionPercentage: profileCompletion.completionPercentage as number,
-            missingFields: (profileCompletion as any).missingFields || [],
-            completedSections: (profileCompletion as any).completedSections || [],
-            pendingSections: (profileCompletion as any).pendingSections || []
-          }}
-          onDismiss={() => setShowProfilePrompt(false)}
-        />
-      )}
+
     </DashboardLayout>
   );
 }
