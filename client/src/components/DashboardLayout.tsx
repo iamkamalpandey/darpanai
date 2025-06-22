@@ -50,7 +50,7 @@ interface DashboardLayoutProps {
   children: ReactNode;
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [aiAnalysisOpen, setAiAnalysisOpen] = useState(false);
   const [documentInfoOpen, setDocumentInfoOpen] = useState(false);
@@ -399,3 +399,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     </>
   );
 }
+
+export default DashboardLayout;
+export { DashboardLayout };
