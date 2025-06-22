@@ -244,7 +244,7 @@ router.put("/admin/scholarships/:id", requireAdmin, async (req: Request, res: Re
     const id = parseInt(req.params.id);
     const scholarshipData = insertScholarshipSchema.parse(req.body);
     
-    const scholarship = await scholarshipStorage.updateScholarship(id, scholarshipData);
+    const scholarship = await scholarshipStorage.updateScholarshipById(id, scholarshipData);
     
     if (!scholarship) {
       return res.status(404).json({
@@ -270,7 +270,7 @@ router.put("/admin/scholarships/:id", requireAdmin, async (req: Request, res: Re
 router.delete("/admin/scholarships/:id", requireAdmin, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
-    const success = await scholarshipStorage.deleteScholarship(id);
+    const success = await scholarshipStorage.deleteScholarshipById(id);
     
     if (!success) {
       return res.status(404).json({

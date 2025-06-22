@@ -88,6 +88,7 @@ export const scholarshipSearchSchema = z.object({
   studyLevel: z.string().optional(),
   fieldCategory: z.string().optional(),
   fundingType: z.string().optional(),
+  status: z.string().optional(),
   difficultyLevel: z.string().optional(),
   minAmount: z.number().optional(),
   maxAmount: z.number().optional(),
