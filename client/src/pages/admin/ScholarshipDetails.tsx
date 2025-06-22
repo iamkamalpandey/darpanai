@@ -172,32 +172,178 @@ export default function ScholarshipDetails() {
 
   return (
     <AdminLayout>
-      <div className="flex h-screen bg-gray-50">
-        {/* Sidebar */}
-        <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-          {/* Header */}
-          <div className="p-4 border-b border-gray-200">
-            <Button variant="ghost" size="sm" onClick={() => setLocation('/admin/scholarships')} className="mb-4">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Scholarships
-            </Button>
-            
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-sm text-gray-600">ID: {(scholarship as any)?.id}</span>
-              <Badge variant={(scholarship as any)?.verified ? 'default' : 'destructive'} className="text-xs">
-                {(scholarship as any)?.verified ? 'Verified' : 'Unverified'}
-              </Badge>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center">
+                <Button variant="ghost" size="sm" onClick={() => setLocation('/admin/scholarships')} className="mr-4">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+                <h1 className="text-xl font-semibold text-gray-900">
+                  {scholarship?.scholarshipName || 'Loading...'}
+                </h1>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Badge variant={scholarship?.verified ? 'default' : 'destructive'} className="text-xs">
+                  {scholarship?.verified ? 'Verified' : 'Unverified'}
+                </Badge>
+                <Select 
+                  value={scholarship?.status || 'active'} 
+                  onValueChange={handleStatusChange}
+                  disabled={statusMutation.isPending}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Quick Status Change */}
-          <div className="p-4 border-b border-gray-200">
-            <Label className="text-sm font-medium text-gray-700 mb-2 block">
-              Quick Status Change
-            </Label>
-            <Select 
-              value={(scholarship as any)?.status || 'active'} 
-              onValueChange={handleStatusChange}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex gap-8">
+            {/* Sidebar */}
+            <div className="w-64 bg-white rounded-lg border border-gray-200 h-fit">
+              <div className="p-4">
+                <h3 className="text-sm font-medium text-gray-900 mb-4">Edit Sections</h3>
+                <div className="space-y-1">
+                  {editingSections.map((section) => {
+                    const IconComponent = section.icon;
+                    
+                    return (
+                      <button
+                        key={section.key}
+                        className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left ${
+                          editSection === section.key 
+                            ? 'bg-blue-50 text-blue-700 border border-blue-200' 
+                            : 'hover:bg-gray-50 text-gray-700'
+                        }`}
+                        onClick={() => handleSectionEdit(section.key as 'basic' | 'study' | 'funding' | 'requirements' | 'settings')}
+                      >
+                        <IconComponent className={`w-4 h-4 ${
+                          editSection === section.key ? 'text-blue-600' : 'text-gray-400'
+                        }`} />
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">
+                            {section.title}
+                          </div>
+                          <div className="text-xs text-gray-500">{section.fields} fields</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="p-4 border-t border-gray-100 bg-gray-50 rounded-b-lg">
+                <div className="text-xs text-gray-500">
+                  ID: {scholarship?.scholarshipId}
+                </div>
+              </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1">
+              <div className="bg-white rounded-lg border border-gray-200">
+                <div className="p-6">
+                  {/* Content Grid */}
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {/* Basic Information */}
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                          <BookOpen className="w-4 h-4" />
+                          Basic Information
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <InfoItem label="Provider Name" value={scholarship?.providerName} />
+                        <InfoItem label="Provider Type" value={scholarship?.providerType} />
+                        <InfoItem label="Provider Country" value={scholarship?.providerCountry} />
+                        <InfoItem label="Description" value={scholarship?.description} />
+                        <InfoItem label="Short Description" value={scholarship?.shortDescription} />
+                      </CardContent>
+                    </Card>
+
+                    {/* Study Information */}
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                          <GraduationCap className="w-4 h-4" />
+                          Study Information
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <InfoItem label="Study Level" value={scholarship?.studyLevel} />
+                        <InfoItem label="Field Category" value={scholarship?.fieldCategory} />
+                        <InfoItem label="Target Countries" value={scholarship?.targetCountries?.join(', ')} />
+                        <InfoItem label="Application URL" value={scholarship?.applicationUrl} />
+                        <InfoItem label="Application Deadline" value={scholarship?.applicationDeadline} />
+                      </CardContent>
+                    </Card>
+
+                    {/* Funding Information */}
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                          <DollarSign className="w-4 h-4" />
+                          Funding Information
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <InfoItem label="Funding Type" value={scholarship?.fundingType} />
+                        <InfoItem label="Funding Amount" value={`${scholarship?.fundingAmount} ${scholarship?.fundingCurrency}`} />
+                      </CardContent>
+                    </Card>
+
+                    {/* Requirements */}
+                    <Card>
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                        <CardTitle className="flex items-center gap-2 text-base font-semibold">
+                          <Users className="w-4 h-4" />
+                          Requirements
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <InfoItem label="Eligibility Requirements" value={scholarship?.eligibilityRequirements?.join(', ')} />
+                        <InfoItem label="Language Requirements" value={scholarship?.languageRequirements?.join(', ')} />
+                        <InfoItem label="Difficulty Level" value={scholarship?.difficultyLevel} />
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Edit Dialog */}
+      {editSection && (
+        <ScholarshipSectionEditor
+          mode="edit"
+          section={editSection}
+          isOpen={!!editSection}
+          onClose={() => setEditSection(null)}
+          onSave={() => {
+            setEditSection(null);
+            queryClient.invalidateQueries({ queryKey: ["/api/admin/scholarships", id] });
+          }}
+          scholarshipId={id!}
+          scholarshipData={scholarship}
+        />
+      )}
+    </AdminLayout>
+  );
               disabled={statusMutation.isPending}
             >
               <SelectTrigger className="w-full">
@@ -225,7 +371,7 @@ export default function ScholarshipDetails() {
                       key={section.key}
                       variant="ghost"
                       className="w-full justify-start h-auto p-3 text-left hover:bg-gray-50"
-                      onClick={() => handleSectionEdit(section.key)}
+                      onClick={() => handleSectionEdit(section.key as 'basic' | 'study' | 'funding' | 'requirements' | 'settings')}
                     >
                       <IconComponent className="w-4 h-4 mr-3 flex-shrink-0 text-gray-500" />
                       <div className="flex-1">
