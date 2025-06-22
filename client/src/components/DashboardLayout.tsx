@@ -54,7 +54,6 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [aiAnalysisOpen, setAiAnalysisOpen] = useState(false);
   const [documentInfoOpen, setDocumentInfoOpen] = useState(false);
-  const [enrollmentOpen, setEnrollmentOpen] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [location] = useLocation();
   const { unreadCount, hasUnread } = useUnreadUpdates();
@@ -90,9 +89,14 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
         { icon: <Shield size={18} />, label: 'Visa Document Analysis', href: '/visa-analysis' },
         { icon: <FileText size={18} />, label: 'COE Certificate Analysis', href: '/coe-analysis' },
         { icon: <FileCheck size={18} />, label: 'Offer Letter Analysis', href: '/offer-letter-analysis' },
-        { icon: <MapPin size={18} />, label: 'AI Study Destination', href: '/personalized-destination-analysis' },
       ]
     },
+
+    // Main Menu Items
+    { icon: <FileText size={20} />, label: 'My Analysis', href: '/my-analysis' },
+    { icon: <MapPin size={20} />, label: 'AI Study Destination', href: '/personalized-destination-analysis' },
+    { icon: <Award size={20} />, label: 'Scholarship Research', href: '/scholarship-research' },
+    { icon: <Calendar size={20} />, label: 'Consultation Booking', href: '/consultations' },
 
     // Document Information
     { 
@@ -100,21 +104,8 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
       label: 'Document Information', 
       isSubmenu: true,
       submenuItems: [
-        { icon: <FileText size={18} />, label: 'My Analysis History', href: '/my-analysis' },
         { icon: <GraduationCap size={18} />, label: 'Offer Letter Details', href: '/offer-letter-info' },
         { icon: <FileCheck size={18} />, label: 'COE Information', href: '/coe-info' },
-      ]
-    },
-
-    // Enrollment & Applications
-    { 
-      icon: <GraduationCap size={20} />, 
-      label: 'Enrollment Hub', 
-      isSubmenu: true,
-      submenuItems: [
-        { icon: <TrendingUp size={18} />, label: 'Enrollment Analysis', href: '/enrollment-analysis' },
-        { icon: <Award size={18} />, label: 'Scholarship Research', href: '/scholarship-research' },
-        { icon: <Calendar size={18} />, label: 'Consultation Booking', href: '/consultations' },
       ]
     },
 
@@ -149,8 +140,6 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
       setAiAnalysisOpen(!aiAnalysisOpen);
     } else if (label === 'Document Information') {
       setDocumentInfoOpen(!documentInfoOpen);
-    } else if (label === 'Enrollment Hub') {
-      setEnrollmentOpen(!enrollmentOpen);
     } else if (label === 'Resources & Support') {
       setResourcesOpen(!resourcesOpen);
     }
@@ -159,7 +148,6 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
   const isSubmenuOpen = (label: string) => {
     if (label === 'AI Analysis Tools') return aiAnalysisOpen;
     if (label === 'Document Information') return documentInfoOpen;
-    if (label === 'Enrollment Hub') return enrollmentOpen;
     if (label === 'Resources & Support') return resourcesOpen;
     return false;
   };
