@@ -125,7 +125,7 @@ export default function ScholarshipDetails() {
     refetchOnWindowFocus: false
   });
 
-  const scholarship = (scholarshipResponse as any)?.data || scholarshipResponse;
+  const scholarship = scholarshipResponse as Scholarship;
 
   // Status change mutation (independent)
   const statusMutation = useMutation({
