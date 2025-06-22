@@ -15,7 +15,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Edit, Trash2, Search, Filter, Eye, Download, Upload } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Filter, Eye, Download, Upload, ChevronDown, ChevronUp } from "lucide-react";
+import { useLocation } from "wouter";
 
 import { z } from "zod";
 
@@ -69,15 +70,20 @@ export default function ScholarshipManagement() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   // Fetch scholarships with pagination and filtering
   const { data: scholarshipsData, isLoading } = useQuery({
-    queryKey: ['admin-scholarships', searchTerm, filterStatus, filterProviderType, currentPage],
+    queryKey: ['admin-scholarships', searchTerm, filterStatus, filterProviderType, filterCountry, filterFundingType, filterDifficulty, filterVerified, currentPage],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (filterStatus && filterStatus !== 'all') params.append('status', filterStatus);
       if (filterProviderType && filterProviderType !== 'all') params.append('providerType', filterProviderType);
+      if (filterCountry && filterCountry !== 'all') params.append('country', filterCountry);
+      if (filterFundingType && filterFundingType !== 'all') params.append('fundingType', filterFundingType);
+      if (filterDifficulty && filterDifficulty !== 'all') params.append('difficulty', filterDifficulty);
+      if (filterVerified && filterVerified !== 'all') params.append('verified', filterVerified);
       params.append('limit', '20');
       params.append('offset', ((currentPage - 1) * 20).toString());
       
@@ -233,6 +239,33 @@ export default function ScholarshipManagement() {
     }
   };
 
+  const handleViewDetails = (scholarship: Scholarship) => {
+    setLocation(`/admin/scholarship-details/${scholarship.id}`);
+  };
+
+  const clearAllFilters = () => {
+    setSearchTerm("");
+    setFilterStatus("all");
+    setFilterProviderType("all");
+    setFilterCountry("all");
+    setFilterFundingType("all");
+    setFilterDifficulty("all");
+    setFilterVerified("all");
+    setCurrentPage(1);
+  };
+
+  const getActiveFilterCount = () => {
+    let count = 0;
+    if (searchTerm) count++;
+    if (filterStatus !== "all") count++;
+    if (filterProviderType !== "all") count++;
+    if (filterCountry !== "all") count++;
+    if (filterFundingType !== "all") count++;
+    if (filterDifficulty !== "all") count++;
+    if (filterVerified !== "all") count++;
+    return count;
+  };
+
   const scholarships = scholarshipsData?.data?.scholarships || [];
   const totalScholarships = scholarshipsData?.data?.total || 0;
   const totalPages = Math.ceil(totalScholarships / 20);
@@ -303,14 +336,36 @@ export default function ScholarshipManagement() {
         </Card>
       </div>
 
-      {/* Filters */}
+      {/* Enhanced Filters */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Filters & Search</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Filter className="w-5 h-5" />
+            Filters & Search
+            {getActiveFilterCount() > 0 && (
+              <Badge variant="secondary">{getActiveFilterCount()} active</Badge>
+            )}
+          </CardTitle>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            >
+              {showAdvancedFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              Advanced
+            </Button>
+            {getActiveFilterCount() > 0 && (
+              <Button variant="outline" size="sm" onClick={clearAllFilters}>
+                Clear All
+              </Button>
+            )}
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="flex gap-4 items-end">
-            <div className="flex-1">
+        <CardContent className="space-y-4">
+          {/* Basic Filters Row */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
               <Label htmlFor="search">Search</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -326,8 +381,8 @@ export default function ScholarshipManagement() {
             <div>
               <Label htmlFor="status-filter">Status</Label>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
+                <SelectTrigger>
+                  <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
@@ -340,8 +395,8 @@ export default function ScholarshipManagement() {
             <div>
               <Label htmlFor="provider-filter">Provider Type</Label>
               <Select value={filterProviderType} onValueChange={setFilterProviderType}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
+                <SelectTrigger>
+                  <SelectValue placeholder="All Types" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
@@ -349,6 +404,88 @@ export default function ScholarshipManagement() {
                   <SelectItem value="private">Private</SelectItem>
                   <SelectItem value="institution">Institution</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="verified-filter">Verification</Label>
+              <Select value={filterVerified} onValueChange={setFilterVerified}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="true">Verified Only</SelectItem>
+                  <SelectItem value="false">Unverified Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Advanced Filters */}
+          {showAdvancedFilters && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
+              <div>
+                <Label htmlFor="country-filter">Target Country</Label>
+                <Select value={filterCountry} onValueChange={setFilterCountry}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Countries" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Countries</SelectItem>
+                    <SelectItem value="Australia">Australia</SelectItem>
+                    <SelectItem value="Canada">Canada</SelectItem>
+                    <SelectItem value="United States">United States</SelectItem>
+                    <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+                    <SelectItem value="Germany">Germany</SelectItem>
+                    <SelectItem value="France">France</SelectItem>
+                    <SelectItem value="Netherlands">Netherlands</SelectItem>
+                    <SelectItem value="Denmark">Denmark</SelectItem>
+                    <SelectItem value="Sweden">Sweden</SelectItem>
+                    <SelectItem value="Norway">Norway</SelectItem>
+                    <SelectItem value="Finland">Finland</SelectItem>
+                    <SelectItem value="New Zealand">New Zealand</SelectItem>
+                    <SelectItem value="Singapore">Singapore</SelectItem>
+                    <SelectItem value="Japan">Japan</SelectItem>
+                    <SelectItem value="South Korea">South Korea</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="funding-filter">Funding Type</Label>
+                <Select value={filterFundingType} onValueChange={setFilterFundingType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Funding" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Funding</SelectItem>
+                    <SelectItem value="full">Full Scholarship</SelectItem>
+                    <SelectItem value="partial">Partial Scholarship</SelectItem>
+                    <SelectItem value="tuition-only">Tuition Only</SelectItem>
+                    <SelectItem value="living-allowance">Living Allowance</SelectItem>
+                    <SelectItem value="travel-grant">Travel Grant</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="difficulty-filter">Difficulty Level</Label>
+                <Select value={filterDifficulty} onValueChange={setFilterDifficulty}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Levels" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Levels</SelectItem>
+                    <SelectItem value="easy">Easy</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="hard">Hard</SelectItem>
+                    <SelectItem value="very-hard">Very Hard</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
                 </SelectContent>
               </Select>
             </div>
