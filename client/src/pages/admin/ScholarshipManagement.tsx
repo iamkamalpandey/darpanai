@@ -416,22 +416,22 @@ export default function ScholarshipManagement() {
         )}
 
         {/* Main Content - Table */}
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto p-4 sm:p-6">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Scholarship Database</CardTitle>
-                  <CardDescription>Complete database of international scholarship opportunities</CardDescription>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="break-words">Scholarship Database</CardTitle>
+                  <CardDescription className="break-words">Complete database of international scholarship opportunities</CardDescription>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setLocation('/admin/scholarships/bulk-edit')}>
-                    <FileSpreadsheet className="w-4 h-4 mr-2" />
-                    Bulk Edit
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setLocation('/admin/scholarships/bulk-edit')} className="w-full sm:w-auto">
+                    <FileSpreadsheet className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="break-words">Bulk Edit</span>
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleExport}>
-                    <FileDown className="w-4 h-4 mr-2" />
-                    Quick Export
+                  <Button variant="outline" size="sm" onClick={handleExport} className="w-full sm:w-auto">
+                    <FileDown className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="break-words">Quick Export</span>
                   </Button>
                 </div>
               </div>
@@ -473,31 +473,31 @@ export default function ScholarshipManagement() {
                     <TableBody>
                       {scholarships.map((scholarship: Scholarship) => (
                         <TableRow key={scholarship.id} className="hover:bg-gray-50">
-                          <TableCell className="font-medium max-w-xs">
-                            <div className="break-words overflow-hidden text-wrap">
+                          <TableCell className="font-medium">
+                            <div className="min-w-0 break-words overflow-hidden text-wrap">
                               {scholarship.name}
                             </div>
                             {scholarship.shortName && (
-                              <div className="text-sm text-gray-500">{scholarship.shortName}</div>
+                              <div className="text-sm text-gray-500 break-words">{scholarship.shortName}</div>
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="break-words overflow-hidden text-wrap">
+                            <div className="min-w-0 break-words overflow-hidden text-wrap">
                               {scholarship.providerName}
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="capitalize">
+                            <Badge variant="outline" className="capitalize whitespace-nowrap">
                               {scholarship.providerType}
                             </Badge>
                           </TableCell>
-                          <TableCell>{scholarship.providerCountry}</TableCell>
+                          <TableCell className="break-words">{scholarship.providerCountry}</TableCell>
                           <TableCell>
-                            <Badge variant={scholarship.fundingType === 'full' ? 'default' : 'secondary'}>
+                            <Badge variant={scholarship.fundingType === 'full' ? 'default' : 'secondary'} className="whitespace-nowrap">
                               {scholarship.fundingType}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-sm text-gray-600">
+                          <TableCell className="text-sm text-gray-600 break-words">
                             {scholarship.applicationDeadline ? 
                               new Date(scholarship.applicationDeadline).toLocaleDateString() : 
                               'Not specified'
@@ -506,13 +506,13 @@ export default function ScholarshipManagement() {
                           <TableCell>
                             <Badge 
                               variant={scholarship.status === 'active' ? 'default' : 'secondary'}
-                              className="capitalize"
+                              className="capitalize whitespace-nowrap"
                             >
                               {scholarship.status}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-2">
+                            <div className="flex items-center justify-end gap-1">
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -545,6 +545,7 @@ export default function ScholarshipManagement() {
                       ))}
                     </TableBody>
                   </Table>
+                  </div>
 
                   {/* Pagination */}
                   {totalPages > 1 && (
