@@ -1046,9 +1046,9 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
 
   return (
     <AdminLayout>
-      <div className="max-w-5xl mx-auto p-3 sm:p-4 space-y-4">
+      <div className="max-w-6xl mx-auto p-2 sm:p-3 space-y-3">
         {/* Header - Responsive Layout */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           {/* Back Button */}
           <div className="flex items-center">
             <Button 
@@ -1091,12 +1091,12 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
 
         {/* Progress Bar */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-4">
+          <CardContent className="pt-4">
+            <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-medium text-gray-600">Progress</span>
               <span className="text-sm font-medium text-gray-900">{Math.round(progress)}%</span>
             </div>
-            <Progress value={progress} className="mb-4" />
+            <Progress value={progress} className="mb-3" />
             
             {/* Step Navigation */}
             <div className="flex items-center justify-between">
@@ -1174,7 +1174,7 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
 
         {/* Form Content */}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
             <Card>
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center gap-2">
