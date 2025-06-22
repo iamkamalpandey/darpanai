@@ -403,15 +403,8 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      <Route path="/admin/scholarships/edit/:id">
-        <AdminProtectedRoute path="/admin/scholarships/edit/:id" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <ScholarshipEdit />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/admin/scholarship-edit/:id">
-        <AdminProtectedRoute path="/admin/scholarship-edit/:id" component={() => (
+      <Route path="/admin/scholarship/edit/:id">
+        <AdminProtectedRoute path="/admin/scholarship/edit/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <ScholarshipEdit />
           </Suspense>

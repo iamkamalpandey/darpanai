@@ -13,6 +13,78 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Edit, Save, ArrowLeft, Plus, X } from 'lucide-react';
 import { AdminLayout } from '@/components/AdminLayout';
 
+// Predefined options for dropdown fields
+const PROVIDER_TYPES = [
+  { value: 'government', label: 'Government' },
+  { value: 'private', label: 'Private' },
+  { value: 'institution', label: 'Institution' },
+  { value: 'foundation', label: 'Foundation' },
+  { value: 'corporate', label: 'Corporate' }
+];
+
+const STUDY_LEVELS = [
+  { value: 'undergraduate', label: 'Undergraduate' },
+  { value: 'masters', label: 'Masters' },
+  { value: 'phd', label: 'PhD' },
+  { value: 'postdoc', label: 'Postdoc' },
+  { value: 'diploma', label: 'Diploma' },
+  { value: 'certificate', label: 'Certificate' }
+];
+
+const FUNDING_TYPES = [
+  { value: 'full', label: 'Full Funding' },
+  { value: 'partial', label: 'Partial Funding' },
+  { value: 'tuition_only', label: 'Tuition Only' },
+  { value: 'living_allowance', label: 'Living Allowance Only' },
+  { value: 'travel_grant', label: 'Travel Grant' }
+];
+
+const FUNDING_CURRENCIES = [
+  { value: 'USD', label: 'USD ($)' },
+  { value: 'AUD', label: 'AUD ($)' },
+  { value: 'EUR', label: 'EUR (€)' },
+  { value: 'GBP', label: 'GBP (£)' },
+  { value: 'CAD', label: 'CAD ($)' },
+  { value: 'INR', label: 'INR (₹)' }
+];
+
+const DURATION_UNITS = [
+  { value: 'months', label: 'Months' },
+  { value: 'years', label: 'Years' },
+  { value: 'semesters', label: 'Semesters' }
+];
+
+const DEGREE_REQUIREMENTS = [
+  { value: 'High School', label: 'High School' },
+  { value: 'Bachelor', label: 'Bachelor\'s Degree' },
+  { value: 'Masters', label: 'Master\'s Degree' },
+  { value: 'PhD', label: 'PhD' }
+];
+
+const GENDER_REQUIREMENTS = [
+  { value: 'any', label: 'Any Gender' },
+  { value: 'male', label: 'Male Only' },
+  { value: 'female', label: 'Female Only' }
+];
+
+const FIELD_CATEGORIES = [
+  { value: 'STEM', label: 'STEM' },
+  { value: 'Engineering', label: 'Engineering' },
+  { value: 'Medicine', label: 'Medicine' },
+  { value: 'Business', label: 'Business' },
+  { value: 'Arts', label: 'Arts & Humanities' },
+  { value: 'Social Sciences', label: 'Social Sciences' },
+  { value: 'Law', label: 'Law' },
+  { value: 'Education', label: 'Education' }
+];
+
+const SCHOLARSHIP_STATUS = [
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+  { value: 'pending', label: 'Pending Review' },
+  { value: 'draft', label: 'Draft' }
+];
+
 interface ScholarshipEditorProps {
   scholarshipId: string;
   mode: 'view' | 'edit';
@@ -24,6 +96,18 @@ export function ScholarshipEditor({ scholarshipId, mode }: ScholarshipEditorProp
   const queryClient = useQueryClient();
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>({});
+
+  // Fetch countries for dropdown options
+  const { data: countries } = useQuery({
+    queryKey: ['/api/countries'],
+    queryFn: async () => {
+      const response = await fetch('/api/countries');
+      if (!response.ok) throw new Error('Failed to fetch countries');
+      const result = await response.json();
+      return result.data || [];
+    },
+    staleTime: 60000 * 30, // Cache for 30 minutes
+  });
 
   // Fetch scholarship data - similar to user profile data fetching
   const { data: scholarship, isLoading, refetch } = useQuery({
@@ -530,10 +614,11 @@ function ScholarshipSectionEditor({
               <SelectValue placeholder="Select provider type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="government">Government</SelectItem>
-              <SelectItem value="private">Private Organization</SelectItem>
-              <SelectItem value="institution">Educational Institution</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              {PROVIDER_TYPES.map((type) => (
+                <SelectItem key={type.value} value={type.value}>
+                  {type.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -560,14 +645,30 @@ function ScholarshipSectionEditor({
           />
         </div>
         <div>
-          <Label htmlFor="providerWebsite">Provider Website</Label>
-          <Input
-            id="providerWebsite"
-            value={formData.providerWebsite || ''}
-            onChange={(e) => onInputChange('providerWebsite', e.target.value)}
-            placeholder="https://example.com"
-          />
+          <Label htmlFor="providerCountry">Provider Country *</Label>
+          <Select value={formData.providerCountry || ''} onValueChange={(value) => onInputChange('providerCountry', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select provider country" />
+            </SelectTrigger>
+            <SelectContent>
+              {countries?.map((country: any) => (
+                <SelectItem key={country.isoAlpha2} value={country.isoAlpha2}>
+                  {country.countryName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+      </div>
+      
+      <div>
+        <Label htmlFor="providerWebsite">Provider Website</Label>
+        <Input
+          id="providerWebsite"
+          value={formData.providerWebsite || ''}
+          onChange={(e) => onInputChange('providerWebsite', e.target.value)}
+          placeholder="https://example.com"
+        />
       </div>
       
       <div>
@@ -593,26 +694,29 @@ function ScholarshipSectionEditor({
               <SelectValue placeholder="Select funding type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="full">Full Scholarship</SelectItem>
-              <SelectItem value="partial">Partial Scholarship</SelectItem>
-              <SelectItem value="tuition">Tuition Only</SelectItem>
-              <SelectItem value="living">Living Expenses Only</SelectItem>
-              <SelectItem value="travel">Travel Grant</SelectItem>
+              {FUNDING_TYPES.map((type) => (
+                <SelectItem key={type.value} value={type.value}>
+                  {type.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
         <div>
-          <Label htmlFor="currency">Currency *</Label>
-          <Select value={formData.currency || ''} onValueChange={(value) => onInputChange('currency', value)}>
+          <Label htmlFor="fundingCurrency">Currency *</Label>
+          <Select value={formData.fundingCurrency || ''} onValueChange={(value) => onInputChange('fundingCurrency', value)}>
             <SelectTrigger>
               <SelectValue placeholder="Select currency" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="USD">USD</SelectItem>
-              <SelectItem value="EUR">EUR</SelectItem>
-              <SelectItem value="GBP">GBP</SelectItem>
-              <SelectItem value="AUD">AUD</SelectItem>
-              <SelectItem value="CAD">CAD</SelectItem>
+              {FUNDING_CURRENCIES.map((currency) => (
+                <SelectItem key={currency.value} value={currency.value}>
+                  {currency.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
             </SelectContent>
           </Select>
         </div>
