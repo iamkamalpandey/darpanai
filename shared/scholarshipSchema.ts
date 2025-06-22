@@ -126,3 +126,22 @@ export interface ScholarshipStatistics {
   averageAmount: number;
   totalFunding: string;
 }
+
+// Enhanced country type for standardized filtering with currency information
+export interface CountryWithCurrency {
+  code: string;
+  name: string;
+  currencyCode: string;
+  currencyName: string;
+  currencySymbol: string;
+}
+
+// Filter options response with enhanced country data
+export interface ScholarshipFilterOptions {
+  providerTypes: string[];
+  countries: CountryWithCurrency[];
+  studyLevels: string[];
+  fieldCategories: string[];
+  fundingTypes: string[];
+  difficultyLevels: string[];
+}

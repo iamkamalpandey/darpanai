@@ -301,13 +301,19 @@ export class ScholarshipStorage {
           eq(scholarships.status, 'active')
         ));
 
-      const countries = await db
-        .selectDistinct({ providerCountry: scholarships.providerCountry })
-        .from(scholarships)
-        .where(and(
-          sql`${scholarships.providerCountry} IS NOT NULL`,
-          eq(scholarships.status, 'active')
-        ));
+      // Get countries from standardized countries table with currency symbols and ISO codes
+      const countries = await db.execute(sql`
+        SELECT DISTINCT 
+          c.iso_alpha2 as code,
+          c.country_name as name,
+          c.currency_code,
+          c.currency_name,
+          c.currency_symbol
+        FROM countries c
+        INNER JOIN scholarships s ON c.iso_alpha2 = s.provider_country
+        WHERE c.is_active = 1 AND s.status = 'active'
+        ORDER BY c.country_name
+      `);
 
       const fundingTypes = await db
         .selectDistinct({ fundingType: scholarships.fundingType })
@@ -363,13 +369,22 @@ export class ScholarshipStorage {
         'EU': 'European Union'
       };
 
+      // Map countries from database result with proper typing
+      const countryList = (countries.rows || []).map((row: any) => ({
+        code: row.code as string,
+        name: row.name as string,
+        currencyCode: row.currency_code as string,
+        currencyName: row.currency_name as string,
+        currencySymbol: row.currency_symbol as string
+      }));
+
       return {
         providerTypes: providerTypes.map(p => p.providerType).filter((type): type is string => Boolean(type)),
-        countries: countries.map(c => c.providerCountry).filter((country): country is string => Boolean(country)),
+        countries: countryList,
         studyLevels: studyLevels as string[],
         fieldCategories: fieldCategories as string[],
         fundingTypes: fundingTypes.map(f => f.fundingType).filter((type): type is string => Boolean(type)),
-        difficultyLevels: difficultyLevels.map(d => d.difficultyLevel).filter((level): level is string => Boolean(level))
+        difficultyLevels: difficultyLevels.map(d => d.difficultyLevel).filter((level): type is string => Boolean(level))
       };
 
     } catch (error) {

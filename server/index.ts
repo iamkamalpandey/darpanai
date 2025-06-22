@@ -201,6 +201,11 @@ function setupGracefulShutdown(server: any) {
     app.use('/api/coe-info', coeRoutes);
     logWithLevel('✓ COE information routes registered successfully');
     
+    // Register country routes for standardized country management with ISO codes and currency symbols
+    const countryRoutes = await import('./countryRoutes');
+    app.use('/api/countries', countryRoutes.default);
+    logWithLevel('✓ Country routes registered successfully');
+    
     // Register scholarship routes
     const scholarshipRoutes = await import('./scholarshipRoutes');
     app.use('/api/scholarships', scholarshipRoutes.default);
