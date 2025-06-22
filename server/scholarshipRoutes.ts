@@ -668,7 +668,7 @@ router.delete("/:id", requireAdmin, async (req: Request, res: Response) => {
   }
 });
 
-// Import scholarships from CSV/JSON file (admin endpoint)
+// Import scholarships from CSV file (admin endpoint)
 router.post("/admin/scholarships/import", requireAdmin, upload.single('file'), async (req: Request, res: Response) => {
   try {
     if (!req.file) {
@@ -678,82 +678,159 @@ router.post("/admin/scholarships/import", requireAdmin, upload.single('file'), a
       });
     }
 
-    const fileContent = req.file.buffer.toString('utf-8');
-    let scholarships: any[] = [];
-
-    // Parse JSON or CSV
-    if (req.file.mimetype === 'application/json') {
-      scholarships = JSON.parse(fileContent);
-    } else if (req.file.mimetype === 'text/csv' || req.file.originalname?.endsWith('.csv')) {
-      // Parse CSV
-      const lines = fileContent.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-      
-      for (let i = 1; i < lines.length; i++) {
-        if (lines[i].trim()) {
-          const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-          const scholarship: any = {};
-          
-          headers.forEach((header, index) => {
-            const value = values[index];
-            if (value && value !== '') {
-              // Handle JSON fields
-              if (['hostCountries', 'eligibleCountries', 'studyLevels', 'fieldCategories', 'specificFields', 'degreeRequired', 'languageRequirements', 'documentsRequired', 'renewalCriteria', 'tags'].includes(header)) {
-                try {
-                  scholarship[header] = JSON.parse(value);
-                } catch {
-                  scholarship[header] = value.split(';').map(v => v.trim());
-                }
-              } else if (['minAge', 'maxAge', 'durationValue', 'totalApplicantsPerYear', 'minWorkExperience'].includes(header)) {
-                scholarship[header] = parseInt(value) || null;
-              } else if (['tuitionCoveragePercentage', 'livingAllowanceAmount', 'totalValueMin', 'totalValueMax', 'minGpa', 'gpaScale', 'applicationFeeAmount', 'acceptanceRate'].includes(header)) {
-                scholarship[header] = parseFloat(value) || null;
-              } else if (['leadershipRequired', 'feeWaiverAvailable', 'interviewRequired', 'essayRequired', 'renewable', 'mentorshipAvailable', 'networkingOpportunities', 'internshipOpportunities', 'researchOpportunities', 'verified'].includes(header)) {
-                scholarship[header] = value.toLowerCase() === 'true';
-              } else if (['applicationOpenDate', 'applicationDeadline', 'notificationDate', 'programStartDate'].includes(header)) {
-                if (value && value.trim()) {
-                  const parsedDate = new Date(value);
-                  scholarship[header] = !isNaN(parsedDate.getTime()) ? parsedDate.toISOString().split('T')[0] : null;
-                } else {
-                  scholarship[header] = null;
-                }
-              } else {
-                scholarship[header] = value;
-              }
-            }
-          });
-          
-          scholarships.push(scholarship);
-        }
-      }
-    } else {
+    if (!req.file.originalname?.endsWith('.csv')) {
       return res.status(400).json({
         success: false,
-        error: "Unsupported file format. Please upload CSV or JSON files."
+        error: "Only CSV files are supported"
       });
     }
 
-    // Validate and import scholarships
-    let imported = 0;
-    let errors: string[] = [];
+    const fileContent = req.file.buffer.toString('utf-8');
+    const lines = fileContent.split('\n').filter(line => line.trim());
+    
+    if (lines.length < 2) {
+      return res.status(400).json({
+        success: false,
+        error: "CSV file must contain headers and at least one data row"
+      });
+    }
 
-    for (const scholarshipData of scholarships) {
+    // Parse CSV headers and validate structure
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+    
+    // Required fields for import
+    const requiredFields = ['name', 'providerName', 'providerType', 'providerCountry', 'fundingType'];
+    const missingFields = requiredFields.filter(field => !headers.includes(field));
+    
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: `Missing required columns: ${missingFields.join(', ')}`
+      });
+    }
+
+    console.log(`[Import] Processing CSV with ${lines.length - 1} rows`);
+
+    let imported = 0;
+    let updated = 0;
+    let skipped = 0;
+    let errors: string[] = [];
+    const processedIds = new Set<string>();
+
+    // Process each data row
+    for (let i = 1; i < lines.length; i++) {
       try {
-        // Add required fields if missing
-        if (!scholarshipData.scholarshipId) {
-          scholarshipData.scholarshipId = `IMPORT_${Date.now()}_${imported}`;
+        const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+        
+        if (values.length !== headers.length) {
+          errors.push(`Row ${i + 1}: Column count mismatch (expected ${headers.length}, got ${values.length})`);
+          continue;
         }
+
+        const rawData: any = {};
+        headers.forEach((header, index) => {
+          const value = values[index];
+          if (value && value !== '' && value !== 'null') {
+            rawData[header] = value;
+          }
+        });
+
+        // Skip rows without essential data
+        if (!rawData.name || !rawData.providerName) {
+          errors.push(`Row ${i + 1}: Missing name or provider name`);
+          continue;
+        }
+
+        // Generate unique scholarship ID
+        let scholarshipId = rawData.scholarshipId || `IMPORT_${Date.now()}_${i}`;
         
-        console.log(`[Import] Processing scholarship: ${scholarshipData.name || 'Unknown'}`);
-        
-        // Validate with schema
-        const validatedData = insertScholarshipSchema.parse(scholarshipData);
-        await scholarshipStorage.createScholarship(validatedData);
-        imported++;
+        // Handle duplicates within import
+        if (processedIds.has(scholarshipId)) {
+          scholarshipId = `${scholarshipId}_DUP_${i}`;
+        }
+        processedIds.add(scholarshipId);
+
+        // Prepare cleaned data with proper types
+        const scholarshipData = {
+          scholarshipId,
+          name: rawData.name,
+          shortName: rawData.shortName || null,
+          providerName: rawData.providerName,
+          providerType: rawData.providerType || 'institution',
+          providerCountry: rawData.providerCountry || 'US',
+          providerWebsite: rawData.providerWebsite || null,
+          hostCountries: rawData.hostCountries ? rawData.hostCountries.split(';').map((s: string) => s.trim()).filter((s: string) => s) : null,
+          eligibleCountries: rawData.eligibleCountries ? rawData.eligibleCountries.split(';').map((s: string) => s.trim()).filter((s: string) => s) : null,
+          studyLevels: rawData.studyLevels ? rawData.studyLevels.split(';').map((s: string) => s.trim()).filter((s: string) => s) : null,
+          fieldCategories: rawData.fieldCategories ? rawData.fieldCategories.split(';').map((s: string) => s.trim()).filter((s: string) => s) : null,
+          specificFields: rawData.specificFields ? rawData.specificFields.split(';').map((s: string) => s.trim()).filter((s: string) => s) : null,
+          fundingType: rawData.fundingType || 'partial',
+          fundingCurrency: rawData.fundingCurrency || null,
+          tuitionCoveragePercentage: rawData.tuitionCoveragePercentage ? rawData.tuitionCoveragePercentage.toString() : null,
+          livingAllowanceAmount: rawData.livingAllowanceAmount || null,
+          livingAllowanceFrequency: rawData.livingAllowanceFrequency || null,
+          totalValueMin: rawData.totalValueMin || null,
+          totalValueMax: rawData.totalValueMax || null,
+          applicationOpenDate: rawData.applicationOpenDate || null,
+          applicationDeadline: rawData.applicationDeadline || null,
+          notificationDate: rawData.notificationDate || null,
+          programStartDate: rawData.programStartDate || null,
+          durationValue: rawData.durationValue ? parseInt(rawData.durationValue) : null,
+          durationUnit: rawData.durationUnit || null,
+          minGpa: rawData.minGpa ? rawData.minGpa.toString() : null,
+          gpaScale: rawData.gpaScale ? rawData.gpaScale.toString() : null,
+          degreeRequired: rawData.degreeRequired ? rawData.degreeRequired.split(';').map((s: string) => s.trim()).filter((s: string) => s) : null,
+          minAge: rawData.minAge ? parseInt(rawData.minAge) : null,
+          maxAge: rawData.maxAge ? parseInt(rawData.maxAge) : null,
+          genderRequirement: rawData.genderRequirement || null,
+          nationalityRestrictions: rawData.nationalityRestrictions || null,
+          minWorkExperience: rawData.minWorkExperience ? parseInt(rawData.minWorkExperience) : null,
+          leadershipRequired: rawData.leadershipRequired === 'true',
+          languageRequirements: rawData.languageRequirements ? [{ language: 'english', minimumScore: rawData.languageRequirements }] : null,
+          applicationFeeAmount: rawData.applicationFeeAmount || null,
+          applicationFeeCurrency: rawData.applicationFeeCurrency || null,
+          feeWaiverAvailable: rawData.feeWaiverAvailable === 'true',
+          documentsRequired: rawData.documentsRequired ? rawData.documentsRequired.split(';').map(s => s.trim()).filter(s => s) : null,
+          interviewRequired: rawData.interviewRequired === 'true',
+          essayRequired: rawData.essayRequired === 'true',
+          renewable: rawData.renewable === 'true',
+          maxRenewalDuration: rawData.maxRenewalDuration || null,
+          renewalCriteria: rawData.renewalCriteria ? rawData.renewalCriteria.split(';').map(s => s.trim()).filter(s => s) : null,
+          workRestrictions: rawData.workRestrictions || null,
+          travelRestrictions: rawData.travelRestrictions || null,
+          otherScholarshipsAllowed: rawData.otherScholarshipsAllowed || null,
+          mentorshipAvailable: rawData.mentorshipAvailable === 'true',
+          networkingOpportunities: rawData.networkingOpportunities === 'true',
+          internshipOpportunities: rawData.internshipOpportunities === 'true',
+          researchOpportunities: rawData.researchOpportunities === 'true',
+          description: rawData.description || '',
+          tags: rawData.tags ? rawData.tags.split(';').map(s => s.trim()).filter(s => s) : null,
+          difficultyLevel: rawData.difficultyLevel || null,
+          totalApplicantsPerYear: rawData.totalApplicantsPerYear ? parseInt(rawData.totalApplicantsPerYear) : null,
+          acceptanceRate: rawData.acceptanceRate ? parseFloat(rawData.acceptanceRate) : null,
+          status: rawData.status || 'active',
+          dataSource: rawData.dataSource || 'import',
+          verified: rawData.verified === 'true'
+        };
+
+        // Check for existing scholarship by scholarshipId
+        const existingScholarship = await scholarshipStorage.getScholarshipByScholarshipId(scholarshipData.scholarshipId);
+
+        if (existingScholarship) {
+          // Update existing scholarship
+          await scholarshipStorage.updateScholarship(existingScholarship.id, scholarshipData);
+          updated++;
+          console.log(`[Import] Updated scholarship: ${scholarshipData.name}`);
+        } else {
+          // Create new scholarship  
+          await scholarshipStorage.createScholarship(scholarshipData);
+          imported++;
+          console.log(`[Import] Created scholarship: ${scholarshipData.name}`);
+        }
+
       } catch (error: any) {
-        console.error(`[Import] Error processing scholarship ${imported + 1}:`, error.message);
-        console.error(`[Import] Data:`, JSON.stringify(scholarshipData, null, 2));
-        errors.push(`Row ${imported + 1}: ${error.message}`);
+        console.error(`[Import] Error processing row ${i + 1}:`, error.message);
+        errors.push(`Row ${i + 1}: ${error.message}`);
       }
     }
 
@@ -761,15 +838,18 @@ router.post("/admin/scholarships/import", requireAdmin, upload.single('file'), a
       success: true,
       data: {
         imported,
-        total: scholarships.length,
-        errors: errors.slice(0, 10) // Limit error messages
+        updated,
+        skipped,
+        total: lines.length - 1,
+        errors: errors.slice(0, 20)
       }
     });
+
   } catch (error: any) {
     console.error('[Scholarship Import] Error:', error);
     res.status(500).json({
       success: false,
-      error: "Failed to import scholarships"
+      error: "Failed to import scholarships: " + error.message
     });
   }
 });

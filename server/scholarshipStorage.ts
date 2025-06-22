@@ -175,6 +175,11 @@ export class ScholarshipStorage {
     }
   }
 
+  // Alias method for CSV import compatibility
+  async getScholarshipByScholarshipId(scholarshipId: string): Promise<Scholarship | null> {
+    return this.getScholarshipById(scholarshipId);
+  }
+
   // Create new scholarship
   async createScholarship(scholarshipData: Partial<Scholarship>): Promise<Scholarship> {
     try {
