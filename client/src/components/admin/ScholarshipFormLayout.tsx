@@ -648,7 +648,7 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
   );
 
   const renderFundingDetails = () => (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
@@ -811,7 +811,7 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
   );
 
   const renderEligibilityCriteria = () => (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <FormField
         control={form.control}
         name="hostCountries"
@@ -942,7 +942,7 @@ export function ScholarshipFormLayout({ mode, scholarshipId, onSuccess }: Schola
   );
 
   const renderApplicationDetails = () => (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <FormField
         control={form.control}
         name="applicationDeadline"
