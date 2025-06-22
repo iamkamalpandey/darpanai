@@ -48,6 +48,24 @@ router.get("/search", async (req: Request, res: Response) => {
   }
 });
 
+// Get filter options from database
+router.get("/filter-options", async (req: Request, res: Response) => {
+  try {
+    const options = await scholarshipStorage.getFilterOptions();
+    
+    res.json({
+      success: true,
+      data: options
+    });
+  } catch (error) {
+    console.error('[Filter Options] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to get filter options"
+    });
+  }
+});
+
 // Get scholarship by ID
 router.get("/:id", async (req: Request, res: Response) => {
   try {
