@@ -38,7 +38,7 @@ export default function MyWatchlist() {
     enabled: true
   });
 
-  const watchlist: WatchlistItem[] = watchlistData?.watchlist || [];
+  const watchlist: WatchlistItem[] = watchlistData?.data?.watchlist || watchlistData?.watchlist || [];
 
   // Remove from watchlist mutation
   const removeFromWatchlist = useMutation({
