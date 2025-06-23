@@ -67,7 +67,18 @@ export function ScholarshipMatcher() {
   });
 
   // Fetch countries with active scholarships
-  const { data: countriesData } = useQuery({
+  const { data: countriesData } = useQuery<{
+    success: boolean;
+    data: {
+      countries: Array<{
+        code: string;
+        name: string;
+        scholarshipCount: number;
+        displayName: string;
+      }>;
+      totalCountries: number;
+    };
+  }>({
     queryKey: ['/api/scholarships/countries-with-scholarships'],
   });
 
