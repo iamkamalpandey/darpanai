@@ -299,19 +299,26 @@ router.post("/match-enhanced", requireAuth, async (req: Request, res: Response) 
         }
       }
 
-      // 4. Apply additional filters if specified
+      // 5. Apply additional filters if specified
       if (filters.countryFilter) {
-        const scholarshipCountries = [
-          ...(Array.isArray(scholarship.hostCountries) ? scholarship.hostCountries : [scholarship.hostCountries]),
-          ...(Array.isArray(scholarship.eligibleCountries) ? scholarship.eligibleCountries : [scholarship.eligibleCountries]),
-          scholarship.providerCountry
-        ].filter(Boolean);
+        const scholarshipHostCountries = Array.isArray(scholarship.hostCountries) 
+          ? scholarship.hostCountries 
+          : [scholarship.hostCountries].filter(Boolean);
         
-        const hasCountryMatch = scholarshipCountries.some((country: string) => 
+        const scholarshipEligibleCountries = Array.isArray(scholarship.eligibleCountries) 
+          ? scholarship.eligibleCountries 
+          : [scholarship.eligibleCountries].filter(Boolean);
+        
+        // Check if scholarship is hosted in the filtered country OR has wildcard eligibility
+        const isHostedInCountry = scholarshipHostCountries.some((country: string) => 
           country && country.toLowerCase().includes(filters.countryFilter.toLowerCase())
         );
         
-        if (!hasCountryMatch) return false;
+        const hasWildcardEligibility = scholarshipEligibleCountries.includes("*");
+        
+        if (!isHostedInCountry && !hasWildcardEligibility) {
+          return false;
+        }
       }
 
       if (filters.fundingTypeFilter) {
