@@ -79,10 +79,12 @@ export function ScholarshipChatbot() {
       return response;
     },
     onSuccess: (response: any) => {
+      console.log('Chatbot response received:', response);
+      
       const botMessage: ChatMessage = {
         id: Date.now().toString(),
         type: 'bot',
-        content: response.message,
+        content: response.message || "I'm having trouble generating a response right now. Please try again.",
         timestamp: new Date(),
         scholarships: response.scholarships || [],
         metadata: response.metadata || { emotion: 'supportive', intent: 'guidance' }
