@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { db } from './db';
 import { scholarshipWatchlist, users, insertWatchlistSchema } from '@shared/schema';
-import { scholarships } from '@shared/scholarshipSchema';
+import { scholarships } from '@shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
 
 const router = Router();

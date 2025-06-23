@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { db } from './db';
-import { scholarship_watchlist, users } from '@shared/schema';
+import { scholarshipWatchlist, users } from '@shared/schema';
 import { scholarships } from '@shared/scholarshipSchema';
 import { eq, and, desc } from 'drizzle-orm';
 
@@ -40,11 +40,11 @@ router.post('/add', async (req: Request, res: Response) => {
     }
 
     // Check if already in watchlist
-    const existing = await db.select({ id: scholarship_watchlist.id })
-      .from(scholarship_watchlist)
+    const existing = await db.select({ id: scholarshipWatchlist.id })
+      .from(scholarshipWatchlist)
       .where(and(
-        eq(scholarship_watchlist.user_id, userId),
-        eq(scholarship_watchlist.scholarship_id, scholarshipId)
+        eq(scholarshipWatchlist.userId, userId),
+        eq(scholarshipWatchlist.scholarshipId, scholarshipId)
       ))
       .limit(1);
 
@@ -53,14 +53,20 @@ router.post('/add', async (req: Request, res: Response) => {
     }
 
     // Add to watchlist
-    const [watchlistEntry] = await db.insert(scholarship_watchlist)
+    const [watchlistEntry] = await db.insert(scholarshipWatchlist)
       .values({
-        user_id: userId,
-        scholarship_id: scholarshipId,
+        userId: userId,
+        scholarshipId: scholarshipId,
+        scholarshipName: scholarship[0].name || 'Unknown Scholarship',
+        providerName: scholarship[0].providerName || 'Unknown Provider',
+        hostCountries: scholarship[0].hostCountries || [],
+        fundingType: scholarship[0].fundingType || null,
+        totalValueMax: scholarship[0].totalValueMax || null,
+        applicationDeadline: scholarship[0].applicationDeadline || null,
+        tags: scholarship[0].tags || [],
         notes,
-        priority_level: priorityLevel,
-        application_status: applicationStatus,
-        added_date: new Date()
+        priority: priorityLevel,
+        status: applicationStatus
       })
       .returning();
 
@@ -103,10 +109,10 @@ router.delete('/remove/:scholarshipId', async (req: Request, res: Response) => {
 
     console.log('[Watchlist] Removing scholarship from watchlist:', { userId, scholarshipId });
 
-    const deleted = await db.delete(scholarship_watchlist)
+    const deleted = await db.delete(scholarshipWatchlist)
       .where(and(
-        eq(scholarship_watchlist.user_id, userId),
-        eq(scholarship_watchlist.scholarship_id, scholarshipId)
+        eq(scholarshipWatchlist.userId, userId),
+        eq(scholarshipWatchlist.scholarshipId, scholarshipId)
       ));
 
     console.log('[Watchlist] Successfully removed from watchlist');
