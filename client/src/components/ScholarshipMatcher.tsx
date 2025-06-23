@@ -324,7 +324,7 @@ export function ScholarshipMatcher() {
                       {country.displayName}
                     </SelectItem>
                   )) || [
-                    <SelectItem key="loading" value="" disabled>Loading countries...</SelectItem>
+                    <SelectItem key="loading" value="loading" disabled>Loading countries...</SelectItem>
                   ]}
                 </SelectContent>
               </Select>

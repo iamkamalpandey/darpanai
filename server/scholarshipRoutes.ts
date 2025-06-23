@@ -107,6 +107,71 @@ router.get("/filter-options", async (req: Request, res: Response) => {
   }
 });
 
+// Get countries with active scholarships - MUST BE BEFORE /:id route
+router.get("/countries-with-scholarships", async (req: Request, res: Response) => {
+  try {
+    const { db } = await import('./db');
+    const { scholarships } = await import('../shared/scholarshipSchema');
+    const { sql } = await import('drizzle-orm');
+    
+    // Get countries with active scholarships and their counts
+    const countriesResult = await db.execute(sql`
+      SELECT 
+        jsonb_array_elements_text(host_countries) as country_code,
+        COUNT(*) as scholarship_count
+      FROM scholarships 
+      WHERE status = 'active' 
+        AND application_deadline > CURRENT_DATE
+      GROUP BY country_code
+      ORDER BY scholarship_count DESC, country_code ASC
+    `);
+    
+    // Map country codes to full names with scholarship counts
+    const countryMapping: { [key: string]: string } = {
+      'AU': 'Australia',
+      'US': 'United States',
+      'GB': 'United Kingdom',
+      'CA': 'Canada',
+      'EU': 'European Union',
+      'DE': 'Germany',
+      'NZ': 'New Zealand',
+      'NL': 'Netherlands',
+      'BE': 'Belgium',
+      'DK': 'Denmark',
+      'SE': 'Sweden',
+      'FI': 'Finland',
+      'NO': 'Norway',
+      'CH': 'Switzerland',
+      'FR': 'France',
+      'IT': 'Italy',
+      'ES': 'Spain',
+      'JP': 'Japan',
+      'SG': 'Singapore'
+    };
+    
+    const activeCountries = countriesResult.rows.map((row: any) => ({
+      code: row.country_code,
+      name: countryMapping[row.country_code] || row.country_code,
+      scholarshipCount: parseInt(row.scholarship_count),
+      displayName: `${countryMapping[row.country_code] || row.country_code} (${row.scholarship_count})`
+    }));
+    
+    res.json({
+      success: true,
+      data: {
+        countries: activeCountries,
+        totalCountries: activeCountries.length
+      }
+    });
+  } catch (error) {
+    console.error('[Countries with Scholarships] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to get countries with scholarships"
+    });
+  }
+});
+
 // Get scholarship by ID
 router.get("/:id", async (req: Request, res: Response) => {
   try {
@@ -238,71 +303,6 @@ router.get("/filter-options", async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: "Failed to get filter options"
-    });
-  }
-});
-
-// Get countries with active scholarships
-router.get("/countries-with-scholarships", async (req: Request, res: Response) => {
-  try {
-    const { db } = await import('./db');
-    const { scholarships } = await import('../shared/scholarshipSchema');
-    const { sql } = await import('drizzle-orm');
-    
-    // Get countries with active scholarships and their counts
-    const countriesResult = await db.execute(sql`
-      SELECT 
-        jsonb_array_elements_text(host_countries) as country_code,
-        COUNT(*) as scholarship_count
-      FROM scholarships 
-      WHERE status = 'active' 
-        AND application_deadline > CURRENT_DATE
-      GROUP BY country_code
-      ORDER BY scholarship_count DESC, country_code ASC
-    `);
-    
-    // Map country codes to full names with scholarship counts
-    const countryMapping: { [key: string]: string } = {
-      'AU': 'Australia',
-      'US': 'United States',
-      'GB': 'United Kingdom',
-      'CA': 'Canada',
-      'EU': 'European Union',
-      'DE': 'Germany',
-      'NZ': 'New Zealand',
-      'NL': 'Netherlands',
-      'BE': 'Belgium',
-      'DK': 'Denmark',
-      'SE': 'Sweden',
-      'FI': 'Finland',
-      'NO': 'Norway',
-      'CH': 'Switzerland',
-      'FR': 'France',
-      'IT': 'Italy',
-      'ES': 'Spain',
-      'JP': 'Japan',
-      'SG': 'Singapore'
-    };
-    
-    const activeCountries = countriesResult.rows.map((row: any) => ({
-      code: row.country_code,
-      name: countryMapping[row.country_code] || row.country_code,
-      scholarshipCount: parseInt(row.scholarship_count),
-      displayName: `${countryMapping[row.country_code] || row.country_code} (${row.scholarship_count})`
-    }));
-    
-    res.json({
-      success: true,
-      data: {
-        countries: activeCountries,
-        totalCountries: activeCountries.length
-      }
-    });
-  } catch (error) {
-    console.error('[Countries with Scholarships] Error:', error);
-    res.status(500).json({
-      success: false,
-      error: "Failed to get countries with scholarships"
     });
   }
 });
