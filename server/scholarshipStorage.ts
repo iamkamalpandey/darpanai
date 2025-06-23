@@ -107,12 +107,12 @@ export class ScholarshipStorage {
         page: Math.floor(offset / limit) + 1,
         totalPages: Math.ceil(totalScholarships / limit),
         filters: {
-          providerType: [],
-          providerCountry: [],
-          studyLevel: eligibleLevels,
-          fieldCategory: userBachelorField ? [userBachelorField] : [],
-          fundingType: fundingType ? [fundingType] : [],
-          difficultyLevel: []
+          providerTypes: [],
+          countries: [],
+          studyLevels: eligibleLevels,
+          fieldCategories: userBachelorField ? [userBachelorField] : [],
+          fundingTypes: fundingType ? [fundingType] : [],
+          difficultyLevels: []
         }
       };
 
