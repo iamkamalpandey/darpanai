@@ -381,16 +381,27 @@ export function ScholarshipMatcher() {
           </p>
         </CardHeader>
         <CardContent>
+          {/* Filter Summary */}
+          <div className="mb-4 p-3 bg-blue-50 border-l-4 border-blue-500 rounded">
+            <p className="text-sm font-medium text-blue-800 mb-1">Active Intelligent Filters:</p>
+            <div className="text-xs text-blue-700 space-y-1">
+              <div>• Deadline Filter: Active scholarships only (excludes expired opportunities)</div>
+              <div>• Academic Level: Progressive matching based on your qualification level</div>
+              <div>• Field Relevance: Prioritizing scholarships matching your study interests</div>
+              <div>• Resource Optimization: Limited to top 20 most relevant matches</div>
+            </div>
+          </div>
+
           {isMatching ? (
             <div className="text-center py-8">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-              <p className="text-muted-foreground">Finding scholarships that match your academic progression...</p>
-              <p className="text-sm text-muted-foreground mt-2">Searching database for opportunities in your field and level</p>
+              <p className="text-muted-foreground">Finding scholarships using intelligent filtering...</p>
+              <p className="text-sm text-muted-foreground mt-2">Applying academic progression logic and relevance scoring</p>
             </div>
           ) : matchedScholarships.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No scholarships found matching your current criteria.</p>
-              <p className="text-sm text-muted-foreground mt-2">Try adjusting your filters or check back later for new opportunities.</p>
+              <p className="text-muted-foreground">No scholarships found matching your optimized criteria.</p>
+              <p className="text-sm text-muted-foreground mt-2">Intelligent filtering excludes expired scholarships and irrelevant opportunities to save resources.</p>
             </div>
           ) : (
             <ScrollArea className="h-[600px]">
