@@ -141,7 +141,7 @@ Keep response conversational, supportive, and actionable. Format scholarship inf
     return "I'm analyzing the scholarship matches for you. Let me provide some insights based on your profile.";
   } catch (error) {
     console.error('AI Analysis Error:', error);
-    return generateScholarshipFallback(message, userProfile, scholarships, conversationContext);
+    return generateScholarshipFallback(message, userProfile, scholarships);
   }
 }
 
@@ -529,17 +529,14 @@ async function generateIntelligentResponse(
       
     case 'search':
       if (scholarships.length > 0) {
-        responseMessage = `I found ${scholarships.length} scholarship${scholarships.length > 1 ? 's' : ''} matching your query:\n\n`;
-        scholarships.forEach((scholarship, index) => {
-          responseMessage += `${index + 1}. **${scholarship.name}**\n`;
-          responseMessage += `   • Provider: ${scholarship.providerName} (${scholarship.providerCountry})\n`;
-          responseMessage += `   • Funding: ${scholarship.fundingType}\n`;
-          if (scholarship.totalValueMax) {
-            responseMessage += `   • Value: Up to ${scholarship.totalValueMax}\n`;
-          }
-          responseMessage += `   • Match Score: ${scholarship.matchScore}%\n\n`;
-        });
-        responseMessage += "Would you like more details about any of these scholarships?";
+        // Use AI-powered analysis for scholarship recommendations
+        const conversationContext = analyzeConversationContext([], userPersonalContext);
+        responseMessage = await generateAIScholarshipAnalysis(
+          userMessage, 
+          userPersonalContext, 
+          scholarships, 
+          conversationContext
+        );
       } else {
         responseMessage = "I searched our scholarship database but didn't find matches for your specific criteria. Could you provide more details about your field of study, academic level, or preferred countries? This will help me find better matches.";
       }
@@ -547,13 +544,20 @@ async function generateIntelligentResponse(
       
     case 'personalized':
       if (includeAnalysisData && analysisContext.totalAnalyses > 0) {
-        responseMessage = `Using your ${analysisContext.recentAnalysisTypes.join(', ')} analysis data for personalized recommendations:\n\n`;
         if (scholarships.length > 0) {
-          scholarships.forEach((scholarship, index) => {
-            responseMessage += `${index + 1}. ${scholarship.name} - ${scholarship.matchScore}% match\n`;
-          });
+          // Use AI-powered analysis with enhanced context from user's document analysis
+          const conversationContext = analyzeConversationContext([], userPersonalContext);
+          conversationContext.hasAnalysisData = true;
+          conversationContext.analysisTypes = analysisContext.recentAnalysisTypes;
+          
+          responseMessage = await generateAIScholarshipAnalysis(
+            userMessage, 
+            userPersonalContext, 
+            scholarships, 
+            conversationContext
+          );
         } else {
-          responseMessage += "Based on your documents, I'm searching for the most suitable scholarships. Let me know your specific interests for targeted results.";
+          responseMessage = "Based on your document analysis data, I'm searching for the most suitable scholarships. Let me know your specific interests for targeted results.";
         }
       } else if (analysisContext.totalAnalyses > 0) {
         responseMessage = `I see you have ${analysisContext.totalAnalyses} document analysis available. Would you like me to use this data for personalized scholarship recommendations?`;

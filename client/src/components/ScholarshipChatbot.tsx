@@ -36,10 +36,12 @@ interface ScholarshipMatch {
 interface UserProfile {
   academicLevel?: string;
   fieldOfStudy?: string;
+  interestedCourse?: string;
   gpa?: number;
   preferredCountries?: string[];
   budgetRange?: string;
   nationality?: string;
+  highestQualification?: string;
 }
 
 export function ScholarshipChatbot() {
@@ -47,7 +49,7 @@ export function ScholarshipChatbot() {
   const generateUniqueId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
   // Analyze conversation context and user profile for personalized responses
-  const analyzeConversationContext = (messages: ChatMessage[], userProfile: any) => {
+  const analyzeConversationContext = (messages: ChatMessage[], userProfile: UserProfile | null) => {
     const recentMessages = messages.slice(-10); // Last 10 messages for context
     const userMessages = recentMessages.filter(msg => msg.type === 'user');
     const botMessages = recentMessages.filter(msg => msg.type === 'bot');
