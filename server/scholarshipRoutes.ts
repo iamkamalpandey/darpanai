@@ -3,6 +3,47 @@ import { scholarshipStorage } from "./scholarshipStorage";
 import { scholarshipSearchSchema, insertScholarshipSchema } from "@shared/scholarshipSchema";
 import multer from "multer";
 
+// Helper function to validate and format dates
+function validateDate(dateString: string): string | null {
+  if (!dateString || dateString.trim() === '') return null;
+  
+  try {
+    // Handle multiple date formats
+    let date: Date;
+    
+    // Try parsing as ISO date first
+    if (dateString.includes('-')) {
+      date = new Date(dateString);
+    } 
+    // Try parsing as MM/DD/YYYY or DD/MM/YYYY
+    else if (dateString.includes('/')) {
+      const parts = dateString.split('/');
+      if (parts.length === 3) {
+        // Assume MM/DD/YYYY format
+        date = new Date(`${parts[2]}-${parts[0].padStart(2, '0')}-${parts[1].padStart(2, '0')}`);
+      } else {
+        return null;
+      }
+    }
+    // Try direct parsing
+    else {
+      date = new Date(dateString);
+    }
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.warn(`Invalid date format: ${dateString}`);
+      return null;
+    }
+    
+    // Return ISO format
+    return date.toISOString().split('T')[0];
+  } catch (error) {
+    console.warn(`Date parsing error for "${dateString}":`, error);
+    return null;
+  }
+}
+
 // Configure multer for file uploads
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -771,10 +812,10 @@ router.post("/admin/scholarships/import", requireAdmin, upload.single('file'), a
           livingAllowanceFrequency: rawData.livingAllowanceFrequency || null,
           totalValueMin: rawData.totalValueMin || null,
           totalValueMax: rawData.totalValueMax || null,
-          applicationOpenDate: rawData.applicationOpenDate ? validateDate(rawData.applicationOpenDate) : null,
-          applicationDeadline: rawData.applicationDeadline ? validateDate(rawData.applicationDeadline) : null,
-          notificationDate: rawData.notificationDate ? validateDate(rawData.notificationDate) : null,
-          programStartDate: rawData.programStartDate ? validateDate(rawData.programStartDate) : null,
+          applicationOpenDate: rawData.applicationOpenDate || null,
+          applicationDeadline: rawData.applicationDeadline || null,
+          notificationDate: rawData.notificationDate || null,
+          programStartDate: rawData.programStartDate || null,
           durationValue: rawData.durationValue ? parseInt(rawData.durationValue) : null,
           durationUnit: rawData.durationUnit || null,
           minGpa: rawData.minGpa ? rawData.minGpa.toString() : null,
