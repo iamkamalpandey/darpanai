@@ -83,9 +83,13 @@ export function ScholarshipMatcher() {
         }
       });
 
+      console.log('Scholarship API Response:', response);
+      
       if (response && (response as any).success && (response as any).scholarships) {
+        console.log('Scholarships received:', (response as any).scholarships.length);
         return (response as any).scholarships;
       }
+      console.log('No scholarships in response');
       return [];
     } catch (error) {
       console.error('Error fetching scholarships:', error);
@@ -124,7 +128,10 @@ export function ScholarshipMatcher() {
   // Load matched scholarships when profile and filters are ready
   useEffect(() => {
     if (userProfile && filtersInitialized) {
-      fetchMatchedScholarships().then(setMatchedScholarships);
+      fetchMatchedScholarships().then((scholarships) => {
+        console.log('Setting scholarships in state:', scholarships);
+        setMatchedScholarships(scholarships);
+      });
     }
   }, [userProfile, searchFilters, filtersInitialized]);
 
@@ -227,15 +234,7 @@ export function ScholarshipMatcher() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Field of Study</label>
-              <Input
-                placeholder="e.g., Computer Science"
-                value={searchFilters.fieldFilter}
-                onChange={(e) => handleFilterChange('fieldFilter', e.target.value)}
-              />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <label className="text-sm font-medium mb-2 block">Country</label>
               <Select value={searchFilters.countryFilter} onValueChange={(value) => handleFilterChange('countryFilter', value)}>
@@ -294,44 +293,7 @@ export function ScholarshipMatcher() {
         </CardContent>
       </Card>
 
-      {/* Active Filter Summary */}
-      <Card className="border-l-4 border-l-green-500">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5 text-green-600" />
-            Intelligent Filters Applied
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm font-medium text-green-700">📅 Deadline Filter</p>
-              <p className="text-xs text-muted-foreground">Only showing scholarships with active deadlines</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-blue-700">🎓 Academic Level Filter</p>
-              <p className="text-xs text-muted-foreground">
-                {userProfile.highestQualification === 'High School' 
-                  ? 'Matching: Diploma, Bachelor\'s programs'
-                  : userProfile.highestQualification === 'Diploma'
-                  ? 'Matching: Diploma, Bachelor\'s, Master\'s programs'
-                  : userProfile.highestQualification === "Bachelor's Degree"
-                  ? 'Matching: Bachelor\'s, Master\'s, PhD programs'
-                  : userProfile.highestQualification === "Master's Degree"
-                  ? 'Matching: Master\'s, PhD programs'
-                  : 'Matching: PhD, Postdoctoral programs'
-                }
-              </p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-purple-700">📚 Course Relevance Filter</p>
-              <p className="text-xs text-muted-foreground">
-                Prioritizing {userProfile.fieldOfStudy || userProfile.interestedCourse || 'your field'} and related programs
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Matched Scholarships */}
       <Card>
