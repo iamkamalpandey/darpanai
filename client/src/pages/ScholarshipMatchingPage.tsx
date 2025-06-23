@@ -2,7 +2,7 @@ import React from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { ScholarshipMatcher } from '@/components/ScholarshipMatcher';
 
-export function ScholarshipMatchingPage() {
+export default function ScholarshipMatchingPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">

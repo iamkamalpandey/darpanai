@@ -60,26 +60,17 @@ export function ScholarshipMatcher() {
 
     setIsMatching(true);
     try {
-      const matchingCriteria = {
-        fieldOfStudy: searchFilters.fieldFilter || userProfile.fieldOfStudy || userProfile.interestedCourse,
-        academicLevel: searchFilters.levelFilter || userProfile.highestQualification,
-        preferredCountries: searchFilters.countryFilter ? [searchFilters.countryFilter] : userProfile.preferredCountries,
-        fundingType: searchFilters.fundingTypeFilter,
-        nationality: userProfile.nationality,
-        gpa: userProfile.gpa
-      };
-
-      const response = await apiRequest('POST', '/api/chatbot/scholarship-match', {
-        message: `Find scholarships matching my profile: ${JSON.stringify(matchingCriteria)}`,
-        includeAnalysisData: true
+      const response = await apiRequest('POST', '/api/scholarship-matching/match', {
+        filters: {
+          fieldFilter: searchFilters.fieldFilter,
+          countryFilter: searchFilters.countryFilter,
+          levelFilter: searchFilters.levelFilter,
+          fundingTypeFilter: searchFilters.fundingTypeFilter
+        }
       });
 
       if (response && (response as any).success && (response as any).scholarships) {
-        return (response as any).scholarships.map((scholarship: any) => ({
-          ...scholarship,
-          matchScore: Math.floor(Math.random() * 20) + 80, // Generate realistic match scores
-          matchReasons: generateMatchReasons(scholarship, userProfile)
-        }));
+        return (response as any).scholarships;
       }
       return [];
     } catch (error) {

@@ -74,7 +74,7 @@ const CoeDetails = lazy(() => import("@/pages/CoeDetailsNew"));
 const UserCoeDetails = lazy(() => import("@/pages/UserCoeDetails"));
 const AdminOfferLetterInfo = lazy(() => import("@/pages/admin/AdminOfferLetterInfo"));
 const UserAdminCoeDetails = lazy(() => import("@/pages/UserAdminCoeDetails"));
-const ScholarshipChatbotPage = lazy(() => import("@/pages/ScholarshipChatbotPage"));
+const ScholarshipMatchingPage = lazy(() => import("@/pages/ScholarshipMatchingPage"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -179,10 +179,10 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      <Route path="/scholarship-chatbot">
-        <UserProtectedRoute path="/scholarship-chatbot" component={() => (
+      <Route path="/scholarship-matching">
+        <UserProtectedRoute path="/scholarship-matching" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <ScholarshipChatbotPage />
+            <ScholarshipMatchingPage />
           </Suspense>
         )} />
       </Route>
