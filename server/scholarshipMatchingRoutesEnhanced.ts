@@ -245,7 +245,7 @@ router.post("/match-enhanced", requireAuth, async (req: Request, res: Response) 
       userPreferredCourses: userFields,
       currentDate: new Date().toISOString().split('T')[0],
       fundingType: filters.fundingTypeFilter || undefined,
-      nationality: user.nationality || '',
+      nationality: countryFilter ? '' : (user.nationality || ''), // Only apply nationality when no country filter
       countryFilter: countryFilter,
       limit: 50, // Get more for better filtering
       offset: 0
