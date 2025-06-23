@@ -68,23 +68,89 @@ export function ScholarshipChatbot() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Chat mutation for processing messages
+  // Intelligent browser-side message handling
+  const handleIntelligentResponse = (userMessage: string) => {
+    const lowerMessage = userMessage.toLowerCase().trim();
+    
+    // Handle different query types on the browser side
+    let responseContent = "";
+    let shouldSearchScholarships = false;
+    
+    // Simple greetings
+    if (lowerMessage.match(/^(hi|hello|hey|good morning|good afternoon|good evening)/) || 
+        lowerMessage.includes('how are you')) {
+      responseContent = "Hello! I'm Darpan AI, your scholarship guidance assistant. I help you find scholarship opportunities from our comprehensive database using only your personal information. What would you like to know about scholarships or study abroad opportunities?";
+    }
+    
+    // Help requests
+    else if (lowerMessage.includes('help') || lowerMessage.includes('what can you do') || lowerMessage.includes('how do you work')) {
+      responseContent = "I can help you with:\n\n• Finding scholarships from our database\n• Academic guidance for study abroad\n• Country recommendations\n• Personalized suggestions based on your profile\n\nJust ask me about any of these topics! For example, try 'Show me scholarships for engineering' or 'Which countries are good for computer science?'";
+    }
+    
+    // Scholarship searches - trigger backend
+    else if (lowerMessage.includes('scholarship') || lowerMessage.includes('funding') || lowerMessage.includes('grant') || lowerMessage.includes('financial aid')) {
+      shouldSearchScholarships = true;
+    }
+    
+    // Study/academic queries
+    else if (lowerMessage.includes('study') || lowerMessage.includes('degree') || lowerMessage.includes('course') || lowerMessage.includes('program')) {
+      if (lowerMessage.includes('scholarship') || lowerMessage.includes('funding')) {
+        shouldSearchScholarships = true;
+      } else {
+        responseContent = "I can help you with study abroad guidance! Are you looking for information about specific programs, countries, or scholarship opportunities? Let me know your field of interest and I can provide targeted assistance.";
+      }
+    }
+    
+    // Country/destination queries
+    else if (lowerMessage.includes('country') || lowerMessage.includes('destination') || lowerMessage.includes('where to study')) {
+      shouldSearchScholarships = true;
+    }
+    
+    // Support/guidance
+    else if (lowerMessage.includes('confused') || lowerMessage.includes('overwhelmed') || lowerMessage.includes('lost') || lowerMessage.includes('stressed')) {
+      responseContent = "I understand that searching for scholarships and planning study abroad can feel overwhelming. You're taking the right step by seeking guidance. Let's break this down into manageable steps:\n\n1. First, tell me your field of study\n2. Share your preferred countries or regions\n3. Let me know your academic level\n\nWith this information, I can search our database for suitable opportunities and guide you through the process step by step.";
+    }
+    
+    // Default response
+    else {
+      responseContent = "I'm Darpan AI, and I specialize in helping you find scholarships and study abroad opportunities. To provide you with the most relevant information, could you tell me what specific aspect you'd like help with? I can search scholarships, provide academic guidance, or offer country recommendations.";
+    }
+    
+    if (shouldSearchScholarships) {
+      // Use backend for scholarship searches
+      return chatMutation.mutate(userMessage);
+    } else {
+      // Handle simple responses directly in browser
+      const botMessage: ChatMessage = {
+        id: Date.now().toString(),
+        type: 'bot',
+        content: responseContent,
+        timestamp: new Date(),
+        metadata: { emotion: 'supportive', intent: 'guidance' }
+      };
+      
+      setMessages(prev => [...prev, botMessage]);
+      setIsTyping(false);
+    }
+  };
+
+  // Chat mutation for scholarship searches only
   const chatMutation = useMutation({
     mutationFn: async (userMessage: string) => {
       const response = await apiRequest('POST', '/api/chatbot/scholarship-match', {
         message: userMessage,
-        conversationHistory: messages.slice(-5), // Send last 5 messages for context
+        conversationHistory: messages.slice(-5),
         userProfile: userProfile || {}
       });
       return response;
     },
     onSuccess: (response: any) => {
-      console.log('Chatbot response received:', response);
+      console.log('Scholarship search response:', response);
       
       const botMessage: ChatMessage = {
         id: Date.now().toString(),
         type: 'bot',
-        content: response.message || "I'm having trouble generating a response right now. Please try again.",
+        content: response.message || "I searched our scholarship database for your query. Could you provide more specific details about your field of study or preferred countries?",
         timestamp: new Date(),
         scholarships: response.scholarships || [],
         metadata: response.metadata || { emotion: 'supportive', intent: 'guidance' }
@@ -126,11 +192,12 @@ export function ScholarshipChatbot() {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageToProcess = inputMessage;
+    setInputMessage('');
     setIsTyping(true);
     
-    // Send to API
-    chatMutation.mutate(inputMessage);
-    setInputMessage('');
+    // Use intelligent browser-side handling
+    handleIntelligentResponse(messageToProcess);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
