@@ -269,7 +269,25 @@ router.post("/match-enhanced", requireAuth, async (req: Request, res: Response) 
         return false;
       }
 
-      // 3. Field relevance check (if user has specified field preferences)
+      // 3. CRITICAL FIX: Nationality eligibility check with wildcard support
+      if (user.nationality && !countryFilter) {
+        const eligibleCountries = Array.isArray(scholarship.eligibleCountries) 
+          ? scholarship.eligibleCountries 
+          : [scholarship.eligibleCountries].filter(Boolean);
+        
+        // Check if scholarship is open to all countries (wildcard "*") or specific nationality
+        const isEligibleByNationality = eligibleCountries.some((country: string) => 
+          country === "*" || 
+          country.toLowerCase().includes(user.nationality.toLowerCase()) ||
+          user.nationality.toLowerCase().includes(country.toLowerCase())
+        );
+        
+        if (!isEligibleByNationality && eligibleCountries.length > 0) {
+          return false;
+        }
+      }
+
+      // 4. Field relevance check (if user has specified field preferences)
       if (userFields.length > 0) {
         const scholarshipFields = [
           ...(Array.isArray(scholarship.fieldCategories) ? scholarship.fieldCategories : [scholarship.fieldCategories]),
