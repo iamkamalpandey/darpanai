@@ -196,12 +196,14 @@ export function ScholarshipMatcher() {
               {userProfile.highestQualification && (
                 <p className="text-xs text-blue-600 mt-1">
                   {userProfile.highestQualification === 'High School' 
-                    ? 'Showing: Bachelor\'s, Foundation programs'
+                    ? 'Showing: Diploma, Bachelor\'s programs'
+                    : userProfile.highestQualification === 'Diploma'
+                    ? 'Showing: Diploma, Bachelor\'s, Master\'s programs'
                     : userProfile.highestQualification === "Bachelor's Degree"
-                    ? 'Showing: Master\'s, Bachelor\'s, MBA programs'
+                    ? 'Showing: Bachelor\'s, Master\'s, PhD programs'
                     : userProfile.highestQualification === "Master's Degree"
-                    ? 'Showing: Master\'s, PhD, Research programs'
-                    : 'Showing: Advanced research programs'
+                    ? 'Showing: Master\'s, PhD programs'
+                    : 'Showing: PhD, Postdoctoral programs'
                   }
                 </p>
               )}

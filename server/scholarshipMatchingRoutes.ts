@@ -67,20 +67,17 @@ router.post("/match", requireAuth, async (req: Request, res: Response) => {
     const searchResults = await scholarshipStorage.searchScholarshipsWithIntelligentFilters({
       search: matchingCriteria.fieldOfStudy || '',
       eligibleLevels: eligibleLevels,
-      userBachelorField: user.fieldOfStudy || user.interestedCourse,
+      userBachelorField: user.fieldOfStudy || user.interestedCourse || '',
       userPreferredCourses: user.interestedCourse ? [user.interestedCourse] : [],
       currentDate: currentDate,
       fundingType: filters.fundingTypeFilter || '',
-      nationality: user.nationality,
+      nationality: user.nationality || '',
       limit: 100,
       offset: 0
     });
 
     // Scholarships already have match scores from intelligent filtering
-    const matchedScholarships = searchResults.scholarships.map((scholarship: any) => ({
-      ...scholarship,
-      matchReasons: getMatchReasons(scholarship, matchingCriteria)
-    }));
+    const matchedScholarships = searchResults.scholarships || [];
 
     // Sort by match score (highest first) and take top matches
     const topMatches = matchedScholarships

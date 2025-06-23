@@ -103,12 +103,22 @@ export class ScholarshipStorage {
 
       return {
         scholarships: scholarshipsWithScore,
-        total: totalScholarships
+        total: totalScholarships,
+        page: Math.floor(offset / limit) + 1,
+        totalPages: Math.ceil(totalScholarships / limit),
+        filters: {
+          providerType: [],
+          providerCountry: [],
+          studyLevel: eligibleLevels,
+          fieldCategory: userBachelorField ? [userBachelorField] : [],
+          fundingType: fundingType ? [fundingType] : [],
+          difficultyLevel: []
+        }
       };
 
     } catch (error) {
       console.error('[ScholarshipStorage] Error in intelligent search:', error);
-      throw new Error(`Failed to search scholarships: ${error.message}`);
+      throw new Error(`Failed to search scholarships: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
