@@ -46,6 +46,41 @@ export function ScholarshipChatbot() {
   // Generate unique ID for messages
   const generateUniqueId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+  // Analyze conversation context and user profile for personalized responses
+  const analyzeConversationContext = (messages: ChatMessage[], userProfile: any) => {
+    const recentMessages = messages.slice(-10); // Last 10 messages for context
+    const userMessages = recentMessages.filter(msg => msg.type === 'user');
+    const botMessages = recentMessages.filter(msg => msg.type === 'bot');
+    
+    // Extract conversation themes
+    const discussedTopics = {
+      scholarships: userMessages.some(msg => msg.content.toLowerCase().includes('scholarship')),
+      countries: userMessages.some(msg => msg.content.toLowerCase().includes('country')),
+      fields: userMessages.some(msg => msg.content.toLowerCase().includes('engineering') || msg.content.toLowerCase().includes('computer') || msg.content.toLowerCase().includes('business')),
+      financial: userMessages.some(msg => msg.content.toLowerCase().includes('funding') || msg.content.toLowerCase().includes('cost')),
+      guidance: userMessages.some(msg => msg.content.toLowerCase().includes('help') || msg.content.toLowerCase().includes('guide'))
+    };
+    
+    // User profile insights
+    const profileInfo = {
+      hasField: userProfile?.interestedCourse || userProfile?.fieldOfStudy,
+      hasCountries: userProfile?.preferredCountries?.length > 0,
+      hasBudget: userProfile?.budgetRange,
+      hasQualification: userProfile?.highestQualification,
+      nationality: userProfile?.nationality,
+      completeness: userProfile ? Object.keys(userProfile).length : 0
+    };
+    
+    return {
+      discussedTopics,
+      profileInfo,
+      conversationLength: recentMessages.length,
+      lastUserMessage: userMessages[userMessages.length - 1]?.content || '',
+      hasAskedForHelp: userMessages.some(msg => msg.content.toLowerCase().includes('help')),
+      isFirstTime: messages.length <= 2
+    };
+  };
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: generateUniqueId(),
@@ -78,23 +113,49 @@ export function ScholarshipChatbot() {
     return () => clearTimeout(timeoutId);
   }, [messages]);
 
-  // Intelligent browser-side message handling
+  // Intelligent context-aware message handling
   const handleIntelligentResponse = (userMessage: string) => {
     const lowerMessage = userMessage.toLowerCase().trim();
     
-    // Handle different query types on the browser side
+    // Analyze conversation context and user profile
+    const conversationContext = analyzeConversationContext(messages, userProfile);
+    
+    // Handle different query types with context awareness
     let responseContent = "";
     let shouldSearchScholarships = false;
     
-    // Simple greetings
+    // Context-aware greetings
     if (lowerMessage.match(/^(hi|hello|hey|good morning|good afternoon|good evening)/) || 
         lowerMessage.includes('how are you')) {
-      responseContent = "Hello! I'm Darpan AI, your scholarship guidance assistant. I help you find scholarship opportunities from our comprehensive database using only your personal information. What would you like to know about scholarships or study abroad opportunities?";
+      if (conversationContext.profileInfo.hasField && conversationContext.profileInfo.hasCountries) {
+        responseContent = `Hello! I see you're interested in ${userProfile?.interestedCourse || userProfile?.fieldOfStudy} and considering ${userProfile?.preferredCountries?.slice(0, 2).join(' and ')} for your studies. I can help you find targeted scholarship opportunities. What specific aspect would you like to explore?`;
+      } else if (conversationContext.profileInfo.hasField) {
+        responseContent = `Hello! I notice you're interested in ${userProfile?.interestedCourse || userProfile?.fieldOfStudy}. I can help you find relevant scholarship opportunities in this field. What would you like to know?`;
+      } else if (conversationContext.profileInfo.hasCountries) {
+        responseContent = `Hello! I see you're considering ${userProfile?.preferredCountries?.slice(0, 2).join(' and ')} for your studies. I can help you find scholarships for these destinations. What specific information do you need?`;
+      } else {
+        responseContent = "Hello! I'm Darpan AI, your scholarship guidance assistant. I help you find scholarship opportunities from our comprehensive database. What would you like to know about scholarships or study abroad opportunities?";
+      }
     }
     
-    // Help requests
+    // Context-aware help requests
     else if (lowerMessage.includes('help') || lowerMessage.includes('what can you do') || lowerMessage.includes('how do you work')) {
-      responseContent = "I can help you with:\n\n• Finding scholarships from our database\n• Academic guidance for study abroad\n• Country recommendations\n• Personalized suggestions based on your profile\n\nJust ask me about any of these topics! For example, try 'Show me scholarships for engineering' or 'Which countries are good for computer science?'";
+      let helpResponse = "I can help you with:\n\n• Finding scholarships from our database\n• Academic guidance for study abroad\n• Country recommendations\n• Personalized suggestions based on your profile\n\n";
+      
+      if (conversationContext.discussedTopics.scholarships) {
+        helpResponse += "Since we've been discussing scholarships, I can provide more specific matches or answer detailed questions about application processes.\n\n";
+      }
+      
+      if (conversationContext.profileInfo.hasField) {
+        helpResponse += `Given your interest in ${userProfile?.interestedCourse || userProfile?.fieldOfStudy}, I can find field-specific opportunities.\n\n`;
+      }
+      
+      if (conversationContext.profileInfo.hasCountries) {
+        helpResponse += `I can also focus on scholarships for ${userProfile?.preferredCountries?.join(', ')} based on your preferences.\n\n`;
+      }
+      
+      helpResponse += "What specific information would you like to explore?";
+      responseContent = helpResponse;
     }
     
     // Scholarship searches - trigger backend
@@ -121,9 +182,19 @@ export function ScholarshipChatbot() {
       responseContent = "I understand that searching for scholarships and planning study abroad can feel overwhelming. You're taking the right step by seeking guidance. Let's break this down into manageable steps:\n\n1. First, tell me your field of study\n2. Share your preferred countries or regions\n3. Let me know your academic level\n\nWith this information, I can search our database for suitable opportunities and guide you through the process step by step.";
     }
     
-    // Default response
+    // Context-aware default response
     else {
-      responseContent = "I'm Darpan AI, and I specialize in helping you find scholarships and study abroad opportunities. To provide you with the most relevant information, could you tell me what specific aspect you'd like help with? I can search scholarships, provide academic guidance, or offer country recommendations.";
+      if (conversationContext.discussedTopics.scholarships && conversationContext.profileInfo.hasField) {
+        responseContent = `Based on our previous discussion about scholarships and your interest in ${userProfile?.interestedCourse || userProfile?.fieldOfStudy}, would you like me to find more specific opportunities or provide information about application processes?`;
+      } else if (conversationContext.profileInfo.hasField && conversationContext.profileInfo.hasCountries) {
+        responseContent = `I can help you find scholarships for ${userProfile?.interestedCourse || userProfile?.fieldOfStudy} in ${userProfile?.preferredCountries?.slice(0, 2).join(' and ')}. What specific information would you like to know?`;
+      } else if (conversationContext.profileInfo.hasField) {
+        responseContent = `I see you're interested in ${userProfile?.interestedCourse || userProfile?.fieldOfStudy}. I can search for relevant scholarships in this field. What would you like to explore?`;
+      } else if (conversationContext.profileInfo.hasCountries) {
+        responseContent = `I notice you're considering ${userProfile?.preferredCountries?.slice(0, 2).join(' and ')} for your studies. I can help find scholarship opportunities in these locations. What information do you need?`;
+      } else {
+        responseContent = "I'm Darpan AI, and I specialize in helping you find scholarships and study abroad opportunities. To provide you with the most relevant information, could you tell me what specific aspect you'd like help with? I can search scholarships, provide academic guidance, or offer country recommendations.";
+      }
     }
     
     if (shouldSearchScholarships) {
