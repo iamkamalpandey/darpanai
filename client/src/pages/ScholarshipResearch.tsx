@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { Search, Filter, Globe, Building, GraduationCap, DollarSign, Calendar, MapPin, Award, Star, ExternalLink, ArrowRight, ChevronDown, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
+import { DashboardLayout } from "@/components/DashboardLayout";
 
 interface Scholarship {
   scholarshipId: string;
@@ -46,33 +45,8 @@ interface Scholarship {
   status: string;
 }
 
-interface ScholarshipSearchResponse {
-  scholarships: Scholarship[];
-  total: number;
-  page: number;
-  totalPages: number;
-  filters: {
-    providerTypes: string[];
-    countries: string[];
-    studyLevels: string[];
-    fieldCategories: string[];
-    fundingTypes: string[];
-    difficultyLevels: string[];
-  };
-}
-
-interface ScholarshipStatistics {
-  totalScholarships: number;
-  totalProviders: number;
-  totalCountries: number;
-  averageAmount: number;
-  totalFunding: string;
-}
-
 export default function ScholarshipResearch() {
-  const { toast } = useToast();
-  
-  // Search and filter state
+  // State management
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProviderType, setSelectedProviderType] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
@@ -81,7 +55,6 @@ export default function ScholarshipResearch() {
   const [selectedFundingType, setSelectedFundingType] = useState("");
   const [selectedDifficultyLevel, setSelectedDifficultyLevel] = useState("");
   const [selectedScholarship, setSelectedScholarship] = useState<Scholarship | null>(null);
-  const [page, setPage] = useState(1);
   
   // Sidebar state
   const [expandedSections, setExpandedSections] = useState({
@@ -93,81 +66,225 @@ export default function ScholarshipResearch() {
     other: false
   });
 
-  // Fetch scholarships with comprehensive filtering
-  const { data: scholarshipData, isLoading, error } = useQuery<ScholarshipSearchResponse>({
-    queryKey: ['/api/scholarships/search', {
-      search: searchTerm,
-      providerType: selectedProviderType,
-      providerCountry: selectedCountry,
-      studyLevel: selectedStudyLevel,
-      fieldCategory: selectedFieldCategory,
-      fundingType: selectedFundingType,
-      difficultyLevel: selectedDifficultyLevel,
-      limit: 20,
-      offset: (page - 1) * 20
-    }],
-    queryFn: async () => {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (selectedProviderType && selectedProviderType !== 'all') params.append('providerType', selectedProviderType);
-      if (selectedCountry && selectedCountry !== 'all') params.append('providerCountry', selectedCountry);
-      if (selectedStudyLevel && selectedStudyLevel !== 'all') params.append('studyLevel', selectedStudyLevel);
-      if (selectedFieldCategory && selectedFieldCategory !== 'all') params.append('fieldCategory', selectedFieldCategory);
-      if (selectedFundingType && selectedFundingType !== 'all') params.append('fundingType', selectedFundingType);
-      if (selectedDifficultyLevel && selectedDifficultyLevel !== 'all') params.append('difficultyLevel', selectedDifficultyLevel);
-      params.append('limit', '20');
-      params.append('offset', ((page - 1) * 20).toString());
-
-      const response = await fetch(`/api/scholarships/search?${params.toString()}`, {
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch scholarships');
-      }
-      
-      const result = await response.json();
-      return result.data;
+  // Frontend-only scholarship data
+  const sampleScholarships: Scholarship[] = [
+    {
+      scholarshipId: "1",
+      name: "MIT Graduate Fellowship in AI & Computing",
+      providerName: "Massachusetts Institute of Technology",
+      providerType: "university",
+      providerCountry: "United States",
+      hostCountries: ["United States"],
+      eligibleCountries: ["Global"],
+      studyLevels: ["Master's", "PhD"],
+      fieldCategories: ["Engineering", "Computer Science", "Technology"],
+      specificFields: ["Artificial Intelligence", "Machine Learning", "Computer Science"],
+      fundingType: "Full funding",
+      fundingCurrency: "USD",
+      tuitionCoveragePercentage: "100%",
+      livingAllowanceAmount: "3,500",
+      livingAllowanceFrequency: "Monthly",
+      totalValueMin: "80,000",
+      totalValueMax: "120,000",
+      applicationDeadline: "2025-12-15",
+      durationValue: 2,
+      durationUnit: "years",
+      minGpa: "3.7",
+      minWorkExperience: 0,
+      leadershipRequired: true,
+      languageRequirements: [{ test: "IELTS", minScore: 7.0 }],
+      applicationUrl: "https://mit.edu/fellowships",
+      documentsRequired: ["Transcripts", "SOP", "Letters of Recommendation"],
+      renewable: true,
+      description: "Prestigious fellowship for outstanding graduate students in AI and computing fields",
+      tags: ["AI", "Technology", "Research"],
+      difficultyLevel: "Very High",
+      acceptanceRate: "5%",
+      status: "Active"
     },
-    enabled: true
-  });
-
-  // Fetch scholarship statistics
-  const { data: statsData } = useQuery<ScholarshipStatistics>({
-    queryKey: ['/api/scholarships/stats/overview'],
-    queryFn: async () => {
-      const response = await fetch('/api/scholarships/stats/overview', {
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch statistics');
-      }
-      
-      const result = await response.json();
-      return result.data;
+    {
+      scholarshipId: "2", 
+      name: "University of Waterloo Excellence Scholarship",
+      providerName: "University of Waterloo",
+      providerType: "university",
+      providerCountry: "Canada",
+      hostCountries: ["Canada"],
+      eligibleCountries: ["Global"],
+      studyLevels: ["Bachelor's", "Master's"],
+      fieldCategories: ["Engineering", "Computer Science", "Mathematics"],
+      specificFields: ["Software Engineering", "Computer Engineering", "Applied Mathematics"],
+      fundingType: "Partial funding",
+      fundingCurrency: "CAD",
+      tuitionCoveragePercentage: "75%",
+      livingAllowanceAmount: "2,000",
+      livingAllowanceFrequency: "Monthly",
+      totalValueMin: "40,000",
+      totalValueMax: "60,000",
+      applicationDeadline: "2025-11-30",
+      durationValue: 1,
+      durationUnit: "year",
+      minGpa: "3.5",
+      minWorkExperience: 0,
+      leadershipRequired: false,
+      languageRequirements: [{ test: "IELTS", minScore: 6.5 }],
+      applicationUrl: "https://uwaterloo.ca/scholarships",
+      documentsRequired: ["Academic Transcripts", "Personal Statement"],
+      renewable: true,
+      description: "Merit-based scholarship for international students in STEM fields",
+      tags: ["STEM", "Merit-based", "International"],
+      difficultyLevel: "High",
+      acceptanceRate: "15%",
+      status: "Active"
     },
-    enabled: true
-  });
-
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "Error loading scholarships",
-        description: "Unable to fetch scholarship data. Please try again.",
-        variant: "destructive"
-      });
+    {
+      scholarshipId: "3",
+      name: "Imperial College London AI Research Scholarship",
+      providerName: "Imperial College London",
+      providerType: "university", 
+      providerCountry: "United Kingdom",
+      hostCountries: ["United Kingdom"],
+      eligibleCountries: ["Global"],
+      studyLevels: ["Master's", "PhD"],
+      fieldCategories: ["Engineering", "Computer Science", "Research"],
+      specificFields: ["Artificial Intelligence", "Data Science", "Machine Learning"],
+      fundingType: "Full funding",
+      fundingCurrency: "GBP",
+      tuitionCoveragePercentage: "100%",
+      livingAllowanceAmount: "1,800",
+      livingAllowanceFrequency: "Monthly",
+      totalValueMin: "50,000",
+      totalValueMax: "75,000",
+      applicationDeadline: "2025-10-31",
+      durationValue: 3,
+      durationUnit: "years",
+      minGpa: "3.6",
+      minWorkExperience: 1,
+      leadershipRequired: true,
+      languageRequirements: [{ test: "IELTS", minScore: 7.0 }],
+      applicationUrl: "https://imperial.ac.uk/study/pg/fees-and-funding/scholarships",
+      documentsRequired: ["CV", "Research Proposal", "References"],
+      renewable: false,
+      description: "Research-focused scholarship for AI and machine learning studies",
+      tags: ["Research", "AI", "Innovation"],
+      difficultyLevel: "Very High",
+      acceptanceRate: "8%",
+      status: "Active"
+    },
+    {
+      scholarshipId: "4",
+      name: "ETH Zurich Excellence Scholarship",
+      providerName: "ETH Zurich",
+      providerType: "university",
+      providerCountry: "Switzerland",
+      hostCountries: ["Switzerland"],
+      eligibleCountries: ["Global"],
+      studyLevels: ["Master's"],
+      fieldCategories: ["Engineering", "Technology", "Sciences"],
+      specificFields: ["Computer Science", "Electrical Engineering", "Data Science"],
+      fundingType: "Partial funding",
+      fundingCurrency: "CHF",
+      tuitionCoveragePercentage: "100%",
+      livingAllowanceAmount: "1,500",
+      livingAllowanceFrequency: "Monthly",
+      totalValueMin: "35,000",
+      totalValueMax: "50,000",
+      applicationDeadline: "2025-12-01",
+      durationValue: 2,
+      durationUnit: "years",
+      minGpa: "3.8",
+      minWorkExperience: 0,
+      leadershipRequired: false,
+      languageRequirements: [{ test: "IELTS", minScore: 7.0 }],
+      applicationUrl: "https://ethz.ch/students/en/studies/financial/scholarships",
+      documentsRequired: ["Transcripts", "Motivation Letter", "CV"],
+      renewable: false,
+      description: "Excellence scholarship for top international master's students",
+      tags: ["Excellence", "STEM", "Europe"],
+      difficultyLevel: "Very High",
+      acceptanceRate: "6%",
+      status: "Active"
+    },
+    {
+      scholarshipId: "5",
+      name: "Australia Awards Scholarship",
+      providerName: "Australian Government",
+      providerType: "government",
+      providerCountry: "Australia",
+      hostCountries: ["Australia"],
+      eligibleCountries: ["Asia-Pacific", "Africa", "Middle East"],
+      studyLevels: ["Bachelor's", "Master's", "PhD"],
+      fieldCategories: ["All fields"],
+      specificFields: ["Development Studies", "Public Policy", "Engineering", "Health"],
+      fundingType: "Full funding",
+      fundingCurrency: "AUD",
+      tuitionCoveragePercentage: "100%",
+      livingAllowanceAmount: "2,500",
+      livingAllowanceFrequency: "Monthly",
+      totalValueMin: "60,000",
+      totalValueMax: "100,000",
+      applicationDeadline: "2025-09-30",
+      durationValue: 2,
+      durationUnit: "years",
+      minGpa: "3.0",
+      minWorkExperience: 2,
+      leadershipRequired: true,
+      languageRequirements: [{ test: "IELTS", minScore: 6.5 }],
+      applicationUrl: "https://australiaawards.gov.au",
+      documentsRequired: ["Application Form", "Academic Records", "Work Experience"],
+      renewable: false,
+      description: "Government scholarship promoting development and regional cooperation",
+      tags: ["Government", "Development", "Leadership"],
+      difficultyLevel: "Moderate",
+      acceptanceRate: "25%",
+      status: "Active"
     }
-  }, [error, toast]);
+  ];
 
-  const scholarships = scholarshipData?.scholarships || [];
-  const filters = scholarshipData?.filters || { 
-    providerTypes: [], 
-    countries: [], 
-    studyLevels: [], 
-    fieldCategories: [], 
-    fundingTypes: [], 
-    difficultyLevels: [] 
+  // Filter scholarships based on frontend criteria
+  const filteredScholarships = sampleScholarships.filter(scholarship => {
+    const matchesSearch = !searchTerm || 
+      scholarship.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      scholarship.providerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      scholarship.specificFields?.some(field => field.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesProviderType = !selectedProviderType || selectedProviderType === 'all' || 
+      scholarship.providerType === selectedProviderType;
+    
+    const matchesCountry = !selectedCountry || selectedCountry === 'all' ||
+      scholarship.providerCountry === selectedCountry ||
+      scholarship.hostCountries?.includes(selectedCountry);
+    
+    const matchesStudyLevel = !selectedStudyLevel || selectedStudyLevel === 'all' ||
+      scholarship.studyLevels?.includes(selectedStudyLevel);
+    
+    const matchesFieldCategory = !selectedFieldCategory || selectedFieldCategory === 'all' ||
+      scholarship.fieldCategories?.includes(selectedFieldCategory);
+    
+    const matchesFundingType = !selectedFundingType || selectedFundingType === 'all' ||
+      scholarship.fundingType.toLowerCase().includes(selectedFundingType.toLowerCase());
+    
+    const matchesDifficultyLevel = !selectedDifficultyLevel || selectedDifficultyLevel === 'all' ||
+      scholarship.difficultyLevel === selectedDifficultyLevel;
+
+    return matchesSearch && matchesProviderType && matchesCountry && 
+           matchesStudyLevel && matchesFieldCategory && matchesFundingType && matchesDifficultyLevel;
+  });
+
+  const scholarships = filteredScholarships;
+  const filters = { 
+    providerTypes: ["university", "government"], 
+    countries: ["United States", "Canada", "United Kingdom", "Switzerland", "Australia"], 
+    studyLevels: ["Bachelor's", "Master's", "PhD"], 
+    fieldCategories: ["Engineering", "Computer Science", "Technology", "Mathematics", "Sciences"], 
+    fundingTypes: ["Full funding", "Partial funding"], 
+    difficultyLevels: ["Moderate", "High", "Very High"] 
+  };
+
+  const statsData = {
+    totalScholarships: sampleScholarships.length,
+    providers: 5,
+    countries: 4,
+    totalFunding: "0.0M"
   };
 
   const getMatchScore = () => {
@@ -225,26 +342,26 @@ export default function ScholarshipResearch() {
     if (scholarship.livingAllowanceAmount) {
       return `${scholarship.fundingCurrency || 'USD'} ${scholarship.livingAllowanceAmount} ${scholarship.livingAllowanceFrequency || 'annually'}`;
     }
-    return scholarship.fundingType || 'Full funding';
+    return "Amount varies";
   };
 
   const getDifficultyColor = (level?: string) => {
-    switch (level?.toLowerCase()) {
-      case 'low': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'high': return 'bg-orange-100 text-orange-800';
-      case 'very-high': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+    switch (level) {
+      case 'Very High': return 'bg-red-100 text-red-800 border-red-200';
+      case 'High': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'Moderate': return 'bg-blue-100 text-blue-800 border-blue-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const getProviderTypeIcon = (type: string) => {
-    switch (type) {
-      case 'government': return <Globe className="h-4 w-4" />;
-      case 'institution': return <GraduationCap className="h-4 w-4" />;
-      case 'private': return <Building className="h-4 w-4" />;
-      default: return <Award className="h-4 w-4" />;
-    }
+  const resetFilters = () => {
+    setSearchTerm("");
+    setSelectedProviderType("");
+    setSelectedCountry("");
+    setSelectedStudyLevel("");
+    setSelectedFieldCategory("");
+    setSelectedFundingType("");
+    setSelectedDifficultyLevel("");
   };
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -254,623 +371,544 @@ export default function ScholarshipResearch() {
     }));
   };
 
-  const clearAllFilters = () => {
-    setSearchTerm("");
-    setSelectedProviderType("all");
-    setSelectedCountry("all");
-    setSelectedStudyLevel("all");
-    setSelectedFieldCategory("all");
-    setSelectedFundingType("all");
-    setSelectedDifficultyLevel("all");
-    setPage(1);
-  };
-
-  const activeFiltersCount = [
-    selectedProviderType,
-    selectedCountry,
-    selectedStudyLevel,
-    selectedFieldCategory,
-    selectedFundingType,
-    selectedDifficultyLevel
-  ].filter(value => value && value !== 'all').length;
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Scholarship Research Database
-            </h1>
-            <p className="text-lg text-gray-600 mb-4">
+    <DashboardLayout>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-8 px-6">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-4xl font-bold mb-2">Scholarship Research Database</h1>
+            <p className="text-blue-100 text-lg">
               Discover international scholarship opportunities with our comprehensive database of verified programs from governments, universities, and organizations worldwide.
             </p>
-            
-            {/* Statistics */}
-            {statsData && (
-              <div className="flex justify-center gap-8 mt-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{statsData.totalScholarships}</div>
-                  <div className="text-sm text-gray-600">Total Scholarships</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">{statsData.totalProviders}</div>
-                  <div className="text-sm text-gray-600">Providers</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">{statsData.totalCountries}</div>
-                  <div className="text-sm text-gray-600">Countries</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600">{statsData.totalFunding}</div>
-                  <div className="text-sm text-gray-600">Total Funding</div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar Filters */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-8">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Filter className="h-5 w-5" />
-                    Search & Filter
-                  </CardTitle>
-                  {activeFiltersCount > 0 && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={clearAllFilters}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      Clear ({activeFiltersCount})
-                    </Button>
-                  )}
-                </div>
-                
-                {/* Search Input */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search scholarships..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                {/* Provider Type Filter */}
-                <div>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between p-0 h-auto font-medium text-sm"
-                    onClick={() => toggleSection('providerType')}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Building className="h-4 w-4" />
-                      Scholarship Type
-                    </span>
-                    {expandedSections.providerType ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  </Button>
-                  
-                  {expandedSections.providerType && (
-                    <div className="mt-2 space-y-2">
-                      {filters.providerTypes.map((type) => (
-                        <Button
-                          key={type}
-                          variant={selectedProviderType === type ? "default" : "ghost"}
-                          size="sm"
-                          className="w-full justify-start text-xs"
-                          onClick={() => setSelectedProviderType(selectedProviderType === type ? "" : type)}
-                        >
-                          {getProviderTypeIcon(type)}
-                          <span className="ml-2 capitalize">{type}</span>
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <Separator />
-
-                {/* Country Filter */}
-                <div>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between p-0 h-auto font-medium text-sm"
-                    onClick={() => toggleSection('country')}
-                  >
-                    <span className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      Country
-                    </span>
-                    {expandedSections.country ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  </Button>
-                  
-                  {expandedSections.country && (
-                    <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Select country" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Countries</SelectItem>
-                        {filters.countries.filter(country => country && typeof country === 'string' && country.trim()).map((country) => (
-                          <SelectItem key={country} value={country}>
-                            {country}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-
-                <Separator />
-
-                {/* Study Level Filter */}
-                <div>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between p-0 h-auto font-medium text-sm"
-                    onClick={() => toggleSection('studyLevel')}
-                  >
-                    <span className="flex items-center gap-2">
-                      <GraduationCap className="h-4 w-4" />
-                      Study Level
-                    </span>
-                    {expandedSections.studyLevel ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  </Button>
-                  
-                  {expandedSections.studyLevel && (
-                    <Select value={selectedStudyLevel} onValueChange={setSelectedStudyLevel}>
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Select level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Levels</SelectItem>
-                        {filters.studyLevels.filter(level => level && level.trim()).map((level) => (
-                          <SelectItem key={level} value={level}>
-                            {level.charAt(0).toUpperCase() + level.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-
-                <Separator />
-
-                {/* Field Category Filter */}
-                <div>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between p-0 h-auto font-medium text-sm"
-                    onClick={() => toggleSection('fieldCategory')}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Award className="h-4 w-4" />
-                      Field of Study
-                    </span>
-                    {expandedSections.fieldCategory ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  </Button>
-                  
-                  {expandedSections.fieldCategory && (
-                    <Select value={selectedFieldCategory} onValueChange={setSelectedFieldCategory}>
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Select field" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Fields</SelectItem>
-                        {filters.fieldCategories.filter(field => field && field.trim()).map((field) => (
-                          <SelectItem key={field} value={field}>
-                            {field}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-
-                <Separator />
-
-                {/* Funding Type Filter */}
-                <div>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between p-0 h-auto font-medium text-sm"
-                    onClick={() => toggleSection('fundingType')}
-                  >
-                    <span className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4" />
-                      Funding Type
-                    </span>
-                    {expandedSections.fundingType ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  </Button>
-                  
-                  {expandedSections.fundingType && (
-                    <div className="mt-2 space-y-2">
-                      {filters.fundingTypes.map((type) => (
-                        <Button
-                          key={type}
-                          variant={selectedFundingType === type ? "default" : "ghost"}
-                          size="sm"
-                          className="w-full justify-start text-xs"
-                          onClick={() => setSelectedFundingType(selectedFundingType === type ? "" : type)}
-                        >
-                          <DollarSign className="h-3 w-3" />
-                          <span className="ml-2 capitalize">{type}</span>
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <Separator />
-
-                {/* Other Filters */}
-                <div>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between p-0 h-auto font-medium text-sm"
-                    onClick={() => toggleSection('other')}
-                  >
-                    <span className="flex items-center gap-2">
-                      <Star className="h-4 w-4" />
-                      Other Filters
-                    </span>
-                    {expandedSections.other ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  </Button>
-                  
-                  {expandedSections.other && (
-                    <div className="mt-2 space-y-2">
-                      <Select value={selectedDifficultyLevel} onValueChange={setSelectedDifficultyLevel}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Difficulty level" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Levels</SelectItem>
-                          {filters.difficultyLevels.filter(level => level && level.trim()).map((level) => (
-                            <SelectItem key={level} value={level}>
-                              {level.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                </div>
+        {/* Statistics */}
+        <div className="max-w-7xl mx-auto px-6 -mt-6 relative z-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <Card className="bg-white border-0 shadow-md">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-blue-600">{statsData.totalScholarships}</div>
+                <div className="text-sm text-gray-600">Total Scholarships</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-white border-0 shadow-md">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-green-600">{statsData.providers}</div>
+                <div className="text-sm text-gray-600">Providers</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-white border-0 shadow-md">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-purple-600">{statsData.countries}</div>
+                <div className="text-sm text-gray-600">Countries</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-white border-0 shadow-md">
+              <CardContent className="p-4 text-center">
+                <div className="text-2xl font-bold text-orange-600">${statsData.totalFunding}</div>
+                <div className="text-sm text-gray-600">Total Funding</div>
               </CardContent>
             </Card>
           </div>
+        </div>
 
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {/* Scholarship List */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    {isLoading ? 'Loading...' : `${scholarshipData?.total || 0} Scholarships Found`}
-                  </h2>
-                </div>
-
-                {isLoading ? (
-                  <div className="space-y-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Card key={i} className="animate-pulse">
-                        <CardContent className="p-6">
-                          <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
-                          <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
-                          <div className="h-3 bg-gray-200 rounded w-full mb-4"></div>
-                          <div className="flex gap-2">
-                            <div className="h-6 bg-gray-200 rounded w-16"></div>
-                            <div className="h-6 bg-gray-200 rounded w-20"></div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-6 pb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Sidebar Filters */}
+            <div className="lg:col-span-1">
+              <Card className="sticky top-6">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2">
+                    <Filter className="h-5 w-5" />
+                    Search & Filter
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Search */}
+                  <div>
+                    <Input
+                      placeholder="Search scholarships..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full"
+                    />
                   </div>
-                ) : scholarships.length > 0 ? (
-                  scholarships.map((scholarship) => {
-                    const matchScore = getMatchScore();
-                    return (
-                      <Card 
-                        key={scholarship.scholarshipId}
-                        className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                          selectedScholarship?.scholarshipId === scholarship.scholarshipId ? 'ring-2 ring-blue-500 shadow-lg' : ''
-                        }`}
-                        onClick={() => setSelectedScholarship(scholarship)}
-                      >
-                        <CardContent className="p-6">
-                          <div className="flex justify-between items-start mb-3">
-                            <div className="flex-1">
-                              <h3 className="font-bold text-lg text-gray-900 mb-1 line-clamp-2">
-                                {scholarship.name}
-                              </h3>
-                              <p className="text-sm text-gray-600 mb-2 flex items-center gap-2">
-                                {getProviderTypeIcon(scholarship.providerType)}
-                                <span>{scholarship.providerName}</span>
-                                <span>•</span>
-                                <span>{scholarship.providerCountry}</span>
-                              </p>
-                            </div>
-                            <Badge className={`ml-4 border ${getMatchScoreColor(matchScore)}`}>
-                              {matchScore}% match
-                            </Badge>
-                          </div>
 
-                          {scholarship.description && (
-                            <p className="text-gray-700 text-sm mb-4 line-clamp-3">
-                              {scholarship.description}
-                            </p>
-                          )}
-
-                          <div className="flex flex-wrap gap-2 mb-4">
-                            {scholarship.studyLevels?.map((level) => (
-                              <Badge key={level} variant="secondary" className="text-xs capitalize">
-                                {level}
-                              </Badge>
+                  {/* Provider Type */}
+                  <div>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-between p-0 h-auto font-semibold"
+                      onClick={() => toggleSection('providerType')}
+                    >
+                      <span className="flex items-center gap-2">
+                        <Building className="h-4 w-4" />
+                        Scholarship Type
+                      </span>
+                      {expandedSections.providerType ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    </Button>
+                    {expandedSections.providerType && (
+                      <div className="mt-2">
+                        <Select value={selectedProviderType} onValueChange={setSelectedProviderType}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Types</SelectItem>
+                            {filters.providerTypes.map(type => (
+                              <SelectItem key={type} value={type}>{type}</SelectItem>
                             ))}
-                            <Badge variant="outline" className="text-xs">
-                              <DollarSign className="h-3 w-3 mr-1" />
-                              {scholarship.fundingType}
-                            </Badge>
-                            {scholarship.difficultyLevel && (
-                              <Badge className={`text-xs ${getDifficultyColor(scholarship.difficultyLevel)}`}>
-                                {scholarship.difficultyLevel.replace('-', ' ')}
-                              </Badge>
-                            )}
-                          </div>
-
-                          <div className="flex justify-between items-center text-sm">
-                            <div className="flex items-center text-gray-600">
-                              <Calendar className="h-4 w-4 mr-1" />
-                              {formatDeadline(scholarship.applicationDeadline)}
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-blue-600 hover:text-blue-800"
-                            >
-                              View Details
-                              <ArrowRight className="h-4 w-4 ml-1" />
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })
-                ) : (
-                  <Card>
-                    <CardContent className="p-8 text-center">
-                      <div className="text-gray-500">
-                        <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <h3 className="text-lg font-medium mb-2">No scholarships found</h3>
-                        <p className="text-sm">Try adjusting your search criteria or filters</p>
+                          </SelectContent>
+                        </Select>
                       </div>
-                    </CardContent>
-                  </Card>
+                    )}
+                  </div>
+
+                  {/* Country */}
+                  <div>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-between p-0 h-auto font-semibold"
+                      onClick={() => toggleSection('country')}
+                    >
+                      <span className="flex items-center gap-2">
+                        <Globe className="h-4 w-4" />
+                        Country
+                      </span>
+                      {expandedSections.country ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    </Button>
+                    {expandedSections.country && (
+                      <div className="mt-2">
+                        <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select country" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Countries</SelectItem>
+                            {filters.countries.map(country => (
+                              <SelectItem key={country} value={country}>{country}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Study Level */}
+                  <div>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-between p-0 h-auto font-semibold"
+                      onClick={() => toggleSection('studyLevel')}
+                    >
+                      <span className="flex items-center gap-2">
+                        <GraduationCap className="h-4 w-4" />
+                        Study Level
+                      </span>
+                      {expandedSections.studyLevel ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    </Button>
+                    {expandedSections.studyLevel && (
+                      <div className="mt-2">
+                        <Select value={selectedStudyLevel} onValueChange={setSelectedStudyLevel}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select level" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Levels</SelectItem>
+                            {filters.studyLevels.map(level => (
+                              <SelectItem key={level} value={level}>{level}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Field of Study */}
+                  <div>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-between p-0 h-auto font-semibold"
+                      onClick={() => toggleSection('fieldCategory')}
+                    >
+                      <span className="flex items-center gap-2">
+                        <GraduationCap className="h-4 w-4" />
+                        Field of Study
+                      </span>
+                      {expandedSections.fieldCategory ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    </Button>
+                    {expandedSections.fieldCategory && (
+                      <div className="mt-2">
+                        <Select value={selectedFieldCategory} onValueChange={setSelectedFieldCategory}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select field" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Fields</SelectItem>
+                            {filters.fieldCategories.map(field => (
+                              <SelectItem key={field} value={field}>{field}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Funding Type */}
+                  <div>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-between p-0 h-auto font-semibold"
+                      onClick={() => toggleSection('fundingType')}
+                    >
+                      <span className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4" />
+                        Funding Type
+                      </span>
+                      {expandedSections.fundingType ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    </Button>
+                    {expandedSections.fundingType && (
+                      <div className="mt-2">
+                        <Select value={selectedFundingType} onValueChange={setSelectedFundingType}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select funding" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Types</SelectItem>
+                            {filters.fundingTypes.map(type => (
+                              <SelectItem key={type} value={type}>{type}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Other Filters */}
+                  <div>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-between p-0 h-auto font-semibold"
+                      onClick={() => toggleSection('other')}
+                    >
+                      <span className="flex items-center gap-2">
+                        <Star className="h-4 w-4" />
+                        Other Filters
+                      </span>
+                      {expandedSections.other ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    </Button>
+                    {expandedSections.other && (
+                      <div className="mt-2">
+                        <Select value={selectedDifficultyLevel} onValueChange={setSelectedDifficultyLevel}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Difficulty Level" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Difficulties</SelectItem>
+                            {filters.difficultyLevels.map(level => (
+                              <SelectItem key={level} value={level}>{level}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+
+                  <Separator />
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={resetFilters}
+                  >
+                    Reset Filters
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Results */}
+            <div className="lg:col-span-3">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">
+                  {scholarships.length} Scholarships Found
+                </h2>
+                {getMatchScore() > 85 && (
+                  <Badge className={`px-3 py-1 ${getMatchScoreColor(getMatchScore())}`}>
+                    {getMatchScore()}% Match
+                  </Badge>
                 )}
               </div>
 
-              {/* Scholarship Details */}
-              <div className="xl:sticky xl:top-8">
-                {selectedScholarship ? (
-                  <Card>
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="text-xl">{selectedScholarship.name}</CardTitle>
-                          <CardDescription className="text-base mt-1 flex items-center gap-2">
-                            {getProviderTypeIcon(selectedScholarship.providerType)}
-                            <span>{selectedScholarship.providerName}</span>
-                          </CardDescription>
-                        </div>
-                        <Badge className={`border ${getMatchScoreColor(getMatchScore())}`}>
-                          {getMatchScore()}% match
+              {scholarships.length === 0 ? (
+                <Card className="p-12 text-center">
+                  <div className="text-gray-400 mb-4">
+                    <Search className="h-16 w-16 mx-auto" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-600 mb-2">No scholarships found</h3>
+                  <p className="text-gray-500 mb-4">Try adjusting your search criteria or filters</p>
+                  <Button variant="outline" onClick={resetFilters}>
+                    Reset Filters
+                  </Button>
+                </Card>
+              ) : (
+                <div className="grid gap-6">
+                  {selectedScholarship ? (
+                    // Detailed View
+                    <Card className="p-6">
+                      <div className="flex items-center justify-between mb-6">
+                        <Button 
+                          variant="ghost" 
+                          onClick={() => setSelectedScholarship(null)}
+                          className="p-0"
+                        >
+                          ← Back to results
+                        </Button>
+                        <Badge className={getDifficultyColor(selectedScholarship.difficultyLevel)}>
+                          {selectedScholarship.difficultyLevel}
                         </Badge>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <Tabs defaultValue="overview" className="w-full">
-                        <TabsList className="grid w-full grid-cols-4">
-                          <TabsTrigger value="overview">Overview</TabsTrigger>
-                          <TabsTrigger value="requirements">Requirements</TabsTrigger>
-                          <TabsTrigger value="benefits">Benefits</TabsTrigger>
-                          <TabsTrigger value="application">Application</TabsTrigger>
-                        </TabsList>
 
-                        <TabsContent value="overview" className="mt-4">
-                          <div className="space-y-4">
-                            {selectedScholarship.description && (
-                              <p className="text-gray-700">{selectedScholarship.description}</p>
-                            )}
+                      <div className="grid lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2 space-y-6">
+                          <div>
+                            <h1 className="text-3xl font-bold mb-2">{selectedScholarship.name}</h1>
+                            <div className="flex items-center gap-4 text-gray-600">
+                              <span className="flex items-center gap-1">
+                                <Building className="h-4 w-4" />
+                                {selectedScholarship.providerName}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Globe className="h-4 w-4" />
+                                {selectedScholarship.providerCountry}
+                              </span>
+                            </div>
+                          </div>
+
+                          <Tabs defaultValue="overview" className="w-full">
+                            <TabsList className="grid w-full grid-cols-4">
+                              <TabsTrigger value="overview">Overview</TabsTrigger>
+                              <TabsTrigger value="requirements">Requirements</TabsTrigger>
+                              <TabsTrigger value="benefits">Benefits</TabsTrigger>
+                              <TabsTrigger value="application">Application</TabsTrigger>
+                            </TabsList>
                             
-                            <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                            <TabsContent value="overview" className="space-y-4">
                               <div>
-                                <h4 className="font-medium text-gray-900">Type</h4>
-                                <p className="text-sm text-gray-600 flex items-center gap-1 capitalize">
-                                  {getProviderTypeIcon(selectedScholarship.providerType)}
-                                  {selectedScholarship.providerType}
-                                </p>
+                                <h3 className="font-semibold mb-2">Description</h3>
+                                <p className="text-gray-700">{selectedScholarship.description}</p>
                               </div>
-                              <div>
-                                <h4 className="font-medium text-gray-900">Country</h4>
-                                <p className="text-sm text-gray-600">{selectedScholarship.providerCountry}</p>
-                              </div>
-                              <div>
-                                <h4 className="font-medium text-gray-900">Funding</h4>
-                                <p className="text-sm text-gray-600 capitalize">{selectedScholarship.fundingType}</p>
-                              </div>
-                              <div>
-                                <h4 className="font-medium text-gray-900">Deadline</h4>
-                                <p className="text-sm text-gray-600">{formatDeadline(selectedScholarship.applicationDeadline)}</p>
-                              </div>
-                              {selectedScholarship.studyLevels && (
-                                <div className="col-span-2">
-                                  <h4 className="font-medium text-gray-900">Study Levels</h4>
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    {selectedScholarship.studyLevels.map((level) => (
-                                      <Badge key={level} variant="outline" className="text-xs capitalize">
-                                        {level}
-                                      </Badge>
+                              
+                              <div className="grid md:grid-cols-2 gap-4">
+                                <div>
+                                  <h4 className="font-medium mb-2">Study Levels</h4>
+                                  <div className="flex flex-wrap gap-2">
+                                    {selectedScholarship.studyLevels?.map(level => (
+                                      <Badge key={level} variant="secondary">{level}</Badge>
                                     ))}
                                   </div>
                                 </div>
-                              )}
-                            </div>
-
-                            {selectedScholarship.fieldCategories && selectedScholarship.fieldCategories.length > 0 && (
-                              <div>
-                                <h4 className="font-medium text-gray-900 mb-2">Fields of Study</h4>
-                                <div className="flex flex-wrap gap-2">
-                                  {selectedScholarship.fieldCategories.map((field) => (
-                                    <Badge key={field} variant="secondary" className="text-xs">
-                                      {field}
-                                    </Badge>
-                                  ))}
+                                
+                                <div>
+                                  <h4 className="font-medium mb-2">Fields of Study</h4>
+                                  <div className="flex flex-wrap gap-2">
+                                    {selectedScholarship.specificFields?.map(field => (
+                                      <Badge key={field} variant="outline">{field}</Badge>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
-                            )}
-                          </div>
-                        </TabsContent>
-
-                        <TabsContent value="requirements" className="mt-4">
-                          <div className="space-y-4">
-                            {selectedScholarship.minGpa && (
-                              <div>
-                                <h4 className="font-medium text-gray-900">Minimum GPA</h4>
-                                <p className="text-sm text-gray-600">{selectedScholarship.minGpa}</p>
-                              </div>
-                            )}
+                            </TabsContent>
                             
-                            {selectedScholarship.minWorkExperience && (
-                              <div>
-                                <h4 className="font-medium text-gray-900">Work Experience</h4>
-                                <p className="text-sm text-gray-600">{selectedScholarship.minWorkExperience} years minimum</p>
-                              </div>
-                            )}
-
-                            {selectedScholarship.leadershipRequired && (
-                              <div>
-                                <h4 className="font-medium text-gray-900">Leadership Experience</h4>
-                                <p className="text-sm text-gray-600">Required</p>
-                              </div>
-                            )}
-
-                            {selectedScholarship.languageRequirements && selectedScholarship.languageRequirements.length > 0 && (
-                              <div>
-                                <h4 className="font-medium text-gray-900">Language Requirements</h4>
-                                <div className="text-sm text-gray-600">
-                                  {selectedScholarship.languageRequirements.map((req: any, index: number) => (
-                                    <p key={index}>{req.language?.toUpperCase()}: {req.level}</p>
+                            <TabsContent value="requirements" className="space-y-4">
+                              <div className="grid md:grid-cols-2 gap-6">
+                                <div>
+                                  <h4 className="font-medium mb-3">Academic Requirements</h4>
+                                  <ul className="space-y-2 text-sm">
+                                    <li>• Minimum GPA: {selectedScholarship.minGpa}</li>
+                                    <li>• Work Experience: {selectedScholarship.minWorkExperience || 0} years</li>
+                                    <li>• Leadership: {selectedScholarship.leadershipRequired ? 'Required' : 'Not Required'}</li>
+                                  </ul>
+                                </div>
+                                
+                                <div>
+                                  <h4 className="font-medium mb-3">Language Requirements</h4>
+                                  {selectedScholarship.languageRequirements?.map((req, index) => (
+                                    <p key={index} className="text-sm">
+                                      {req.test}: {req.minScore} minimum
+                                    </p>
                                   ))}
                                 </div>
                               </div>
-                            )}
-
-                            {selectedScholarship.documentsRequired && selectedScholarship.documentsRequired.length > 0 && (
+                              
                               <div>
-                                <h4 className="font-medium text-gray-900">Required Documents</h4>
-                                <ul className="text-sm text-gray-600 list-disc list-inside">
-                                  {selectedScholarship.documentsRequired.map((doc, index) => (
-                                    <li key={index}>{doc}</li>
+                                <h4 className="font-medium mb-3">Required Documents</h4>
+                                <ul className="grid md:grid-cols-2 gap-2">
+                                  {selectedScholarship.documentsRequired?.map(doc => (
+                                    <li key={doc} className="text-sm">• {doc}</li>
                                   ))}
                                 </ul>
                               </div>
-                            )}
-                          </div>
-                        </TabsContent>
+                            </TabsContent>
+                            
+                            <TabsContent value="benefits" className="space-y-4">
+                              <div className="grid md:grid-cols-2 gap-6">
+                                <div>
+                                  <h4 className="font-medium mb-3">Financial Coverage</h4>
+                                  <ul className="space-y-2 text-sm">
+                                    <li>• Tuition: {selectedScholarship.tuitionCoveragePercentage}</li>
+                                    <li>• Living Allowance: {formatAmount(selectedScholarship)}</li>
+                                    <li>• Duration: {selectedScholarship.durationValue} {selectedScholarship.durationUnit}</li>
+                                    <li>• Renewable: {selectedScholarship.renewable ? 'Yes' : 'No'}</li>
+                                  </ul>
+                                </div>
+                                
+                                <div>
+                                  <h4 className="font-medium mb-3">Additional Benefits</h4>
+                                  <ul className="space-y-2 text-sm">
+                                    <li>• Research opportunities</li>
+                                    <li>• Networking access</li>
+                                    <li>• Career development</li>
+                                    <li>• Alumni network</li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </TabsContent>
+                            
+                            <TabsContent value="application" className="space-y-4">
+                              <div className="grid md:grid-cols-2 gap-6">
+                                <div>
+                                  <h4 className="font-medium mb-3">Application Details</h4>
+                                  <ul className="space-y-2 text-sm">
+                                    <li>• Deadline: {formatDeadline(selectedScholarship.applicationDeadline)}</li>
+                                    <li>• Acceptance Rate: {selectedScholarship.acceptanceRate}</li>
+                                    <li>• Difficulty: {selectedScholarship.difficultyLevel}</li>
+                                  </ul>
+                                </div>
+                                
+                                <div>
+                                  <h4 className="font-medium mb-3">Apply Now</h4>
+                                  <Button asChild className="w-full">
+                                    <a href={selectedScholarship.applicationUrl} target="_blank" rel="noopener noreferrer">
+                                      Visit Application Portal
+                                      <ExternalLink className="ml-2 h-4 w-4" />
+                                    </a>
+                                  </Button>
+                                </div>
+                              </div>
+                            </TabsContent>
+                          </Tabs>
+                        </div>
 
-                        <TabsContent value="benefits" className="mt-4">
-                          <div className="space-y-4">
-                            <div>
-                              <h4 className="font-medium text-gray-900">Financial Coverage</h4>
-                              <p className="text-sm text-gray-600">{formatAmount(selectedScholarship)}</p>
+                        <div className="space-y-6">
+                          <Card className="p-4">
+                            <h3 className="font-semibold mb-3">Quick Stats</h3>
+                            <div className="space-y-3">
+                              <div className="flex justify-between">
+                                <span className="text-sm text-gray-600">Match Score</span>
+                                <Badge className={getMatchScoreColor(getMatchScore())}>
+                                  {getMatchScore()}%
+                                </Badge>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm text-gray-600">Funding Type</span>
+                                <span className="text-sm font-medium">{selectedScholarship.fundingType}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm text-gray-600">Provider Type</span>
+                                <span className="text-sm font-medium capitalize">{selectedScholarship.providerType}</span>
+                              </div>
                             </div>
+                          </Card>
 
-                            {selectedScholarship.tuitionCoveragePercentage && (
-                              <div>
-                                <h4 className="font-medium text-gray-900">Tuition Coverage</h4>
-                                <p className="text-sm text-gray-600">{selectedScholarship.tuitionCoveragePercentage}%</p>
+                          <Card className="p-4">
+                            <h3 className="font-semibold mb-3">Application Timeline</h3>
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-gray-400" />
+                                <span className="text-sm">{formatDeadline(selectedScholarship.applicationDeadline)}</span>
                               </div>
-                            )}
-
-                            {selectedScholarship.durationValue && selectedScholarship.durationUnit && (
-                              <div>
-                                <h4 className="font-medium text-gray-900">Duration</h4>
-                                <p className="text-sm text-gray-600">{selectedScholarship.durationValue} {selectedScholarship.durationUnit}</p>
-                              </div>
-                            )}
-
-                            {selectedScholarship.renewable && (
-                              <div>
-                                <h4 className="font-medium text-gray-900">Renewable</h4>
-                                <p className="text-sm text-gray-600">Yes</p>
-                              </div>
-                            )}
-                          </div>
-                        </TabsContent>
-
-                        <TabsContent value="application" className="mt-4">
-                          <div className="space-y-4">
-                            <div>
-                              <h4 className="font-medium text-gray-900">Application Deadline</h4>
-                              <p className="text-sm text-gray-600">{formatDeadline(selectedScholarship.applicationDeadline)}</p>
                             </div>
-
-                            {selectedScholarship.applicationUrl && (
-                              <div>
-                                <h4 className="font-medium text-gray-900 mb-2">Apply Now</h4>
-                                <Button asChild className="w-full">
-                                  <a 
-                                    href={selectedScholarship.applicationUrl} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="flex items-center justify-center gap-2"
-                                  >
-                                    Visit Application Portal
-                                    <ExternalLink className="h-4 w-4" />
-                                  </a>
-                                </Button>
-                              </div>
-                            )}
-
-                            {selectedScholarship.acceptanceRate && (
-                              <div>
-                                <h4 className="font-medium text-gray-900">Acceptance Rate</h4>
-                                <p className="text-sm text-gray-600">{selectedScholarship.acceptanceRate}%</p>
-                              </div>
-                            )}
-                          </div>
-                        </TabsContent>
-                      </Tabs>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card>
-                    <CardContent className="p-8 text-center">
-                      <div className="text-gray-500">
-                        <Filter className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <h3 className="text-lg font-medium mb-2">Select a scholarship</h3>
-                        <p className="text-sm">Click on any scholarship from the list to view detailed information</p>
+                          </Card>
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
+                    </Card>
+                  ) : (
+                    // List View
+                    scholarships.map((scholarship) => (
+                      <Card key={scholarship.scholarshipId} className="p-6 hover:shadow-lg transition-all cursor-pointer" onClick={() => setSelectedScholarship(scholarship)}>
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="text-xl font-semibold text-gray-900">{scholarship.name}</h3>
+                              <Badge className={getDifficultyColor(scholarship.difficultyLevel)}>
+                                {scholarship.difficultyLevel}
+                              </Badge>
+                            </div>
+                            
+                            <div className="flex items-center gap-4 text-gray-600 mb-3">
+                              <span className="flex items-center gap-1">
+                                <Building className="h-4 w-4" />
+                                {scholarship.providerName}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Globe className="h-4 w-4" />
+                                {scholarship.providerCountry}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-4 w-4" />
+                                {formatDeadline(scholarship.applicationDeadline)}
+                              </span>
+                            </div>
+                            
+                            <p className="text-gray-700 mb-4">{scholarship.description}</p>
+                            
+                            <div className="flex flex-wrap gap-2 mb-4">
+                              {scholarship.studyLevels?.slice(0, 3).map(level => (
+                                <Badge key={level} variant="secondary">{level}</Badge>
+                              ))}
+                              {scholarship.specificFields?.slice(0, 2).map(field => (
+                                <Badge key={field} variant="outline">{field}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="text-right ml-6">
+                            <Badge className={`mb-2 ${getMatchScoreColor(getMatchScore())}`}>
+                              {getMatchScore()}% Match
+                            </Badge>
+                            <div className="text-lg font-semibold text-gray-900">
+                              {formatAmount(scholarship)}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {scholarship.fundingType}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between pt-4 border-t">
+                          <div className="flex items-center gap-4 text-sm text-gray-600">
+                            <span>Acceptance: {scholarship.acceptanceRate}</span>
+                            <span>Duration: {scholarship.durationValue} {scholarship.durationUnit}</span>
+                          </div>
+                          
+                          <Button variant="ghost" size="sm">
+                            View Details
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </div>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
