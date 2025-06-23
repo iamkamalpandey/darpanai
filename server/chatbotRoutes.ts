@@ -43,6 +43,109 @@ interface ScholarshipMatch {
   matchReasons: string[];
 }
 
+// Analyze conversation context for personalized responses
+function analyzeConversationContext(conversationHistory: any[], userProfile: UserProfile) {
+  const recentMessages = conversationHistory.slice(-10);
+  const userMessages = recentMessages.filter(msg => msg.type === 'user');
+  const botMessages = recentMessages.filter(msg => msg.type === 'bot');
+  
+  const discussedTopics = [];
+  const userContent = userMessages.map(msg => msg.content.toLowerCase()).join(' ');
+  
+  if (userContent.includes('scholarship')) discussedTopics.push('scholarships');
+  if (userContent.includes('engineering') || userContent.includes('computer')) discussedTopics.push('engineering');
+  if (userContent.includes('business') || userContent.includes('management')) discussedTopics.push('business');
+  if (userContent.includes('medicine') || userContent.includes('health')) discussedTopics.push('medicine');
+  if (userContent.includes('country') || userContent.includes('australia') || userContent.includes('canada')) discussedTopics.push('countries');
+  if (userContent.includes('funding') || userContent.includes('cost') || userContent.includes('financial')) discussedTopics.push('financial');
+  
+  return {
+    discussedTopics,
+    isFollowUp: conversationHistory.length > 4,
+    conversationLength: recentMessages.length,
+    hasProfileData: !!(userProfile.fieldOfStudy || userProfile.interestedCourse || userProfile.preferredCountries?.length),
+    lastUserQuery: userMessages[userMessages.length - 1]?.content || '',
+    recentContext: userMessages.slice(-3).map(msg => msg.content).join(' ')
+  };
+}
+
+// Enhanced response generation with conversation context
+function generateContextualResponse(
+  message: string, 
+  userProfile: UserProfile, 
+  scholarships: ScholarshipMatch[], 
+  analysis: any,
+  conversationContext?: any
+): string {
+  const hasScholarships = scholarships.length > 0;
+  const topMatch = scholarships[0];
+  
+  // Context-aware opening
+  let response = "";
+  
+  if (conversationContext?.isFollowUp && conversationContext.discussedTopics.includes('scholarships')) {
+    response = "Based on our conversation, here are more scholarship opportunities that match your interests:\n\n";
+  } else if (userProfile.fieldOfStudy || userProfile.interestedCourse) {
+    const field = userProfile.fieldOfStudy || userProfile.interestedCourse;
+    response = `Great! I found ${scholarships.length} scholarship${scholarships.length !== 1 ? 's' : ''} relevant to ${field}:\n\n`;
+  } else {
+    response = `I found ${scholarships.length} scholarship${scholarships.length !== 1 ? 's' : ''} that match your query:\n\n`;
+  }
+  
+  if (hasScholarships) {
+    scholarships.slice(0, 3).forEach((scholarship, index) => {
+      response += `${index + 1}. **${scholarship.name}** (${scholarship.matchScore}% match)\n`;
+      response += `   • Provider: ${scholarship.providerName}, ${scholarship.providerCountry}\n`;
+      response += `   • Funding: ${scholarship.fundingType} - ${scholarship.totalValueMax}\n`;
+      response += `   • Deadline: ${scholarship.applicationDeadline}\n`;
+      if (scholarship.matchReasons.length > 0) {
+        response += `   • Why it matches: ${scholarship.matchReasons[0]}\n`;
+      }
+      response += `\n`;
+    });
+    
+    // Context-aware follow-up suggestions
+    if (conversationContext?.discussedTopics.includes('countries') && userProfile.preferredCountries?.length) {
+      response += `\nI notice you're interested in ${userProfile.preferredCountries.slice(0, 2).join(' and ')}. Would you like me to find more opportunities specifically in these countries?`;
+    } else if (conversationContext?.discussedTopics.includes('engineering') || conversationContext?.discussedTopics.includes('business')) {
+      response += `\nWould you like me to find more specialized opportunities in your field, or do you need information about application processes?`;
+    } else {
+      response += `\nWould you like more details about any of these scholarships, or shall I search for opportunities with different criteria?`;
+    }
+  }
+  
+  return response;
+}
+
+function generateNoResultsResponse(
+  message: string, 
+  userProfile: UserProfile, 
+  analysis: any,
+  conversationContext?: any
+): string {
+  let response = "I couldn't find scholarships matching your exact criteria, but let me help you in other ways:\n\n";
+  
+  // Context-aware suggestions
+  if (conversationContext?.discussedTopics.includes('scholarships')) {
+    response += "Since we've been discussing scholarships, here are some suggestions:\n";
+    response += "• Try broadening your search criteria\n";
+    response += "• Consider related fields of study\n";
+    response += "• Look at different study levels\n\n";
+  }
+  
+  if (userProfile.fieldOfStudy || userProfile.interestedCourse) {
+    const field = userProfile.fieldOfStudy || userProfile.interestedCourse;
+    response += `For ${field} students, I recommend:\n`;
+    response += "• Checking government scholarships in your target countries\n";
+    response += "• Looking at university-specific funding opportunities\n";
+    response += "• Considering partial funding options\n\n";
+  }
+  
+  response += "Could you provide more details about your preferred study level, countries, or field of study? This will help me find better matches.";
+  
+  return response;
+}
+
 // Helper function to extract user intent and emotions
 function analyzeUserMessage(message: string): { intent: string; emotion: string; keywords: string[] } {
   const lowerMessage = message.toLowerCase();
