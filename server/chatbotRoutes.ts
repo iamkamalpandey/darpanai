@@ -200,29 +200,219 @@ async function findMatchingScholarships(userMessage: string, userProfile: UserPr
   }
 }
 
-// Generate natural language response based on scholarship database
-async function generateDarpanResponse(
+// Generate privacy-focused response using only user's own data
+async function generatePrivacyFocusedResponse(
   userMessage: string, 
   userProfile: UserProfile, 
   scholarships: ScholarshipMatch[],
-  conversationHistory: ChatMessage[]
-): Promise<{ message: string; metadata: any }> {
+  analysisContext: any,
+  includeAnalysisData: boolean = false
+): Promise<{ message: string; metadata: any; suggestAnalysisAccess?: boolean }> {
   
   const analysis = analyzeUserMessage(userMessage);
-  
-  // Natural language processing to generate database-driven responses
   let responseMessage = "";
   let emotion = 'supportive';
   let intent = 'guidance';
+  let suggestAnalysisAccess = false;
   
-  // Greeting responses
+  // Check if user wants to use their document analysis
+  if (userMessage.toLowerCase().includes('use my analysis') || 
+      userMessage.toLowerCase().includes('personalized') ||
+      userMessage.toLowerCase().includes('my documents') ||
+      userMessage.toLowerCase().includes('yes') && analysisContext.totalAnalyses > 0) {
+    includeAnalysisData = true;
+    responseMessage = "I'll now use your document analysis data for more personalized recommendations. ";
+  }
+  
+  // Greeting responses with analysis suggestion
   if (analysis.intent === 'general' && (userMessage.toLowerCase().includes('hello') || userMessage.toLowerCase().includes('hi') || userMessage.toLowerCase().includes('hey'))) {
-    responseMessage = "Hello! I'm Darpan AI, your scholarship guidance assistant. I'm here to help you discover scholarship opportunities from our comprehensive database. What field of study are you interested in?";
+    responseMessage = "Hello! I'm Darpan AI, your scholarship guidance assistant. I help you find scholarships from our database using only your personal information. ";
+    
+    if (analysisContext.totalAnalyses > 0) {
+      responseMessage += `I see you have ${analysisContext.totalAnalyses} document analysis in your account. Would you like me to use this for more personalized recommendations? `;
+      suggestAnalysisAccess = true;
+    }
+    
+    responseMessage += "What field of study are you interested in?";
     emotion = 'supportive';
     intent = 'greeting';
   }
   
-  // Scholarship search responses
+  // Scholarship search with privacy focus
+  else if (analysis.intent === 'scholarship_search' || scholarships.length > 0) {
+    if (scholarships.length > 0) {
+      responseMessage = `I found ${scholarships.length} scholarship matches in our database based on your profile:\n\n`;
+      
+      scholarships.forEach((scholarship, index) => {
+        responseMessage += `${index + 1}. ${scholarship.name}\n`;
+        responseMessage += `   Provider: ${scholarship.providerName} (${scholarship.providerCountry})\n`;
+        responseMessage += `   Funding: ${scholarship.fundingType}\n`;
+        if (scholarship.totalValueMax) {
+          responseMessage += `   Value: Up to ${scholarship.totalValueMax}\n`;
+        }
+        if (scholarship.applicationDeadline) {
+          const deadline = new Date(scholarship.applicationDeadline);
+          responseMessage += `   Deadline: ${deadline.toLocaleDateString()}\n`;
+        }
+        responseMessage += `   Match Score: ${scholarship.matchScore}%\n\n`;
+      });
+      
+      if (includeAnalysisData && analysisContext.totalAnalyses > 0) {
+        responseMessage += `These matches consider your ${analysisContext.recentAnalysisTypes.join(', ')} analysis data. `;
+      } else if (analysisContext.totalAnalyses > 0 && !includeAnalysisData) {
+        responseMessage += "I can provide more targeted matches using your document analysis. Would you like me to access that? ";
+        suggestAnalysisAccess = true;
+      }
+      
+      responseMessage += "Need details about any scholarship?";
+      emotion = 'encouraging';
+      intent = 'matching';
+    } else {
+      responseMessage = "No matches found in our database for your current criteria. ";
+      
+      if (!userProfile.interestedCourse) {
+        responseMessage += "What's your field of study? ";
+      }
+      if (!userProfile.preferredCountries || userProfile.preferredCountries.length === 0) {
+        responseMessage += "Which countries interest you? ";
+      }
+      if (!userProfile.highestQualification) {
+        responseMessage += "What's your academic level? ";
+      }
+      
+      if (analysisContext.totalAnalyses > 0 && !includeAnalysisData) {
+        responseMessage += "I can also use your document analysis for better matching. Should I access that? ";
+        suggestAnalysisAccess = true;
+      }
+      
+      emotion = 'supportive';
+      intent = 'guidance';
+    }
+  }
+  
+  // Default response
+  else {
+    responseMessage = "I'm Darpan AI. I find scholarships using only your personal data - never accessing other users' information. ";
+    
+    if (analysisContext.totalAnalyses > 0) {
+      responseMessage += `You have ${analysisContext.totalAnalyses} document analysis available for personalized matching. `;
+      suggestAnalysisAccess = true;
+    }
+    
+    responseMessage += "To help you, please share:\n• Your field of study\n• Academic level\n• Preferred countries\n\nI'll search our database for matching scholarships.";
+    emotion = 'supportive';
+    intent = 'guidance';
+  }
+  
+  return {
+    message: responseMessage,
+    metadata: { emotion, intent },
+    suggestAnalysisAccess
+  };
+}
+
+// Get user's cached personal data for chatbot context
+async function getUserPersonalContext(userId: number): Promise<any> {
+  try {
+    // Get user's basic profile data only - never access other users' data
+    const { db } = await import('./db');
+    const { users } = await import('../shared/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    
+    if (!user) return {};
+    
+    // Return only this user's personal data
+    return {
+      academicLevel: user.highestQualification,
+      fieldOfStudy: user.interestedCourse,
+      preferredCountries: user.preferredCountries || [],
+      budgetRange: user.budgetRange,
+      nationality: user.nationality,
+      highestQualification: user.highestQualification
+    };
+  } catch (error) {
+    console.error('[User Context] Error:', error);
+    return {};
+  }
+}
+
+// Get user's analysis data for enhanced personalization (only their own data)
+async function getUserAnalysisContext(userId: number): Promise<any> {
+  try {
+    const { db } = await import('./db');
+    const { analyses, offerLetterAnalyses } = await import('../shared/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    // Get only this user's analyses - never access other users' data
+    const userAnalyses = await db.select().from(analyses).where(eq(analyses.userId, userId));
+    const userOfferLetters = await db.select().from(offerLetterAnalyses).where(eq(offerLetterAnalyses.userId, userId));
+    
+    return {
+      hasVisaAnalysis: userAnalyses.length > 0,
+      hasOfferLetterAnalysis: userOfferLetters.length > 0,
+      hasCoeAnalysis: false, // Simplified for now
+      totalAnalyses: userAnalyses.length + userOfferLetters.length,
+      recentAnalysisTypes: [
+        ...(userAnalyses.length > 0 ? ['visa'] : []),
+        ...(userOfferLetters.length > 0 ? ['offer_letter'] : [])
+      ]
+    };
+  } catch (error) {
+    console.error('[Analysis Context] Error:', error);
+    return {
+      hasVisaAnalysis: false,
+      hasOfferLetterAnalysis: false,
+      hasCoeAnalysis: false,
+      totalAnalyses: 0,
+      recentAnalysisTypes: []
+    };
+  }
+}
+
+// Enhanced response generator with optional analysis context
+async function generateEnhancedDarpanResponse(
+  userMessage: string,
+  userProfile: UserProfile,
+  scholarships: ScholarshipMatch[],
+  analysisContext: any,
+  includeAnalysisData: boolean = false
+): Promise<{ message: string; metadata: any; suggestAnalysisAccess?: boolean }> {
+  
+  const analysis = analyzeUserMessage(userMessage);
+  let responseMessage = "";
+  let emotion = 'supportive';
+  let intent = 'guidance';
+  let suggestAnalysisAccess = false;
+  
+  // Check if user wants to access their analysis data for personalization
+  if (userMessage.toLowerCase().includes('use my analysis') || 
+      userMessage.toLowerCase().includes('personalized') ||
+      userMessage.toLowerCase().includes('my documents')) {
+    if (analysisContext.totalAnalyses > 0) {
+      includeAnalysisData = true;
+      responseMessage = "I can now access your document analysis data to provide more personalized scholarship recommendations. ";
+    } else {
+      responseMessage = "I don't see any document analyses in your account yet. You can upload documents for analysis to get more personalized recommendations. ";
+    }
+  }
+  
+  // Greeting responses
+  if (analysis.intent === 'general' && (userMessage.toLowerCase().includes('hello') || userMessage.toLowerCase().includes('hi') || userMessage.toLowerCase().includes('hey'))) {
+    responseMessage = "Hello! I'm Darpan AI, your scholarship guidance assistant. I'm here to help you discover scholarship opportunities from our comprehensive database. ";
+    
+    if (analysisContext.totalAnalyses > 0) {
+      responseMessage += `I see you have ${analysisContext.totalAnalyses} document analysis${analysisContext.totalAnalyses > 1 ? 'es' : ''} in your account. Would you like me to use this data for more personalized scholarship recommendations? `;
+      suggestAnalysisAccess = true;
+    }
+    
+    responseMessage += "What field of study are you interested in?";
+    emotion = 'supportive';
+    intent = 'greeting';
+  }
+  
+  // Enhanced scholarship search with analysis context
   else if (analysis.intent === 'scholarship_search' || scholarships.length > 0) {
     if (scholarships.length > 0) {
       responseMessage = `Great news! I found ${scholarships.length} scholarship${scholarships.length > 1 ? 's' : ''} in our database that match your criteria:\n\n`;
@@ -241,7 +431,15 @@ async function generateDarpanResponse(
         responseMessage += `   • Match Score: ${scholarship.matchScore}%\n\n`;
       });
       
-      responseMessage += "Would you like more details about any of these scholarships, or shall I search for additional opportunities?";
+      // Suggest using analysis data for better matching
+      if (includeAnalysisData && analysisContext.totalAnalyses > 0) {
+        responseMessage += `Based on your ${analysisContext.recentAnalysisTypes.join(', ')} document analysis, I can provide more targeted recommendations. `;
+      } else if (analysisContext.totalAnalyses > 0 && !includeAnalysisData) {
+        responseMessage += "Would you like me to use your document analysis data for more personalized matching? ";
+        suggestAnalysisAccess = true;
+      }
+      
+      responseMessage += "Would you like more details about any of these scholarships?";
       emotion = 'encouraging';
       intent = 'matching';
     } else {
@@ -257,15 +455,24 @@ async function generateDarpanResponse(
         responseMessage += "What's your academic level (Bachelor's, Master's, PhD)? ";
       }
       
+      if (analysisContext.totalAnalyses > 0 && !includeAnalysisData) {
+        responseMessage += "I can also use your document analysis data for more accurate matching. Would you like me to access that information? ";
+        suggestAnalysisAccess = true;
+      }
+      
       responseMessage += "This information will help me find better matches in our database.";
       emotion = 'supportive';
       intent = 'guidance';
     }
   }
   
-  // Academic information requests
+  // Academic information with analysis enhancement
   else if (analysis.intent === 'academic_info') {
     responseMessage = "I can help you find scholarships based on your academic background. Our database includes opportunities for various fields of study and academic levels. ";
+    
+    if (includeAnalysisData && analysisContext.hasCoeAnalysis) {
+      responseMessage += "I can see from your COE analysis that you have specific academic requirements. ";
+    }
     
     if (analysis.keywords.length > 0) {
       responseMessage += `I noticed you mentioned ${analysis.keywords.join(', ')}. `;
@@ -276,37 +483,16 @@ async function generateDarpanResponse(
     intent = 'guidance';
   }
   
-  // Destination information
-  else if (analysis.intent === 'destination_info') {
-    responseMessage = "Our scholarship database includes opportunities across many countries. ";
-    
-    if (analysis.keywords.some(k => ['usa', 'canada', 'uk', 'australia', 'germany'].includes(k))) {
-      const mentionedCountries = analysis.keywords.filter(k => ['usa', 'canada', 'uk', 'australia', 'germany'].includes(k));
-      responseMessage += `I see you're interested in ${mentionedCountries.join(', ')}. `;
-    }
-    
-    responseMessage += "Which countries are you most interested in for your studies? I can search for scholarships specifically available in those regions.";
-    emotion = 'supportive';
-    intent = 'guidance';
-  }
-  
-  // Help and guidance requests
-  else if (analysis.intent === 'guidance_needed') {
-    if (analysis.emotion === 'concerned') {
-      responseMessage = "I understand that searching for scholarships can feel overwhelming, but you're taking the right step by seeking help. ";
-      emotion = 'empathetic';
-    } else {
-      responseMessage = "I'm here to guide you through finding the right scholarships. ";
-      emotion = 'supportive';
-    }
-    
-    responseMessage += "Let's start with the basics: What field are you studying? What's your academic level? And which countries interest you? With this information, I can search our database for the best matches.";
-    intent = 'guidance';
-  }
-  
-  // Default response for unclear messages
+  // Default response
   else {
-    responseMessage = "I'm Darpan AI, and I'm here to help you find scholarships from our comprehensive database. To provide you with the most relevant opportunities, could you tell me:\n\n";
+    responseMessage = "I'm Darpan AI, and I'm here to help you find scholarships from our comprehensive database. ";
+    
+    if (analysisContext.totalAnalyses > 0) {
+      responseMessage += `I see you have ${analysisContext.totalAnalyses} document analysis${analysisContext.totalAnalyses > 1 ? 'es' : ''} that could help me provide more personalized recommendations. `;
+      suggestAnalysisAccess = true;
+    }
+    
+    responseMessage += "To provide you with the most relevant opportunities, could you tell me:\n\n";
     responseMessage += "• Your field of study\n";
     responseMessage += "• Your academic level (Bachelor's, Master's, PhD)\n";
     responseMessage += "• Your preferred study destinations\n\n";
@@ -317,14 +503,16 @@ async function generateDarpanResponse(
   
   return {
     message: responseMessage,
-    metadata: { emotion, intent }
+    metadata: { emotion, intent },
+    suggestAnalysisAccess
   };
 }
 
 // Main chatbot endpoint
 router.post("/scholarship-match", requireAuth, async (req: Request, res: Response) => {
   try {
-    const { message, conversationHistory = [], userProfile = {} } = req.body;
+    const { message, conversationHistory = [], includeAnalysisData = false } = req.body;
+    const userId = (req.user as any).id;
     
     if (!message || typeof message !== 'string') {
       return res.status(400).json({
@@ -333,17 +521,24 @@ router.post("/scholarship-match", requireAuth, async (req: Request, res: Respons
       });
     }
     
-    console.log(`[Scholarship Chatbot] Processing message: "${message.substring(0, 100)}..."`);
+    console.log(`[Scholarship Chatbot] Processing message for user ${userId}: "${message.substring(0, 100)}..."`);
     
-    // Find matching scholarships
-    const scholarships = await findMatchingScholarships(message, userProfile);
+    // Get user's personal context (only their own data)
+    const userPersonalContext = await getUserPersonalContext(userId);
     
-    // Generate natural language response based on database
-    const aiResponse = await generateDarpanResponse(
+    // Get user's analysis context (only their own data)
+    const analysisContext = await getUserAnalysisContext(userId);
+    
+    // Find matching scholarships using only this user's data
+    const scholarships = await findMatchingScholarships(message, userPersonalContext);
+    
+    // Generate privacy-focused response using only user's own data
+    const aiResponse = await generatePrivacyFocusedResponse(
       message, 
-      userProfile, 
+      userPersonalContext, 
       scholarships, 
-      conversationHistory
+      analysisContext,
+      includeAnalysisData
     );
     
     res.json({
@@ -351,6 +546,11 @@ router.post("/scholarship-match", requireAuth, async (req: Request, res: Respons
       message: aiResponse.message,
       scholarships: scholarships,
       metadata: aiResponse.metadata,
+      suggestAnalysisAccess: aiResponse.suggestAnalysisAccess || false,
+      analysisContext: {
+        hasData: analysisContext.totalAnalyses > 0,
+        types: analysisContext.recentAnalysisTypes
+      },
       timestamp: new Date().toISOString()
     });
     
