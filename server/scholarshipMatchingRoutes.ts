@@ -73,11 +73,24 @@ router.post("/match", requireAuth, async (req: Request, res: Response) => {
     // Filter scholarships by academic progression and calculate match scores
     const eligibleScholarships = searchResults.scholarships.filter((scholarship: any) => {
       // Filter by academic level progression using correct field name
-      const scholarshipLevels = Array.isArray(scholarship.study_levels) 
-        ? scholarship.study_levels 
-        : (scholarship.study_levels ? [scholarship.study_levels] : []);
+      const scholarshipLevels = Array.isArray(scholarship.studyLevels) 
+        ? scholarship.studyLevels 
+        : (scholarship.studyLevels ? [scholarship.studyLevels] : []);
       
-      return scholarshipLevels.some((level: string) => eligibleLevels.includes(level));
+      // Map database values to progression logic
+      const levelMapping = {
+        'high-school': ['High School', 'Secondary Education'],
+        'diploma': ['Diploma', 'Associate Degree'],
+        'bachelor': ["Bachelor's Degree", 'Undergraduate'],
+        'masters': ["Master's Degree", 'Graduate', 'Postgraduate'],
+        'phd': ['PhD', 'Doctorate', 'Doctoral'],
+        'postdoc': ['Postdoctoral', 'Post-doctoral']
+      };
+      
+      return scholarshipLevels.some((dbLevel: string) => {
+        const mappedLevels = levelMapping[dbLevel.toLowerCase() as keyof typeof levelMapping] || [dbLevel];
+        return mappedLevels.some((mappedLevel: string) => eligibleLevels.includes(mappedLevel));
+      });
     });
 
     // Calculate match scores and add reasons

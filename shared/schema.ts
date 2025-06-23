@@ -309,6 +309,17 @@ export const userUpdateViews = pgTable("user_update_views", {
   actionTaken: boolean("action_taken").default(false).notNull(),
 });
 
+// Scholarship Watchlist
+export const scholarship_watchlist = pgTable("scholarship_watchlist", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").references(() => users.id).notNull(),
+  scholarship_id: integer("scholarship_id").notNull(),
+  added_date: timestamp("added_date").defaultNow().notNull(),
+  notes: text("notes"),
+  priority_level: text("priority_level").default("medium").notNull(),
+  application_status: text("application_status").default("not_started").notNull(),
+});
+
 // Offer Letter Documents - Raw document storage
 export const offerLetterDocuments = pgTable("offer_letter_documents", {
   id: serial("id").primaryKey(),
