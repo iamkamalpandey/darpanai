@@ -33,13 +33,14 @@ router.post("/match", requireAuth, async (req: Request, res: Response) => {
       });
     }
 
-    // Enhanced academic level progression logic
+    // Intelligent academic level progression logic
     const getEligibleAcademicLevels = (userLevel: string) => {
       const levelMap: { [key: string]: string[] } = {
-        'High School': ["Bachelor's Degree", "Foundation Program", "Diploma"],
-        "Bachelor's Degree": ["Master's Degree", "Bachelor's Degree", "Postgraduate Diploma", "MBA"],
-        "Master's Degree": ["Master's Degree", "PhD", "Doctoral Program", "Postgraduate Research"],
-        'PhD': ["PhD", "Postdoctoral Research", "Research Fellowship"]
+        'High School': ["Diploma", "Bachelor's Degree"],
+        'Diploma': ["Diploma", "Bachelor's Degree", "Master's Degree"],
+        "Bachelor's Degree": ["Bachelor's Degree", "Master's Degree", "PhD"],
+        "Master's Degree": ["Master's Degree", "PhD"],
+        'PhD': ["PhD", "Postdoctoral Research"]
       };
       return levelMap[userLevel] || [userLevel];
     };
@@ -60,29 +61,30 @@ router.post("/match", requireAuth, async (req: Request, res: Response) => {
 
     console.log('[Scholarship Matching] Enhanced Criteria:', matchingCriteria);
 
-    // Enhanced scholarship search with broader criteria
-    const searchResults = await scholarshipStorage.searchScholarships({
+    // Intelligent scholarship search with mandatory filters
+    const currentDate = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
+    
+    const searchResults = await scholarshipStorage.searchScholarshipsWithIntelligentFilters({
       search: matchingCriteria.fieldOfStudy || '',
-      providerCountry: '', // Allow all countries initially
+      eligibleLevels: eligibleLevels,
+      userBachelorField: user.fieldOfStudy || user.interestedCourse,
+      userPreferredCourses: user.interestedCourse ? [user.interestedCourse] : [],
+      currentDate: currentDate,
       fundingType: filters.fundingTypeFilter || '',
-      limit: 100, // Increased limit for better matching
+      nationality: user.nationality,
+      limit: 100,
       offset: 0
     });
 
-    // Calculate match scores and reasons for each scholarship
-    const matchedScholarships = searchResults.scholarships.map(scholarship => {
-      const { score, reasons } = calculateMatchScore(scholarship, matchingCriteria);
-      
-      return {
-        ...scholarship,
-        matchScore: score,
-        matchReasons: reasons
-      };
-    });
+    // Scholarships already have match scores from intelligent filtering
+    const matchedScholarships = searchResults.scholarships.map((scholarship: any) => ({
+      ...scholarship,
+      matchReasons: getMatchReasons(scholarship, matchingCriteria)
+    }));
 
     // Sort by match score (highest first) and take top matches
     const topMatches = matchedScholarships
-      .sort((a, b) => b.matchScore - a.matchScore)
+      .sort((a: any, b: any) => (b.matchScore || 70) - (a.matchScore || 70))
       .slice(0, 20);
 
     res.json({

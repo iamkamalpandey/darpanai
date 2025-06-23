@@ -5,6 +5,150 @@ import type { ScholarshipSearch, Scholarship, ScholarshipSearchResponse, Scholar
 
 export class ScholarshipStorage {
   
+  // Intelligent scholarship search with mandatory filtering system
+  async searchScholarshipsWithIntelligentFilters(params: {
+    search: string;
+    eligibleLevels: string[];
+    userBachelorField?: string;
+    userPreferredCourses: string[];
+    currentDate: string;
+    fundingType?: string;
+    nationality?: string;
+    limit: number;
+    offset: number;
+  }): Promise<ScholarshipSearchResponse> {
+    try {
+      const { 
+        search, 
+        eligibleLevels, 
+        userBachelorField, 
+        userPreferredCourses, 
+        currentDate, 
+        fundingType, 
+        nationality,
+        limit, 
+        offset 
+      } = params;
+
+      // Mandatory filters - always applied
+      const mandatoryConditions = [
+        // Deadline filter: exclude scholarships with deadlines before current date
+        sql`${scholarships.applicationDeadline} > ${currentDate}`,
+        // Academic level filter: progressive qualification matching
+        sql`${scholarships.studyLevels}::jsonb ?| array[${eligibleLevels.map(level => `'${level}'`).join(',')}]`
+      ];
+
+      // Course relevance filter
+      const courseRelevanceConditions = [];
+      if (userBachelorField) {
+        courseRelevanceConditions.push(
+          sql`${scholarships.fieldCategories}::text ILIKE ${'%' + userBachelorField + '%'}`
+        );
+      }
+      if (userPreferredCourses.length > 0) {
+        userPreferredCourses.forEach(course => {
+          courseRelevanceConditions.push(
+            or(
+              sql`${scholarships.fieldCategories}::text ILIKE ${'%' + course + '%'}`,
+              ilike(scholarships.description, `%${course}%`)
+            )
+          );
+        });
+      }
+
+      // Optional filters
+      const optionalConditions = [];
+      if (fundingType && fundingType !== 'all') {
+        optionalConditions.push(eq(scholarships.fundingType, fundingType));
+      }
+
+      // Build final conditions
+      const allConditions = [
+        ...mandatoryConditions,
+        ...(courseRelevanceConditions.length > 0 ? [or(...courseRelevanceConditions)] : []),
+        ...optionalConditions
+      ];
+
+      // Execute query with relevance scoring
+      const whereClause = allConditions.length > 0 ? and(...allConditions) : undefined;
+      
+      const results = await db
+        .select()
+        .from(scholarships)
+        .where(whereClause)
+        .orderBy(
+          desc(scholarships.applicationDeadline), // Closest deadlines first
+          desc(scholarships.totalValueMax) // Higher value scholarships first
+        )
+        .limit(limit)
+        .offset(offset);
+
+      // Count total matching scholarships
+      const totalCountQuery = await db
+        .select({ count: count() })
+        .from(scholarships)
+        .where(whereClause);
+
+      const totalScholarships = totalCountQuery[0]?.count || 0;
+
+      // Calculate relevance scores
+      const scholarshipsWithScore = results.map(scholarship => ({
+        ...scholarship,
+        matchScore: this.calculateRelevanceScore(scholarship, {
+          userBachelorField,
+          userPreferredCourses,
+          eligibleLevels
+        })
+      }));
+
+      return {
+        scholarships: scholarshipsWithScore,
+        total: totalScholarships
+      };
+
+    } catch (error) {
+      console.error('[ScholarshipStorage] Error in intelligent search:', error);
+      throw new Error(`Failed to search scholarships: ${error.message}`);
+    }
+  }
+
+  // Calculate relevance score for scholarship matching
+  private calculateRelevanceScore(
+    scholarship: any, 
+    userContext: {
+      userBachelorField?: string;
+      userPreferredCourses: string[];
+      eligibleLevels: string[];
+    }
+  ): number {
+    let score = 70; // Base score
+
+    // Field relevance scoring (30 points max)
+    if (userContext.userBachelorField) {
+      const fieldMatch = scholarship.fieldCategory?.toLowerCase().includes(userContext.userBachelorField.toLowerCase());
+      if (fieldMatch) score += 20;
+    }
+
+    // Preferred course matching (15 points max)
+    userContext.userPreferredCourses.forEach(course => {
+      const courseMatch = scholarship.fieldCategory?.toLowerCase().includes(course.toLowerCase()) ||
+                         scholarship.description?.toLowerCase().includes(course.toLowerCase());
+      if (courseMatch) score += 8;
+    });
+
+    // Academic level exact match (10 points max)
+    if (userContext.eligibleLevels.includes(scholarship.studyLevel)) {
+      score += 10;
+    }
+
+    // Funding value bonus (5 points max)
+    if (scholarship.totalValueMax && parseInt(scholarship.totalValueMax) > 10000) {
+      score += 5;
+    }
+
+    return Math.min(100, Math.max(70, score));
+  }
+  
   // Search scholarships with comprehensive filtering
   async searchScholarships(searchParams: ScholarshipSearch): Promise<ScholarshipSearchResponse> {
     try {
