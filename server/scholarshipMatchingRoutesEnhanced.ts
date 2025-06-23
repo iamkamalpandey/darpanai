@@ -11,13 +11,13 @@ const requireAuth = (req: Request, res: Response, next: any) => {
   next();
 };
 
-// Enhanced academic level progression with stricter filtering
+// Enhanced academic level progression with stricter filtering - proper academic progression
 const getEligibleAcademicLevels = (userLevel: string): string[] => {
   const levelHierarchy: { [key: string]: string[] } = {
     'High School': ["Diploma", "Bachelor's Degree"],
-    'Diploma': ["Diploma", "Bachelor's Degree", "Master's Degree"], 
-    "Bachelor's Degree": ["Bachelor's Degree", "Master's Degree", "PhD"],
-    "Master's Degree": ["Master's Degree", "PhD", "Postdoctoral Research"],
+    'Diploma': ["Diploma", "Bachelor's Degree"], 
+    "Bachelor's Degree": ["Bachelor's Degree", "Master's Degree"],
+    "Master's Degree": ["Master's Degree", "PhD"],
     'PhD': ["PhD", "Postdoctoral Research"]
   };
   

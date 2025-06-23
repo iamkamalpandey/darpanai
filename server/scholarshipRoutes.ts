@@ -153,7 +153,7 @@ router.get("/countries-with-scholarships", async (req: Request, res: Response) =
       code: row.country_code,
       name: countryMapping[row.country_code] || row.country_code,
       scholarshipCount: parseInt(row.scholarship_count),
-      displayName: `${countryMapping[row.country_code] || row.country_code} (${row.scholarship_count})`
+      displayName: countryMapping[row.country_code] || row.country_code
     }));
     
     res.json({
