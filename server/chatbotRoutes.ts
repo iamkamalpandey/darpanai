@@ -200,7 +200,210 @@ async function findMatchingScholarships(userMessage: string, userProfile: UserPr
   }
 }
 
-// Generate privacy-focused response using only user's own data
+// Intelligent analysis of user intent to determine what data is needed
+function analyzeUserIntent(message: string): {
+  intent: string;
+  needsUserProfile: boolean;
+  needsScholarshipData: boolean;
+  needsAnalysisData: boolean;
+  emotion: string;
+  responseType: string;
+} {
+  const lowerMessage = message.toLowerCase().trim();
+  
+  // Simple greetings - no data needed
+  if (lowerMessage.match(/^(hi|hello|hey|good morning|good afternoon|good evening)$/)) {
+    return {
+      intent: 'greeting',
+      needsUserProfile: false,
+      needsScholarshipData: false,
+      needsAnalysisData: false,
+      emotion: 'neutral',
+      responseType: 'greeting'
+    };
+  }
+  
+  // Help requests - minimal data needed
+  if (lowerMessage.includes('help') || lowerMessage.includes('what can you do') || lowerMessage.includes('how do you work')) {
+    return {
+      intent: 'help_request',
+      needsUserProfile: false,
+      needsScholarshipData: false,
+      needsAnalysisData: false,
+      emotion: 'neutral',
+      responseType: 'help'
+    };
+  }
+  
+  // General questions - no specific data needed
+  if (lowerMessage.startsWith('what is') || lowerMessage.startsWith('tell me about') || lowerMessage.startsWith('explain')) {
+    return {
+      intent: 'general_info',
+      needsUserProfile: false,
+      needsScholarshipData: false,
+      needsAnalysisData: false,
+      emotion: 'neutral',
+      responseType: 'information'
+    };
+  }
+  
+  // Personalized requests - needs analysis data
+  if (lowerMessage.includes('my analysis') || lowerMessage.includes('personalized') || lowerMessage.includes('my documents') || lowerMessage.includes('based on my profile')) {
+    return {
+      intent: 'personalized_request',
+      needsUserProfile: true,
+      needsScholarshipData: true,
+      needsAnalysisData: true,
+      emotion: 'neutral',
+      responseType: 'personalized'
+    };
+  }
+  
+  // Scholarship searches - needs scholarship database and user profile
+  if (lowerMessage.includes('scholarship') || lowerMessage.includes('funding') || lowerMessage.includes('grant') || lowerMessage.includes('financial aid')) {
+    return {
+      intent: 'scholarship_search',
+      needsUserProfile: true,
+      needsScholarshipData: true,
+      needsAnalysisData: false,
+      emotion: 'neutral',
+      responseType: 'search'
+    };
+  }
+  
+  // Academic/study queries - needs user profile and possibly scholarships
+  if (lowerMessage.includes('study') || lowerMessage.includes('degree') || lowerMessage.includes('course') || lowerMessage.includes('program')) {
+    const needsScholarships = lowerMessage.includes('scholarship') || lowerMessage.includes('funding');
+    return {
+      intent: 'academic_info',
+      needsUserProfile: true,
+      needsScholarshipData: needsScholarships,
+      needsAnalysisData: false,
+      emotion: 'neutral',
+      responseType: 'academic'
+    };
+  }
+  
+  // Country/destination queries
+  if (lowerMessage.includes('country') || lowerMessage.includes('destination') || lowerMessage.includes('where to study')) {
+    return {
+      intent: 'destination_info',
+      needsUserProfile: true,
+      needsScholarshipData: true,
+      needsAnalysisData: false,
+      emotion: 'neutral',
+      responseType: 'destination'
+    };
+  }
+  
+  // Emotional support needed
+  if (lowerMessage.includes('confused') || lowerMessage.includes('overwhelmed') || lowerMessage.includes('lost') || lowerMessage.includes('stressed')) {
+    return {
+      intent: 'guidance_needed',
+      needsUserProfile: true,
+      needsScholarshipData: false,
+      needsAnalysisData: false,
+      emotion: 'concerned',
+      responseType: 'support'
+    };
+  }
+  
+  // Default for other queries - minimal data access
+  return {
+    intent: 'general_query',
+    needsUserProfile: false,
+    needsScholarshipData: false,
+    needsAnalysisData: false,
+    emotion: 'neutral',
+    responseType: 'general'
+  };
+}
+
+// Generate intelligent response based on user intent and available data
+async function generateIntelligentResponse(
+  userMessage: string,
+  messageAnalysis: any,
+  userPersonalContext: any,
+  scholarships: any[],
+  analysisContext: any,
+  includeAnalysisData: boolean = false
+): Promise<{ message: string; metadata: any; suggestAnalysisAccess?: boolean }> {
+  
+  let responseMessage = "";
+  let emotion = messageAnalysis.emotion || 'supportive';
+  let intent = messageAnalysis.intent;
+  let suggestAnalysisAccess = false;
+  
+  switch (messageAnalysis.responseType) {
+    case 'greeting':
+      responseMessage = "Hello! I'm Darpan AI, your scholarship guidance assistant. I help you find scholarship opportunities from our comprehensive database. What would you like to know about scholarships or study abroad opportunities?";
+      if (analysisContext.totalAnalyses > 0) {
+        responseMessage += ` I can also provide personalized recommendations based on your ${analysisContext.totalAnalyses} document analysis${analysisContext.totalAnalyses > 1 ? 'es' : ''}.`;
+        suggestAnalysisAccess = true;
+      }
+      break;
+      
+    case 'help':
+      responseMessage = "I can help you with:\n\n• Finding scholarships from our database\n• Academic guidance for study abroad\n• Country recommendations\n• Personalized suggestions based on your profile\n\nJust ask me about any of these topics! For example, try 'Show me scholarships for engineering' or 'Which countries are good for computer science?'";
+      break;
+      
+    case 'search':
+      if (scholarships.length > 0) {
+        responseMessage = `I found ${scholarships.length} scholarship${scholarships.length > 1 ? 's' : ''} matching your query:\n\n`;
+        scholarships.forEach((scholarship, index) => {
+          responseMessage += `${index + 1}. **${scholarship.name}**\n`;
+          responseMessage += `   • Provider: ${scholarship.providerName} (${scholarship.providerCountry})\n`;
+          responseMessage += `   • Funding: ${scholarship.fundingType}\n`;
+          if (scholarship.totalValueMax) {
+            responseMessage += `   • Value: Up to ${scholarship.totalValueMax}\n`;
+          }
+          responseMessage += `   • Match Score: ${scholarship.matchScore}%\n\n`;
+        });
+        responseMessage += "Would you like more details about any of these scholarships?";
+      } else {
+        responseMessage = "I searched our scholarship database but didn't find matches for your specific criteria. Could you provide more details about your field of study, academic level, or preferred countries? This will help me find better matches.";
+      }
+      break;
+      
+    case 'personalized':
+      if (includeAnalysisData && analysisContext.totalAnalyses > 0) {
+        responseMessage = `Using your ${analysisContext.recentAnalysisTypes.join(', ')} analysis data for personalized recommendations:\n\n`;
+        if (scholarships.length > 0) {
+          scholarships.forEach((scholarship, index) => {
+            responseMessage += `${index + 1}. ${scholarship.name} - ${scholarship.matchScore}% match\n`;
+          });
+        } else {
+          responseMessage += "Based on your documents, I'm searching for the most suitable scholarships. Let me know your specific interests for targeted results.";
+        }
+      } else if (analysisContext.totalAnalyses > 0) {
+        responseMessage = `I see you have ${analysisContext.totalAnalyses} document analysis available. Would you like me to use this data for personalized scholarship recommendations?`;
+        suggestAnalysisAccess = true;
+      } else {
+        responseMessage = "For personalized recommendations, you can upload your documents for analysis first. This helps me understand your academic background and provide targeted scholarship suggestions.";
+      }
+      break;
+      
+    case 'support':
+      responseMessage = "I understand that searching for scholarships and planning study abroad can feel overwhelming. You're taking the right step by seeking guidance. Let's break this down into manageable steps:\n\n";
+      responseMessage += "1. First, tell me your field of study\n";
+      responseMessage += "2. Share your preferred countries or regions\n";
+      responseMessage += "3. Let me know your academic level\n\n";
+      responseMessage += "With this information, I can search our database for suitable opportunities and guide you through the process step by step.";
+      emotion = 'empathetic';
+      break;
+      
+    default:
+      responseMessage = "I'm Darpan AI, and I specialize in helping you find scholarships and study abroad opportunities. To provide you with the most relevant information, could you tell me what specific aspect you'd like help with? I can search scholarships, provide academic guidance, or offer country recommendations.";
+  }
+  
+  return {
+    message: responseMessage,
+    metadata: { emotion, intent },
+    suggestAnalysisAccess
+  };
+}
+
+// Legacy function for backward compatibility
 async function generatePrivacyFocusedResponse(
   userMessage: string, 
   userProfile: UserProfile, 
@@ -523,18 +726,33 @@ router.post("/scholarship-match", requireAuth, async (req: Request, res: Respons
     
     console.log(`[Scholarship Chatbot] Processing message for user ${userId}: "${message.substring(0, 100)}..."`);
     
-    // Get user's personal context (only their own data)
-    const userPersonalContext = await getUserPersonalContext(userId);
+    // First, analyze what the user is asking to determine data needs
+    const messageAnalysis = analyzeUserIntent(message);
     
-    // Get user's analysis context (only their own data)
-    const analysisContext = await getUserAnalysisContext(userId);
+    // Only fetch data that's actually needed based on user intent
+    let userPersonalContext = {};
+    let analysisContext = {};
+    let scholarships = [];
     
-    // Find matching scholarships using only this user's data
-    const scholarships = await findMatchingScholarships(message, userPersonalContext);
+    // Get user profile only if needed for the query
+    if (messageAnalysis.needsUserProfile) {
+      userPersonalContext = await getUserPersonalContext(userId);
+    }
     
-    // Generate privacy-focused response using only user's own data
-    const aiResponse = await generatePrivacyFocusedResponse(
+    // Get analysis context only if personalization is requested
+    if (messageAnalysis.needsAnalysisData || includeAnalysisData) {
+      analysisContext = await getUserAnalysisContext(userId);
+    }
+    
+    // Search scholarships only if the query is scholarship-related
+    if (messageAnalysis.needsScholarshipData) {
+      scholarships = await findMatchingScholarships(message, userPersonalContext);
+    }
+    
+    // Generate intelligent response based on user intent and available data
+    const aiResponse = await generateIntelligentResponse(
       message, 
+      messageAnalysis,
       userPersonalContext, 
       scholarships, 
       analysisContext,
