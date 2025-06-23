@@ -217,6 +217,11 @@ function setupGracefulShutdown(server: any) {
     app.use('/api/chatbot', chatbotRoutes.default);
     logWithLevel('✓ Chatbot routes registered successfully');
     
+    // Register scholarship matching routes
+    const { scholarshipMatchingRoutes } = await import('./scholarshipMatchingRoutes');
+    app.use('/api/scholarship-matching', scholarshipMatchingRoutes);
+    logWithLevel('✓ Scholarship matching routes registered successfully');
+    
     // Step 5: Setup error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
