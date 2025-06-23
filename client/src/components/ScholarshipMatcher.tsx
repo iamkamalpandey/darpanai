@@ -5,9 +5,10 @@ import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Loader2, Search, Filter, GraduationCap, MapPin, DollarSign, Calendar, Star, ExternalLink } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { Loader2, Search, Filter, GraduationCap, MapPin, DollarSign, Calendar, Star, ExternalLink, Heart, Plus, Check } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 interface ScholarshipMatch {
   id: number;
@@ -47,6 +48,10 @@ export function ScholarshipMatcher() {
   const [isMatching, setIsMatching] = useState(false);
   const [matchedScholarships, setMatchedScholarships] = useState<ScholarshipMatch[]>([]);
   const [filtersInitialized, setFiltersInitialized] = useState(false);
+  const [watchlistItems, setWatchlistItems] = useState<Set<number>>(new Set());
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch user profile for matching
   const { data: userData, isLoading: profileLoading } = useQuery({
@@ -55,7 +60,38 @@ export function ScholarshipMatcher() {
 
   const userProfile: UserProfile | null = userData || null;
 
-  // Initialize filters with user profile data
+  // Fetch user's watchlist
+  const { data: watchlistData } = useQuery({
+    queryKey: ['/api/watchlist'],
+    enabled: !!userData,
+  });
+
+  // Watchlist mutations
+  const addToWatchlistMutation = useMutation({
+    mutationFn: (scholarshipData: { scholarshipId: number; notes?: string; priorityLevel?: string }) =>
+      apiRequest('POST', '/api/watchlist/add', scholarshipData),
+    onSuccess: () => {
+      toast({ title: "Added to Watchlist", description: "Scholarship saved successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/watchlist'] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to add to watchlist", variant: "destructive" });
+    }
+  });
+
+  const removeFromWatchlistMutation = useMutation({
+    mutationFn: (scholarshipId: number) =>
+      apiRequest('DELETE', `/api/watchlist/remove/${scholarshipId}`),
+    onSuccess: () => {
+      toast({ title: "Removed from Watchlist", description: "Scholarship removed successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/watchlist'] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to remove from watchlist", variant: "destructive" });
+    }
+  });
+
+  // Initialize filters with user profile data and watchlist
   useEffect(() => {
     if (userProfile && !filtersInitialized) {
       setSearchFilters({
@@ -67,6 +103,32 @@ export function ScholarshipMatcher() {
       setFiltersInitialized(true);
     }
   }, [userProfile, filtersInitialized]);
+
+  // Update watchlist items when data changes
+  useEffect(() => {
+    if (watchlistData?.watchlist) {
+      const watchlistIds = new Set(watchlistData.watchlist.map((item: any) => item.scholarshipId));
+      setWatchlistItems(watchlistIds);
+    }
+  }, [watchlistData]);
+
+  // Watchlist actions
+  const handleWatchlistToggle = (scholarship: ScholarshipMatch) => {
+    if (watchlistItems.has(scholarship.id)) {
+      removeFromWatchlistMutation.mutate(scholarship.id);
+      setWatchlistItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(scholarship.id);
+        return newSet;
+      });
+    } else {
+      addToWatchlistMutation.mutate({
+        scholarshipId: scholarship.id,
+        priorityLevel: 'medium'
+      });
+      setWatchlistItems(prev => new Set(prev).add(scholarship.id));
+    }
+  };
 
   // Fetch scholarships based on user profile and filters
   const fetchMatchedScholarships = async () => {

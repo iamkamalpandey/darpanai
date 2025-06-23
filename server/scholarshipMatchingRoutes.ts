@@ -77,19 +77,27 @@ router.post("/match", requireAuth, async (req: Request, res: Response) => {
         ? scholarship.studyLevels 
         : (scholarship.studyLevels ? [scholarship.studyLevels] : []);
       
-      // Map database values to progression logic
-      const levelMapping = {
-        'high-school': ['High School', 'Secondary Education'],
-        'diploma': ['Diploma', 'Associate Degree'],
-        'bachelor': ["Bachelor's Degree", 'Undergraduate'],
-        'masters': ["Master's Degree", 'Graduate', 'Postgraduate'],
-        'phd': ['PhD', 'Doctorate', 'Doctoral'],
-        'postdoc': ['Postdoctoral', 'Post-doctoral']
-      };
-      
+      // Enhanced academic progression matching with flexible mapping
       return scholarshipLevels.some((dbLevel: string) => {
-        const mappedLevels = levelMapping[dbLevel.toLowerCase() as keyof typeof levelMapping] || [dbLevel];
-        return mappedLevels.some((mappedLevel: string) => eligibleLevels.includes(mappedLevel));
+        const level = dbLevel.toLowerCase();
+        
+        // Direct matching first
+        if (eligibleLevels.some(eligible => eligible.toLowerCase().includes(level) || level.includes(eligible.toLowerCase()))) {
+          return true;
+        }
+        
+        // Specific mappings for common variations
+        if (level === 'masters' && eligibleLevels.some(eligible => eligible.toLowerCase().includes('master'))) {
+          return true;
+        }
+        if (level === 'bachelor' && eligibleLevels.some(eligible => eligible.toLowerCase().includes('bachelor'))) {
+          return true;
+        }
+        if (level === 'phd' && eligibleLevels.some(eligible => eligible.toLowerCase().includes('phd') || eligible.toLowerCase().includes('doctorate'))) {
+          return true;
+        }
+        
+        return false;
       });
     });
 
