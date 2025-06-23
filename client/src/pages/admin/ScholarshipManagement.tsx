@@ -114,6 +114,7 @@ export default function ScholarshipManagement() {
       const result = await response.json();
       queryClient.invalidateQueries({ queryKey: ['admin-scholarships'] });
       queryClient.invalidateQueries({ queryKey: ['scholarship-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['scholarship-filter-options'] });
       
       toast({
         title: "Success",
