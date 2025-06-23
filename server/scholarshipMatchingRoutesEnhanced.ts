@@ -217,7 +217,7 @@ router.post("/match-enhanced", requireAuth, async (req: Request, res: Response) 
       });
     }
 
-    const userAcademicLevel = user.highestQualification;
+    const userAcademicLevel = user.highestQualification || "Bachelor's Degree";
     const eligibleLevels = getEligibleAcademicLevels(userAcademicLevel);
     const availableFilters = getAvailableFilters(userAcademicLevel, user);
     
@@ -229,23 +229,22 @@ router.post("/match-enhanced", requireAuth, async (req: Request, res: Response) 
       });
     }
 
-    // Build user field preferences
+    // Build user field preferences with null safety
     const userFields = [
       user.fieldOfStudy,
-      user.interestedCourse,
-      ...(user.preferredCourses || [])
-    ].filter(Boolean);
+      user.interestedCourse
+    ].filter((field): field is string => Boolean(field));
 
     // Enhanced search with stricter criteria
     const searchResults = await scholarshipStorage.searchScholarshipsWithIntelligentFilters({
       search: filters.searchQuery || '',
       eligibleLevels: eligibleLevels,
-      userBachelorField: user.fieldOfStudy,
+      userBachelorField: user.fieldOfStudy || '',
       userPreferredCourses: userFields,
       currentDate: new Date().toISOString().split('T')[0],
-      fundingType: filters.fundingTypeFilter,
-      nationality: user.nationality,
-      countryFilter: filters.countryFilter,
+      fundingType: filters.fundingTypeFilter || undefined,
+      nationality: user.nationality || '',
+      countryFilter: filters.countryFilter || undefined,
       limit: 50, // Get more for better filtering
       offset: 0
     });
