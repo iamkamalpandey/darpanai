@@ -245,7 +245,7 @@ router.post("/match-enhanced", requireAuth, async (req: Request, res: Response) 
       userPreferredCourses: userFields,
       currentDate: new Date().toISOString().split('T')[0],
       fundingType: filters.fundingTypeFilter || undefined,
-      nationality: countryFilter ? '' : (user.nationality || ''), // Only apply nationality when no country filter
+      nationality: '', // Don't apply nationality filtering in database query - handle it in post-processing
       countryFilter: countryFilter,
       limit: 50, // Get more for better filtering
       offset: 0
@@ -278,8 +278,8 @@ router.post("/match-enhanced", requireAuth, async (req: Request, res: Response) 
         // Check if scholarship is open to all countries (wildcard "*") or specific nationality
         const isEligibleByNationality = eligibleCountries.some((country: string) => 
           country === "*" || 
-          country.toLowerCase().includes(user.nationality.toLowerCase()) ||
-          user.nationality.toLowerCase().includes(country.toLowerCase())
+          country.toLowerCase().includes(user.nationality!.toLowerCase()) ||
+          user.nationality!.toLowerCase().includes(country.toLowerCase())
         );
         
         if (!isEligibleByNationality && eligibleCountries.length > 0) {
@@ -330,7 +330,7 @@ router.post("/match-enhanced", requireAuth, async (req: Request, res: Response) 
         userFields,
         eligibleLevels,
         userCountries: user.preferredCountries || [],
-        userNationality: user.nationality,
+        userNationality: user.nationality || '',
         fundingPreference: filters.fundingTypeFilter
       });
       

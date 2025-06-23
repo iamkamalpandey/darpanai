@@ -73,6 +73,7 @@ export class ScholarshipStorage {
       }
 
       // CRITICAL: Country filtering by hostCountries (where students actually study)
+      // ALSO include scholarships with wildcard "*" eligibility (open to all countries)
       if (countryFilter && countryFilter !== 'all') {
         console.log('[ScholarshipStorage] Applying country filter:', countryFilter);
         
@@ -104,10 +105,15 @@ export class ScholarshipStorage {
         
         const searchCountries = countryMapping[countryFilter] || [countryFilter];
         
-        // Filter by hostCountries (where students study) - this is the key fix
-        const countryConditions = searchCountries.map(country => 
-          sql`${scholarships.hostCountries}::text ILIKE ${'%' + country + '%'}`
-        );
+        // CRITICAL FIX: Include both hostCountries AND scholarships with wildcard eligibility
+        const countryConditions = [
+          // Match by hostCountries (where students study)
+          ...searchCountries.map(country => 
+            sql`${scholarships.hostCountries}::text ILIKE ${'%' + country + '%'}`
+          ),
+          // ALSO include scholarships open to all countries (wildcard "*")
+          sql`${scholarships.eligibleCountries}::text ILIKE '%*%'`
+        ];
         
         if (countryConditions.length > 0) {
           mandatoryConditions.push(or(...countryConditions)!);
