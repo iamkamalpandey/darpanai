@@ -61,14 +61,8 @@ router.post("/match", requireAuth, async (req: Request, res: Response) => {
 
     console.log('[Scholarship Matching] Enhanced Criteria:', matchingCriteria);
 
-    // Use existing working scholarship search method
-    const searchResults = await scholarshipStorage.searchScholarships({
-      search: matchingCriteria.fieldOfStudy || '',
-      providerCountry: '', // Allow all countries initially
-      fundingType: filters.fundingTypeFilter || '',
-      limit: 100,
-      offset: 0
-    });
+    // Get all scholarships for intelligent filtering
+    const searchResults = await scholarshipStorage.getAllScholarships(100, 0);
     
     console.log('[Scholarship Matching] Search results:', {
       total: searchResults.total,
@@ -78,10 +72,10 @@ router.post("/match", requireAuth, async (req: Request, res: Response) => {
 
     // Filter scholarships by academic progression and calculate match scores
     const eligibleScholarships = searchResults.scholarships.filter((scholarship: any) => {
-      // Filter by academic level progression
-      const scholarshipLevels = Array.isArray(scholarship.studyLevels) 
-        ? scholarship.studyLevels 
-        : (scholarship.studyLevels ? [scholarship.studyLevels] : []);
+      // Filter by academic level progression using correct field name
+      const scholarshipLevels = Array.isArray(scholarship.study_levels) 
+        ? scholarship.study_levels 
+        : (scholarship.study_levels ? [scholarship.study_levels] : []);
       
       return scholarshipLevels.some((level: string) => eligibleLevels.includes(level));
     });
@@ -144,15 +138,16 @@ function calculateMatchScore(scholarship: any, criteria: any): { score: number; 
   const reasons: string[] = [];
   const maxScore = 100;
 
-  // Field of study matching (25 points)
-  if (criteria.fieldOfStudy && scholarship.fieldOfStudy) {
+  // Field of study matching (25 points) - using correct database field names
+  if (criteria.fieldOfStudy && (scholarship.field_categories || scholarship.specific_fields)) {
     const userField = criteria.fieldOfStudy.toLowerCase();
-    const scholarshipFields = Array.isArray(scholarship.fieldOfStudy) 
-      ? scholarship.fieldOfStudy 
-      : [scholarship.fieldOfStudy];
+    const scholarshipFields = [
+      ...(Array.isArray(scholarship.field_categories) ? scholarship.field_categories : [scholarship.field_categories].filter(Boolean)),
+      ...(Array.isArray(scholarship.specific_fields) ? scholarship.specific_fields : [scholarship.specific_fields].filter(Boolean))
+    ];
     
     const hasFieldMatch = scholarshipFields.some((field: string) => 
-      field.toLowerCase().includes(userField) || userField.includes(field.toLowerCase())
+      field && (field.toLowerCase().includes(userField) || userField.includes(field.toLowerCase()))
     );
     
     if (hasFieldMatch) {
@@ -161,11 +156,11 @@ function calculateMatchScore(scholarship: any, criteria: any): { score: number; 
     }
   }
 
-  // Enhanced academic level progression matching (30 points)
-  if (criteria.academicLevels && scholarship.eligibilityLevel) {
-    const eligibilityLevels = Array.isArray(scholarship.eligibilityLevel) 
-      ? scholarship.eligibilityLevel 
-      : [scholarship.eligibilityLevel];
+  // Enhanced academic level progression matching (30 points) - using correct database field names
+  if (criteria.academicLevels && scholarship.study_levels) {
+    const eligibilityLevels = Array.isArray(scholarship.study_levels) 
+      ? scholarship.study_levels 
+      : [scholarship.study_levels];
     
     const hasLevelMatch = eligibilityLevels.some((level: string) => 
       criteria.academicLevels.some((eligibleLevel: string) =>
@@ -185,15 +180,17 @@ function calculateMatchScore(scholarship: any, criteria: any): { score: number; 
     }
   }
 
-  // Enhanced country preference matching (20 points)
-  const scholarshipCountries = Array.isArray(scholarship.targetCountries) 
-    ? scholarship.targetCountries 
-    : [scholarship.providerCountry];
+  // Enhanced country preference matching (20 points) - using correct database field names
+  const scholarshipCountries = [
+    ...(Array.isArray(scholarship.host_countries) ? scholarship.host_countries : [scholarship.host_countries].filter(Boolean)),
+    ...(Array.isArray(scholarship.eligible_countries) ? scholarship.eligible_countries : [scholarship.eligible_countries].filter(Boolean)),
+    scholarship.provider_country
+  ].filter(Boolean);
   
   if (criteria.preferredCountries && criteria.preferredCountries.length > 0) {
     const matchingCountries = criteria.preferredCountries.filter((country: string) =>
       scholarshipCountries.some((sCountry: string) => 
-        sCountry.toLowerCase().includes(country.toLowerCase())
+        sCountry && sCountry.toLowerCase().includes(country.toLowerCase())
       )
     );
     
