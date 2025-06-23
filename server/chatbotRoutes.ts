@@ -403,6 +403,26 @@ async function generateIntelligentResponse(
   };
 }
 
+// Fallback response generator for when main system fails
+function generateFallbackResponse(messageAnalysis: any, message: string): string {
+  switch (messageAnalysis.responseType) {
+    case 'greeting':
+      return "Hello! I'm Darpan AI, your scholarship guidance assistant. How can I help you find scholarship opportunities today?";
+    
+    case 'help':
+      return "I can help you with:\n• Finding scholarships from our database\n• Academic guidance for study abroad\n• Country recommendations\n• Personalized suggestions\n\nWhat would you like to know about?";
+    
+    case 'search':
+      return "I'd be happy to help you find scholarships! Could you tell me more about your field of study, academic level, or preferred countries?";
+    
+    case 'support':
+      return "I understand that planning for study abroad can feel overwhelming. Let's take it step by step. What specific area would you like guidance on?";
+    
+    default:
+      return "I'm Darpan AI, and I'm here to help you find scholarship opportunities. What would you like to know about scholarships or study abroad?";
+  }
+}
+
 // Legacy function for backward compatibility
 async function generatePrivacyFocusedResponse(
   userMessage: string, 
@@ -750,24 +770,35 @@ router.post("/scholarship-match", requireAuth, async (req: Request, res: Respons
     }
     
     // Generate intelligent response based on user intent and available data
-    const aiResponse = await generateIntelligentResponse(
-      message, 
-      messageAnalysis,
-      userPersonalContext, 
-      scholarships, 
-      analysisContext,
-      includeAnalysisData
-    );
+    let aiResponse;
+    try {
+      aiResponse = await generateIntelligentResponse(
+        message, 
+        messageAnalysis,
+        userPersonalContext, 
+        scholarships, 
+        analysisContext,
+        includeAnalysisData
+      );
+    } catch (responseError) {
+      console.error('[Response Generation] Error:', responseError);
+      // Fallback response generation
+      aiResponse = {
+        message: generateFallbackResponse(messageAnalysis, message),
+        metadata: { emotion: 'supportive', intent: messageAnalysis.intent },
+        suggestAnalysisAccess: false
+      };
+    }
     
     res.json({
       success: true,
-      message: aiResponse.message,
+      message: aiResponse.message || "Hello! I'm Darpan AI. How can I help you find scholarships today?",
       scholarships: scholarships,
-      metadata: aiResponse.metadata,
+      metadata: aiResponse.metadata || { emotion: 'supportive', intent: 'guidance' },
       suggestAnalysisAccess: aiResponse.suggestAnalysisAccess || false,
       analysisContext: {
         hasData: analysisContext.totalAnalyses > 0,
-        types: analysisContext.recentAnalysisTypes
+        types: analysisContext.recentAnalysisTypes || []
       },
       timestamp: new Date().toISOString()
     });
