@@ -52,6 +52,29 @@ const upload = multer({
 
 const router = Router();
 
+// Get scholarship by ID for details page
+router.get("/:scholarshipId", async (req: Request, res: Response) => {
+  try {
+    const scholarshipId = req.params.scholarshipId;
+    const scholarship = await scholarshipStorage.getScholarshipByScholarshipId(scholarshipId);
+    
+    if (!scholarship) {
+      return res.status(404).json({
+        success: false,
+        error: "Scholarship not found"
+      });
+    }
+    
+    res.json(scholarship);
+  } catch (error) {
+    console.error('[Scholarship Details] Error:', error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch scholarship details"
+    });
+  }
+});
+
 // Search scholarships with filtering and pagination
 router.get("/search", async (req: Request, res: Response) => {
   try {
