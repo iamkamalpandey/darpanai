@@ -223,7 +223,7 @@ function setupGracefulShutdown(server: any) {
     logWithLevel('✓ Scholarship matching routes registered successfully');
     
     // Register watchlist routes
-    const watchlistRoutes = await import('./watchlistRoutesFixed');
+    const watchlistRoutes = await import('./watchlistRoutesNew');
     app.use('/api/watchlist', watchlistRoutes.default);
     logWithLevel('✓ Watchlist routes registered successfully');
     
