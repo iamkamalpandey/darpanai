@@ -39,10 +39,10 @@ interface UserProfile {
 
 export function ScholarshipMatcher() {
   const [searchFilters, setSearchFilters] = useState({
-    fieldFilter: '',
-    countryFilter: '',
-    levelFilter: '',
-    fundingTypeFilter: ''
+    fieldFilter: 'all',
+    countryFilter: 'all',
+    levelFilter: 'all',
+    fundingTypeFilter: 'all'
   });
   const [isMatching, setIsMatching] = useState(false);
   const [matchedScholarships, setMatchedScholarships] = useState<ScholarshipMatch[]>([]);
@@ -62,10 +62,10 @@ export function ScholarshipMatcher() {
     try {
       const response = await apiRequest('POST', '/api/scholarship-matching/match', {
         filters: {
-          fieldFilter: searchFilters.fieldFilter,
-          countryFilter: searchFilters.countryFilter,
-          levelFilter: searchFilters.levelFilter,
-          fundingTypeFilter: searchFilters.fundingTypeFilter
+          fieldFilter: searchFilters.fieldFilter === 'all' ? '' : searchFilters.fieldFilter,
+          countryFilter: searchFilters.countryFilter === 'all' ? '' : searchFilters.countryFilter,
+          levelFilter: searchFilters.levelFilter === 'all' ? '' : searchFilters.levelFilter,
+          fundingTypeFilter: searchFilters.fundingTypeFilter === 'all' ? '' : searchFilters.fundingTypeFilter
         }
       });
 
@@ -123,10 +123,10 @@ export function ScholarshipMatcher() {
 
   const resetFilters = () => {
     setSearchFilters({
-      fieldFilter: '',
-      countryFilter: '',
-      levelFilter: '',
-      fundingTypeFilter: ''
+      fieldFilter: 'all',
+      countryFilter: 'all',
+      levelFilter: 'all',
+      fundingTypeFilter: 'all'
     });
   };
 
