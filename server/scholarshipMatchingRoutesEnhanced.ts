@@ -235,7 +235,9 @@ router.post("/match-enhanced", requireAuth, async (req: Request, res: Response) 
       user.interestedCourse
     ].filter((field): field is string => Boolean(field));
 
-    // Enhanced search with stricter criteria
+    // Enhanced search with stricter criteria and proper country mapping
+    const countryFilter = filters.countryFilter || (user.preferredCountries && user.preferredCountries.length > 0 ? user.preferredCountries[0] : undefined);
+    
     const searchResults = await scholarshipStorage.searchScholarshipsWithIntelligentFilters({
       search: filters.searchQuery || '',
       eligibleLevels: eligibleLevels,
@@ -244,7 +246,7 @@ router.post("/match-enhanced", requireAuth, async (req: Request, res: Response) 
       currentDate: new Date().toISOString().split('T')[0],
       fundingType: filters.fundingTypeFilter || undefined,
       nationality: user.nationality || '',
-      countryFilter: filters.countryFilter || undefined,
+      countryFilter: countryFilter,
       limit: 50, // Get more for better filtering
       offset: 0
     });

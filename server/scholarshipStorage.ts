@@ -76,13 +76,30 @@ export class ScholarshipStorage {
       if (countryFilter && countryFilter !== 'all') {
         console.log('[ScholarshipStorage] Applying country filter:', countryFilter);
         
-        // Country mapping for filter values
+        // Enhanced country mapping for filter values - critical for Australia bug fix
         const countryMapping: { [key: string]: string[] } = {
           'Australia': ['AU', 'AUS', 'Australia'],
-          'United States': ['US', 'USA', 'United States'], 
-          'United Kingdom': ['GB', 'UK', 'United Kingdom'],
+          'United States': ['US', 'USA', 'United States', 'America'], 
+          'United Kingdom': ['GB', 'UK', 'United Kingdom', 'Britain'],
           'Canada': ['CA', 'CAN', 'Canada'],
-          'Germany': ['DE', 'DEU', 'Germany']
+          'Germany': ['DE', 'DEU', 'Germany'],
+          'New Zealand': ['NZ', 'New Zealand'],
+          'Netherlands': ['NL', 'Netherlands'],
+          'Belgium': ['BE', 'Belgium'],
+          'Denmark': ['DK', 'Denmark'],
+          'Sweden': ['SE', 'Sweden'],
+          'Finland': ['FI', 'Finland'],
+          'Norway': ['NO', 'Norway'],
+          'Switzerland': ['CH', 'Switzerland'],
+          'France': ['FR', 'France'],
+          'Italy': ['IT', 'Italy'],
+          'Spain': ['ES', 'Spain'],
+          'Japan': ['JP', 'Japan'],
+          'Singapore': ['SG', 'Singapore'],
+          'China': ['CN', 'China'],
+          'India': ['IN', 'India'],
+          'Brazil': ['BR', 'Brazil'],
+          'Mexico': ['MX', 'Mexico']
         };
         
         const searchCountries = countryMapping[countryFilter] || [countryFilter];
@@ -93,7 +110,7 @@ export class ScholarshipStorage {
         );
         
         if (countryConditions.length > 0) {
-          optionalConditions.push(or(...countryConditions)!);
+          mandatoryConditions.push(or(...countryConditions)!);
         }
       }
 
