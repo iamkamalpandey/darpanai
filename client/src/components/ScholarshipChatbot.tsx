@@ -66,7 +66,7 @@ export function ScholarshipChatbot() {
     // User profile insights
     const profileInfo = {
       hasField: userProfile?.interestedCourse || userProfile?.fieldOfStudy,
-      hasCountries: userProfile?.preferredCountries?.length > 0,
+      hasCountries: userProfile?.preferredCountries?.length && userProfile.preferredCountries.length > 0,
       hasBudget: userProfile?.budgetRange,
       hasQualification: userProfile?.highestQualification,
       nationality: userProfile?.nationality,
@@ -99,9 +99,11 @@ export function ScholarshipChatbot() {
   const queryClient = useQueryClient();
 
   // Fetch user profile for context
-  const { data: userProfile } = useQuery({
+  const { data: userData } = useQuery({
     queryKey: ['/api/user'],
   });
+  
+  const userProfile: UserProfile | null = userData || null;
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {

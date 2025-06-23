@@ -547,8 +547,6 @@ async function generateIntelligentResponse(
         if (scholarships.length > 0) {
           // Use AI-powered analysis with enhanced context from user's document analysis
           const conversationContext = analyzeConversationContext([], userPersonalContext);
-          conversationContext.hasAnalysisData = true;
-          conversationContext.analysisTypes = analysisContext.recentAnalysisTypes;
           
           responseMessage = await generateAIScholarshipAnalysis(
             userMessage, 
