@@ -1,5 +1,14 @@
 import { Router, Request, Response } from "express";
 import { scholarshipStorage } from "./scholarshipStorage";
+import Anthropic from '@anthropic-ai/sdk';
+
+// Initialize Anthropic AI
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
+
+// The newest Anthropic model is "claude-sonnet-4-20250514"
+const DEFAULT_MODEL_STR = "claude-sonnet-4-20250514";
 
 // Auth middleware
 const requireAuth = (req: Request, res: Response, next: any) => {
@@ -69,30 +78,104 @@ function analyzeConversationContext(conversationHistory: any[], userProfile: Use
   };
 }
 
-// Enhanced response generation with conversation context
-function generateContextualResponse(
+// AI-powered scholarship analysis and recommendation generation
+async function generateAIScholarshipAnalysis(
+  message: string,
+  userProfile: UserProfile,
+  scholarships: ScholarshipMatch[],
+  conversationContext?: any
+): Promise<string> {
+  try {
+    // Prepare context for AI analysis
+    const contextPrompt = `You are Darpan AI, an expert scholarship guidance counselor. Analyze the user's query and provide personalized scholarship recommendations.
+
+USER PROFILE:
+- Field of Study: ${userProfile.fieldOfStudy || userProfile.interestedCourse || 'Not specified'}
+- Academic Level: ${userProfile.academicLevel || userProfile.highestQualification || 'Not specified'}
+- Preferred Countries: ${userProfile.preferredCountries?.join(', ') || 'Not specified'}
+- Budget Range: ${userProfile.budgetRange || 'Not specified'}
+- Nationality: ${userProfile.nationality || 'Not specified'}
+- GPA: ${userProfile.gpa || 'Not specified'}
+
+CONVERSATION CONTEXT:
+${conversationContext ? `
+- Previous topics discussed: ${conversationContext.discussedTopics.join(', ')}
+- Is follow-up conversation: ${conversationContext.isFollowUp}
+- Recent context: ${conversationContext.recentContext}
+` : 'First interaction'}
+
+FOUND SCHOLARSHIPS:
+${scholarships.map((s, i) => `
+${i + 1}. ${s.name}
+   - Provider: ${s.providerName} (${s.providerCountry})
+   - Funding Type: ${s.fundingType}
+   - Value: ${s.totalValueMax}
+   - Deadline: ${s.applicationDeadline}
+   - Match Score: ${s.matchScore}%
+   - Match Reasons: ${s.matchReasons.join(', ')}
+`).join('')}
+
+USER QUERY: "${message}"
+
+Provide a comprehensive, empathetic response that:
+1. Acknowledges the user's specific query and context
+2. Analyzes each scholarship match with detailed reasoning
+3. Offers strategic application advice
+4. Suggests next steps based on their profile
+5. Maintains conversation flow and references previous topics if applicable
+
+Keep response conversational, supportive, and actionable. Format scholarship information clearly with bullet points.`;
+
+    const response = await anthropic.messages.create({
+      model: DEFAULT_MODEL_STR,
+      max_tokens: 1500,
+      messages: [{ role: 'user', content: contextPrompt }],
+    });
+
+    // Handle Anthropic response content
+    const content = response.content[0];
+    if ('text' in content) {
+      return content.text;
+    }
+    
+    return "I'm analyzing the scholarship matches for you. Let me provide some insights based on your profile.";
+  } catch (error) {
+    console.error('AI Analysis Error:', error);
+    return generateScholarshipFallback(message, userProfile, scholarships, conversationContext);
+  }
+}
+
+// Enhanced response generation with AI analysis
+async function generateContextualResponse(
   message: string, 
   userProfile: UserProfile, 
   scholarships: ScholarshipMatch[], 
   analysis: any,
   conversationContext?: any
-): string {
+): Promise<string> {
   const hasScholarships = scholarships.length > 0;
-  const topMatch = scholarships[0];
-  
-  // Context-aware opening
-  let response = "";
-  
-  if (conversationContext?.isFollowUp && conversationContext.discussedTopics.includes('scholarships')) {
-    response = "Based on our conversation, here are more scholarship opportunities that match your interests:\n\n";
-  } else if (userProfile.fieldOfStudy || userProfile.interestedCourse) {
-    const field = userProfile.fieldOfStudy || userProfile.interestedCourse;
-    response = `Great! I found ${scholarships.length} scholarship${scholarships.length !== 1 ? 's' : ''} relevant to ${field}:\n\n`;
-  } else {
-    response = `I found ${scholarships.length} scholarship${scholarships.length !== 1 ? 's' : ''} that match your query:\n\n`;
-  }
   
   if (hasScholarships) {
+    // Use AI-powered analysis for detailed recommendations
+    return await generateAIScholarshipAnalysis(message, userProfile, scholarships, conversationContext);
+  }
+  
+  // Fallback for no scholarships found
+  return generateNoResultsResponse(message, userProfile, analysis, conversationContext);
+}
+
+// Fallback response when AI analysis fails
+function generateScholarshipFallback(
+  message: string,
+  userProfile: UserProfile,
+  scholarships: ScholarshipMatch[],
+  conversationContext?: any
+): string {
+  const hasScholarships = scholarships.length > 0;
+  
+  if (hasScholarships) {
+    let response = `I found ${scholarships.length} scholarship${scholarships.length !== 1 ? 's' : ''} that match your criteria:\n\n`;
+    
     scholarships.slice(0, 3).forEach((scholarship, index) => {
       response += `${index + 1}. **${scholarship.name}** (${scholarship.matchScore}% match)\n`;
       response += `   • Provider: ${scholarship.providerName}, ${scholarship.providerCountry}\n`;
@@ -104,17 +187,11 @@ function generateContextualResponse(
       response += `\n`;
     });
     
-    // Context-aware follow-up suggestions
-    if (conversationContext?.discussedTopics.includes('countries') && userProfile.preferredCountries?.length) {
-      response += `\nI notice you're interested in ${userProfile.preferredCountries.slice(0, 2).join(' and ')}. Would you like me to find more opportunities specifically in these countries?`;
-    } else if (conversationContext?.discussedTopics.includes('engineering') || conversationContext?.discussedTopics.includes('business')) {
-      response += `\nWould you like me to find more specialized opportunities in your field, or do you need information about application processes?`;
-    } else {
-      response += `\nWould you like more details about any of these scholarships, or shall I search for opportunities with different criteria?`;
-    }
+    response += `\nWould you like more details about any of these scholarships, or shall I search for opportunities with different criteria?`;
+    return response;
   }
   
-  return response;
+  return "I'm here to help you find scholarship opportunities. Could you provide more details about your field of study or preferred countries?";
 }
 
 function generateNoResultsResponse(
