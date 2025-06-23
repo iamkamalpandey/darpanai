@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -12,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface ScholarshipMatch {
   id: number;
+  scholarshipId: string;
   name: string;
   providerName: string;
   providerCountry: string;
@@ -362,10 +364,11 @@ export function ScholarshipMatcher() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="Full Scholarship">Full Scholarship</SelectItem>
-                  <SelectItem value="Partial Scholarship">Partial Scholarship</SelectItem>
-                  <SelectItem value="Research Grant">Research Grant</SelectItem>
-                  <SelectItem value="Merit-based">Merit-based</SelectItem>
+                  <SelectItem value="full">Full Funding</SelectItem>
+                  <SelectItem value="partial">Partial Funding</SelectItem>
+                  <SelectItem value="tuition-only">Tuition Only</SelectItem>
+                  <SelectItem value="stipend-only">Stipend Only</SelectItem>
+                  <SelectItem value="research">Research Grant</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -503,8 +506,10 @@ export function ScholarshipMatcher() {
                       </div>
 
                       <div className="flex gap-2">
-                        <Button size="sm" className="flex-1">
-                          View Details
+                        <Button size="sm" className="flex-1" asChild>
+                          <Link to={`/scholarship-details/${scholarship.scholarshipId}`}>
+                            View Details
+                          </Link>
                         </Button>
                         {scholarship.providerWebsite && (
                           <Button size="sm" variant="outline" asChild>
