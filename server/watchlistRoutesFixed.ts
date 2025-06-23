@@ -28,8 +28,8 @@ router.post('/add', async (req: Request, res: Response) => {
 
     console.log('[Watchlist] Adding scholarship to watchlist:', { userId, scholarshipId });
 
-    // Check if scholarship exists
-    const scholarship = await db.select({ id: scholarships.id })
+    // Check if scholarship exists and get full details
+    const scholarship = await db.select()
       .from(scholarships)
       .where(eq(scholarships.id, scholarshipId))
       .limit(1);
