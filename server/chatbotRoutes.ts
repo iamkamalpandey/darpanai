@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { scholarshipStorage } from "./scholarshipStorage";
+
 // Auth middleware
 const requireAuth = (req: Request, res: Response, next: any) => {
   if (!req.user) {
@@ -10,17 +11,8 @@ const requireAuth = (req: Request, res: Response, next: any) => {
   }
   next();
 };
-import Anthropic from '@anthropic-ai/sdk';
 
 const router = Router();
-
-// Initialize Anthropic client
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
-// The newest Anthropic model is "claude-sonnet-4-20250514", not "claude-3-7-sonnet-20250219", "claude-3-5-sonnet-20241022" nor "claude-3-sonnet-20240229"
-const DEFAULT_MODEL_STR = "claude-sonnet-4-20250514";
 
 interface ChatMessage {
   type: 'user' | 'bot';
@@ -208,8 +200,8 @@ async function findMatchingScholarships(userMessage: string, userProfile: UserPr
   }
 }
 
-// Generate empathetic AI response
-async function generateEmphatheticResponse(
+// Generate natural language response based on scholarship database
+async function generateDarpanResponse(
   userMessage: string, 
   userProfile: UserProfile, 
   scholarships: ScholarshipMatch[],
@@ -218,80 +210,115 @@ async function generateEmphatheticResponse(
   
   const analysis = analyzeUserMessage(userMessage);
   
-  try {
-    const contextPrompt = `You are an empathetic scholarship counselor AI assistant helping students find educational funding opportunities. Your role is to provide supportive, encouraging, and practical guidance.
-
-User Profile Context:
-- Academic Level: ${userProfile.highestQualification || 'Not specified'}
-- Field of Interest: ${userProfile.interestedCourse || 'Not specified'}
-- Preferred Countries: ${userProfile.preferredCountries?.join(', ') || 'Not specified'}
-- Budget Range: ${userProfile.budgetRange || 'Not specified'}
-
-User's Current Message: "${userMessage}"
-Detected Intent: ${analysis.intent}
-Detected Emotion: ${analysis.emotion}
-Keywords: ${analysis.keywords.join(', ')}
-
-${scholarships.length > 0 ? `Found ${scholarships.length} matching scholarships:
-${scholarships.map(s => `- ${s.name} (${s.matchScore}% match): ${s.providerName}, ${s.providerCountry}`).join('\n')}` : 'No specific scholarships found for this query.'}
-
-Instructions:
-1. Be empathetic and supportive, especially if the user seems worried or uncertain
-2. Provide practical advice and encouragement
-3. If scholarships were found, briefly highlight why they're good matches
-4. If no scholarships found, provide guidance on how to improve their search or profile
-5. Ask follow-up questions to better understand their needs
-6. Keep response conversational and warm, under 200 words
-7. Use encouraging language and acknowledge their goals
-
-Respond in a supportive, friendly tone as if you're a caring counselor who genuinely wants to help them succeed.`;
-
-    const response = await anthropic.messages.create({
-      model: DEFAULT_MODEL_STR,
-      max_tokens: 300,
-      messages: [{ role: 'user', content: contextPrompt }],
-    });
-
-    const aiMessage = response.content[0].type === 'text' ? response.content[0].text : '';
-    
-    // Determine response metadata
-    let emotion = 'supportive';
-    let intent = 'guidance';
-    
-    if (analysis.emotion === 'concerned') {
-      emotion = 'empathetic';
-    } else if (scholarships.length > 0) {
+  // Natural language processing to generate database-driven responses
+  let responseMessage = "";
+  let emotion = 'supportive';
+  let intent = 'guidance';
+  
+  // Greeting responses
+  if (analysis.intent === 'general' && (userMessage.toLowerCase().includes('hello') || userMessage.toLowerCase().includes('hi') || userMessage.toLowerCase().includes('hey'))) {
+    responseMessage = "Hello! I'm Darpan AI, your scholarship guidance assistant. I'm here to help you discover scholarship opportunities from our comprehensive database. What field of study are you interested in?";
+    emotion = 'supportive';
+    intent = 'greeting';
+  }
+  
+  // Scholarship search responses
+  else if (analysis.intent === 'scholarship_search' || scholarships.length > 0) {
+    if (scholarships.length > 0) {
+      responseMessage = `Great news! I found ${scholarships.length} scholarship${scholarships.length > 1 ? 's' : ''} in our database that match your criteria:\n\n`;
+      
+      scholarships.forEach((scholarship, index) => {
+        responseMessage += `${index + 1}. **${scholarship.name}**\n`;
+        responseMessage += `   • Provider: ${scholarship.providerName} (${scholarship.providerCountry})\n`;
+        responseMessage += `   • Funding: ${scholarship.fundingType}\n`;
+        if (scholarship.totalValueMax) {
+          responseMessage += `   • Value: Up to ${scholarship.totalValueMax}\n`;
+        }
+        if (scholarship.applicationDeadline) {
+          const deadline = new Date(scholarship.applicationDeadline);
+          responseMessage += `   • Deadline: ${deadline.toLocaleDateString()}\n`;
+        }
+        responseMessage += `   • Match Score: ${scholarship.matchScore}%\n\n`;
+      });
+      
+      responseMessage += "Would you like more details about any of these scholarships, or shall I search for additional opportunities?";
       emotion = 'encouraging';
       intent = 'matching';
-    } else if (analysis.intent === 'scholarship_search') {
+    } else {
+      responseMessage = "I searched our scholarship database but didn't find specific matches for your current criteria. ";
+      
+      if (!userProfile.interestedCourse) {
+        responseMessage += "Could you tell me your field of study? ";
+      }
+      if (!userProfile.preferredCountries || userProfile.preferredCountries.length === 0) {
+        responseMessage += "Which countries are you considering for your studies? ";
+      }
+      if (!userProfile.highestQualification) {
+        responseMessage += "What's your academic level (Bachelor's, Master's, PhD)? ";
+      }
+      
+      responseMessage += "This information will help me find better matches in our database.";
       emotion = 'supportive';
       intent = 'guidance';
     }
+  }
+  
+  // Academic information requests
+  else if (analysis.intent === 'academic_info') {
+    responseMessage = "I can help you find scholarships based on your academic background. Our database includes opportunities for various fields of study and academic levels. ";
     
-    return {
-      message: aiMessage,
-      metadata: { emotion, intent }
-    };
-    
-  } catch (error) {
-    console.error('[AI Response] Error:', error);
-    
-    // Fallback empathetic response
-    let fallbackMessage = "I understand you're looking for scholarship opportunities, and I'm here to help you every step of the way! ";
-    
-    if (scholarships.length > 0) {
-      fallbackMessage += `I found ${scholarships.length} scholarships that could be perfect for you. Each one has been selected based on your background and goals. `;
-    } else {
-      fallbackMessage += "While I didn't find specific matches right now, don't worry - there are thousands of opportunities out there! ";
+    if (analysis.keywords.length > 0) {
+      responseMessage += `I noticed you mentioned ${analysis.keywords.join(', ')}. `;
     }
     
-    fallbackMessage += "Could you tell me more about your field of study or preferred study destination? This will help me find even better matches for you! 🌟";
-    
-    return {
-      message: fallbackMessage,
-      metadata: { emotion: 'supportive', intent: 'guidance' }
-    };
+    responseMessage += "What specific field are you studying or planning to study? Also, what's your current academic level?";
+    emotion = 'supportive';
+    intent = 'guidance';
   }
+  
+  // Destination information
+  else if (analysis.intent === 'destination_info') {
+    responseMessage = "Our scholarship database includes opportunities across many countries. ";
+    
+    if (analysis.keywords.some(k => ['usa', 'canada', 'uk', 'australia', 'germany'].includes(k))) {
+      const mentionedCountries = analysis.keywords.filter(k => ['usa', 'canada', 'uk', 'australia', 'germany'].includes(k));
+      responseMessage += `I see you're interested in ${mentionedCountries.join(', ')}. `;
+    }
+    
+    responseMessage += "Which countries are you most interested in for your studies? I can search for scholarships specifically available in those regions.";
+    emotion = 'supportive';
+    intent = 'guidance';
+  }
+  
+  // Help and guidance requests
+  else if (analysis.intent === 'guidance_needed') {
+    if (analysis.emotion === 'concerned') {
+      responseMessage = "I understand that searching for scholarships can feel overwhelming, but you're taking the right step by seeking help. ";
+      emotion = 'empathetic';
+    } else {
+      responseMessage = "I'm here to guide you through finding the right scholarships. ";
+      emotion = 'supportive';
+    }
+    
+    responseMessage += "Let's start with the basics: What field are you studying? What's your academic level? And which countries interest you? With this information, I can search our database for the best matches.";
+    intent = 'guidance';
+  }
+  
+  // Default response for unclear messages
+  else {
+    responseMessage = "I'm Darpan AI, and I'm here to help you find scholarships from our comprehensive database. To provide you with the most relevant opportunities, could you tell me:\n\n";
+    responseMessage += "• Your field of study\n";
+    responseMessage += "• Your academic level (Bachelor's, Master's, PhD)\n";
+    responseMessage += "• Your preferred study destinations\n\n";
+    responseMessage += "The more specific you are, the better I can match you with suitable scholarships!";
+    emotion = 'supportive';
+    intent = 'guidance';
+  }
+  
+  return {
+    message: responseMessage,
+    metadata: { emotion, intent }
+  };
 }
 
 // Main chatbot endpoint
@@ -311,8 +338,8 @@ router.post("/scholarship-match", requireAuth, async (req: Request, res: Respons
     // Find matching scholarships
     const scholarships = await findMatchingScholarships(message, userProfile);
     
-    // Generate empathetic AI response
-    const aiResponse = await generateEmphatheticResponse(
+    // Generate natural language response based on database
+    const aiResponse = await generateDarpanResponse(
       message, 
       userProfile, 
       scholarships, 

@@ -47,7 +47,7 @@ export function ScholarshipChatbot() {
     {
       id: '1',
       type: 'bot',
-      content: "Hello! I'm your scholarship matching assistant 🌟 I'm here to help you find the perfect scholarship opportunities that match your dreams and aspirations. Tell me a bit about yourself - what are you studying or planning to study?",
+      content: "Hello! I'm Darpan AI, your scholarship guidance assistant. I'm here to help you discover scholarship opportunities from our comprehensive database. What field of study are you interested in?",
       timestamp: new Date(),
       metadata: { emotion: 'supportive', intent: 'greeting' }
     }
