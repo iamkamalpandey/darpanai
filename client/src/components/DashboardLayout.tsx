@@ -22,7 +22,7 @@ import {
   TrendingUp,
   Award,
   MapPin,
-  Bot
+  Search
 } from 'lucide-react';
 
 const SidebarItem = ({ icon, label, href, active }: {
@@ -101,7 +101,7 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
     // Priority 4: Research and planning tools
     { icon: <MapPin size={20} />, label: 'AI Study Destination', href: '/personalized-destination-analysis' },
     { icon: <Award size={20} />, label: 'Scholarship Research', href: '/scholarship-research' },
-    { icon: <Search size={20} />, label: 'Scholarship Matching', href: '/scholarship-matching' },
+    { icon: <Award size={20} />, label: 'Scholarship Matching', href: '/scholarship-matching' },
 
     // Priority 5: Document information
     { 

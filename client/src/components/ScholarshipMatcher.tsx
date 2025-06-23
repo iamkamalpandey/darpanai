@@ -215,7 +215,7 @@ export function ScholarshipMatcher() {
                   <SelectValue placeholder="Select country" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Countries</SelectItem>
+                  <SelectItem value="all">All Countries</SelectItem>
                   <SelectItem value="Australia">Australia</SelectItem>
                   <SelectItem value="Canada">Canada</SelectItem>
                   <SelectItem value="United Kingdom">United Kingdom</SelectItem>
@@ -231,7 +231,7 @@ export function ScholarshipMatcher() {
                   <SelectValue placeholder="Select level" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Levels</SelectItem>
+                  <SelectItem value="all">All Levels</SelectItem>
                   <SelectItem value="Bachelor's Degree">Bachelor's</SelectItem>
                   <SelectItem value="Master's Degree">Master's</SelectItem>
                   <SelectItem value="PhD">PhD</SelectItem>
@@ -245,7 +245,7 @@ export function ScholarshipMatcher() {
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="Full Scholarship">Full Scholarship</SelectItem>
                   <SelectItem value="Partial Scholarship">Partial Scholarship</SelectItem>
                   <SelectItem value="Research Grant">Research Grant</SelectItem>
