@@ -66,6 +66,11 @@ export function ScholarshipMatcher() {
     enabled: !!userData,
   });
 
+  // Fetch countries with active scholarships
+  const { data: countriesData } = useQuery({
+    queryKey: ['/api/scholarships/countries-with-scholarships'],
+  });
+
   // Watchlist mutations
   const addToWatchlistMutation = useMutation({
     mutationFn: (scholarshipData: { scholarshipId: number; notes?: string; priorityLevel?: string }) =>
@@ -314,11 +319,13 @@ export function ScholarshipMatcher() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Countries</SelectItem>
-                  <SelectItem value="Australia">Australia</SelectItem>
-                  <SelectItem value="Canada">Canada</SelectItem>
-                  <SelectItem value="United Kingdom">United Kingdom</SelectItem>
-                  <SelectItem value="United States">United States</SelectItem>
-                  <SelectItem value="Germany">Germany</SelectItem>
+                  {countriesData?.data?.countries?.map((country: any) => (
+                    <SelectItem key={country.code} value={country.name}>
+                      {country.displayName}
+                    </SelectItem>
+                  )) || [
+                    <SelectItem key="loading" value="" disabled>Loading countries...</SelectItem>
+                  ]}
                 </SelectContent>
               </Select>
             </div>
