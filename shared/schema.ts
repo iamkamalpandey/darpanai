@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp, primaryKey, uniqueIndex } from "drizzle-orm/pg-core";
 export * from "./offerLetterSchema";
 export * from "./coeSchema";
 export * from "./scholarshipSchema";
@@ -300,6 +300,28 @@ export const updates = pgTable("updates", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Scholarship Watchlist - Complete User Saved Scholarships System
+export const scholarshipWatchlist = pgTable("scholarship_watchlist", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  scholarshipId: integer("scholarship_id").notNull(), // Reference to scholarship ID
+  scholarshipName: text("scholarship_name").notNull(), // Cache for quick display
+  providerName: text("provider_name").notNull(),
+  hostCountries: jsonb("host_countries").notNull().default([]),
+  fundingType: text("funding_type"),
+  totalValueMax: text("total_value_max"),
+  applicationDeadline: text("application_deadline"),
+  tags: text("tags").array().notNull().default([]),
+  notes: text("notes"), // User's personal notes about the scholarship
+  status: text("status").default("saved").notNull(), // saved, applied, rejected, awarded
+  priority: text("priority").default("normal").notNull(), // low, normal, high
+  reminderDate: timestamp("reminder_date"), // User can set reminders
+  savedAt: timestamp("saved_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userScholarshipUnique: uniqueIndex("user_scholarship_unique").on(table.userId, table.scholarshipId)
+}));
+
 // User Update Views Tracking
 export const userUpdateViews = pgTable("user_update_views", {
   id: serial("id").primaryKey(),
@@ -309,16 +331,7 @@ export const userUpdateViews = pgTable("user_update_views", {
   actionTaken: boolean("action_taken").default(false).notNull(),
 });
 
-// Scholarship Watchlist
-export const scholarship_watchlist = pgTable("scholarship_watchlist", {
-  id: serial("id").primaryKey(),
-  user_id: integer("user_id").references(() => users.id).notNull(),
-  scholarship_id: integer("scholarship_id").notNull(),
-  added_date: timestamp("added_date").defaultNow().notNull(),
-  notes: text("notes"),
-  priority_level: text("priority_level").default("medium").notNull(),
-  application_status: text("application_status").default("not_started").notNull(),
-});
+// Remove duplicate - using scholarshipWatchlist above
 
 // Offer Letter Documents - Raw document storage
 export const offerLetterDocuments = pgTable("offer_letter_documents", {
@@ -481,6 +494,17 @@ export type LoginUser = z.infer<typeof loginUserSchema>;
 
 export type Analysis = typeof analyses.$inferSelect;
 export type InsertAnalysis = z.infer<typeof insertAnalysisSchema>;
+
+// Scholarship Watchlist types
+export type ScholarshipWatchlist = typeof scholarshipWatchlist.$inferSelect;
+export type InsertScholarshipWatchlist = typeof scholarshipWatchlist.$inferInsert;
+
+// Watchlist schema for validation
+export const insertWatchlistSchema = createInsertSchema(scholarshipWatchlist).omit({
+  id: true,
+  savedAt: true,
+  updatedAt: true,
+});
 
 // Offer Letter Document types and schemas - Raw document storage
 export type OfferLetterDocument = typeof offerLetterDocuments.$inferSelect;

@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { db } from './db';
-import { scholarship_watchlist, users } from '@shared/schema';
+import { scholarshipWatchlist, users } from '@shared/schema';
 import { scholarships } from '@shared/scholarshipSchema';
 import { eq, and, desc } from 'drizzle-orm';
 
@@ -35,11 +35,11 @@ router.post('/add', requireAuth, async (req: Request, res: Response) => {
     }
 
     // Check if already in watchlist
-    const existing = await db.select({ id: scholarship_watchlist.id })
-      .from(scholarship_watchlist)
+    const existing = await db.select({ id: scholarshipWatchlist.id })
+      .from(scholarshipWatchlist)
       .where(and(
-        eq(scholarship_watchlist.user_id, userId),
-        eq(scholarship_watchlist.scholarship_id, scholarshipId)
+        eq(scholarshipWatchlist.userId, userId),
+        eq(scholarshipWatchlist.scholarshipId, scholarshipId)
       ))
       .limit(1);
 
@@ -48,14 +48,16 @@ router.post('/add', requireAuth, async (req: Request, res: Response) => {
     }
 
     // Add to watchlist
-    const [watchlistEntry] = await db.insert(scholarship_watchlist)
+    const [watchlistEntry] = await db.insert(scholarshipWatchlist)
       .values({
-        user_id: userId,
-        scholarship_id: scholarshipId,
+        userId: userId,
+        scholarshipId: scholarshipId,
+        scholarshipName: 'Loading...', // Will be updated by proper data
+        providerName: 'Loading...',
+        hostCountries: [],
         notes,
-        priority_level: priorityLevel,
-        application_status: applicationStatus,
-        added_date: new Date()
+        priority: priorityLevel,
+        status: applicationStatus
       })
       .returning();
 
