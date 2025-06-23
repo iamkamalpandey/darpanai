@@ -33,10 +33,18 @@ export class ScholarshipStorage {
       // Mandatory filters - always applied
       const mandatoryConditions = [
         // Deadline filter: exclude scholarships with deadlines before current date
-        sql`${scholarships.applicationDeadline} > ${currentDate}`,
-        // Academic level filter: progressive qualification matching
-        sql`${scholarships.studyLevels}::jsonb ?| array[${eligibleLevels.map(level => `'${level}'`).join(',')}]`
+        sql`${scholarships.applicationDeadline} > ${currentDate}`
       ];
+      
+      // Academic level filter: progressive qualification matching
+      if (eligibleLevels.length > 0) {
+        const levelConditions = eligibleLevels.map(level => 
+          sql`${scholarships.studyLevels}::text ILIKE ${'%' + level + '%'}`
+        );
+        if (levelConditions.length > 0) {
+          mandatoryConditions.push(or(...levelConditions)!);
+        }
+      }
 
       // Course relevance filter
       const courseRelevanceConditions = [];
