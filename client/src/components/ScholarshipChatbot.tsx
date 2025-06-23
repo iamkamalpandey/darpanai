@@ -43,9 +43,12 @@ interface UserProfile {
 }
 
 export function ScholarshipChatbot() {
+  // Generate unique ID for messages
+  const generateUniqueId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
-      id: '1',
+      id: generateUniqueId(),
       type: 'bot',
       content: "Hello! I'm Darpan AI, your scholarship guidance assistant. I'm here to help you discover scholarship opportunities from our comprehensive database. What field of study are you interested in?",
       timestamp: new Date(),
@@ -65,7 +68,14 @@ export function ScholarshipChatbot() {
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Scroll to bottom when new messages are added
+    const scrollToBottom = () => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+    
+    // Small delay to ensure DOM is updated
+    const timeoutId = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timeoutId);
   }, [messages]);
 
   // Intelligent browser-side message handling
@@ -122,7 +132,7 @@ export function ScholarshipChatbot() {
     } else {
       // Handle simple responses directly in browser
       const botMessage: ChatMessage = {
-        id: Date.now().toString(),
+        id: generateUniqueId(),
         type: 'bot',
         content: responseContent,
         timestamp: new Date(),
@@ -148,7 +158,7 @@ export function ScholarshipChatbot() {
       console.log('Scholarship search response:', response);
       
       const botMessage: ChatMessage = {
-        id: Date.now().toString(),
+        id: generateUniqueId(),
         type: 'bot',
         content: response.message || "I searched our scholarship database for your query. Could you provide more specific details about your field of study or preferred countries?",
         timestamp: new Date(),
@@ -183,9 +193,9 @@ export function ScholarshipChatbot() {
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
 
-    // Add user message
+    // Add user message with unique ID
     const userMessage: ChatMessage = {
-      id: Date.now().toString(),
+      id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type: 'user',
       content: inputMessage,
       timestamp: new Date()
