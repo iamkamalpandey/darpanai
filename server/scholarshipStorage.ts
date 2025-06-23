@@ -14,6 +14,7 @@ export class ScholarshipStorage {
     currentDate: string;
     fundingType?: string;
     nationality?: string;
+    countryFilter?: string;
     limit: number;
     offset: number;
   }): Promise<ScholarshipSearchResponse> {
@@ -26,6 +27,7 @@ export class ScholarshipStorage {
         currentDate, 
         fundingType, 
         nationality,
+        countryFilter,
         limit, 
         offset 
       } = params;
@@ -68,6 +70,31 @@ export class ScholarshipStorage {
       const optionalConditions = [];
       if (fundingType && fundingType !== 'all') {
         optionalConditions.push(eq(scholarships.fundingType, fundingType));
+      }
+
+      // CRITICAL: Country filtering by hostCountries (where students actually study)
+      if (countryFilter && countryFilter !== 'all') {
+        console.log('[ScholarshipStorage] Applying country filter:', countryFilter);
+        
+        // Country mapping for filter values
+        const countryMapping: { [key: string]: string[] } = {
+          'Australia': ['AU', 'AUS', 'Australia'],
+          'United States': ['US', 'USA', 'United States'], 
+          'United Kingdom': ['GB', 'UK', 'United Kingdom'],
+          'Canada': ['CA', 'CAN', 'Canada'],
+          'Germany': ['DE', 'DEU', 'Germany']
+        };
+        
+        const searchCountries = countryMapping[countryFilter] || [countryFilter];
+        
+        // Filter by hostCountries (where students study) - this is the key fix
+        const countryConditions = searchCountries.map(country => 
+          sql`${scholarships.hostCountries}::text ILIKE ${'%' + country + '%'}`
+        );
+        
+        if (countryConditions.length > 0) {
+          optionalConditions.push(or(...countryConditions)!);
+        }
       }
 
       // Build final conditions

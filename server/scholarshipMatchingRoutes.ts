@@ -70,6 +70,7 @@ router.post("/match", requireAuth, async (req: Request, res: Response) => {
       currentDate: new Date().toISOString().split('T')[0],
       fundingType: matchingCriteria.fundingType || undefined,
       nationality: matchingCriteria.nationality ?? undefined,
+      countryFilter: filters.countryFilter || undefined, // CRITICAL FIX: Pass country filter
       limit: 20, // Limit results to save resources
       offset: 0
     });
