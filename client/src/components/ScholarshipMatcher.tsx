@@ -106,9 +106,12 @@ export function ScholarshipMatcher() {
 
   // Update watchlist items when data changes
   useEffect(() => {
-    if (watchlistData?.watchlist) {
-      const watchlistIds = new Set(watchlistData.watchlist.map((item: any) => item.scholarshipId));
-      setWatchlistItems(watchlistIds);
+    if (watchlistData && typeof watchlistData === 'object' && watchlistData !== null) {
+      const data = watchlistData as Record<string, any>;
+      if ('watchlist' in data && Array.isArray(data.watchlist)) {
+        const watchlistIds = new Set<number>(data.watchlist.map((item: any) => Number(item.scholarshipId)));
+        setWatchlistItems(watchlistIds);
+      }
     }
   }, [watchlistData]);
 
@@ -396,9 +399,29 @@ export function ScholarshipMatcher() {
                             {scholarship.providerName} • {scholarship.providerCountry}
                           </p>
                         </div>
-                        <Badge variant="secondary" className="ml-2">
-                          {scholarship.matchScore}% match
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary">
+                            {scholarship.matchScore}% match
+                          </Badge>
+                          <Button
+                            variant={watchlistItems.has(scholarship.id) ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handleWatchlistToggle(scholarship)}
+                            disabled={addToWatchlistMutation.isPending || removeFromWatchlistMutation.isPending}
+                          >
+                            {watchlistItems.has(scholarship.id) ? (
+                              <>
+                                <Check className="h-4 w-4 mr-1" />
+                                Saved
+                              </>
+                            ) : (
+                              <>
+                                <Heart className="h-4 w-4 mr-1" />
+                                Save
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent>
