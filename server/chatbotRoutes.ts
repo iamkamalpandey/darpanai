@@ -730,9 +730,9 @@ router.post("/scholarship-match", requireAuth, async (req: Request, res: Respons
     const messageAnalysis = analyzeUserIntent(message);
     
     // Only fetch data that's actually needed based on user intent
-    let userPersonalContext = {};
-    let analysisContext = {};
-    let scholarships = [];
+    let userPersonalContext: any = {};
+    let analysisContext: any = { totalAnalyses: 0, recentAnalysisTypes: [] };
+    let scholarships: any[] = [];
     
     // Get user profile only if needed for the query
     if (messageAnalysis.needsUserProfile) {
