@@ -46,6 +46,7 @@ export function ScholarshipMatcher() {
   });
   const [isMatching, setIsMatching] = useState(false);
   const [matchedScholarships, setMatchedScholarships] = useState<ScholarshipMatch[]>([]);
+  const [filtersInitialized, setFiltersInitialized] = useState(false);
 
   // Fetch user profile for matching
   const { data: userData, isLoading: profileLoading } = useQuery({
@@ -53,6 +54,19 @@ export function ScholarshipMatcher() {
   });
 
   const userProfile: UserProfile | null = userData || null;
+
+  // Initialize filters with user profile data
+  useEffect(() => {
+    if (userProfile && !filtersInitialized) {
+      setSearchFilters({
+        fieldFilter: userProfile.fieldOfStudy || userProfile.interestedCourse || 'all',
+        countryFilter: userProfile.preferredCountries?.[0] || 'all',
+        levelFilter: 'all', // Will be handled by backend academic progression logic
+        fundingTypeFilter: 'all'
+      });
+      setFiltersInitialized(true);
+    }
+  }, [userProfile, filtersInitialized]);
 
   // Fetch scholarships based on user profile and filters
   const fetchMatchedScholarships = async () => {

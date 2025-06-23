@@ -33,25 +33,39 @@ router.post("/match", requireAuth, async (req: Request, res: Response) => {
       });
     }
 
-    // Extract matching criteria from user profile and filters
+    // Enhanced academic level progression logic
+    const getEligibleAcademicLevels = (userLevel: string) => {
+      const levelMap: { [key: string]: string[] } = {
+        'High School': ["Bachelor's Degree", "Foundation Program", "Diploma"],
+        "Bachelor's Degree": ["Master's Degree", "Bachelor's Degree", "Postgraduate Diploma", "MBA"],
+        "Master's Degree": ["Master's Degree", "PhD", "Doctoral Program", "Postgraduate Research"],
+        'PhD': ["PhD", "Postdoctoral Research", "Research Fellowship"]
+      };
+      return levelMap[userLevel] || [userLevel];
+    };
+
+    // Build enhanced matching criteria
+    const userAcademicLevel = filters.levelFilter || user.highestQualification;
+    const eligibleLevels = getEligibleAcademicLevels(userAcademicLevel);
+    
     const matchingCriteria = {
       fieldOfStudy: filters.fieldFilter || user.fieldOfStudy || user.interestedCourse,
-      academicLevel: filters.levelFilter || user.highestQualification,
+      academicLevels: eligibleLevels, // Multiple levels for progression
       preferredCountries: filters.countryFilter ? [filters.countryFilter] : user.preferredCountries || [],
       fundingType: filters.fundingTypeFilter,
       nationality: user.nationality,
-      // gpa: user.gpa, // Field not available in current schema
-      budgetRange: user.budgetRange
+      budgetRange: user.budgetRange,
+      allowAllCountries: true // Allow scholarships from other countries too
     };
 
-    console.log('[Scholarship Matching] Criteria:', matchingCriteria);
+    console.log('[Scholarship Matching] Enhanced Criteria:', matchingCriteria);
 
-    // Search scholarships from database
+    // Enhanced scholarship search with broader criteria
     const searchResults = await scholarshipStorage.searchScholarships({
       search: matchingCriteria.fieldOfStudy || '',
-      providerCountry: filters.countryFilter || '',
+      providerCountry: '', // Allow all countries initially
       fundingType: filters.fundingTypeFilter || '',
-      limit: 50,
+      limit: 100, // Increased limit for better matching
       offset: 0
     });
 
@@ -92,13 +106,13 @@ router.post("/match", requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-// Calculate match score between scholarship and user profile
+// Enhanced match score calculation with academic progression logic
 function calculateMatchScore(scholarship: any, criteria: any): { score: number; reasons: string[] } {
   let score = 0;
   const reasons: string[] = [];
   const maxScore = 100;
 
-  // Field of study matching (30 points)
+  // Field of study matching (25 points)
   if (criteria.fieldOfStudy && scholarship.fieldOfStudy) {
     const userField = criteria.fieldOfStudy.toLowerCase();
     const scholarshipFields = Array.isArray(scholarship.fieldOfStudy) 
@@ -115,28 +129,36 @@ function calculateMatchScore(scholarship: any, criteria: any): { score: number; 
     }
   }
 
-  // Academic level matching (25 points)
-  if (criteria.academicLevel && scholarship.eligibilityLevel) {
+  // Enhanced academic level progression matching (30 points)
+  if (criteria.academicLevels && scholarship.eligibilityLevel) {
     const eligibilityLevels = Array.isArray(scholarship.eligibilityLevel) 
       ? scholarship.eligibilityLevel 
       : [scholarship.eligibilityLevel];
     
     const hasLevelMatch = eligibilityLevels.some((level: string) => 
-      level.toLowerCase().includes(criteria.academicLevel.toLowerCase())
+      criteria.academicLevels.some((eligibleLevel: string) =>
+        level.toLowerCase().includes(eligibleLevel.toLowerCase()) ||
+        eligibleLevel.toLowerCase().includes(level.toLowerCase())
+      )
     );
     
     if (hasLevelMatch) {
-      score += 25;
-      reasons.push(`Suitable for ${criteria.academicLevel} level`);
+      score += 30;
+      const matchedLevel = eligibilityLevels.find((level: string) => 
+        criteria.academicLevels.some((eligibleLevel: string) =>
+          level.toLowerCase().includes(eligibleLevel.toLowerCase())
+        )
+      );
+      reasons.push(`Academic progression match: ${matchedLevel}`);
     }
   }
 
-  // Country preference matching (20 points)
+  // Enhanced country preference matching (20 points)
+  const scholarshipCountries = Array.isArray(scholarship.targetCountries) 
+    ? scholarship.targetCountries 
+    : [scholarship.providerCountry];
+  
   if (criteria.preferredCountries && criteria.preferredCountries.length > 0) {
-    const scholarshipCountries = Array.isArray(scholarship.targetCountries) 
-      ? scholarship.targetCountries 
-      : [scholarship.providerCountry];
-    
     const matchingCountries = criteria.preferredCountries.filter((country: string) =>
       scholarshipCountries.some((sCountry: string) => 
         sCountry.toLowerCase().includes(country.toLowerCase())
