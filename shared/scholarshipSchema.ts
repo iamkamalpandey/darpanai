@@ -58,6 +58,23 @@ export const scholarships = pgTable("scholarships", {
   researchOpportunities: boolean("research_opportunities").default(false),
   description: text("description"),
   tags: json("tags"),
+  
+  // Enhanced tagging system for optimized queries
+  countryTags: json("country_tags").$type<string[]>(),
+  academicLevelTags: json("academic_level_tags").$type<string[]>(),
+  fundingTypeTags: json("funding_type_tags").$type<string[]>(),
+  courseTagsDetailed: json("course_tags_detailed").$type<string[]>(),
+  
+  // Quick lookup fields for database performance
+  primaryCountry: text("primary_country"),
+  primaryAcademicLevel: text("primary_academic_level"),
+  primaryFundingType: text("primary_funding_type"),
+  primaryCourseCategory: text("primary_course_category"),
+  
+  // Search optimization fields
+  searchKeywords: text("search_keywords"),
+  eligibilityHash: text("eligibility_hash"), // For quick eligibility matching
+  
   difficultyLevel: text("difficulty_level"),
   totalApplicantsPerYear: integer("total_applicants_per_year"),
   acceptanceRate: decimal("acceptance_rate", { precision: 5, scale: 2 }),
