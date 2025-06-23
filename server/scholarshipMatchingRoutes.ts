@@ -33,12 +33,12 @@ router.post("/match", requireAuth, async (req: Request, res: Response) => {
       });
     }
 
-    // Intelligent academic level progression logic
+    // Fixed academic level progression logic - proper academic progression
     const getEligibleAcademicLevels = (userLevel: string) => {
       const levelMap: { [key: string]: string[] } = {
         'High School': ["Diploma", "Bachelor's Degree"],
-        'Diploma': ["Diploma", "Bachelor's Degree", "Master's Degree"],
-        "Bachelor's Degree": ["Bachelor's Degree", "Master's Degree", "PhD"],
+        'Diploma': ["Diploma", "Bachelor's Degree"],
+        "Bachelor's Degree": ["Bachelor's Degree", "Master's Degree"],
         "Master's Degree": ["Master's Degree", "PhD"],
         'PhD': ["PhD", "Postdoctoral Research"]
       };

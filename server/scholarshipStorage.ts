@@ -38,13 +38,44 @@ export class ScholarshipStorage {
         sql`${scholarships.applicationDeadline} > ${currentDate}`
       ];
       
-      // Academic level filter: progressive qualification matching
+      // Academic level filter: strict progressive qualification matching
       if (eligibleLevels.length > 0) {
-        const levelConditions = eligibleLevels.map(level => 
-          sql`${scholarships.studyLevels}::text ILIKE ${'%' + level + '%'}`
-        );
-        if (levelConditions.length > 0) {
-          mandatoryConditions.push(or(...levelConditions)!);
+        // Create level mapping for proper filtering
+        const levelMappings: { [key: string]: string[] } = {
+          "Bachelor's Degree": ["bachelor", "undergraduate"],
+          "Master's Degree": ["master", "masters", "postgraduate"],
+          "PhD": ["phd", "doctorate", "doctoral"],
+          "Diploma": ["diploma", "certificate"],
+          "Postdoctoral Research": ["postdoc", "postdoctoral"]
+        };
+        
+        const allowedScholarshipLevels: string[] = [];
+        eligibleLevels.forEach(userLevel => {
+          const mappedLevels = levelMappings[userLevel] || [userLevel.toLowerCase()];
+          allowedScholarshipLevels.push(...mappedLevels);
+        });
+        
+        // Only include scholarships that contain ONLY the user's eligible levels
+        // This prevents PhD scholarships from appearing for Bachelor's degree holders
+        if (allowedScholarshipLevels.length > 0) {
+          const levelConditions = allowedScholarshipLevels.map(level => 
+            sql`${scholarships.studyLevels}::text ILIKE ${'%' + level + '%'}`
+          );
+          
+          // Additional check: exclude scholarships with levels above user's progression
+          const excludeConditions: any[] = [];
+          if (eligibleLevels.includes("Bachelor's Degree") && !eligibleLevels.includes("PhD")) {
+            // Bachelor's degree holders should not see PhD scholarships
+            excludeConditions.push(
+              sql`NOT (${scholarships.studyLevels}::text ILIKE '%phd%' OR ${scholarships.studyLevels}::text ILIKE '%doctorate%')`
+            );
+          }
+          
+          const finalLevelCondition = excludeConditions.length > 0 
+            ? and(or(...levelConditions)!, ...excludeConditions)
+            : or(...levelConditions)!;
+            
+          mandatoryConditions.push(finalLevelCondition);
         }
       }
 
