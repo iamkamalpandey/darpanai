@@ -228,9 +228,9 @@ export default function ScholarshipMatchingMVP() {
                           scholarship.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           scholarship.fields.some(field => field.toLowerCase().includes(searchTerm.toLowerCase()));
       
-      const matchesCountry = !selectedCountry || scholarship.country === selectedCountry;
-      const matchesFunding = !selectedFunding || scholarship.type === selectedFunding;
-      const matchesDifficulty = !selectedDifficulty || scholarship.difficulty === selectedDifficulty;
+      const matchesCountry = !selectedCountry || selectedCountry === 'all_countries' || scholarship.country === selectedCountry;
+      const matchesFunding = !selectedFunding || selectedFunding === 'all_types' || scholarship.type === selectedFunding;
+      const matchesDifficulty = !selectedDifficulty || selectedDifficulty === 'all_levels' || scholarship.difficulty === selectedDifficulty;
 
       return matchesSearch && matchesCountry && matchesFunding && matchesDifficulty;
     });
@@ -356,7 +356,7 @@ export default function ScholarshipMatchingMVP() {
                       <SelectValue placeholder="All Countries" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Countries</SelectItem>
+                      <SelectItem value="all_countries">All Countries</SelectItem>
                       {countries.map(country => (
                         <SelectItem key={country.code} value={country.name}>
                           {country.flag} {country.name}
@@ -373,7 +373,7 @@ export default function ScholarshipMatchingMVP() {
                       <SelectValue placeholder="All Types" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Types</SelectItem>
+                      <SelectItem value="all_types">All Types</SelectItem>
                       {fundingTypes.map(type => (
                         <SelectItem key={type} value={type}>{type}</SelectItem>
                       ))}
@@ -388,7 +388,7 @@ export default function ScholarshipMatchingMVP() {
                       <SelectValue placeholder="All Levels" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Levels</SelectItem>
+                      <SelectItem value="all_levels">All Levels</SelectItem>
                       {difficultyLevels.map(level => (
                         <SelectItem key={level} value={level}>{level}</SelectItem>
                       ))}
