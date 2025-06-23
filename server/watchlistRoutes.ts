@@ -79,10 +79,10 @@ router.delete('/remove/:scholarshipId', requireAuth, async (req: Request, res: R
     const userId = req.user!.id;
     const scholarshipId = parseInt(req.params.scholarshipId);
 
-    const deleted = await db.delete(scholarship_watchlist)
+    const deleted = await db.delete(scholarshipWatchlist)
       .where(and(
-        eq(scholarship_watchlist.user_id, userId),
-        eq(scholarship_watchlist.scholarship_id, scholarshipId)
+        eq(scholarshipWatchlist.userId, userId),
+        eq(scholarshipWatchlist.scholarshipId, scholarshipId)
       ));
 
     res.json({
@@ -105,12 +105,12 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
     console.log('[Watchlist] Fetching watchlist for user:', userId);
 
     const watchlistItems = await db.select({
-      id: scholarship_watchlist.id,
-      scholarshipId: scholarship_watchlist.scholarship_id,
-      addedDate: scholarship_watchlist.added_date,
-      notes: scholarship_watchlist.notes,
-      priorityLevel: scholarship_watchlist.priority_level,
-      applicationStatus: scholarship_watchlist.application_status,
+      id: scholarshipWatchlist.id,
+      scholarshipId: scholarshipWatchlist.scholarshipId,
+      addedDate: scholarshipWatchlist.savedAt,
+      notes: scholarshipWatchlist.notes,
+      priorityLevel: scholarshipWatchlist.priority,
+      applicationStatus: scholarshipWatchlist.status,
       scholarship: {
         id: scholarships.id,
         name: scholarships.name,
@@ -124,10 +124,10 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
         description: scholarships.description
       }
     })
-    .from(scholarship_watchlist)
-    .innerJoin(scholarships, eq(scholarship_watchlist.scholarship_id, scholarships.id))
-    .where(eq(scholarship_watchlist.user_id, userId))
-    .orderBy(desc(scholarship_watchlist.added_date));
+    .from(scholarshipWatchlist)
+    .innerJoin(scholarships, eq(scholarshipWatchlist.scholarshipId, scholarships.id))
+    .where(eq(scholarshipWatchlist.userId, userId))
+    .orderBy(desc(scholarshipWatchlist.savedAt));
 
     res.json({
       success: true,
@@ -187,11 +187,11 @@ router.get('/check/:scholarshipId', requireAuth, async (req: Request, res: Respo
     const userId = req.user!.id;
     const scholarshipId = parseInt(req.params.scholarshipId);
 
-    const watchlistEntry = await db.select({ id: scholarship_watchlist.id })
-      .from(scholarship_watchlist)
+    const watchlistEntry = await db.select({ id: scholarshipWatchlist.id })
+      .from(scholarshipWatchlist)
       .where(and(
-        eq(scholarship_watchlist.user_id, userId),
-        eq(scholarship_watchlist.scholarship_id, scholarshipId)
+        eq(scholarshipWatchlist.userId, userId),
+        eq(scholarshipWatchlist.scholarshipId, scholarshipId)
       ))
       .limit(1);
 
