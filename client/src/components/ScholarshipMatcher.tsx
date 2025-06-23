@@ -148,13 +148,19 @@ export function ScholarshipMatcher() {
         }
       });
 
-      console.log('Scholarship API Response:', response);
+      // Parse JSON response properly
+      const data = await response.json();
+      console.log('Scholarship API Response:', data);
       
-      if (response && (response as any).success && (response as any).scholarships) {
-        console.log('Scholarships received:', (response as any).scholarships.length);
-        return (response as any).scholarships;
+      // Handle parsed response structure
+      if (data && data.success && Array.isArray(data.scholarships)) {
+        console.log('Scholarships received:', data.scholarships.length);
+        setMatchedScholarships(data.scholarships);
+        return data.scholarships;
       }
-      console.log('No scholarships in response');
+      
+      console.log('No scholarships in response, data structure:', data);
+      setMatchedScholarships([]);
       return [];
     } catch (error) {
       console.error('Error fetching scholarships:', error);

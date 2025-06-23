@@ -61,8 +61,18 @@ router.post("/match", requireAuth, async (req: Request, res: Response) => {
 
     console.log('[Scholarship Matching] Enhanced Criteria:', matchingCriteria);
 
-    // Get all scholarships for intelligent filtering
-    const searchResults = await scholarshipStorage.getAllScholarships(100, 0);
+    // Optimize query - use intelligent filtering with proper parameters
+    const searchResults = await scholarshipStorage.searchScholarshipsWithIntelligentFilters({
+      search: matchingCriteria.fieldOfStudy || '',
+      eligibleLevels: matchingCriteria.academicLevels,
+      userBachelorField: matchingCriteria.fieldOfStudy,
+      userPreferredCourses: matchingCriteria.preferredCountries || [],
+      currentDate: new Date().toISOString().split('T')[0],
+      fundingType: matchingCriteria.fundingType || undefined,
+      nationality: matchingCriteria.nationality ?? undefined,
+      limit: 20, // Limit results to save resources
+      offset: 0
+    });
     
     console.log('[Scholarship Matching] Search results:', {
       total: searchResults.total,
