@@ -212,6 +212,11 @@ function setupGracefulShutdown(server: any) {
     app.use('/api', scholarshipRoutes.default); // Add direct API mount for admin routes
     logWithLevel('✓ Scholarship routes registered successfully');
     
+    // Register chatbot routes
+    const chatbotRoutes = await import('./chatbotRoutes');
+    app.use('/api/chatbot', chatbotRoutes.default);
+    logWithLevel('✓ Chatbot routes registered successfully');
+    
     // Step 5: Setup error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;

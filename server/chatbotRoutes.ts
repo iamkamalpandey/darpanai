@@ -133,30 +133,30 @@ async function findMatchingScholarships(userMessage: string, userProfile: UserPr
       const matchReasons: string[] = [];
       
       // Academic level matching
-      if (scholarship.studyLevels && Array.isArray(scholarship.studyLevels) && userProfile.highestQualification) {
+      if ((scholarship as any).studyLevels && Array.isArray((scholarship as any).studyLevels) && userProfile.highestQualification) {
         const userLevel = userProfile.highestQualification.toLowerCase();
-        const scholarshipLevels = scholarship.studyLevels.map((l: any) => l.toLowerCase());
+        const scholarshipLevels = (scholarship as any).studyLevels.map((l: string) => l.toLowerCase());
         
-        if (scholarshipLevels.some((level: any) => userLevel.includes(level) || level.includes(userLevel))) {
+        if (scholarshipLevels.some((level: string) => userLevel.includes(level) || level.includes(userLevel))) {
           matchScore += 20;
           matchReasons.push('Academic level match');
         }
       }
       
       // Field of study matching
-      if (scholarship.fieldCategories && Array.isArray(scholarship.fieldCategories) && userProfile.interestedCourse) {
+      if ((scholarship as any).fieldCategories && Array.isArray((scholarship as any).fieldCategories) && userProfile.interestedCourse) {
         const userField = userProfile.interestedCourse.toLowerCase();
-        const scholarshipFields = scholarship.fieldCategories.map((f: any) => f.toLowerCase());
+        const scholarshipFields = (scholarship as any).fieldCategories.map((f: string) => f.toLowerCase());
         
-        if (scholarshipFields.some((field: any) => userField.includes(field) || field.includes(userField))) {
+        if (scholarshipFields.some((field: string) => userField.includes(field) || field.includes(userField))) {
           matchScore += 25;
           matchReasons.push('Field of study match');
         }
       }
       
       // Country preference matching
-      if (scholarship.hostCountries && Array.isArray(scholarship.hostCountries) && userProfile.preferredCountries) {
-        const commonCountries = scholarship.hostCountries.filter((country: any) => 
+      if ((scholarship as any).hostCountries && Array.isArray((scholarship as any).hostCountries) && userProfile.preferredCountries) {
+        const commonCountries = (scholarship as any).hostCountries.filter((country: string) => 
           userProfile.preferredCountries!.includes(country)
         );
         if (commonCountries.length > 0) {

@@ -74,6 +74,7 @@ const CoeDetails = lazy(() => import("@/pages/CoeDetailsNew"));
 const UserCoeDetails = lazy(() => import("@/pages/UserCoeDetails"));
 const AdminOfferLetterInfo = lazy(() => import("@/pages/admin/AdminOfferLetterInfo"));
 const UserAdminCoeDetails = lazy(() => import("@/pages/UserAdminCoeDetails"));
+const ScholarshipChatbotPage = lazy(() => import("@/pages/ScholarshipChatbotPage"));
 
 // Loading fallback component
 const LoadingFallback = () => (
