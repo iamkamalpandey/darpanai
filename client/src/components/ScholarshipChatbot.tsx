@@ -172,9 +172,9 @@ export function ScholarshipChatbot() {
     onError: (error: any) => {
       console.error('Chat error:', error);
       const errorMessage: ChatMessage = {
-        id: Date.now().toString(),
+        id: generateUniqueId(),
         type: 'bot',
-        content: "I apologize, but I'm having trouble processing your request right now. Please try again in a moment. I'm still here to help you find amazing scholarship opportunities! 💙",
+        content: "I apologize, but I'm having trouble processing your request right now. Please try again in a moment. I'm still here to help you find amazing scholarship opportunities!",
         timestamp: new Date(),
         metadata: { emotion: 'empathetic', intent: 'guidance' }
       };
@@ -195,7 +195,7 @@ export function ScholarshipChatbot() {
 
     // Add user message with unique ID
     const userMessage: ChatMessage = {
-      id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: generateUniqueId(),
       type: 'user',
       content: inputMessage,
       timestamp: new Date()
