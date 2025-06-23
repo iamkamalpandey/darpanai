@@ -121,12 +121,12 @@ export function ScholarshipMatcher() {
     return reasons.length > 0 ? reasons : ['General eligibility match'];
   };
 
-  // Load matched scholarships on component mount and when filters change
+  // Load matched scholarships when profile and filters are ready
   useEffect(() => {
-    if (userProfile) {
+    if (userProfile && filtersInitialized) {
       fetchMatchedScholarships().then(setMatchedScholarships);
     }
-  }, [userProfile, searchFilters]);
+  }, [userProfile, searchFilters, filtersInitialized]);
 
   const handleFilterChange = (filterType: string, value: string) => {
     setSearchFilters(prev => ({
@@ -193,6 +193,18 @@ export function ScholarshipMatcher() {
             <div>
               <p className="text-sm text-muted-foreground">Academic Level</p>
               <p className="font-medium">{userProfile.highestQualification || 'Not specified'}</p>
+              {userProfile.highestQualification && (
+                <p className="text-xs text-blue-600 mt-1">
+                  {userProfile.highestQualification === 'High School' 
+                    ? 'Showing: Bachelor\'s, Foundation programs'
+                    : userProfile.highestQualification === "Bachelor's Degree"
+                    ? 'Showing: Master\'s, Bachelor\'s, MBA programs'
+                    : userProfile.highestQualification === "Master's Degree"
+                    ? 'Showing: Master\'s, PhD, Research programs'
+                    : 'Showing: Advanced research programs'
+                  }
+                </p>
+              )}
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Preferred Countries</p>
@@ -292,10 +304,16 @@ export function ScholarshipMatcher() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {matchedScholarships.length === 0 && !isMatching ? (
+          {isMatching ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No scholarships found matching your criteria.</p>
-              <p className="text-sm text-muted-foreground mt-2">Try adjusting your filters or completing more profile information.</p>
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Finding scholarships that match your academic progression...</p>
+              <p className="text-sm text-muted-foreground mt-2">Searching database for opportunities in your field and level</p>
+            </div>
+          ) : matchedScholarships.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No scholarships found matching your current criteria.</p>
+              <p className="text-sm text-muted-foreground mt-2">Try adjusting your filters or check back later for new opportunities.</p>
             </div>
           ) : (
             <ScrollArea className="h-[600px]">
