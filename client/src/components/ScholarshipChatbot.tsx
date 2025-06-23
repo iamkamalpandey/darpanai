@@ -71,11 +71,12 @@ export function ScholarshipChatbot() {
   // Chat mutation for processing messages
   const chatMutation = useMutation({
     mutationFn: async (userMessage: string) => {
-      return apiRequest('POST', '/api/chatbot/scholarship-match', {
+      const response = await apiRequest('POST', '/api/chatbot/scholarship-match', {
         message: userMessage,
         conversationHistory: messages.slice(-5), // Send last 5 messages for context
         userProfile: userProfile || {}
       });
+      return response;
     },
     onSuccess: (response: any) => {
       const botMessage: ChatMessage = {
@@ -296,7 +297,11 @@ export function ScholarshipChatbot() {
               disabled={!inputMessage.trim() || chatMutation.isPending}
               className="bg-blue-600 hover:bg-blue-700"
             >
-              <Send className="h-4 w-4" />
+              {chatMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </Button>
           </div>
           

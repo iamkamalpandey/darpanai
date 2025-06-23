@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Bot, Heart, Star, Lightbulb, MessageCircle } from 'lucide-react';
 
-export function ScholarshipChatbotPage() {
+function ScholarshipChatbotPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -136,3 +136,5 @@ export function ScholarshipChatbotPage() {
     </DashboardLayout>
   );
 }
+
+export default ScholarshipChatbotPage;

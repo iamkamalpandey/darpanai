@@ -179,6 +179,13 @@ function Router() {
           </Suspense>
         )} />
       </Route>
+      <Route path="/scholarship-chatbot">
+        <UserProtectedRoute path="/scholarship-chatbot" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <ScholarshipChatbotPage />
+          </Suspense>
+        )} />
+      </Route>
       <Route path="/destination-suggestions">
         <UserProtectedRoute path="/destination-suggestions" component={() => (
           <Suspense fallback={<LoadingFallback />}>
