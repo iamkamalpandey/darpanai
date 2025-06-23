@@ -7,22 +7,26 @@ import { eq, and, desc } from 'drizzle-orm';
 
 const router = Router();
 
-// Authentication middleware
-const requireAuth = (req: Request, res: Response, next: any) => {
-  console.log('[Watchlist Auth] Checking authentication for user:', req.user?.id);
-  if (!req.user || !req.user.id) {
-    console.log('[Watchlist Auth] Authentication failed - no user found');
-    return res.status(401).json({ success: false, error: 'Authentication required' });
-  }
-  console.log('[Watchlist Auth] Authentication successful for user:', req.user.id);
-  next();
-};
+// Watchlist entry validation schema
+const addToWatchlistSchema = z.object({
+  scholarshipId: z.number().int().positive(),
+  notes: z.string().optional().default(''),
+  priorityLevel: z.enum(['low', 'medium', 'high']).optional().default('medium'),
+  applicationStatus: z.enum(['not_started', 'in_progress', 'submitted', 'completed']).optional().default('not_started')
+});
 
-// Add scholarship to watchlist
-router.post('/add', requireAuth, async (req: Request, res: Response) => {
+// Add scholarship to watchlist (POST /api/watchlist/add)
+router.post('/add', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
-    const { scholarshipId, notes = '', priorityLevel = 'medium', applicationStatus = 'not_started' } = req.body;
+    if (!req.user?.id) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
+
+    const userId = req.user.id;
+    const validatedData = addToWatchlistSchema.parse(req.body);
+    const { scholarshipId, notes, priorityLevel, applicationStatus } = validatedData;
+
+    console.log('[Watchlist] Adding scholarship to watchlist:', { userId, scholarshipId });
 
     // Check if scholarship exists
     const scholarship = await db.select({ id: scholarships.id })
@@ -31,6 +35,7 @@ router.post('/add', requireAuth, async (req: Request, res: Response) => {
       .limit(1);
 
     if (!scholarship.length) {
+      console.log('[Watchlist] Scholarship not found:', scholarshipId);
       return res.status(404).json({ success: false, error: 'Scholarship not found' });
     }
 
@@ -59,6 +64,8 @@ router.post('/add', requireAuth, async (req: Request, res: Response) => {
       })
       .returning();
 
+    console.log('[Watchlist] Successfully added to watchlist:', watchlistEntry.id);
+
     res.status(201).json({
       success: true,
       message: 'Scholarship added to watchlist',
@@ -67,21 +74,42 @@ router.post('/add', requireAuth, async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error('[Watchlist] Error adding scholarship:', error);
+    
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid data',
+        details: error.errors
+      });
+    }
+    
     res.status(500).json({ success: false, error: 'Failed to add scholarship to watchlist' });
   }
 });
 
-// Remove scholarship from watchlist
-router.delete('/remove/:scholarshipId', requireAuth, async (req: Request, res: Response) => {
+// Remove scholarship from watchlist (DELETE /api/watchlist/remove/:scholarshipId)
+router.delete('/remove/:scholarshipId', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    if (!req.user?.id) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
+
+    const userId = req.user.id;
     const scholarshipId = parseInt(req.params.scholarshipId);
+
+    if (isNaN(scholarshipId)) {
+      return res.status(400).json({ success: false, error: 'Invalid scholarship ID' });
+    }
+
+    console.log('[Watchlist] Removing scholarship from watchlist:', { userId, scholarshipId });
 
     const deleted = await db.delete(scholarship_watchlist)
       .where(and(
         eq(scholarship_watchlist.user_id, userId),
         eq(scholarship_watchlist.scholarship_id, scholarshipId)
       ));
+
+    console.log('[Watchlist] Successfully removed from watchlist');
 
     res.json({
       success: true,
@@ -94,12 +122,14 @@ router.delete('/remove/:scholarshipId', requireAuth, async (req: Request, res: R
   }
 });
 
-// Get user's watchlist - optimized query
-router.get('/', requireAuth, async (req: Request, res: Response) => {
+// Get user's watchlist (GET /api/watchlist)
+router.get('/', async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    if (!req.user?.id) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
 
-    // Simply return empty array if no items exist
+    const userId = req.user.id;
     console.log('[Watchlist] Fetching watchlist for user:', userId);
 
     const watchlistItems = await db.select({
@@ -123,9 +153,11 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
       }
     })
     .from(scholarship_watchlist)
-    .innerJoin(scholarships, eq(scholarship_watchlist.scholarship_id, scholarships.id))
+    .leftJoin(scholarships, eq(scholarship_watchlist.scholarship_id, scholarships.id))
     .where(eq(scholarship_watchlist.user_id, userId))
     .orderBy(desc(scholarship_watchlist.added_date));
+
+    console.log('[Watchlist] Found', watchlistItems.length, 'watchlist items');
 
     res.json({
       success: true,
@@ -135,7 +167,7 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error('[Watchlist] Error fetching watchlist:', error);
-    // Return empty watchlist on error instead of 500
+    // Return empty watchlist on error to prevent UI breaking
     res.json({ 
       success: true,
       watchlist: [],
@@ -144,19 +176,62 @@ router.get('/', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-// Update watchlist entry
-router.patch('/update/:id', requireAuth, async (req: Request, res: Response) => {
+// Check if scholarship is in watchlist (GET /api/watchlist/check/:scholarshipId)
+router.get('/check/:scholarshipId', async (req: Request, res: Response) => {
   try {
+    if (!req.user?.id) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
+
+    const userId = req.user.id;
+    const scholarshipId = parseInt(req.params.scholarshipId);
+
+    if (isNaN(scholarshipId)) {
+      return res.status(400).json({ success: false, error: 'Invalid scholarship ID' });
+    }
+
+    const watchlistEntry = await db.select({ id: scholarship_watchlist.id })
+      .from(scholarship_watchlist)
+      .where(and(
+        eq(scholarship_watchlist.user_id, userId),
+        eq(scholarship_watchlist.scholarship_id, scholarshipId)
+      ))
+      .limit(1);
+
+    res.json({
+      success: true,
+      inWatchlist: watchlistEntry.length > 0
+    });
+
+  } catch (error) {
+    console.error('[Watchlist] Error checking watchlist:', error);
+    res.status(500).json({ success: false, error: 'Failed to check watchlist status' });
+  }
+});
+
+// Update watchlist entry (PATCH /api/watchlist/update/:id)
+router.patch('/update/:id', async (req: Request, res: Response) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ success: false, error: 'Authentication required' });
+    }
+
     const watchlistId = parseInt(req.params.id);
-    const userId = req.user!.id;
+    const userId = req.user.id;
+    
+    if (isNaN(watchlistId)) {
+      return res.status(400).json({ success: false, error: 'Invalid watchlist ID' });
+    }
+
     const { notes, priorityLevel, applicationStatus } = req.body;
 
+    const updateData: any = {};
+    if (notes !== undefined) updateData.notes = notes;
+    if (priorityLevel !== undefined) updateData.priority_level = priorityLevel;
+    if (applicationStatus !== undefined) updateData.application_status = applicationStatus;
+
     const [updated] = await db.update(scholarship_watchlist)
-      .set({
-        notes: notes !== undefined ? notes : undefined,
-        priority_level: priorityLevel !== undefined ? priorityLevel : undefined,
-        application_status: applicationStatus !== undefined ? applicationStatus : undefined
-      })
+      .set(updateData)
       .where(and(
         eq(scholarship_watchlist.id, watchlistId),
         eq(scholarship_watchlist.user_id, userId)
@@ -176,31 +251,6 @@ router.patch('/update/:id', requireAuth, async (req: Request, res: Response) => 
   } catch (error) {
     console.error('[Watchlist] Error updating watchlist entry:', error);
     res.status(500).json({ success: false, error: 'Failed to update watchlist entry' });
-  }
-});
-
-// Check if scholarship is in watchlist
-router.get('/check/:scholarshipId', requireAuth, async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.id;
-    const scholarshipId = parseInt(req.params.scholarshipId);
-
-    const watchlistEntry = await db.select({ id: scholarship_watchlist.id })
-      .from(scholarship_watchlist)
-      .where(and(
-        eq(scholarship_watchlist.user_id, userId),
-        eq(scholarship_watchlist.scholarship_id, scholarshipId)
-      ))
-      .limit(1);
-
-    res.json({
-      success: true,
-      inWatchlist: watchlistEntry.length > 0
-    });
-
-  } catch (error) {
-    console.error('[Watchlist] Error checking watchlist:', error);
-    res.status(500).json({ success: false, error: 'Failed to check watchlist status' });
   }
 });
 
