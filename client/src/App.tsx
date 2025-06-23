@@ -76,7 +76,7 @@ const CoeDetails = lazy(() => import("@/pages/CoeDetailsNew"));
 const UserCoeDetails = lazy(() => import("@/pages/UserCoeDetails"));
 const AdminOfferLetterInfo = lazy(() => import("@/pages/admin/AdminOfferLetterInfo"));
 const UserAdminCoeDetails = lazy(() => import("@/pages/UserAdminCoeDetails"));
-const ScholarshipMatchingPage = lazy(() => import("@/pages/ScholarshipMatchingPage"));
+
 const MyWatchlist = lazy(() => import("@/pages/MyWatchlist"));
 
 // Loading fallback component
@@ -182,13 +182,7 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      <Route path="/scholarship-matching-mvp">
-        <UserProtectedRoute path="/scholarship-matching-mvp" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <ScholarshipMatchingMVP />
-          </Suspense>
-        )} />
-      </Route>
+
       <Route path="/scholarship-details/:scholarshipId">
         {(params) => (
           <UserProtectedRoute path="/scholarship-details/:scholarshipId" component={() => (
@@ -201,7 +195,7 @@ function Router() {
       <Route path="/scholarship-matching">
         <UserProtectedRoute path="/scholarship-matching" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <ScholarshipMatchingPage />
+            <ScholarshipMatchingMVP />
           </Suspense>
         )} />
       </Route>
