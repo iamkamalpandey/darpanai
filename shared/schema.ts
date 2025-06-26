@@ -528,6 +528,102 @@ export const insertUniversitySchema = createInsertSchema(universities).omit({
   createdAt: true,
 });
 
+// Advanced Assessment Schema
+export const advancedAssessmentSchema = z.object({
+  // Personal Information
+  personalInfo: z.object({
+    fullName: z.string().min(2, "Full name is required"),
+    email: z.string().email("Valid email is required"),
+    phone: z.string().min(10, "Phone number is required"),
+    dateOfBirth: z.string().min(1, "Date of birth is required"),
+    nationality: z.string().min(1, "Nationality is required"),
+    currentCountry: z.string().min(1, "Current country is required"),
+    languagesProficient: z.array(z.string()).min(1, "At least one language required"),
+  }),
+
+  // Academic Background
+  academicBackground: z.object({
+    currentEducationLevel: z.string().min(1, "Education level is required"),
+    fieldOfStudy: z.string().min(1, "Field of study is required"),
+    institutionName: z.string().min(1, "Institution name is required"),
+    graduationYear: z.string().min(1, "Graduation year is required"),
+    gpa: z.string().min(1, "GPA is required"),
+    gradingScale: z.string().min(1, "Grading scale is required"),
+    academicAchievements: z.string().optional(),
+    researchExperience: z.string().optional(),
+  }),
+
+  // Study Preferences
+  studyPreferences: z.object({
+    intendedLevel: z.string().min(1, "Intended study level is required"),
+    studyField: z.string().min(1, "Study field is required"),
+    specificPrograms: z.array(z.string()),
+    studyMode: z.string().min(1, "Study mode is required"),
+    startSemester: z.string().min(1, "Start semester is required"),
+    studyDuration: z.string().min(1, "Study duration is required"),
+    researchInterest: z.string().optional(),
+    careerGoals: z.string().min(1, "Career goals are required"),
+  }),
+
+  // Geographic Preferences
+  geographicPreferences: z.object({
+    preferredCountries: z.array(z.string()).min(1, "At least one country required"),
+    preferredCities: z.array(z.string()),
+    climatePreference: z.string().min(1, "Climate preference is required"),
+    culturalPreferences: z.array(z.string()),
+    languageRequirements: z.array(z.string()),
+    proximityToHome: z.string().min(1, "Proximity preference is required"),
+  }),
+
+  // Financial Planning
+  financialPlanning: z.object({
+    annualBudget: z.string().min(1, "Annual budget is required"),
+    tuitionBudget: z.string().min(1, "Tuition budget is required"),
+    livingExpensesBudget: z.string().min(1, "Living expenses budget is required"),
+    fundingSources: z.array(z.string()).min(1, "At least one funding source required"),
+    scholarshipInterest: z.string().min(1, "Scholarship interest is required"),
+    workPermitInterest: z.string().min(1, "Work permit interest is required"),
+    financialSupport: z.string().min(1, "Financial support is required"),
+  }),
+
+  // Test Scores & Requirements
+  testScores: z.object({
+    englishTest: z.string().optional(),
+    englishScore: z.string().optional(),
+    englishTestDate: z.string().optional(),
+    standardizedTest: z.string().optional(),
+    standardizedScore: z.string().optional(),
+    standardizedTestDate: z.string().optional(),
+    gmatGre: z.string().optional(),
+    gmatGreScore: z.string().optional(),
+    otherTests: z.string().optional(),
+  }),
+
+  // Lifestyle & Personal Factors
+  lifestyleFactors: z.object({
+    accommodationType: z.string().min(1, "Accommodation type is required"),
+    campusSize: z.string().min(1, "Campus size preference is required"),
+    socialEnvironment: z.string().min(1, "Social environment preference is required"),
+    extracurriculars: z.array(z.string()),
+    dietaryRequirements: z.string().optional(),
+    healthConditions: z.string().optional(),
+    transportationNeeds: z.string().optional(),
+    technologyAccess: z.string().min(1, "Technology access is required"),
+  }),
+
+  // Additional Requirements
+  additionalRequirements: z.object({
+    visaSupport: z.string().min(1, "Visa support preference is required"),
+    internshipOpportunities: z.string().min(1, "Internship interest is required"),
+    industryConnections: z.string().min(1, "Industry connections interest is required"),
+    alumniNetwork: z.string().min(1, "Alumni network importance is required"),
+    postGraduation: z.string().min(1, "Post-graduation plans are required"),
+    specialNeeds: z.string().optional(),
+    additionalComments: z.string().optional(),
+  }),
+});
+
+// Legacy assessment schema for backward compatibility
 export const assessmentFormSchema = z.object({
   academicLevel: z.string().min(1, "Academic level is required"),
   fieldOfStudy: z.string().min(1, "Field of study is required"),

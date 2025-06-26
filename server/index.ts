@@ -3,6 +3,7 @@ import compression from "compression";
 import { registerRoutes } from "./routes";
 import { setupOfferLetterRoutes } from "./offerLetterRoutesNew";
 import coeRoutes from "./coeRoutes";
+import advancedDarpanRoutes from "./advancedDarpanRoutes";
 import { setupVite, serveStatic, log } from "./vite";
 import { pool } from "./db";
 
