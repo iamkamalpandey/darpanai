@@ -135,16 +135,16 @@ export default function SimplifiedAuth() {
         firstName: data.firstName,
         lastName: data.lastName,
         phoneNumber: data.phoneNumber,
-        city: "", // Will be collected during profile completion
+        city: "", 
         country: data.country,
-        studyDestination: "Not specified", // Will be collected during profile completion
-        startDate: "Not specified", // Will be collected during profile completion
-        counsellingMode: "Not specified", // Will be collected during profile completion
-        fundingSource: "Not specified", // Will be collected during profile completion
-        studyLevel: "Not specified", // Will be collected during profile completion
+        studyDestination: "Not specified", 
+        startDate: "Not specified", 
+        counsellingMode: "Not specified", 
+        fundingSource: "Not specified", 
+        studyLevel: "Not specified",
         agreeToTerms: data.agreeToTerms,
         allowContact: data.allowContact || false,
-        receiveUpdates: data.receiveUpdates || false,
+        receiveUpdates: data.receiveUpdates || false
       };
 
       const result = await registerMutation.mutateAsync(registrationData);
