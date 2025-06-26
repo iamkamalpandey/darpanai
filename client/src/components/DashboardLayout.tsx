@@ -100,6 +100,7 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
     
     // Priority 4: Research and planning tools
     { icon: <MapPin size={20} />, label: 'AI Study Destination', href: '/personalized-destination-analysis' },
+    { icon: <GraduationCap size={20} />, label: 'University Recommendations', href: '/assessment' },
     { icon: <Award size={20} />, label: 'Scholarship Research', href: '/scholarship-research' },
     { icon: <Award size={20} />, label: 'Scholarship Matching', href: '/scholarship-matching' },
 
