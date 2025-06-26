@@ -1,0 +1,559 @@
+# Integrating Darpan AI Recommendation System into VisaRejectionAnalyzer
+
+Integrate into current database structure of visarejection analyser and add if required 
+
+## Overview
+This guide explains how to integrate the AI-powered university recommendation system from Darpan AI into your existing VisaRejectionAnalyzer project.
+
+## Required Files to Copy
+
+### 1. Database Schema (`shared/schema.ts`)
+```typescript
+import { pgTable, serial, text, varchar, integer, timestamp, jsonb, decimal } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
+// Add to your existing schema
+export const assessments = pgTable("assessments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id"),
+  academicLevel: varchar("academic_level", { length: 50 }),
+  fieldOfStudy: varchar("field_of_study", { length: 100 }),
+  gpa: varchar("gpa", { length: 10 }),
+  testScores: jsonb("test_scores").$type<Record<string, number>>(),
+  preferredCountries: jsonb("preferred_countries").$type<string[]>(),
+  budgetRange: varchar("budget_range", { length: 50 }),
+  lifestyle: varchar("lifestyle", { length: 50 }),
+  specialRequirements: text("special_requirements"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const universities = pgTable("universities", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 200 }).notNull(),
+  country: varchar("country", { length: 100 }).notNull(),
+  city: varchar("city", { length: 100 }).notNull(),
+  ranking: integer("ranking"),
+  acceptanceRate: varchar("acceptance_rate", { length: 10 }),
+  tuitionFee: integer("tuition_fee"),
+  satRange: varchar("sat_range", { length: 20 }),
+  gpaRequirement: varchar("gpa_requirement", { length: 10 }),
+  applicationDeadline: varchar("application_deadline", { length: 50 }),
+  programs: jsonb("programs").$type<string[]>(),
+  imageUrl: varchar("image_url", { length: 500 }),
+  website: varchar("website", { length: 200 }),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const universityMatches = pgTable("university_matches", {
+  id: serial("id").primaryKey(),
+  assessmentId: integer("assessment_id").references(() => assessments.id),
+  universityId: integer("university_id").references(() => universities.id),
+  matchScore: integer("match_score"),
+  matchReasons: jsonb("match_reasons").$type<string[]>(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Types
+export type Assessment = typeof assessments.$inferSelect;
+export type InsertAssessment = typeof assessments.$inferInsert;
+export type University = typeof universities.$inferSelect;
+export type UniversityMatch = typeof universityMatches.$inferSelect;
+```
+
+### 2. OpenAI Integration (`server/openai.ts`)
+```typescript
+import OpenAI from "openai";
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+interface AssessmentData {
+  academicLevel: string;
+  fieldOfStudy: string;
+  gpa: string;
+  testScores: Record<string, number>;
+  preferredCountries: string[];
+  budgetRange: string;
+  lifestyle: string;
+  specialRequirements?: string;
+}
+
+interface MatchResult {
+  universityId: number;
+  matchScore: number;
+  matchReasons: string[];
+}
+
+export async function generateUniversityMatches(
+  assessment: AssessmentData,
+  universities: any[]
+): Promise<MatchResult[]> {
+  const prompt = `
+  Analyze this student profile and match them with suitable universities:
+  
+  Student Profile:
+  - Academic Level: ${assessment.academicLevel}
+  - Field of Study: ${assessment.fieldOfStudy}
+  - GPA: ${assessment.gpa}
+  - Test Scores: ${JSON.stringify(assessment.testScores)}
+  - Preferred Countries: ${assessment.preferredCountries.join(', ')}
+  - Budget Range: ${assessment.budgetRange}
+  - Lifestyle: ${assessment.lifestyle}
+  - Special Requirements: ${assessment.specialRequirements || 'None'}
+
+  Available Universities:
+  ${universities.map(u => `
+  ID: ${u.id}
+  Name: ${u.name}
+  Country: ${u.country}
+  City: ${u.city}
+  Ranking: ${u.ranking || 'N/A'}
+  Acceptance Rate: ${u.acceptanceRate || 'N/A'}%
+  Tuition: $${u.tuitionFee || 'N/A'}
+  GPA Requirement: ${u.gpaRequirement || 'N/A'}
+  SAT Range: ${u.satRange || 'N/A'}
+  Programs: ${u.programs ? u.programs.join(', ') : 'N/A'}
+  `).join('\n---\n')}
+
+  Provide matches in JSON format with:
+  {
+    "matches": [
+      {
+        "universityId": number,
+        "matchScore": number (0-100),
+        "matchReasons": ["reason1", "reason2", ...]
+      }
+    ]
+  }
+  `;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+    messages: [{ role: "user", content: prompt }],
+    response_format: { type: "json_object" },
+  });
+
+  const result = JSON.parse(response.choices[0].message.content || '{"matches": []}');
+  return result.matches || [];
+}
+```
+
+### 3. Assessment Form Component (`components/Assessment.tsx`)
+```typescript
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+
+const assessmentSchema = z.object({
+  academicLevel: z.string().min(1, "Academic level is required"),
+  fieldOfStudy: z.string().min(1, "Field of study is required"),
+  gpa: z.string().min(1, "GPA is required"),
+  testScores: z.record(z.number()).default({}),
+  preferredCountries: z.array(z.string()).min(1, "Select at least one country"),
+  budgetRange: z.string().min(1, "Budget range is required"),
+  lifestyle: z.string().min(1, "Lifestyle preference is required"),
+  specialRequirements: z.string().optional(),
+});
+
+const countries = [
+  "United States", "Canada", "United Kingdom", "Australia", 
+  "Germany", "France", "Netherlands", "Sweden", "Norway"
+];
+
+export default function Assessment({ onSubmit }: { onSubmit: (data: any) => void }) {
+  const [step, setStep] = useState(1);
+  const totalSteps = 6;
+
+  const form = useForm({
+    resolver: zodResolver(assessmentSchema),
+    defaultValues: {
+      academicLevel: "",
+      fieldOfStudy: "",
+      gpa: "",
+      testScores: {},
+      preferredCountries: [],
+      budgetRange: "",
+      lifestyle: "",
+      specialRequirements: "",
+    },
+  });
+
+  const handleNext = () => {
+    if (step < totalSteps) setStep(step + 1);
+  };
+
+  const handlePrevious = () => {
+    if (step > 1) setStep(step - 1);
+  };
+
+  const handleSubmit = (data: any) => {
+    onSubmit(data);
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto p-6">
+      <div className="mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold">Study Abroad Assessment</h1>
+          <span className="text-sm text-gray-500">Step {step} of {totalSteps}</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${(step / totalSteps) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          {step === 1 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Academic Background</h2>
+              <FormField
+                control={form.control}
+                name="academicLevel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Current Academic Level</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your academic level" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="high-school">High School</SelectItem>
+                        <SelectItem value="undergraduate">Undergraduate</SelectItem>
+                        <SelectItem value="graduate">Graduate</SelectItem>
+                        <SelectItem value="postgraduate">Postgraduate</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="fieldOfStudy"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Field of Study</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Computer Science, Business, Engineering" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="gpa"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>GPA</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., 3.8, 85%" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Test Scores</h2>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="testScores.sat"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>SAT Score (optional)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="1400" 
+                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="testScores.ielts"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>IELTS Score (optional)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          step="0.1"
+                          placeholder="7.5" 
+                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Preferred Countries</h2>
+              <FormField
+                control={form.control}
+                name="preferredCountries"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Select countries you're interested in</FormLabel>
+                    <div className="grid grid-cols-2 gap-2">
+                      {countries.map((country) => (
+                        <div key={country} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={country}
+                            checked={field.value?.includes(country)}
+                            onCheckedChange={(checked) => {
+                              const current = field.value || [];
+                              if (checked) {
+                                field.onChange([...current, country]);
+                              } else {
+                                field.onChange(current.filter((c) => c !== country));
+                              }
+                            }}
+                          />
+                          <label htmlFor={country} className="text-sm">{country}</label>
+                        </div>
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Budget & Lifestyle</h2>
+              <FormField
+                control={form.control}
+                name="budgetRange"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Annual Budget Range</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your budget range" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="under-20k">Under $20,000</SelectItem>
+                        <SelectItem value="20k-40k">$20,000 - $40,000</SelectItem>
+                        <SelectItem value="40k-60k">$40,000 - $60,000</SelectItem>
+                        <SelectItem value="60k-80k">$60,000 - $80,000</SelectItem>
+                        <SelectItem value="over-80k">Over $80,000</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lifestyle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Preferred Lifestyle</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select lifestyle preference" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="urban">Urban - City life</SelectItem>
+                        <SelectItem value="suburban">Suburban - Quiet towns</SelectItem>
+                        <SelectItem value="rural">Rural - Countryside</SelectItem>
+                        <SelectItem value="mixed">Mixed - No preference</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+
+          {step === 5 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Special Requirements</h2>
+              <FormField
+                control={form.control}
+                name="specialRequirements"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Any special requirements or preferences?</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="e.g., Need scholarship opportunities, specific climate preferences, research opportunities..."
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+
+          {step === 6 && (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Review & Submit</h2>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600">
+                  Please review your information and submit to get personalized university recommendations.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-between">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handlePrevious}
+              disabled={step === 1}
+            >
+              Previous
+            </Button>
+            
+            {step < totalSteps ? (
+              <Button type="button" onClick={handleNext}>
+                Next
+              </Button>
+            ) : (
+              <Button type="submit">
+                Get Recommendations
+              </Button>
+            )}
+          </div>
+        </form>
+      </Form>
+    </div>
+  );
+}
+```
+
+### 4. API Routes (`server/routes.ts` - Add these endpoints)
+```typescript
+// Add these routes to your existing routes file
+
+app.post('/api/assessments', async (req, res) => {
+  try {
+    // Create assessment
+    const assessment = await storage.createAssessment(req.body);
+    
+    // Get universities for matching
+    const universities = await storage.getUniversities({});
+    
+    // Generate AI matches
+    const matches = await generateUniversityMatches(req.body, universities);
+    
+    // Save matches
+    await storage.createMatches(assessment.id, matches);
+    
+    // Complete assessment
+    await storage.completeAssessment(assessment.id);
+    
+    res.json({ assessment });
+  } catch (error) {
+    console.error('Error processing assessment:', error);
+    res.status(500).json({ message: 'Failed to process assessment' });
+  }
+});
+
+app.get('/api/assessments/:id/results', async (req, res) => {
+  try {
+    const results = await storage.getAssessmentResults(parseInt(req.params.id));
+    res.json(results);
+  } catch (error) {
+    console.error('Error fetching results:', error);
+    res.status(500).json({ message: 'Failed to fetch results' });
+  }
+});
+```
+
+## Integration Steps
+
+1. **Install Dependencies**
+   ```bash
+   npm install openai drizzle-orm drizzle-kit @tanstack/react-query
+   ```
+
+2. **Add Environment Variables**
+   ```env
+   OPENAI_API_KEY=your_openai_api_key
+   DATABASE_URL=your_database_url
+   ```
+
+3. **Update Database Schema**
+   - Add the new tables to your existing schema
+   - Run migrations: `npm run db:push`
+
+4. **Add OpenAI Integration**
+   - Copy the OpenAI service file
+   - Update your storage layer to handle assessments and matches
+
+5. **Create Assessment Flow**
+   - Add the assessment component to your existing UI
+   - Create routes for assessment submission and results
+
+6. **Integration with Visa Rejection Analysis**
+   - Use assessment data to enhance visa rejection analysis
+   - Cross-reference university matches with visa success rates
+   - Provide holistic recommendations combining both systems
+
+## Usage in Your Existing Project
+
+```typescript
+// In your main component
+import Assessment from './components/Assessment';
+
+function App() {
+  const handleAssessmentSubmit = async (data) => {
+    const response = await fetch('/api/assessments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    
+    const result = await response.json();
+    // Redirect to results page
+    window.location.href = `/results/${result.assessment.id}`;
+  };
+
+  return (
+    <div>
+      <Assessment onSubmit={handleAssessmentSubmit} />
+    </div>
+  );
+}
+```
+
+This integration will add powerful AI-driven university recommendations to your visa rejection analyzer, creating a comprehensive study abroad advisory platform.

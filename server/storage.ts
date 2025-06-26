@@ -1,7 +1,7 @@
 import { 
   users, analyses, appointments, professionalApplications, updates, userUpdateViews,
   documentTemplates, documentChecklists, enrollmentAnalyses, documentCategories, documentTypes,
-  analysisFeedback, offerLetterAnalyses,
+  analysisFeedback, offerLetterAnalyses, assessments, universities, universityMatches,
   type User, type InsertUser, type Analysis, type InsertAnalysis, 
   type Appointment, type InsertAppointment, type LoginUser,
   type ProfessionalApplication, type InsertProfessionalApplication,
@@ -12,7 +12,10 @@ import {
   type DocumentCategory, type InsertDocumentCategory,
   type DocumentType, type InsertDocumentType,
   type AnalysisFeedback, type InsertAnalysisFeedback,
-  type OfferLetterAnalysis, type InsertOfferLetterAnalysis
+  type OfferLetterAnalysis, type InsertOfferLetterAnalysis,
+  type Assessment, type InsertAssessment,
+  type University, type InsertUniversity,
+  type UniversityMatch, type InsertUniversityMatch
 } from "@shared/schema";
 import { offerLetterInfo } from "@shared/offerLetterSchema";
 import { coeInformation } from "@shared/coeSchema";
@@ -163,6 +166,28 @@ export interface IStorage {
   // COE Information methods
   getAllCoeInfo(): Promise<any[]>;
   getCoeInfoById(id: number): Promise<any | undefined>;
+
+  // Darpan AI Assessment methods
+  createAssessment(assessment: InsertAssessment): Promise<Assessment>;
+  getAssessment(id: number): Promise<Assessment | undefined>;
+  getUserAssessments(userId: number): Promise<Assessment[]>;
+  updateAssessment(id: number, updates: Partial<Assessment>): Promise<Assessment | undefined>;
+  completeAssessment(id: number): Promise<Assessment | undefined>;
+  deleteAssessment(id: number): Promise<boolean>;
+
+  // University methods
+  createUniversity(university: InsertUniversity): Promise<University>;
+  getUniversity(id: number): Promise<University | undefined>;
+  getAllUniversities(): Promise<University[]>;
+  getUniversitiesByCountry(country: string): Promise<University[]>;
+  updateUniversity(id: number, updates: Partial<University>): Promise<University | undefined>;
+  deleteUniversity(id: number): Promise<boolean>;
+
+  // University Match methods
+  createUniversityMatch(match: InsertUniversityMatch): Promise<UniversityMatch>;
+  createUniversityMatches(assessmentId: number, matches: Array<{universityId: number, matchScore: number, matchReasons: string[]}>): Promise<UniversityMatch[]>;
+  getAssessmentMatches(assessmentId: number): Promise<UniversityMatch[]>;
+  getAssessmentResults(assessmentId: number): Promise<{assessment: Assessment, matches: Array<UniversityMatch & {university: University}>}>;
 }
 
 export class DatabaseStorage implements IStorage {

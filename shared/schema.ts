@@ -1,9 +1,10 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp, primaryKey, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp, primaryKey, uniqueIndex, varchar, decimal } from "drizzle-orm/pg-core";
 export * from "./offerLetterSchema";
 export * from "./coeSchema";
 export * from "./scholarshipSchema";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 // Enhanced User Model with User Types
 export const users = pgTable("users", {
@@ -438,6 +439,104 @@ export const loginUserSchema = z.object({
 
 export const insertAnalysisSchema = createInsertSchema(analyses).omit({
   id: true,
+});
+
+// Darpan AI Recommendation System Tables
+export const assessments = pgTable("assessments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  academicLevel: varchar("academic_level", { length: 50 }),
+  fieldOfStudy: varchar("field_of_study", { length: 100 }),
+  gpa: varchar("gpa", { length: 10 }),
+  testScores: jsonb("test_scores").$type<Record<string, number>>(),
+  preferredCountries: jsonb("preferred_countries").$type<string[]>(),
+  budgetRange: varchar("budget_range", { length: 50 }),
+  lifestyle: varchar("lifestyle", { length: 50 }),
+  specialRequirements: text("special_requirements"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const universities = pgTable("universities", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 200 }).notNull(),
+  country: varchar("country", { length: 100 }).notNull(),
+  city: varchar("city", { length: 100 }).notNull(),
+  ranking: integer("ranking"),
+  acceptanceRate: varchar("acceptance_rate", { length: 10 }),
+  tuitionFee: integer("tuition_fee"),
+  satRange: varchar("sat_range", { length: 20 }),
+  gpaRequirement: varchar("gpa_requirement", { length: 10 }),
+  applicationDeadline: varchar("application_deadline", { length: 50 }),
+  programs: jsonb("programs").$type<string[]>(),
+  imageUrl: varchar("image_url", { length: 500 }),
+  website: varchar("website", { length: 200 }),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const universityMatches = pgTable("university_matches", {
+  id: serial("id").primaryKey(),
+  assessmentId: integer("assessment_id").references(() => assessments.id),
+  universityId: integer("university_id").references(() => universities.id),
+  matchScore: integer("match_score"),
+  matchReasons: jsonb("match_reasons").$type<string[]>(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Relations for Darpan AI System
+export const assessmentRelations = relations(assessments, ({ one, many }) => ({
+  user: one(users, {
+    fields: [assessments.userId],
+    references: [users.id],
+  }),
+  matches: many(universityMatches),
+}));
+
+export const universityRelations = relations(universities, ({ many }) => ({
+  matches: many(universityMatches),
+}));
+
+export const universityMatchRelations = relations(universityMatches, ({ one }) => ({
+  assessment: one(assessments, {
+    fields: [universityMatches.assessmentId],
+    references: [assessments.id],
+  }),
+  university: one(universities, {
+    fields: [universityMatches.universityId],
+    references: [universities.id],
+  }),
+}));
+
+// Types for Darpan AI System
+export type Assessment = typeof assessments.$inferSelect;
+export type InsertAssessment = typeof assessments.$inferInsert;
+export type University = typeof universities.$inferSelect;
+export type InsertUniversity = typeof universities.$inferInsert;
+export type UniversityMatch = typeof universityMatches.$inferSelect;
+export type InsertUniversityMatch = typeof universityMatches.$inferInsert;
+
+// Validation schemas for Darpan AI System
+export const insertAssessmentSchema = createInsertSchema(assessments).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+});
+
+export const insertUniversitySchema = createInsertSchema(universities).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const assessmentFormSchema = z.object({
+  academicLevel: z.string().min(1, "Academic level is required"),
+  fieldOfStudy: z.string().min(1, "Field of study is required"),
+  gpa: z.string().min(1, "GPA is required"),
+  testScores: z.record(z.number()).default({}),
+  preferredCountries: z.array(z.string()).min(1, "Select at least one country"),
+  budgetRange: z.string().min(1, "Budget range is required"),
+  lifestyle: z.string().min(1, "Lifestyle preference is required"),
+  specialRequirements: z.string().optional(),
 });
 
 export const appointmentSchema = z.object({
