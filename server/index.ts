@@ -227,6 +227,11 @@ function setupGracefulShutdown(server: any) {
     app.use('/api/watchlist', watchlistRoutes.default);
     logWithLevel('✓ Watchlist routes registered successfully');
     
+    // Register Darpan AI university recommendation routes
+    const darpanRoutes = await import('./darpanRoutes');
+    app.use('/api', darpanRoutes.default);
+    logWithLevel('✓ Darpan AI recommendation routes registered successfully');
+    
     // Step 5: Setup error handling middleware
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;

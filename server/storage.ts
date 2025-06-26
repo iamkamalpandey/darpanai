@@ -1746,6 +1746,193 @@ export class DatabaseStorage implements IStorage {
       };
     }
   }
+
+  // Darpan AI Assessment methods
+  async createAssessment(assessment: InsertAssessment): Promise<Assessment> {
+    try {
+      const [newAssessment] = await db
+        .insert(assessments)
+        .values(assessment)
+        .returning();
+      return newAssessment;
+    } catch (error) {
+      console.error("Error creating assessment:", error);
+      throw error;
+    }
+  }
+
+  async getAssessment(id: number): Promise<Assessment | undefined> {
+    const [assessment] = await db.select().from(assessments).where(eq(assessments.id, id));
+    return assessment || undefined;
+  }
+
+  async getUserAssessments(userId: number): Promise<Assessment[]> {
+    return await db.select().from(assessments)
+      .where(eq(assessments.userId, userId))
+      .orderBy(desc(assessments.createdAt));
+  }
+
+  async updateAssessment(id: number, updates: Partial<Assessment>): Promise<Assessment | undefined> {
+    try {
+      const [assessment] = await db
+        .update(assessments)
+        .set(updates)
+        .where(eq(assessments.id, id))
+        .returning();
+      return assessment;
+    } catch (error) {
+      console.error("Error updating assessment:", error);
+      throw error;
+    }
+  }
+
+  async completeAssessment(id: number): Promise<Assessment | undefined> {
+    return this.updateAssessment(id, { completedAt: new Date() });
+  }
+
+  async deleteAssessment(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(assessments).where(eq(assessments.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error("Error deleting assessment:", error);
+      return false;
+    }
+  }
+
+  // University methods
+  async createUniversity(university: InsertUniversity): Promise<University> {
+    try {
+      const [newUniversity] = await db
+        .insert(universities)
+        .values(university)
+        .returning();
+      return newUniversity;
+    } catch (error) {
+      console.error("Error creating university:", error);
+      throw error;
+    }
+  }
+
+  async getUniversity(id: number): Promise<University | undefined> {
+    const [university] = await db.select().from(universities).where(eq(universities.id, id));
+    return university || undefined;
+  }
+
+  async getAllUniversities(): Promise<University[]> {
+    return await db.select().from(universities).orderBy(universities.name);
+  }
+
+  async getUniversitiesByCountry(country: string): Promise<University[]> {
+    return await db.select().from(universities)
+      .where(eq(universities.country, country))
+      .orderBy(universities.name);
+  }
+
+  async updateUniversity(id: number, updates: Partial<University>): Promise<University | undefined> {
+    try {
+      const [university] = await db
+        .update(universities)
+        .set(updates)
+        .where(eq(universities.id, id))
+        .returning();
+      return university;
+    } catch (error) {
+      console.error("Error updating university:", error);
+      throw error;
+    }
+  }
+
+  async deleteUniversity(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(universities).where(eq(universities.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error("Error deleting university:", error);
+      return false;
+    }
+  }
+
+  // University Match methods
+  async createUniversityMatch(match: InsertUniversityMatch): Promise<UniversityMatch> {
+    try {
+      const [newMatch] = await db
+        .insert(universityMatches)
+        .values(match)
+        .returning();
+      return newMatch;
+    } catch (error) {
+      console.error("Error creating university match:", error);
+      throw error;
+    }
+  }
+
+  async createUniversityMatches(
+    assessmentId: number, 
+    matches: Array<{universityId: number, matchScore: number, matchReasons: string[]}>
+  ): Promise<UniversityMatch[]> {
+    try {
+      const matchData = matches.map(match => ({
+        assessmentId,
+        universityId: match.universityId,
+        matchScore: match.matchScore,
+        matchReasons: match.matchReasons
+      }));
+
+      const results = await db
+        .insert(universityMatches)
+        .values(matchData)
+        .returning();
+      
+      return results;
+    } catch (error) {
+      console.error("Error creating university matches:", error);
+      throw error;
+    }
+  }
+
+  async getAssessmentMatches(assessmentId: number): Promise<UniversityMatch[]> {
+    return await db.select().from(universityMatches)
+      .where(eq(universityMatches.assessmentId, assessmentId))
+      .orderBy(desc(universityMatches.matchScore));
+  }
+
+  async getAssessmentResults(assessmentId: number): Promise<{
+    assessment: Assessment, 
+    matches: Array<UniversityMatch & {university: University}>
+  }> {
+    try {
+      // Get assessment
+      const assessment = await this.getAssessment(assessmentId);
+      if (!assessment) {
+        throw new Error('Assessment not found');
+      }
+
+      // Get matches with university details
+      const matchesWithUniversities = await db
+        .select({
+          id: universityMatches.id,
+          assessmentId: universityMatches.assessmentId,
+          universityId: universityMatches.universityId,
+          matchScore: universityMatches.matchScore,
+          matchReasons: universityMatches.matchReasons,
+          createdAt: universityMatches.createdAt,
+          university: universities
+        })
+        .from(universityMatches)
+        .innerJoin(universities, eq(universityMatches.universityId, universities.id))
+        .where(eq(universityMatches.assessmentId, assessmentId))
+        .orderBy(desc(universityMatches.matchScore));
+
+      return {
+        assessment,
+        matches: matchesWithUniversities
+      };
+    } catch (error) {
+      console.error("Error getting assessment results:", error);
+      throw error;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
