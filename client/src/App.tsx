@@ -45,6 +45,7 @@ const UpdatesPage = lazy(() => import("@/pages/updates"));
 const DocumentTemplates = lazy(() => import("@/pages/document-templates"));
 const DocumentChecklist = lazy(() => import("@/pages/document-checklist"));
 const AssessmentPage = lazy(() => import("@/pages/AssessmentPage"));
+const AdvancedAssessmentPage = lazy(() => import("@/pages/AdvancedAssessmentPage"));
 const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
 const AdminAnalyses = lazy(() => import("@/pages/admin-analyses"));
 const ScholarshipManagement = lazy(() => import("@/pages/admin/ScholarshipManagement"));
@@ -245,7 +246,7 @@ function Router() {
       <Route path="/assessment">
         <UserProtectedRoute path="/assessment" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <AssessmentPage />
+            <AdvancedAssessmentPage />
           </Suspense>
         )} />
       </Route>

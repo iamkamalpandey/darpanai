@@ -1,64 +1,14 @@
 import { Router, Request, Response } from "express";
 import { storage } from "./storage";
+import { db } from "./db";
 import { generateAdvancedRecommendations } from "./advancedDarpanAI";
 import { advancedAssessmentSchema } from "@shared/schema";
 import { z } from "zod";
 
 const router = Router();
 
-// Update the database tables with proper schema
-async function updateAssessmentsTable() {
-  try {
-    await storage.executeQuery(`
-      DROP TABLE IF EXISTS assessments CASCADE;
-      CREATE TABLE assessments (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        personal_info JSONB NOT NULL,
-        academic_background JSONB NOT NULL,
-        study_preferences JSONB NOT NULL,
-        geographic_preferences JSONB NOT NULL,
-        financial_planning JSONB NOT NULL,
-        test_scores JSONB,
-        lifestyle_factors JSONB NOT NULL,
-        additional_requirements JSONB NOT NULL,
-        completed_at TIMESTAMP,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-    console.log("Advanced assessments table updated successfully");
-  } catch (error) {
-    console.error("Error updating assessments table:", error);
-  }
-}
-
-async function updateUniversityMatchesTable() {
-  try {
-    await storage.executeQuery(`
-      DROP TABLE IF EXISTS university_matches CASCADE;
-      CREATE TABLE university_matches (
-        id SERIAL PRIMARY KEY,
-        assessment_id INTEGER NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
-        university_id INTEGER NOT NULL REFERENCES universities(id) ON DELETE CASCADE,
-        match_score DECIMAL(5,2) NOT NULL,
-        match_reasons TEXT[] NOT NULL,
-        financial_fit VARCHAR(20) NOT NULL,
-        academic_fit VARCHAR(20) NOT NULL,
-        cultural_fit VARCHAR(20) NOT NULL,
-        career_prospects VARCHAR(20) NOT NULL,
-        admission_probability VARCHAR(20) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-    console.log("University matches table updated successfully");
-  } catch (error) {
-    console.error("Error updating university matches table:", error);
-  }
-}
-
-// Initialize tables on startup
-updateAssessmentsTable();
-updateUniversityMatchesTable();
+// Database table creation will be handled by manual SQL execution
+// Tables: assessments and university_matches are already created
 
 // Advanced Assessment Submission
 router.post("/advanced-assessment", async (req: Request, res: Response) => {
@@ -71,18 +21,8 @@ router.post("/advanced-assessment", async (req: Request, res: Response) => {
     // Validate the comprehensive assessment data
     const validatedData = advancedAssessmentSchema.parse(req.body);
 
-    // Get all universities from database
-    const universities = await storage.executeQuery(`
-      SELECT id, name, country, city, ranking, tuition_fee as "tuitionFee", 
-             acceptance_rate as "acceptanceRate", gpa_requirement as "gpaRequirement",
-             sat_requirement as "satRequirement", ielts_requirement as "ieltsRequirement",
-             toefl_requirement as "toeflRequirement", programs, scholarships,
-             research_opportunities as "researchOpportunities", campus_size as "campusSize",
-             student_population as "studentPopulation", international_students as "internationalStudents",
-             website, image_url as "imageUrl", description
-      FROM universities 
-      ORDER BY ranking ASC
-    `);
+    // Get all universities from database using storage method
+    const universities = await storage.getAllUniversities();
 
     if (!universities || universities.length === 0) {
       return res.status(404).json({ error: "No universities found in database" });
