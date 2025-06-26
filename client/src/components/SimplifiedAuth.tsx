@@ -126,7 +126,7 @@ export default function SimplifiedAuth() {
 
   const onRegisterSubmit = async (data: RegistrationData) => {
     try {
-      // Prepare registration data to match InsertUser schema requirements
+      // Prepare registration data to match backend simplified schema
       const registrationData = {
         username: data.username,
         password: data.password,
@@ -135,13 +135,7 @@ export default function SimplifiedAuth() {
         firstName: data.firstName,
         lastName: data.lastName,
         phoneNumber: data.phoneNumber,
-        city: "", 
         country: data.country,
-        studyDestination: "Not specified", 
-        startDate: "Not specified", 
-        counsellingMode: "Not specified", 
-        fundingSource: "Not specified", 
-        studyLevel: "Not specified",
         agreeToTerms: data.agreeToTerms,
         allowContact: data.allowContact || false,
         receiveUpdates: data.receiveUpdates || false

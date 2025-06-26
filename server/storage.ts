@@ -209,16 +209,39 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createUser(insertUser: any): Promise<User> {
     // Hash the password before saving
     const hashedPassword = await hashPassword(insertUser.password);
     
+    // Prepare user data with all required fields
+    const userData = {
+      username: insertUser.username,
+      password: hashedPassword,
+      email: insertUser.email,
+      firstName: insertUser.firstName,
+      lastName: insertUser.lastName,
+      phoneNumber: insertUser.phoneNumber,
+      country: insertUser.country,
+      agreeToTerms: insertUser.agreeToTerms,
+      allowContact: insertUser.allowContact || false,
+      receiveUpdates: insertUser.receiveUpdates || false,
+      // Set default values for optional fields
+      studyDestination: insertUser.studyDestination || null,
+      startDate: insertUser.startDate || null,
+      city: insertUser.city || null,
+      counsellingMode: insertUser.counsellingMode || null,
+      fundingSource: insertUser.fundingSource || null,
+      studyLevel: insertUser.studyLevel || null,
+      // User profile defaults
+      role: insertUser.role || 'user',
+      status: insertUser.status || 'active',
+      analysisCount: insertUser.analysisCount || 0,
+      maxAnalyses: insertUser.maxAnalyses || 3,
+    };
+    
     const [user] = await db
       .insert(users)
-      .values({
-        ...insertUser,
-        password: hashedPassword
-      })
+      .values(userData)
       .returning();
     return user;
   }
