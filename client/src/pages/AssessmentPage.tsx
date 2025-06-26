@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import Assessment from "@/components/Assessment";
@@ -13,14 +13,14 @@ import { assessmentFormSchema } from "@shared/schema";
 type AssessmentFormData = z.infer<typeof assessmentFormSchema>;
 
 export default function AssessmentPage() {
-  const [navigate] = useNavigate();
+  const [, navigate] = useLocation();
   const [showAssessment, setShowAssessment] = useState(false);
 
   const createAssessmentMutation = useMutation({
     mutationFn: async (data: AssessmentFormData) => {
       return apiRequest("POST", "/api/assessments", data);
     },
-    onSuccess: (response) => {
+    onSuccess: (response: any) => {
       toast({
         title: "Assessment Completed Successfully",
         description: `Found ${response.matchCount} university matches for your profile`,
