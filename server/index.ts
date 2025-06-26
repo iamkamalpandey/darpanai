@@ -234,7 +234,8 @@ function setupGracefulShutdown(server: any) {
     logWithLevel('✓ Darpan AI recommendation routes registered successfully');
     
     // Register Advanced Darpan AI assessment routes
-    app.use('/api/darpan', advancedDarpanRoutes);
+    const advancedDarpanRoutes = await import('./advancedDarpanRoutesFixed');
+    app.use('/api/darpan', advancedDarpanRoutes.default);
     logWithLevel('✓ Advanced Darpan AI assessment routes registered successfully');
     
     // Initialize sample universities for Darpan AI system

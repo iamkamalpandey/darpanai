@@ -528,6 +528,22 @@ export const insertUniversitySchema = createInsertSchema(universities).omit({
   createdAt: true,
 });
 
+// Advanced Assessments Database Table
+export const advancedAssessments = pgTable("advanced_assessments", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  personalInfo: jsonb("personal_info").notNull(),
+  academicBackground: jsonb("academic_background").notNull(),
+  studyPreferences: jsonb("study_preferences").notNull(),
+  geographicPreferences: jsonb("geographic_preferences").notNull(),
+  financialPlanning: jsonb("financial_planning").notNull(),
+  testScores: jsonb("test_scores"),
+  lifestyleFactors: jsonb("lifestyle_factors").notNull(),
+  additionalRequirements: jsonb("additional_requirements").notNull(),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Advanced Assessment Schema
 export const advancedAssessmentSchema = z.object({
   // Personal Information
