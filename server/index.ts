@@ -4,6 +4,7 @@ import { registerRoutes } from "./routes";
 import { setupOfferLetterRoutes } from "./offerLetterRoutesNew";
 import coeRoutes from "./coeRoutes";
 import advancedDarpanRoutes from "./advancedDarpanRoutes";
+import assessmentRoutes from "./assessmentRoutes";
 import { setupVite, serveStatic, log } from "./vite";
 import { pool } from "./db";
 
@@ -201,6 +202,10 @@ function setupGracefulShutdown(server: any) {
     // Register COE information routes
     app.use('/api/coe-info', coeRoutes);
     logWithLevel('✓ COE information routes registered successfully');
+    
+    // Register assessment routes
+    app.use('/api/assessments', assessmentRoutes);
+    logWithLevel('✓ Assessment routes registered successfully');
     
     // Register country routes for standardized country management with ISO codes and currency symbols
     const countryRoutes = await import('./countryRoutes');

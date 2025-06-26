@@ -1,370 +1,383 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { Brain, MapPin, BookOpen, DollarSign, GraduationCap, Target } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import AssessmentStep, { CountrySelection } from "@/components/assessment-step";
+import Navigation from "@/components/nav";
 
 interface AssessmentData {
+  userId?: number;
   academicLevel: string;
   fieldOfStudy: string;
   gpa: string;
-  testScores?: {
-    sat?: number;
-    gre?: number;
-    toefl?: number;
-    ielts?: number;
-  };
+  testScores: Record<string, number>;
   preferredCountries: string[];
   budgetRange: string;
-  lifestyle?: string;
-  careerGoals: string;
-}
-
-interface RecommendationResult {
-  universities: Array<{
-    name: string;
-    country: string;
-    city: string;
-    ranking: number;
-    tuitionFee: number;
-    matchScore: number;
-    matchReasons: string[];
-  }>;
-  summary: string;
+  lifestyle: string;
+  specialRequirements?: string;
 }
 
 export default function SimpleAssessment() {
   const [currentStep, setCurrentStep] = useState(1);
-  const [assessmentData, setAssessmentData] = useState<AssessmentData>({
-    academicLevel: "",
-    fieldOfStudy: "",
-    gpa: "",
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  
+  const [formData, setFormData] = useState<AssessmentData>({
+    academicLevel: '',
+    fieldOfStudy: '',
+    gpa: '',
     testScores: {},
     preferredCountries: [],
-    budgetRange: "",
-    lifestyle: "",
-    careerGoals: ""
+    budgetRange: '',
+    lifestyle: '',
+    specialRequirements: ''
   });
-  const [results, setResults] = useState<RecommendationResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
-  const updateData = (field: keyof AssessmentData, value: any) => {
-    setAssessmentData(prev => ({ ...prev, [field]: value }));
-  };
+  const totalSteps = 6;
 
-  const handleCountryChange = (country: string) => {
-    setAssessmentData(prev => ({
-      ...prev,
-      preferredCountries: prev.preferredCountries.includes(country)
-        ? prev.preferredCountries.filter(c => c !== country)
-        : [...prev.preferredCountries, country]
-    }));
-  };
-
-  const submitAssessment = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/assessment/generate-recommendations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(assessmentData),
+  const submitAssessment = useMutation({
+    mutationFn: async (data: AssessmentData) => {
+      const response = await apiRequest("POST", "/api/assessments", data);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Assessment Completed!",
+        description: "Redirecting to your personalized results...",
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setResults(data);
-        setCurrentStep(3);
-        toast({
-          title: "Recommendations Generated",
-          description: "Your personalized university recommendations are ready!",
-        });
-      } else {
-        throw new Error('Failed to generate recommendations');
-      }
-    } catch (error) {
+      setLocation(`/results/${data.assessment.id}`);
+    },
+    onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to generate recommendations. Please try again.",
+        description: "Failed to process assessment. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
+    },
+  });
+
+  const handleNext = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      submitAssessment.mutate(formData);
     }
   };
 
-  const renderStep1 = () => (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <BookOpen className="h-5 w-5" />
-          Academic Background
-        </CardTitle>
-        <CardDescription>Tell us about your academic profile</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="academicLevel">Academic Level</Label>
-          <Select value={assessmentData.academicLevel} onValueChange={(value) => updateData('academicLevel', value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select your current level" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="high_school">High School</SelectItem>
-              <SelectItem value="bachelor">Bachelor's Degree</SelectItem>
-              <SelectItem value="master">Master's Degree</SelectItem>
-              <SelectItem value="phd">PhD</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
 
-        <div className="space-y-2">
-          <Label htmlFor="fieldOfStudy">Field of Study</Label>
-          <Select value={assessmentData.fieldOfStudy} onValueChange={(value) => updateData('fieldOfStudy', value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select your field" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="engineering">Engineering</SelectItem>
-              <SelectItem value="business">Business</SelectItem>
-              <SelectItem value="computer_science">Computer Science</SelectItem>
-              <SelectItem value="medicine">Medicine</SelectItem>
-              <SelectItem value="arts">Arts & Humanities</SelectItem>
-              <SelectItem value="science">Natural Sciences</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+  const updateFormData = (updates: Partial<AssessmentData>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
+  };
 
-        <div className="space-y-2">
-          <Label htmlFor="gpa">GPA / Academic Score</Label>
-          <Input
-            id="gpa"
-            placeholder="e.g., 3.8 or 85%"
-            value={assessmentData.gpa}
-            onChange={(e) => updateData('gpa', e.target.value)}
-          />
-        </div>
+  const canContinue = () => {
+    switch (currentStep) {
+      case 1:
+        return formData.academicLevel && formData.fieldOfStudy;
+      case 2:
+        return formData.gpa;
+      case 3:
+        return formData.preferredCountries.length > 0;
+      case 4:
+        return formData.budgetRange;
+      case 5:
+        return formData.lifestyle;
+      case 6:
+        return true;
+      default:
+        return false;
+    }
+  };
 
-        <Button 
-          onClick={() => setCurrentStep(2)} 
-          className="w-full"
-          disabled={!assessmentData.academicLevel || !assessmentData.fieldOfStudy || !assessmentData.gpa}
-        >
-          Continue to Preferences
-        </Button>
-      </CardContent>
-    </Card>
-  );
-
-  const renderStep2 = () => (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MapPin className="h-5 w-5" />
-          Study Preferences
-        </CardTitle>
-        <CardDescription>Where would you like to study and what's your budget?</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label>Preferred Countries (select all that apply)</Label>
-          <div className="grid grid-cols-2 gap-2">
-            {['United States', 'Canada', 'United Kingdom', 'Australia', 'Germany', 'Netherlands'].map(country => (
-              <Button
-                key={country}
-                variant={assessmentData.preferredCountries.includes(country) ? "default" : "outline"}
-                onClick={() => handleCountryChange(country)}
-                className="text-sm"
-              >
-                {country}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Budget Range (USD per year)</Label>
-          <RadioGroup
-            value={assessmentData.budgetRange}
-            onValueChange={(value) => updateData('budgetRange', value)}
-            className="space-y-3"
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <AssessmentStep
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+            title="What's your academic background?"
+            description="Tell us about your current academic level and field of interest to help us find the best matches."
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            canContinue={canContinue()}
           >
-            <div className="flex items-center space-x-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50">
-              <RadioGroupItem value="low" id="budget-low" />
-              <Label htmlFor="budget-low" className="flex-1 cursor-pointer">
-                <div className="font-medium">Budget-Friendly ($10K - $30K/year)</div>
-                <div className="text-sm text-slate-600">Great value universities with lower costs</div>
-              </Label>
-            </div>
-            <div className="flex items-center space-x-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50">
-              <RadioGroupItem value="medium" id="budget-medium" />
-              <Label htmlFor="budget-medium" className="flex-1 cursor-pointer">
-                <div className="font-medium">Moderate ($30K - $60K/year)</div>
-                <div className="text-sm text-slate-600">Balanced option with good quality and reasonable cost</div>
-              </Label>
-            </div>
-            <div className="flex items-center space-x-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50">
-              <RadioGroupItem value="high" id="budget-high" />
-              <Label htmlFor="budget-high" className="flex-1 cursor-pointer">
-                <div className="font-medium">Premium ($60K+ /year)</div>
-                <div className="text-sm text-slate-600">Top-tier universities with premium facilities</div>
-              </Label>
-            </div>
-          </RadioGroup>
-        </div>
+            <div className="space-y-6">
+              <div>
+                <Label htmlFor="academicLevel">Academic Level</Label>
+                <Select value={formData.academicLevel} onValueChange={(value) => updateFormData({ academicLevel: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your academic level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="undergraduate">Undergraduate</SelectItem>
+                    <SelectItem value="graduate">Graduate (Master's)</SelectItem>
+                    <SelectItem value="phd">PhD/Doctorate</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="careerGoals">Career Goals (optional)</Label>
-          <Textarea
-            id="careerGoals"
-            placeholder="Describe your career aspirations..."
-            value={assessmentData.careerGoals}
-            onChange={(e) => updateData('careerGoals', e.target.value)}
-            rows={3}
-          />
-        </div>
+              <div>
+                <Label htmlFor="fieldOfStudy">Field of Study</Label>
+                <Select value={formData.fieldOfStudy} onValueChange={(value) => updateFormData({ fieldOfStudy: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your field of study" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="computer-science">Computer Science</SelectItem>
+                    <SelectItem value="data-science">Data Science</SelectItem>
+                    <SelectItem value="business">Business Administration</SelectItem>
+                    <SelectItem value="engineering">Engineering</SelectItem>
+                    <SelectItem value="medicine">Medicine</SelectItem>
+                    <SelectItem value="law">Law</SelectItem>
+                    <SelectItem value="arts">Arts & Humanities</SelectItem>
+                    <SelectItem value="social-sciences">Social Sciences</SelectItem>
+                    <SelectItem value="natural-sciences">Natural Sciences</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </AssessmentStep>
+        );
 
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setCurrentStep(1)} className="flex-1">
-            Back
-          </Button>
-          <Button 
-            onClick={submitAssessment} 
-            disabled={loading || assessmentData.preferredCountries.length === 0 || !assessmentData.budgetRange}
-            className="flex-1"
+      case 2:
+        return (
+          <AssessmentStep
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+            title="What are your academic credentials?"
+            description="Your GPA and test scores help us assess your competitiveness for different universities."
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            canContinue={canContinue()}
           >
-            {loading ? "Generating..." : "Get Recommendations"}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
+            <div className="space-y-6">
+              <div>
+                <Label htmlFor="gpa">GPA (4.0 scale)</Label>
+                <Input
+                  id="gpa"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="4"
+                  value={formData.gpa}
+                  onChange={(e) => updateFormData({ gpa: e.target.value })}
+                  placeholder="e.g., 3.7"
+                />
+              </div>
 
-  const renderResults = () => (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Brain className="h-5 w-5" />
-          Your Personalized Recommendations
-        </CardTitle>
-        <CardDescription>Universities matched to your profile</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {results && (
-          <div className="space-y-6">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-blue-900 mb-2">Summary</h3>
-              <p className="text-blue-800">{results.summary}</p>
-            </div>
-            
-            <div className="grid gap-4">
-              {results.universities.map((university, index) => (
-                <Card key={index} className="border-l-4 border-l-blue-500">
-                  <CardContent className="pt-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="font-semibold text-lg">{university.name}</h3>
-                        <p className="text-sm text-gray-600">{university.city}, {university.country}</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium">
-                          {university.matchScore}% Match
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                      <div className="flex items-center gap-2">
-                        <GraduationCap className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">Ranking: #{university.ranking}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">Tuition: ${university.tuitionFee.toLocaleString()}/year</span>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium mb-2">Why this matches your profile:</h4>
-                      <ul className="list-disc list-inside space-y-1">
-                        {university.matchReasons.map((reason, idx) => (
-                          <li key={idx} className="text-sm text-gray-700">{reason}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            
-            <div className="flex justify-center">
-              <Button onClick={() => {
-                setCurrentStep(1);
-                setResults(null);
-                setAssessmentData({
-                  academicLevel: "",
-                  fieldOfStudy: "",
-                  gpa: "",
-                  testScores: {},
-                  preferredCountries: [],
-                  budgetRange: "",
-                  lifestyle: "",
-                  careerGoals: ""
-                });
-              }}>
-                Start New Assessment
-              </Button>
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="sat">SAT Score (optional)</Label>
+                  <Input
+                    id="sat"
+                    type="number"
+                    min="400"
+                    max="1600"
+                    value={formData.testScores.sat || ''}
+                    onChange={(e) => updateFormData({ 
+                      testScores: { ...formData.testScores, sat: parseInt(e.target.value) || 0 }
+                    })}
+                    placeholder="e.g., 1450"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="gre">GRE Score (optional)</Label>
+                  <Input
+                    id="gre"
+                    type="number"
+                    min="260"
+                    max="340"
+                    value={formData.testScores.gre || ''}
+                    onChange={(e) => updateFormData({ 
+                      testScores: { ...formData.testScores, gre: parseInt(e.target.value) || 0 }
+                    })}
+                    placeholder="e.g., 320"
+                  />
+                </div>
+              </div>
 
-  const renderProgressIndicator = () => (
-    <div className="flex justify-center mb-6">
-      <div className="flex items-center space-x-2">
-        {[1, 2, 3].map((step) => (
-          <div key={step} className="flex items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-              currentStep === step 
-                ? 'bg-blue-600 text-white' 
-                : currentStep > step 
-                ? 'bg-green-600 text-white' 
-                : 'bg-gray-200 text-gray-600'
-            }`}>
-              {step}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="toefl">TOEFL Score (optional)</Label>
+                  <Input
+                    id="toefl"
+                    type="number"
+                    min="0"
+                    max="120"
+                    value={formData.testScores.toefl || ''}
+                    onChange={(e) => updateFormData({ 
+                      testScores: { ...formData.testScores, toefl: parseInt(e.target.value) || 0 }
+                    })}
+                    placeholder="e.g., 105"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="ielts">IELTS Score (optional)</Label>
+                  <Input
+                    id="ielts"
+                    type="number"
+                    step="0.5"
+                    min="0"
+                    max="9"
+                    value={formData.testScores.ielts || ''}
+                    onChange={(e) => updateFormData({ 
+                      testScores: { ...formData.testScores, ielts: parseFloat(e.target.value) || 0 }
+                    })}
+                    placeholder="e.g., 7.5"
+                  />
+                </div>
+              </div>
             </div>
-            {step < 3 && (
-              <div className={`w-12 h-1 mx-2 ${
-                currentStep > step ? 'bg-green-600' : 'bg-gray-200'
-              }`} />
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+          </AssessmentStep>
+        );
+
+      case 3:
+        return (
+          <AssessmentStep
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+            title="What's your preferred study destination?"
+            description="Select all countries you're interested in studying in. This helps us narrow down the best matches for you."
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            canContinue={canContinue()}
+          >
+            <CountrySelection
+              selectedCountries={formData.preferredCountries}
+              onSelectionChange={(countries) => updateFormData({ preferredCountries: countries })}
+            />
+          </AssessmentStep>
+        );
+
+      case 4:
+        return (
+          <AssessmentStep
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+            title="What's your budget range?"
+            description="This includes tuition fees and living expenses per year. We'll factor this into our recommendations."
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            canContinue={canContinue()}
+          >
+            <RadioGroup
+              value={formData.budgetRange}
+              onValueChange={(value) => updateFormData({ budgetRange: value })}
+              className="space-y-4"
+            >
+              <div className="flex items-center space-x-2 p-4 border border-slate-200 rounded-lg hover:bg-slate-50">
+                <RadioGroupItem value="low" id="budget-low" />
+                <Label htmlFor="budget-low" className="flex-1 cursor-pointer">
+                  <div className="font-medium">Budget-Friendly ($10K - $30K/year)</div>
+                  <div className="text-sm text-slate-600">Great value universities with lower costs</div>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 p-4 border border-slate-200 rounded-lg hover:bg-slate-50">
+                <RadioGroupItem value="medium" id="budget-medium" />
+                <Label htmlFor="budget-medium" className="flex-1 cursor-pointer">
+                  <div className="font-medium">Moderate ($30K - $60K/year)</div>
+                  <div className="text-sm text-slate-600">Balanced option with good quality and reasonable cost</div>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 p-4 border border-slate-200 rounded-lg hover:bg-slate-50">
+                <RadioGroupItem value="high" id="budget-high" />
+                <Label htmlFor="budget-high" className="flex-1 cursor-pointer">
+                  <div className="font-medium">Premium ($60K+ /year)</div>
+                  <div className="text-sm text-slate-600">Top-tier universities with premium facilities</div>
+                </Label>
+              </div>
+            </RadioGroup>
+          </AssessmentStep>
+        );
+
+      case 5:
+        return (
+          <AssessmentStep
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+            title="What's your preferred lifestyle?"
+            description="Your living environment preference helps us recommend universities in locations that match your lifestyle."
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            canContinue={canContinue()}
+          >
+            <RadioGroup
+              value={formData.lifestyle}
+              onValueChange={(value) => updateFormData({ lifestyle: value })}
+              className="space-y-4"
+            >
+              <div className="flex items-center space-x-2 p-4 border border-slate-200 rounded-lg hover:bg-slate-50">
+                <RadioGroupItem value="urban" id="lifestyle-urban" />
+                <Label htmlFor="lifestyle-urban" className="flex-1 cursor-pointer">
+                  <div className="font-medium">Urban 🏙️</div>
+                  <div className="text-sm text-slate-600">Major cities with vibrant culture, internships, and networking</div>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 p-4 border border-slate-200 rounded-lg hover:bg-slate-50">
+                <RadioGroupItem value="suburban" id="lifestyle-suburban" />
+                <Label htmlFor="lifestyle-suburban" className="flex-1 cursor-pointer">
+                  <div className="font-medium">Suburban 🏘️</div>
+                  <div className="text-sm text-slate-600">Balanced environment with easy access to city amenities</div>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 p-4 border border-slate-200 rounded-lg hover:bg-slate-50">
+                <RadioGroupItem value="rural" id="lifestyle-rural" />
+                <Label htmlFor="lifestyle-rural" className="flex-1 cursor-pointer">
+                  <div className="font-medium">Rural/College Town 🌳</div>
+                  <div className="text-sm text-slate-600">Quiet, focused academic environment with strong campus community</div>
+                </Label>
+              </div>
+            </RadioGroup>
+          </AssessmentStep>
+        );
+
+      case 6:
+        return (
+          <AssessmentStep
+            currentStep={currentStep}
+            totalSteps={totalSteps}
+            title="Any special requirements or preferences?"
+            description="Optional: Share any specific requirements, concerns, or preferences to help us provide more personalized recommendations."
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            canContinue={canContinue()}
+            isLoading={submitAssessment.isPending}
+          >
+            <div>
+              <Label htmlFor="specialRequirements">Special Requirements (optional)</Label>
+              <Textarea
+                id="specialRequirements"
+                value={formData.specialRequirements}
+                onChange={(e) => updateFormData({ specialRequirements: e.target.value })}
+                placeholder="e.g., Need research opportunities, prefer specific climate, accessibility requirements, scholarship opportunities, etc."
+                className="min-h-[120px]"
+              />
+            </div>
+          </AssessmentStep>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Study Destination Assessment</h1>
-          <p className="text-gray-600">Get personalized university recommendations in just 2 steps</p>
-        </div>
-        
-        {renderProgressIndicator()}
-        
-        {currentStep === 1 && renderStep1()}
-        {currentStep === 2 && renderStep2()}
-        {currentStep === 3 && renderResults()}
-      </div>
+    <div className="min-h-screen bg-slate-50">
+      <Navigation />
+      {renderStep()}
     </div>
   );
 }
