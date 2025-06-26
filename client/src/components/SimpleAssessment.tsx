@@ -5,15 +5,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { Brain, MapPin, BookOpen, DollarSign } from "lucide-react";
+import { Brain, MapPin, BookOpen, DollarSign, GraduationCap, Target } from "lucide-react";
 
 interface AssessmentData {
   academicLevel: string;
   fieldOfStudy: string;
   gpa: string;
+  testScores?: {
+    sat?: number;
+    gre?: number;
+    toefl?: number;
+    ielts?: number;
+  };
   preferredCountries: string[];
   budgetRange: string;
+  lifestyle?: string;
   careerGoals: string;
 }
 
@@ -36,8 +44,10 @@ export default function SimpleAssessment() {
     academicLevel: "",
     fieldOfStudy: "",
     gpa: "",
+    testScores: {},
     preferredCountries: [],
     budgetRange: "",
+    lifestyle: "",
     careerGoals: ""
   });
   const [results, setResults] = useState<RecommendationResult | null>(null);
@@ -180,18 +190,34 @@ export default function SimpleAssessment() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="budgetRange">Budget Range (USD per year)</Label>
-          <Select value={assessmentData.budgetRange} onValueChange={(value) => updateData('budgetRange', value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select your budget" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="under_20k">Under $20,000</SelectItem>
-              <SelectItem value="20k_40k">$20,000 - $40,000</SelectItem>
-              <SelectItem value="40k_60k">$40,000 - $60,000</SelectItem>
-              <SelectItem value="above_60k">Above $60,000</SelectItem>
-            </SelectContent>
-          </Select>
+          <Label>Budget Range (USD per year)</Label>
+          <RadioGroup
+            value={assessmentData.budgetRange}
+            onValueChange={(value) => updateData('budgetRange', value)}
+            className="space-y-3"
+          >
+            <div className="flex items-center space-x-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50">
+              <RadioGroupItem value="low" id="budget-low" />
+              <Label htmlFor="budget-low" className="flex-1 cursor-pointer">
+                <div className="font-medium">Budget-Friendly ($10K - $30K/year)</div>
+                <div className="text-sm text-slate-600">Great value universities with lower costs</div>
+              </Label>
+            </div>
+            <div className="flex items-center space-x-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50">
+              <RadioGroupItem value="medium" id="budget-medium" />
+              <Label htmlFor="budget-medium" className="flex-1 cursor-pointer">
+                <div className="font-medium">Moderate ($30K - $60K/year)</div>
+                <div className="text-sm text-slate-600">Balanced option with good quality and reasonable cost</div>
+              </Label>
+            </div>
+            <div className="flex items-center space-x-3 p-3 border border-slate-200 rounded-lg hover:bg-slate-50">
+              <RadioGroupItem value="high" id="budget-high" />
+              <Label htmlFor="budget-high" className="flex-1 cursor-pointer">
+                <div className="font-medium">Premium ($60K+ /year)</div>
+                <div className="text-sm text-slate-600">Top-tier universities with premium facilities</div>
+              </Label>
+            </div>
+          </RadioGroup>
         </div>
 
         <div className="space-y-2">
