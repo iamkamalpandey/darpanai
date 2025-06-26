@@ -59,12 +59,12 @@ export default function SimpleAssessment() {
   };
 
   const handleCountryChange = (country: string) => {
-    const countries = assessmentData.preferredCountries;
-    if (countries.includes(country)) {
-      updateData('preferredCountries', countries.filter(c => c !== country));
-    } else {
-      updateData('preferredCountries', [...countries, country]);
-    }
+    setAssessmentData(prev => ({
+      ...prev,
+      preferredCountries: prev.preferredCountries.includes(country)
+        ? prev.preferredCountries.filter(c => c !== country)
+        : [...prev.preferredCountries, country]
+    }));
   };
 
   const submitAssessment = async () => {
@@ -74,26 +74,24 @@ export default function SimpleAssessment() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(assessmentData),
-        credentials: 'include'
       });
 
-      if (!response.ok) {
-        throw new Error('Assessment failed');
+      if (response.ok) {
+        const data = await response.json();
+        setResults(data);
+        setCurrentStep(3);
+        toast({
+          title: "Recommendations Generated",
+          description: "Your personalized university recommendations are ready!",
+        });
+      } else {
+        throw new Error('Failed to generate recommendations');
       }
-
-      const result = await response.json();
-      setResults(result);
-      setCurrentStep(3);
-      
-      toast({
-        title: "Assessment Complete",
-        description: "Your personalized recommendations are ready!"
-      });
     } catch (error) {
       toast({
-        title: "Assessment Error",
-        description: "Please try again or contact support",
-        variant: "destructive"
+        title: "Error",
+        description: "Failed to generate recommendations. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -257,38 +255,45 @@ export default function SimpleAssessment() {
         <CardDescription>Universities matched to your profile</CardDescription>
       </CardHeader>
       <CardContent>
-        {results ? (
+        {results && (
           <div className="space-y-6">
             <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="font-semibold mb-2">Summary</h3>
-              <p className="text-sm text-gray-700">{results.summary}</p>
+              <h3 className="font-semibold text-blue-900 mb-2">Summary</h3>
+              <p className="text-blue-800">{results.summary}</p>
             </div>
-
+            
             <div className="grid gap-4">
-              {results.universities.map((uni, index) => (
-                <Card key={index} className="border">
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-2">
+              {results.universities.map((university, index) => (
+                <Card key={index} className="border-l-4 border-l-blue-500">
+                  <CardContent className="pt-4">
+                    <div className="flex justify-between items-start mb-3">
                       <div>
-                        <h4 className="font-semibold">{uni.name}</h4>
-                        <p className="text-sm text-gray-600">{uni.city}, {uni.country}</p>
+                        <h3 className="font-semibold text-lg">{university.name}</h3>
+                        <p className="text-sm text-gray-600">{university.city}, {university.country}</p>
                       </div>
                       <div className="text-right">
                         <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium">
-                          {uni.matchScore}% Match
+                          {university.matchScore}% Match
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">Ranking: #{uni.ranking}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="h-4 w-4" />
-                      <span className="text-sm">${uni.tuitionFee.toLocaleString()}/year</span>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm">Ranking: #{university.ranking}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm">Tuition: ${university.tuitionFee.toLocaleString()}/year</span>
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">Why it's a good match:</p>
-                      <ul className="text-sm text-gray-600 list-disc list-inside">
-                        {uni.matchReasons.map((reason, i) => (
-                          <li key={i}>{reason}</li>
+                    
+                    <div>
+                      <h4 className="font-medium mb-2">Why this matches your profile:</h4>
+                      <ul className="list-disc list-inside space-y-1">
+                        {university.matchReasons.map((reason, idx) => (
+                          <li key={idx} className="text-sm text-gray-700">{reason}</li>
                         ))}
                       </ul>
                     </div>
@@ -296,30 +301,66 @@ export default function SimpleAssessment() {
                 </Card>
               ))}
             </div>
-
-            <Button onClick={() => window.location.reload()} className="w-full">
-              Take New Assessment
-            </Button>
+            
+            <div className="flex justify-center">
+              <Button onClick={() => {
+                setCurrentStep(1);
+                setResults(null);
+                setAssessmentData({
+                  academicLevel: "",
+                  fieldOfStudy: "",
+                  gpa: "",
+                  testScores: {},
+                  preferredCountries: [],
+                  budgetRange: "",
+                  lifestyle: "",
+                  careerGoals: ""
+                });
+              }}>
+                Start New Assessment
+              </Button>
+            </div>
           </div>
-        ) : (
-          <p>No results available</p>
         )}
       </CardContent>
     </Card>
   );
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            AI University Assessment
-          </h1>
-          <p className="text-gray-600">
-            Get personalized university recommendations based on your profile
-          </p>
-        </div>
+  const renderProgressIndicator = () => (
+    <div className="flex justify-center mb-6">
+      <div className="flex items-center space-x-2">
+        {[1, 2, 3].map((step) => (
+          <div key={step} className="flex items-center">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              currentStep === step 
+                ? 'bg-blue-600 text-white' 
+                : currentStep > step 
+                ? 'bg-green-600 text-white' 
+                : 'bg-gray-200 text-gray-600'
+            }`}>
+              {step}
+            </div>
+            {step < 3 && (
+              <div className={`w-12 h-1 mx-2 ${
+                currentStep > step ? 'bg-green-600' : 'bg-gray-200'
+              }`} />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Study Destination Assessment</h1>
+          <p className="text-gray-600">Get personalized university recommendations in just 2 steps</p>
+        </div>
+        
+        {renderProgressIndicator()}
+        
         {currentStep === 1 && renderStep1()}
         {currentStep === 2 && renderStep2()}
         {currentStep === 3 && renderResults()}
