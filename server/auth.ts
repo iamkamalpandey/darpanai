@@ -4,7 +4,7 @@ import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { z } from "zod";
 import { storage } from "./storage";
-import { insertUserSchema, loginUserSchema } from "@shared/schema";
+import { insertUserSchema, loginUserSchema, baseInsertUserSchema } from "@shared/schema";
 import type { User as SchemaUser } from "@shared/schema";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
@@ -337,15 +337,30 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
       // Remove confirmPassword and prepare user data with default values for optional fields
       const { confirmPassword, ...validatedData } = userValidation.data;
       
+      // Create user data that matches the database schema
       const userDataForCreation = {
-        ...validatedData,
-        // Set default values for optional fields that are null in database
+        username: validatedData.username,
+        password: validatedData.password,
+        email: validatedData.email,
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
+        phoneNumber: validatedData.phoneNumber,
+        country: validatedData.country,
+        agreeToTerms: validatedData.agreeToTerms,
+        allowContact: validatedData.allowContact || false,
+        receiveUpdates: validatedData.receiveUpdates || false,
+        // Set default values for optional fields
         studyDestination: null,
         startDate: null,
-        city: validatedData.country, // Use country as city for now
+        city: null,
         counsellingMode: null,
         fundingSource: null,
         studyLevel: null,
+        // User profile defaults
+        role: 'user',
+        status: 'active',
+        analysisCount: 0,
+        maxAnalyses: 3,
       };
 
       // Create user

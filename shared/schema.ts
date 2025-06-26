@@ -388,27 +388,19 @@ export const offerLetterAnalyses = pgTable("offer_letter_analyses", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Base user schema for registration
-const baseUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-  email: true,
-  firstName: true,
-  lastName: true,
-  phoneNumber: true,
-  studyDestination: true,
-  startDate: true,
-  city: true,
-  country: true,
-  counsellingMode: true,
-  fundingSource: true,
-  studyLevel: true,
-  agreeToTerms: true,
-  allowContact: true,
-  receiveUpdates: true,
+// Base user schema for database insertion - using Drizzle schema
+export const baseInsertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  emailVerified: true,
+  emailVerificationToken: true,
+  analysisCount: true,
+  maxAnalyses: true,
+  role: true,
+  status: true,
 });
 
-// Enhanced schema with password confirmation
+// Enhanced schema with password confirmation for full registration
 export const insertUserSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
