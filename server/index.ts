@@ -238,6 +238,11 @@ function setupGracefulShutdown(server: any) {
     app.use('/api/darpan', advancedDarpanRoutes.default);
     logWithLevel('✓ Advanced Darpan AI assessment routes registered successfully');
     
+    // Register simplified assessment routes
+    const simpleAssessmentRoutes = await import('./simpleAssessmentRoutes');
+    app.use('/api/assessment', simpleAssessmentRoutes.default);
+    logWithLevel('✓ Simplified assessment routes registered successfully');
+    
     // Skip university initialization to prevent schema conflicts
     logWithLevel('✓ Database schema simplified - university initialization skipped');
     
