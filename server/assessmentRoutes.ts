@@ -218,7 +218,7 @@ function generateMatchReasons(data: any, uni: any): string[] {
   }
   
   // Field alignment
-  if (uni.programs.some(program => program.toLowerCase().includes(data.fieldOfStudy.toLowerCase()))) {
+  if (uni.programs.some((program: string) => program.toLowerCase().includes(data.fieldOfStudy.toLowerCase()))) {
     reasons.push("Strong programs in your field of study");
   }
   

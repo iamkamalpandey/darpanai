@@ -81,18 +81,18 @@ export default function SimpleAssessment() {
     setFormData(prev => ({ ...prev, ...updates }));
   };
 
-  const canContinue = () => {
+  const canContinue = (): boolean => {
     switch (currentStep) {
       case 1:
-        return formData.academicLevel && formData.fieldOfStudy;
+        return Boolean(formData.academicLevel && formData.fieldOfStudy);
       case 2:
-        return formData.gpa;
+        return Boolean(formData.gpa);
       case 3:
         return formData.preferredCountries.length > 0;
       case 4:
-        return formData.budgetRange;
+        return Boolean(formData.budgetRange);
       case 5:
-        return formData.lifestyle;
+        return Boolean(formData.lifestyle);
       case 6:
         return true;
       default:
