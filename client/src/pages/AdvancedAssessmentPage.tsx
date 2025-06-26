@@ -69,7 +69,7 @@ export default function AdvancedAssessmentPage() {
   const assessmentMutation = useMutation({
     mutationFn: async (data: AdvancedAssessmentFormData) => {
       const response = await apiRequest("POST", "/api/darpan/advanced-assessment", data);
-      return response as RecommendationResults;
+      return response as unknown as RecommendationResults;
     },
     onSuccess: (data) => {
       setResults(data);
