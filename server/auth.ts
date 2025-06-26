@@ -2,6 +2,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
+import { z } from "zod";
 import { storage } from "./storage";
 import { insertUserSchema, loginUserSchema } from "@shared/schema";
 import type { User as SchemaUser } from "@shared/schema";
@@ -293,9 +294,28 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
   // User authentication routes
   app.post("/api/register", async (req, res, next) => {
     try {
-      const userValidation = insertUserSchema.safeParse(req.body);
+      // Create a simplified registration schema that only validates required fields
+      const simplifiedRegistrationSchema = z.object({
+        username: z.string().min(3, "Username must be at least 3 characters"),
+        password: z.string().min(6, "Password must be at least 6 characters"),
+        confirmPassword: z.string().min(6, "Password confirmation is required"),
+        email: z.string().email("Please enter a valid email address"),
+        firstName: z.string().min(1, "First name is required"),
+        lastName: z.string().min(1, "Last name is required"),
+        phoneNumber: z.string().min(1, "Mobile number is required"),
+        country: z.string().min(1, "Country is required"),
+        agreeToTerms: z.boolean().refine(val => val === true, "You must agree to the terms and privacy policy"),
+        allowContact: z.boolean().optional(),
+        receiveUpdates: z.boolean().optional(),
+      }).refine((data) => data.password === data.confirmPassword, {
+        message: "Passwords don't match",
+        path: ["confirmPassword"],
+      });
+
+      const userValidation = simplifiedRegistrationSchema.safeParse(req.body);
       
       if (!userValidation.success) {
+        console.error('Registration validation failed:', userValidation.error.format());
         return res.status(400).json({ 
           error: 'Invalid user data', 
           details: userValidation.error.format() 
@@ -314,8 +334,22 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
         return res.status(400).json({ error: 'Email already exists' });
       }
 
+      // Remove confirmPassword and prepare user data with default values for optional fields
+      const { confirmPassword, ...validatedData } = userValidation.data;
+      
+      const userDataForCreation = {
+        ...validatedData,
+        // Set default values for optional fields that are null in database
+        studyDestination: null,
+        startDate: null,
+        city: validatedData.country, // Use country as city for now
+        counsellingMode: null,
+        fundingSource: null,
+        studyLevel: null,
+      };
+
       // Create user
-      const user = await storage.createUser(userValidation.data);
+      const user = await storage.createUser(userDataForCreation);
       
       // Transform user data for session
       const transformedUser: Express.User = {
