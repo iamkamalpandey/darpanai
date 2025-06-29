@@ -2,6 +2,7 @@ import pdfParse from 'pdf-parse';
 import { createWorker, Worker } from 'tesseract.js';
 import OpenAI from 'openai';
 import { AcademicDocumentAnalysisResults } from '@shared/academicDocumentSchema';
+import { processDocumentWithMultiAI, performAdvancedOCR, classifyDocument, extractInformation, categorizeAndStructure } from './aiServices';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
