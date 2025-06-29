@@ -143,7 +143,55 @@ async function processPDFWithOCR(pdfBuffer: Buffer): Promise<OCRResult> {
  * Process images with Google Cloud Vision and Tesseract fallback
  */
 async function processImageWithOCR(imageBuffer: Buffer): Promise<OCRResult> {
-  // Try Google Cloud Vision API first with proper error handling
+  // Try Google Document AI first (best for structured documents like transcripts)
+  try {
+    console.log('🔍 Attempting Google Document AI for structured document analysis...');
+    
+    if (process.env.GOOGLE_PROJECT_ID && process.env.GOOGLE_LOCATION && process.env.GOOGLE_CLOUD_VISION_API_KEY) {
+      const documentAIClient = new DocumentProcessorServiceClient({
+        apiKey: process.env.GOOGLE_CLOUD_VISION_API_KEY,
+      });
+
+      // Use general processor for form/document parsing
+      const projectId = process.env.GOOGLE_PROJECT_ID;
+      const location = process.env.GOOGLE_LOCATION;
+      const processorId = 'pretrained-form-parser-v2.0-2022-11-10'; // General form processor
+
+      const name = `projects/${projectId}/locations/${location}/processors/${processorId}`;
+
+      const request = {
+        name,
+        rawDocument: {
+          content: imageBuffer.toString('base64'),
+          mimeType: 'image/jpeg',
+        },
+      };
+
+      const [result] = await documentAIClient.processDocument(request);
+      const document = result.document;
+
+      if (document && document.text) {
+        console.log(`✅ Google Document AI completed: ${document.text.length} characters extracted`);
+        console.log('📝 Document AI extracted text preview (first 500 chars):', document.text.substring(0, 500));
+        
+        // Extract structured data including tables and form fields
+        const extractedData = {
+          text: document.text,
+          confidence: 95,
+          blocks: document.pages || [],
+          tables: document.pages?.[0]?.tables || [],
+          formFields: document.pages?.[0]?.formFields || []
+        };
+
+        return extractedData;
+      }
+    }
+  } catch (docAIError) {
+    console.log('⚠️ Google Document AI failed:', docAIError instanceof Error ? docAIError.message : 'Unknown error');
+    console.log('⚠️ Falling back to Google Cloud Vision...');
+  }
+
+  // Fallback to Google Cloud Vision API
   try {
     console.log('🔍 Attempting Google Cloud Vision OCR...');
     
@@ -250,7 +298,7 @@ export async function classifyDocument(text: string): Promise<DocumentClassifica
     console.log('🎯 Classifying document with Anthropic Claude...');
 
     const response = await anthropic.messages.create({
-      model: 'claude-3-sonnet-20240229',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 1000,
       messages: [{
         role: 'user',
@@ -346,9 +394,9 @@ Respond with JSON:
 }
 
 /**
- * Information Extraction using OpenAI GPT-4
+ * Enhanced Information Extraction using OpenAI GPT-4 with structured Document AI data
  */
-export async function extractInformation(text: string, documentType: string): Promise<InformationExtraction> {
+export async function extractInformation(text: string, documentType: string, structuredData?: any): Promise<InformationExtraction> {
   try {
     console.log('📊 Extracting information with OpenAI GPT-4...');
 
@@ -407,24 +455,29 @@ For Nepalese transcripts specifically look for:
 Return empty strings for missing information. Be precise and accurate with Nepalese academic terminology.`
       }, {
         role: 'user',
-        content: `Extract information from this Nepalese academic transcript text. The text is from OCR so may be fragmented, but extract all available information:
+        content: `Extract comprehensive information from this Nepalese academic transcript. You have access to both OCR text and structured data from Google Document AI.
 
 OCR Text:
 ${text}
 
-EXTRACTION INSTRUCTIONS:
-1. Look for "Tribhuvan University" or similar institution names
-2. Find "Academic Transcript" or similar document types
-3. Extract degree information like "Bachelor's Degree in Business Studies"
-4. Look for "Percentage:" followed by numbers (like "44.59")
-5. Find student names after "Student's Name:" or "Name:"
-6. Extract registration/roll numbers or symbol numbers
-7. Look for campus names or faculty information
-8. Find examination details and course duration
-9. Extract any grade divisions or academic performance data
-10. Look for subject names and marks in table format
+${structuredData ? `
+STRUCTURED DATA AVAILABLE:
+- Tables: ${JSON.stringify(structuredData.tables || [], null, 2)}
+- Form Fields: ${JSON.stringify(structuredData.formFields || [], null, 2)}
+- Document Pages: ${structuredData.blocks?.length || 0} pages processed
+` : ''}
 
-Even with incomplete OCR text, extract every identifiable piece of academic information. Be specific about what you find and where it appears in the text.`
+COMPREHENSIVE EXTRACTION INSTRUCTIONS:
+1. INSTITUTION DETAILS: Extract "Tribhuvan University", "HSEB Nepal", or other institution names
+2. STUDENT INFORMATION: Find student names, registration numbers, symbol numbers, campus details
+3. ACADEMIC PROGRAM: Extract degree titles like "Bachelor's Degree in Business Studies", duration, faculty
+4. PERFORMANCE DATA: Look for percentages, divisions, total marks, GPA, grades
+5. SUBJECT DETAILS: Extract subject codes (MGT.201, MGT.203), subject names, marks, credits
+6. TABLE DATA: Parse subject-wise marks tables with full marks, pass marks, obtained marks
+7. EXAMINATION INFO: Find examination types, academic years, completion dates
+8. VERIFICATION DATA: Extract issue numbers, registration dates, authority signatures
+
+STRUCTURED OUTPUT: Return comprehensive JSON with all identifiable academic information organized by categories. Use table data when available for accurate subject-wise performance extraction.`
       }],
       response_format: { type: "json_object" },
       temperature: 0.1
@@ -448,9 +501,9 @@ Even with incomplete OCR text, extract every identifiable piece of academic info
 }
 
 /**
- * Data Categorization and Structuring using OpenAI
+ * Enhanced Data Categorization and Structuring using OpenAI with structured Document AI data
  */
-export async function categorizeAndStructure(extractedInfo: InformationExtraction, originalText: string): Promise<any> {
+export async function categorizeAndStructure(extractedInfo: InformationExtraction, originalText: string, structuredData?: any): Promise<any> {
   try {
     console.log('🏗️ Categorizing and structuring data with OpenAI...');
 
@@ -458,43 +511,55 @@ export async function categorizeAndStructure(extractedInfo: InformationExtractio
       model: 'gpt-4o',
       messages: [{
         role: 'system',
-        content: `You are an expert at analyzing Nepalese academic transcripts, specifically from Tribhuvan University and HSEB Nepal. 
+        content: `You are an expert at organizing and structuring academic transcript data from Nepal (Tribhuvan University, HSEB, etc.).
 
-Based on the OCR text extracted from a Nepalese academic transcript, structure the information into JSON format:
+Based on the extracted information and original text, create a comprehensive structured data object for this Nepalese academic transcript:
 
-STUDENT INFORMATION:
-- studentName: Extract student's full name (look for patterns like "Student's Name:" or "Name:")
-- registrationNumber: University registration/roll number
-- symbolNumber: Symbol number (common in HSEB documents)
-- campus: Campus name where studied
+STRUCTURED DATA ORGANIZATION:
+{
+  "studentName": "Full student name",
+  "institutionName": "Tribhuvan University" or other institution,
+  "institutionCountry": "Nepal",
+  "institutionCity": "Kathmandu" or other city,
+  "institutionType": "University" or "Board",
+  "qualificationLevel": "Bachelor's" or "Higher Secondary",
+  "qualificationTitle": "Full degree name",
+  "fieldOfStudy": "Business Studies" or other field,
+  "faculty": "Management", "Science", etc.,
+  "symbolNumber": "Symbol/registration number",
+  "registrationNumber": "University registration",
+  "campus": "Campus name",
+  "percentage": "44.59" or other percentage,
+  "passedDivision": "First Division", "Second Division", etc.,
+  "totalMarks": "Total possible marks",
+  "marksObtained": "Marks secured",
+  "passedYear": "Year of completion",
+  "gradeLevel": "Grade level if applicable",
+  "academicYear": "Academic year",
+  "duration": "Course duration",
+  "programType": "Full-time/Part-time",
+  "subjectMarks": [
+    {
+      "subject": "Subject name",
+      "subjectCode": "MGT.201",
+      "fullMarks": "100",
+      "passMarks": "32",
+      "marksObtained": "75",
+      "grade": "A" or grade
+    }
+  ],
+  "hsebRegistrationNo": "HSEB specific number",
+  "issueNumber": "Certificate issue number"
+}
 
-INSTITUTION DETAILS:
-- institutionName: "Tribhuvan University" (if mentioned) or other institution name
-- institutionType: "University" or "Board" 
-- institutionCountry: "Nepal"
-- institutionCity: "Kathmandu" (if mentioned) or other city
+${structuredData ? `
+ADDITIONAL CONTEXT:
+- Document AI detected ${structuredData.tables?.length || 0} tables
+- Document AI detected ${structuredData.formFields?.length || 0} form fields
+- Use this structured data to enhance accuracy
+` : ''}
 
-ACADEMIC PROGRAM:
-- qualificationLevel: "Bachelor's" or "Higher Secondary" etc.
-- qualificationTitle: Extract degree name (e.g., "Bachelor's Degree in Business Studies")
-- fieldOfStudy: Field like "Business Studies", "Science", "Management"
-- faculty: Faculty name if mentioned
-- duration: Course duration in years
-
-ACADEMIC PERFORMANCE:
-- percentage: Look for "Percentage:" followed by number (like "44.59")
-- passedDivision: Division achieved (First Division, Second Division, etc.)
-- totalMarks: Total possible marks
-- marksObtained: Total marks secured
-- passedYear: Year of completion
-- subjectMarks: Array of subjects with marks if table data is available
-
-EXAMINATION DETAILS:
-- examinationType: Type of examination (like "Bachelors Degree", "Grade XI", "Grade XII")
-- academicYear: Academic year in BS/AD format if mentioned
-- issueDate: Date of transcript issue
-
-Return ONLY valid JSON. If information is not clearly visible in the text, use empty string "". Do not make assumptions.`
+Return comprehensive JSON with all available information properly categorized.`
       }, {
         role: 'user',
         content: `Organize this extracted information:
@@ -566,11 +631,11 @@ export async function processDocumentWithMultiAI(fileBuffer: Buffer, mimeType: s
       };
     }
     
-    // Step 3: Information Extraction with OpenAI GPT-4
-    const extractedInfo = await extractInformation(ocrResult.text, classification.documentType);
+    // Step 3: Enhanced Information Extraction with OpenAI GPT-4 using structured data
+    const extractedInfo = await extractInformation(ocrResult.text, classification.documentType, ocrResult);
     
-    // Step 4: Data Categorization and Structuring
-    const structuredData = await categorizeAndStructure(extractedInfo, ocrResult.text);
+    // Step 4: Enhanced Data Categorization and Structuring
+    const structuredData = await categorizeAndStructure(extractedInfo, ocrResult.text, ocrResult);
     
     const processingTime = Date.now() - startTime;
     
