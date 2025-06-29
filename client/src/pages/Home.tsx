@@ -50,7 +50,13 @@ export default function Home() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: profileCompletion } = useQuery<{isComplete: boolean}>({
+  const { data: profileCompletion } = useQuery<{
+    isComplete: boolean;
+    completionPercentage: number;
+    missingFields: string[];
+    completedSections: string[];
+    pendingSections: string[];
+  }>({
     queryKey: ['/api/user/profile-completion'],
     staleTime: 5 * 60 * 1000,
   });
@@ -61,8 +67,11 @@ export default function Home() {
   });
 
   useEffect(() => {
-    if (profileCompletion && profileCompletion.isComplete === false) {
+    console.log('Profile completion data:', profileCompletion);
+    if (profileCompletion && profileCompletion.isComplete === false && profileCompletion.completionPercentage < 100) {
+      console.log('Setting completion prompt to show in 2 seconds');
       const timer = setTimeout(() => {
+        console.log('Showing completion prompt');
         setShowCompletionPrompt(true);
       }, 2000);
       return () => clearTimeout(timer);
@@ -253,10 +262,16 @@ export default function Home() {
         </div>
 
         {/* Profile Completion Prompt */}
-        {showCompletionPrompt && (
+        {showCompletionPrompt && profileCompletion && (
           <ProfileCompletionPrompt 
-            open={showCompletionPrompt}
-            onClose={() => setShowCompletionPrompt(false)} 
+            profileData={{
+              isComplete: profileCompletion.isComplete || false,
+              completionPercentage: profileCompletion.completionPercentage || 0,
+              missingFields: profileCompletion.missingFields || [],
+              completedSections: profileCompletion.completedSections || [],
+              pendingSections: profileCompletion.pendingSections || []
+            }}
+            onDismiss={() => setShowCompletionPrompt(false)} 
           />
         )}
       </div>

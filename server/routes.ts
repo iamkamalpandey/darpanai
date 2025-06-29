@@ -1654,6 +1654,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         completedSections: Object.entries(requiredFields)
           .filter(([, value]) => value)
           .map(([key]) => key),
+        pendingSections: missingFields, // Add pending sections for the popup component
         totalFields: Object.keys(requiredFields).length,
         completedFields
       });
