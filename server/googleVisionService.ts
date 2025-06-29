@@ -8,6 +8,9 @@ class GoogleVisionService {
   private client: ImageAnnotatorClient;
 
   constructor(config: GoogleVisionConfig) {
+    if (!config.apiKey) {
+      throw new Error('Google Vision API key not provided');
+    }
     this.client = new ImageAnnotatorClient({
       apiKey: config.apiKey,
     });

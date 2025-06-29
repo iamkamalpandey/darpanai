@@ -3245,28 +3245,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
             throw new Error('Insufficient text from PDF, using Google Vision API');
           }
         } catch (pdfError: any) {
-          console.log('PDF text extraction failed, using Google Vision API:', pdfError.message);
-          const { analyzeAcademicDocumentWithVision } = await import('./academicDocumentAnalysisService');
-          analysisResult = await analyzeAcademicDocumentWithVision(file.buffer);
+          console.log('PDF text extraction failed, trying Google Vision API:', pdfError.message);
+          try {
+            const { analyzeAcademicDocumentWithVision } = await import('./academicDocumentAnalysisService');
+            analysisResult = await analyzeAcademicDocumentWithVision(file.buffer);
+          } catch (visionError: any) {
+            console.log('Google Vision API failed, using PDF fallback:', visionError.message);
+            const { analyzePdfWithFallback } = await import('./pdfFallbackService');
+            analysisResult = await analyzePdfWithFallback(file.buffer);
+          }
         }
       } else if (file.mimetype.startsWith('image/')) {
         // For images, use Google Vision API directly
         console.log('Using Google Vision API for image analysis...');
-        const { analyzeAcademicDocumentWithVision } = await import('./academicDocumentAnalysisService');
-        analysisResult = await analyzeAcademicDocumentWithVision(file.buffer);
+        try {
+          const { analyzeAcademicDocumentWithVision } = await import('./academicDocumentAnalysisService');
+          analysisResult = await analyzeAcademicDocumentWithVision(file.buffer);
+        } catch (visionError: any) {
+          console.log('Google Vision API failed for image:', visionError.message);
+          throw new Error('Image processing requires Google Vision API. Please enable the Google Cloud Vision API in your Google Cloud Console, or convert your image to PDF format.');
+        }
       } else {
         return res.status(400).json({ 
           error: 'Unsupported file type. Please upload PDF, JPG, or PNG files only.'
         });
       }
 
-      // Save to database
+      // Save to database - handle different result structures
+      const results = analysisResult.analysisResults || analysisResult.results;
+      const extractedText = analysisResult.extractedText || '';
+      const confidence = analysisResult.confidence || 0;
+      
       const academicDocumentAnalysis = await storage.createAcademicDocumentAnalysis({
         userId,
         fileName: file.originalname,
         fileSize: file.size,
-        extractedText: analysisResult.extractedText || '',
-        analysisResults: analysisResult.analysisResults,
+        extractedText,
+        analysisResults: results,
         tokensUsed: analysisResult.tokensUsed,
         processingTime: analysisResult.processingTime,
       });
@@ -3275,8 +3290,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: academicDocumentAnalysis.id,
         fileName: file.originalname,
         fileSize: file.size,
-        analysisResults: analysisResult.analysisResults,
+        analysisResults: results,
         processingTime: analysisResult.processingTime,
+        confidence,
         tokensUsed: analysisResult.tokensUsed,
         confidence: analysisResult.confidence || 1.0,
         extractedText: analysisResult.extractedText,
