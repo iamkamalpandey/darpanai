@@ -261,19 +261,31 @@ async function classifyDocumentWithOpenAI(text: string): Promise<DocumentClassif
       model: "gpt-4o-mini",
       messages: [{
         role: "user",
-        content: `Analyze this document text and determine if it's an academic document. Academic documents include: transcripts, diplomas, certificates, enrollment letters, graduation certificates, mark sheets, academic records.
+        content: `Analyze this document text and determine if it's an academic document. The text may be incomplete due to OCR processing, but look for any academic indicators.
 
-NON-academic documents include: experience letters, employment certificates, recommendation letters, personal statements, cover letters.
+Academic documents include: transcripts, diplomas, certificates, enrollment letters, graduation certificates, mark sheets, academic records, HSEB documents, university transcripts.
 
-Document text:
+Look for keywords like:
+- Institution names (University, Board, College, HSEB)
+- Academic terms (Grade XI, Grade XII, Bachelor, First Division)
+- Subject names with marks/grades
+- Student identifiers (Symbol No, Registration No)
+- Academic years or semesters
+- Percentage, marks, or GPA information
+
+NON-academic documents include: experience letters, employment certificates, recommendation letters.
+
+Document text (may be fragmented):
 ${text.substring(0, 2000)}
+
+Be generous with classification - even fragmented text with clear academic content should be classified as academic.
 
 Respond with JSON:
 {
   "isAcademic": boolean,
   "documentType": "transcript|diploma|certificate|enrollment_letter|experience_letter|other",
   "confidence": number (0-100),
-  "reasoning": "Brief explanation"
+  "reasoning": "Brief explanation of academic indicators found"
 }`
       }],
       temperature: 0.1
@@ -362,9 +374,20 @@ For Nepalese transcripts specifically look for:
 Return empty strings for missing information. Be precise and accurate with Nepalese academic terminology.`
       }, {
         role: 'user',
-        content: `Extract information from this academic document:
+        content: `Extract information from this academic transcript/certificate text. The text may be incomplete due to OCR limitations, but extract what you can:
 
-${text}`
+${text}
+
+IMPORTANT: Even if the text is fragmented or incomplete, try to identify:
+- Any institution names (look for words like "University", "Board", "College")
+- Student identification numbers or codes
+- Subject names and marks (look for patterns like numbers followed by subject names)
+- Dates (years in AD or BS format)
+- Percentage or grade information
+- Any registration numbers or symbol numbers
+- Grade levels (XI, XII, First Year, etc.)
+
+Be thorough in examining every piece of text for potential academic information.`
       }],
       response_format: { type: "json_object" },
       temperature: 0.1

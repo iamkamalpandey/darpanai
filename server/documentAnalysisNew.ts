@@ -216,37 +216,75 @@ export async function analyzeDocumentSimplified(
     console.log('📊 Converting structured data to analysis results...');
     
     const analysisResults: AcademicDocumentAnalysisResults = {
+      // Document Classification
       documentType: multiAIResult.classification.documentType || 'Unknown',
-      institutionName: multiAIResult.structuredData.INSTITUTION_DETAILS?.institutionName || 
+      
+      // Institution Information
+      institutionName: multiAIResult.structuredData.institutionName || 
                       multiAIResult.extractedInfo.institutionInfo?.name || 'Not specified',
-      institutionCountry: multiAIResult.structuredData.INSTITUTION_DETAILS?.country || 'Not specified',
-      institutionCity: multiAIResult.structuredData.INSTITUTION_DETAILS?.city || 'Not specified',
-      institutionType: multiAIResult.structuredData.INSTITUTION_DETAILS?.type || 'Not specified',
-      qualificationLevel: multiAIResult.structuredData.PROGRAM_DETAILS?.level || 
+      institutionCountry: multiAIResult.structuredData.institutionCountry || 'Nepal',
+      institutionCity: multiAIResult.structuredData.institutionCity || 'Kathmandu',
+      institutionType: multiAIResult.structuredData.institutionType || 'University',
+      
+      // Qualification Details
+      qualificationLevel: multiAIResult.structuredData.qualificationLevel || 
                          multiAIResult.extractedInfo.programInfo?.degree || 'Not specified',
-      qualificationTitle: multiAIResult.structuredData.PROGRAM_DETAILS?.title ||
+      qualificationTitle: multiAIResult.structuredData.qualificationTitle ||
                          multiAIResult.extractedInfo.programInfo?.programName || 'Not specified',
-      fieldOfStudy: multiAIResult.structuredData.PROGRAM_DETAILS?.field ||
+      fieldOfStudy: multiAIResult.structuredData.fieldOfStudy ||
                    multiAIResult.extractedInfo.programInfo?.major || 'Not specified',
-      major: multiAIResult.extractedInfo.programInfo?.major || 'Not specified',
-      minor: 'Not specified', // Minor not available in current structure
-      specialization: multiAIResult.structuredData.PROGRAM_DETAILS?.specialization || 'Not specified',
-      gpa: multiAIResult.structuredData.ACADEMIC_PERFORMANCE?.gpa ||
+      major: multiAIResult.structuredData.major || multiAIResult.extractedInfo.programInfo?.major || 'Not specified',
+      minor: multiAIResult.structuredData.minor || 'Not specified',
+      specialization: multiAIResult.structuredData.specialization || 'Not specified',
+      
+      // Student Information
+      studentName: multiAIResult.structuredData.studentName || multiAIResult.extractedInfo.studentInfo?.name || 'Not specified',
+      studentId: multiAIResult.structuredData.studentId || multiAIResult.extractedInfo.studentInfo?.studentId || 'Not specified',
+      registrationNumber: multiAIResult.structuredData.registrationNumber || 'Not specified',
+      symbolNumber: multiAIResult.structuredData.symbolNumber || 'Not specified',
+      dateOfBirth: multiAIResult.structuredData.dateOfBirth || 'Not specified',
+      campus: multiAIResult.structuredData.campus || 'Not specified',
+      school: multiAIResult.structuredData.school || 'Not specified',
+      
+      // Nepalese Academic System Specific
+      hsebRegistrationNo: multiAIResult.structuredData.hsebRegistrationNo || 'Not specified',
+      issueNumber: multiAIResult.structuredData.issueNumber || 'Not specified',
+      academicYear: multiAIResult.structuredData.academicYear || 'Not specified',
+      passedYear: multiAIResult.structuredData.passedYear || 'Not specified',
+      passedDivision: multiAIResult.structuredData.passedDivision || 'Not specified',
+      totalMarks: multiAIResult.structuredData.totalMarks || 'Not specified',
+      marksObtained: multiAIResult.structuredData.marksObtained || 'Not specified',
+      percentage: multiAIResult.structuredData.percentage || 'Not specified',
+      
+      // Grade/Year Information
+      gradeLevel: multiAIResult.structuredData.gradeLevel || 'Not specified',
+      faculty: multiAIResult.structuredData.faculty || 'Not specified',
+      
+      // Academic Performance
+      gpa: multiAIResult.structuredData.gpa ||
            multiAIResult.extractedInfo.academicRecords?.gpa || 'Not specified',
-      gradeScale: multiAIResult.structuredData.ACADEMIC_PERFORMANCE?.scale || 'Not specified',
-      overallGrade: multiAIResult.structuredData.ACADEMIC_PERFORMANCE?.overallGrade || 'Not specified',
-      honors: multiAIResult.structuredData.ACADEMIC_PERFORMANCE?.honors || 'Not specified',
-      startDate: multiAIResult.extractedInfo.programInfo?.startDate || 'Not specified',
-      endDate: multiAIResult.extractedInfo.programInfo?.completionDate || 'Not specified',
-      graduationDate: multiAIResult.structuredData.CERTIFICATION_DETAILS?.graduationDate || 'Not specified',
-      duration: multiAIResult.structuredData.PROGRAM_DETAILS?.duration || 'Not specified',
-      programType: multiAIResult.structuredData.PROGRAM_DETAILS?.type || 'Not specified',
+      gradeScale: multiAIResult.structuredData.gradeScale || 'Percentage',
+      overallGrade: multiAIResult.structuredData.overallGrade || 'Not specified',
+      honors: multiAIResult.structuredData.honors || 'Not specified',
+      
+      // Subject-wise Performance
+      subjectMarks: multiAIResult.structuredData.subjectMarks || [],
+      
+      // Timeline
+      startDate: multiAIResult.structuredData.startDate || multiAIResult.extractedInfo.programInfo?.startDate || 'Not specified',
+      endDate: multiAIResult.structuredData.endDate || multiAIResult.extractedInfo.programInfo?.completionDate || 'Not specified',
+      graduationDate: multiAIResult.structuredData.graduationDate || 'Not specified',
+      duration: multiAIResult.structuredData.duration || 'Not specified',
+      
+      // Program Details
+      programType: multiAIResult.structuredData.programType || 'Full-time',
       credits: multiAIResult.extractedInfo.academicRecords?.credits || 'Not specified',
-      thesis: multiAIResult.structuredData.ACADEMIC_PERFORMANCE?.thesis || 'Not specified',
-      accreditation: multiAIResult.structuredData.INSTITUTION_DETAILS?.accreditation || 'Not specified',
-      languageOfInstruction: multiAIResult.structuredData.PROGRAM_DETAILS?.language || 'Not specified',
-      studentId: multiAIResult.extractedInfo.studentInfo?.studentId || 'Not specified',
-      // studentName: multiAIResult.extractedInfo.studentInfo?.name || 'Not specified', // Temporarily disabled pending schema fix
+      thesis: multiAIResult.structuredData.thesis || 'Not specified',
+      
+      // Additional Information
+      accreditation: multiAIResult.structuredData.accreditation || 'Not specified',
+      languageOfInstruction: multiAIResult.structuredData.languageOfInstruction || 'English/Nepali',
+      
       courses: multiAIResult.extractedInfo.academicRecords?.subjects || [],
       skills: multiAIResult.structuredData.ADDITIONAL_INFO?.skills || [],
       recommendations: multiAIResult.structuredData.ADDITIONAL_INFO?.recommendations || [],
