@@ -81,6 +81,10 @@ export default function AcademicDocumentAnalysis() {
             errorMessage = "Unable to extract readable text from your document. Please ensure the document is clear, high-resolution, and contains visible text. For scanned documents, try uploading a higher quality version.";
           } else if (error.message.includes("Academic analysis requires transcripts")) {
             errorMessage = "This document is not suitable for academic analysis. Please upload university transcripts, degree certificates, or enrollment documents only.";
+          } else if (error.message.includes("OCR limitations") || error.message.includes("converting your PDF to a JPG")) {
+            errorMessage = "Unable to process this PDF document. Please convert it to a JPG or PNG image and try again.";
+          } else if (error.message.includes("PDF conversion failed")) {
+            errorMessage = "PDF processing failed. Please save your document as a JPG or PNG image and upload that instead.";
           } else {
             errorMessage = "The document could not be validated for academic analysis. Please ensure you're uploading a university transcript, degree certificate, or enrollment document.";
           }
