@@ -100,7 +100,7 @@ export default function CvAnalysis() {
   // Get user's CV analyses
   const { data: cvAnalyses = [], isLoading } = useQuery({
     queryKey: ['/api/cv-analyses'],
-  });
+  }) as { data: CvAnalysis[], isLoading: boolean };
 
   // Upload and analyze CV mutation
   const analyzeCvMutation = useMutation({
@@ -114,10 +114,21 @@ export default function CvAnalysis() {
       }, 500);
 
       try {
-        const response = await apiRequest('POST', '/api/cv-analysis', formData);
+        const response = await fetch('/api/cv-analysis', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include', // Important for authentication
+        });
+        
         clearInterval(progressInterval);
         setUploadProgress(100);
-        return response;
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to analyze CV');
+        }
+        
+        return response.json();
       } catch (error) {
         clearInterval(progressInterval);
         setUploadProgress(0);
@@ -146,12 +157,22 @@ export default function CvAnalysis() {
   // Apply CV data to profile mutation
   const applyToProfileMutation = useMutation({
     mutationFn: async (analysisId: number) => {
-      return apiRequest('POST', `/api/cv-analyses/${analysisId}/apply-to-profile`);
+      const response = await fetch(`/api/cv-analyses/${analysisId}/apply-to-profile`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to apply CV data to profile');
+      }
+      
+      return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Profile Updated!",
-        description: `Successfully updated ${data.updatedFields.length} profile fields from your CV.`,
+        description: `Successfully updated ${data.updatedFields?.length || 0} profile fields from your CV.`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/cv-analyses'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile-completion'] });
