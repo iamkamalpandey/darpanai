@@ -16,14 +16,14 @@ export async function analyzeAcademicDocumentContent(extractedText: string): Pro
     const prompt = `
 You are an expert academic document analyzer specializing in educational certificates, diplomas, transcripts, and degree documents from institutions worldwide.
 
-Analyze the following academic document text and extract comprehensive academic information in JSON format.
+Analyze the following academic document text and extract comprehensive academic information. Return ONLY a valid JSON object without any markdown formatting or code blocks.
 
 Academic Document Text:
 """
 ${extractedText}
 """
 
-Please extract and structure the following information in JSON format:
+Return ONLY a JSON object with the following structure (no markdown, no explanations):
 
 {
   "institutionName": "Full name of the educational institution",
@@ -89,6 +89,7 @@ Return only valid JSON without any additional text or formatting.`;
       ],
       temperature: 0.3,
       max_tokens: 2000,
+      response_format: { type: "json_object" }
     });
 
     const processingTime = Date.now() - startTime;
@@ -99,11 +100,20 @@ Return only valid JSON without any additional text or formatting.`;
       throw new Error('No content received from OpenAI');
     }
 
+    // Extract JSON from response (handle markdown code blocks)
+    let jsonContent = content;
+    if (jsonContent.startsWith('```json')) {
+      jsonContent = jsonContent.replace(/```json\s*/, '').replace(/\s*```$/, '');
+    } else if (jsonContent.startsWith('```')) {
+      jsonContent = jsonContent.replace(/```\s*/, '').replace(/\s*```$/, '');
+    }
+
     let analysisResults: AcademicDocumentAnalysisResults;
     try {
-      analysisResults = JSON.parse(content);
+      analysisResults = JSON.parse(jsonContent);
     } catch (parseError) {
       console.error('Failed to parse OpenAI response:', content);
+      console.error('Extracted JSON content:', jsonContent);
       throw new Error('Failed to parse AI analysis results');
     }
 

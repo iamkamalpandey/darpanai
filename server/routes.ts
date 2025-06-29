@@ -3232,11 +3232,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const pdfData = await pdfParse(dataBuffer);
         extractedText = pdfData.text;
       } else if (file.mimetype.startsWith('image/')) {
-        const Tesseract = await import('tesseract.js');
-        const { data: { text } } = await Tesseract.recognize(file.buffer, 'eng');
-        extractedText = text;
+        const { createWorker } = await import('tesseract.js');
+        const worker = await createWorker('eng');
+        const result = await worker.recognize(file.buffer);
+        extractedText = result.data.text;
+        await worker.terminate();
       }
 
+      console.log(`Extracted text length: ${extractedText?.length || 0}`);
+      console.log(`First 200 chars: ${extractedText?.substring(0, 200) || 'No text'}`);
+      
       if (!extractedText || extractedText.trim().length < 50) {
         return res.status(400).json({ 
           error: 'Could not extract sufficient text from the academic document. Please ensure the document is clear, high-resolution, and contains readable text. PDF format typically provides the best results for text extraction.'
