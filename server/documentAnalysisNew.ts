@@ -196,101 +196,68 @@ export async function analyzeDocumentSimplified(
   const startTime = Date.now();
 
   try {
-    // Step 1: Pre-processing validation
-    console.log('Validating document for academic analysis...');
-    const validation = await validateDocumentForAnalysis(fileBuffer, mimeType);
+    // Use Multi-AI Processing Pipeline for enterprise-grade accuracy
+    console.log('🚀 Starting Multi-AI Document Processing Pipeline...');
     
-    if (!validation.isValid) {
-      throw new Error(`Document validation failed: ${validation.reason}`);
-    }
-
-    console.log(`Document validated successfully as ${validation.documentType} with ${Math.round(validation.confidence * 100)}% confidence`);
+    const multiAIResult = await processDocumentWithMultiAI(fileBuffer, mimeType);
     
-    const extractedText = validation.extractedText!;
-    const confidence = validation.confidence;
-
-    // Step 2: Perform AI analysis on validated academic document
-    console.log('Analyzing extracted text with OpenAI...');
-    console.log('Text preview:', extractedText.substring(0, 200));
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: `You are an expert academic document analyzer specializing in educational certificates, diplomas, transcripts, and degree documents from institutions worldwide.
-
-Analyze the provided document text and extract comprehensive academic information. Return ONLY a valid JSON object without any markdown formatting or code blocks.
-
-Important: The text may contain OCR errors or formatting issues, so be flexible in interpretation but accurate in extraction.`
-        },
-        {
-          role: "user", 
-          content: `Analyze this academic document text and return ONLY a JSON object with the following structure:
-
-{
-  "documentType": "Type of document (Diploma, Degree Certificate, Transcript, etc.)",
-  "institutionName": "Full name of the educational institution",
-  "institutionCountry": "Country where the institution is located",
-  "institutionCity": "City where the institution is located", 
-  "institutionType": "Type (University, College, Institute, School, etc.)",
-  "qualificationLevel": "Level (Bachelor's, Master's, PhD, Diploma, Certificate, etc.)",
-  "qualificationTitle": "Full title/name of the degree or qualification",
-  "fieldOfStudy": "Field or area of study",
-  "major": "Major subject if specified",
-  "minor": "Minor subject if specified",
-  "specialization": "Any specialization mentioned",
-  "gpa": "Grade Point Average or equivalent",
-  "gradeScale": "Scale used (4.0, 10.0, Percentage, etc.)",
-  "overallGrade": "Overall grade or class achieved",
-  "honors": "Any honors received (Cum Laude, First Class, etc.)",
-  "startDate": "Program start date",
-  "endDate": "Program end date or completion date", 
-  "graduationDate": "Official graduation date",
-  "duration": "Duration of the program",
-  "programType": "Type (Full-time, Part-time, Distance Learning, etc.)",
-  "credits": "Number of credits or credit hours",
-  "thesis": "Thesis title or research topic if applicable",
-  "accreditation": "Accreditation information",
-  "languageOfInstruction": "Language in which program was conducted",
-  "studentId": "Student ID number if visible",
-  "studentName": "Full name of the student",
-  "courses": ["array of course names or subjects mentioned"],
-  "skills": ["array of skills that can be inferred from courses/program"],
-  "recommendations": ["array of recommendations for career or further study"],
-  "additionalNotes": "Any other relevant information found in the document"
-}
-
-Document text to analyze:
-"""
-${extractedText}
-"""
-
-Return ONLY the JSON object, no explanations or markdown formatting:`
-        }
-      ],
-      temperature: 0.1,
-      max_tokens: 2000
-    });
-
-    const responseText = response.choices[0]?.message?.content?.trim();
-    if (!responseText) {
-      throw new Error('No response from OpenAI analysis');
+    if (!multiAIResult.success) {
+      throw new Error(`Multi-AI processing failed: ${multiAIResult.error}`);
     }
+    
+    console.log(`✅ Multi-AI processing completed successfully in ${multiAIResult.processingTime}ms`);
+    console.log(`📊 OCR Confidence: ${multiAIResult.ocrResult.confidence.toFixed(1)}%`);
+    console.log(`🎯 Classification: ${multiAIResult.classification.documentType} (${multiAIResult.classification.confidence}% confidence)`);
+    
+    const extractedText = multiAIResult.ocrResult.text;
+    const confidence = multiAIResult.classification.confidence;
 
-    // Parse the JSON response
-    let analysisResults: AcademicDocumentAnalysisResults;
-    try {
-      analysisResults = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error('Failed to parse OpenAI response:', responseText);
-      throw new Error('Failed to parse analysis results. Please try again.');
-    }
+    // Convert multi-AI structured data to required format
+    console.log('📊 Converting structured data to analysis results...');
+    
+    const analysisResults: AcademicDocumentAnalysisResults = {
+      documentType: multiAIResult.classification.documentType || 'Unknown',
+      institutionName: multiAIResult.structuredData.INSTITUTION_DETAILS?.institutionName || 
+                      multiAIResult.extractedInfo.institutionInfo?.name || 'Not specified',
+      institutionCountry: multiAIResult.structuredData.INSTITUTION_DETAILS?.country || 'Not specified',
+      institutionCity: multiAIResult.structuredData.INSTITUTION_DETAILS?.city || 'Not specified',
+      institutionType: multiAIResult.structuredData.INSTITUTION_DETAILS?.type || 'Not specified',
+      qualificationLevel: multiAIResult.structuredData.PROGRAM_DETAILS?.level || 
+                         multiAIResult.extractedInfo.programInfo?.degree || 'Not specified',
+      qualificationTitle: multiAIResult.structuredData.PROGRAM_DETAILS?.title ||
+                         multiAIResult.extractedInfo.programInfo?.programName || 'Not specified',
+      fieldOfStudy: multiAIResult.structuredData.PROGRAM_DETAILS?.field ||
+                   multiAIResult.extractedInfo.programInfo?.major || 'Not specified',
+      major: multiAIResult.extractedInfo.programInfo?.major || 'Not specified',
+      minor: 'Not specified', // Minor not available in current structure
+      specialization: multiAIResult.structuredData.PROGRAM_DETAILS?.specialization || 'Not specified',
+      gpa: multiAIResult.structuredData.ACADEMIC_PERFORMANCE?.gpa ||
+           multiAIResult.extractedInfo.academicRecords?.gpa || 'Not specified',
+      gradeScale: multiAIResult.structuredData.ACADEMIC_PERFORMANCE?.scale || 'Not specified',
+      overallGrade: multiAIResult.structuredData.ACADEMIC_PERFORMANCE?.overallGrade || 'Not specified',
+      honors: multiAIResult.structuredData.ACADEMIC_PERFORMANCE?.honors || 'Not specified',
+      startDate: multiAIResult.extractedInfo.programInfo?.startDate || 'Not specified',
+      endDate: multiAIResult.extractedInfo.programInfo?.completionDate || 'Not specified',
+      graduationDate: multiAIResult.structuredData.CERTIFICATION_DETAILS?.graduationDate || 'Not specified',
+      duration: multiAIResult.structuredData.PROGRAM_DETAILS?.duration || 'Not specified',
+      programType: multiAIResult.structuredData.PROGRAM_DETAILS?.type || 'Not specified',
+      credits: multiAIResult.extractedInfo.academicRecords?.credits || 'Not specified',
+      thesis: multiAIResult.structuredData.ACADEMIC_PERFORMANCE?.thesis || 'Not specified',
+      accreditation: multiAIResult.structuredData.INSTITUTION_DETAILS?.accreditation || 'Not specified',
+      languageOfInstruction: multiAIResult.structuredData.PROGRAM_DETAILS?.language || 'Not specified',
+      studentId: multiAIResult.extractedInfo.studentInfo?.studentId || 'Not specified',
+      // studentName: multiAIResult.extractedInfo.studentInfo?.name || 'Not specified', // Temporarily disabled pending schema fix
+      courses: multiAIResult.extractedInfo.academicRecords?.subjects || [],
+      skills: multiAIResult.structuredData.ADDITIONAL_INFO?.skills || [],
+      recommendations: multiAIResult.structuredData.ADDITIONAL_INFO?.recommendations || [],
+      additionalNotes: multiAIResult.structuredData.ADDITIONAL_INFO?.notes || 'No additional information'
+    };
 
     const processingTime = Date.now() - startTime;
-    const tokensUsed = response.usage?.total_tokens || 0;
+    const tokensUsed = 0; // Multi-AI token usage tracked separately
 
-    console.log(`Analysis completed in ${processingTime}ms using ${tokensUsed} tokens`);
+    console.log(`✅ Enhanced multi-AI analysis completed in ${processingTime}ms`);
+    console.log(`📈 Processing pipeline: Google Vision OCR → Anthropic Classification → OpenAI Information Extraction → Data Structuring`);
 
     return {
       results: analysisResults,

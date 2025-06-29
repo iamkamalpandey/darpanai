@@ -4,6 +4,9 @@ import { createInsertSchema } from "drizzle-zod";
 
 // Academic Document Analysis Results Schema
 export const academicDocumentAnalysisResultsSchema = z.object({
+  // Document Classification
+  documentType: z.string().optional(), // transcript, diploma, certificate, etc.
+  
   // Institution Information
   institutionName: z.string().optional(),
   institutionCountry: z.string().optional(),
@@ -39,6 +42,12 @@ export const academicDocumentAnalysisResultsSchema = z.object({
   accreditation: z.string().optional(),
   languageOfInstruction: z.string().optional(),
   studentId: z.string().optional(),
+  studentName: z.string().optional(),
+  
+  // Course and Skills Information
+  courses: z.array(z.string()).optional(),
+  skills: z.array(z.string()).optional(),
+  additionalNotes: z.string().optional(),
   
   // Confidence Scores (0-100)
   confidenceScores: z.object({
