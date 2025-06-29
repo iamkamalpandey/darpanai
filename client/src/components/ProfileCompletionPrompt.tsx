@@ -34,8 +34,12 @@ export function ProfileCompletionPrompt({ profileData, onDismiss }: ProfileCompl
     console.log('ProfileCompletionPrompt received data:', profileData);
     console.log('IsComplete:', profileData.isComplete, 'Completion:', profileData.completionPercentage);
     
-    // Show popup only if profile is not 100% complete
-    if (!profileData.isComplete && profileData.completionPercentage < 100) {
+    // Check if user already dismissed popup in this session
+    const dismissed = sessionStorage.getItem('profilePopupDismissed');
+    console.log('Session dismissed status:', dismissed);
+    
+    // Show popup only if profile is not 100% complete AND not dismissed
+    if (!profileData.isComplete && profileData.completionPercentage < 100 && !dismissed) {
       console.log('ProfileCompletionPrompt: Setting timer to show popup');
       const timer = setTimeout(() => {
         console.log('ProfileCompletionPrompt: Making popup visible');
@@ -43,12 +47,14 @@ export function ProfileCompletionPrompt({ profileData, onDismiss }: ProfileCompl
       }, 2000); // Show after 2 seconds
       return () => clearTimeout(timer);
     } else {
-      console.log('ProfileCompletionPrompt: Not showing popup - profile complete or 100%');
+      console.log('ProfileCompletionPrompt: Not showing popup - profile complete, 100%, or dismissed');
     }
   }, [profileData.isComplete, profileData.completionPercentage]);
 
   const handleDismiss = () => {
     setIsVisible(false);
+    // Remember dismissal for this session
+    sessionStorage.setItem('profilePopupDismissed', 'true');
     onDismiss();
   };
 
