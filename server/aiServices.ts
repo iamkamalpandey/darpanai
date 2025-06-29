@@ -13,7 +13,6 @@ const openai = new OpenAI({
 
 // Initialize Google Cloud Vision
 const visionClient = new ImageAnnotatorClient({
-  keyFilename: process.env.GOOGLE_CLOUD_VISION_CREDENTIALS,
   apiKey: process.env.GOOGLE_CLOUD_VISION_API_KEY,
 });
 

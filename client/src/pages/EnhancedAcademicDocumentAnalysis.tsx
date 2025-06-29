@@ -177,6 +177,8 @@ export default function EnhancedAcademicDocumentAnalysis() {
   };
 
   const getDocumentTypeIcon = (type: string) => {
+    if (!type) return <FileText className="h-4 w-4" />;
+    
     switch (type.toLowerCase()) {
       case 'transcript': return <BookOpen className="h-4 w-4" />;
       case 'diploma': return <Award className="h-4 w-4" />;
@@ -378,7 +380,7 @@ export default function EnhancedAcademicDocumentAnalysis() {
                                   {analysis.confidence}% confidence
                                 </Badge>
                                 <p className="text-xs text-gray-500 mt-1 capitalize">
-                                  {analysis.documentType}
+                                  {analysis.documentType || 'Unknown'}
                                 </p>
                               </div>
                               
@@ -403,24 +405,24 @@ export default function EnhancedAcademicDocumentAnalysis() {
                           </div>
 
                           {/* Quick Preview */}
-                          {analysis.analysisResults && (
+                          {analysis.analysisResults && typeof analysis.analysisResults === 'object' && (
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100">
                               <div className="text-center">
                                 <p className="text-sm font-medium text-gray-900">Institution</p>
                                 <p className="text-xs text-gray-500 break-words">
-                                  {analysis.analysisResults.institutionName || 'Not specified'}
+                                  {analysis.analysisResults?.institutionName || 'Not specified'}
                                 </p>
                               </div>
                               <div className="text-center">
                                 <p className="text-sm font-medium text-gray-900">Qualification</p>
                                 <p className="text-xs text-gray-500 break-words">
-                                  {analysis.analysisResults.qualificationLevel || 'Not specified'}
+                                  {analysis.analysisResults?.qualificationLevel || 'Not specified'}
                                 </p>
                               </div>
                               <div className="text-center">
                                 <p className="text-sm font-medium text-gray-900">Field</p>
                                 <p className="text-xs text-gray-500 break-words">
-                                  {analysis.analysisResults.fieldOfStudy || 'Not specified'}
+                                  {analysis.analysisResults?.fieldOfStudy || 'Not specified'}
                                 </p>
                               </div>
                             </div>
