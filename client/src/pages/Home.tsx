@@ -68,14 +68,23 @@ export default function Home() {
   });
 
   useEffect(() => {
-    console.log('Profile completion data:', profileCompletion);
+    console.log('Home: Profile completion data received:', profileCompletion);
+    console.log('Home: showCompletionPrompt state:', showCompletionPrompt);
+    
     if (profileCompletion && profileCompletion.isComplete === false && profileCompletion.completionPercentage < 100) {
-      console.log('Setting completion prompt to show in 2 seconds');
+      console.log('Home: Conditions met, setting timer for popup');
       const timer = setTimeout(() => {
-        console.log('Showing completion prompt');
+        console.log('Home: Timer fired, setting showCompletionPrompt to true');
         setShowCompletionPrompt(true);
       }, 2000);
       return () => clearTimeout(timer);
+    } else {
+      console.log('Home: Conditions not met for showing popup');
+      console.log('  - profileCompletion exists:', !!profileCompletion);
+      if (profileCompletion) {
+        console.log('  - isComplete:', profileCompletion.isComplete);
+        console.log('  - completionPercentage:', profileCompletion.completionPercentage);
+      }
     }
   }, [profileCompletion]);
 
@@ -263,6 +272,7 @@ export default function Home() {
         </div>
 
         {/* Profile Completion Prompt */}
+        {console.log('Home: Rendering popup?', showCompletionPrompt, !!profileCompletion)}
         {showCompletionPrompt && profileCompletion && (
           <ProfileCompletionPrompt 
             profileData={{
@@ -274,6 +284,13 @@ export default function Home() {
             }}
             onDismiss={() => setShowCompletionPrompt(false)} 
           />
+        )}
+        
+        {/* Debug info */}
+        {profileCompletion && (
+          <div className="fixed bottom-4 right-4 bg-black text-white p-2 text-xs">
+            Debug: Completion: {profileCompletion.completionPercentage}%, Show: {showCompletionPrompt.toString()}
+          </div>
         )}
       </div>
     </DashboardLayout>
