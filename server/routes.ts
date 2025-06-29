@@ -3357,6 +3357,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Handle specific analysis errors gracefully
         if (analysisError.message?.includes('OCR') || analysisError.message?.includes('tesseract')) {
           throw new Error('Document processing failed due to OCR limitations. Please try converting your PDF to a JPG or PNG image for better results.');
+        } else if (analysisError.message?.includes('pdf2pic') || analysisError.message?.includes('PDF to image')) {
+          throw new Error('PDF conversion failed. Please try uploading the document as a JPG or PNG image instead.');
         } else if (analysisError.message?.includes('OpenAI') || analysisError.message?.includes('API')) {
           throw new Error('AI analysis service is temporarily unavailable. Please try again in a few moments.');
         } else {

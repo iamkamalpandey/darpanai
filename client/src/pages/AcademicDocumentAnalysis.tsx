@@ -71,14 +71,16 @@ export default function AcademicDocumentAnalysis() {
       let errorTitle = "Analysis Failed";
       
       if (error.message) {
-        if (error.message.includes("Document validation failed")) {
+        if (error.message.includes("Document validation failed") || error.message.includes("Academic document analysis failed")) {
           errorTitle = "Document Validation Failed";
           if (error.message.includes("experience document")) {
             errorMessage = "This appears to be an experience/employment letter, not an academic document. Please upload university transcripts, degree certificates, or enrollment documents instead.";
           } else if (error.message.includes("financial document")) {
             errorMessage = "This appears to be a financial document, not an academic document. Please upload university transcripts, degree certificates, or enrollment documents instead.";
-          } else if (error.message.includes("Insufficient text extracted")) {
-            errorMessage = "Unable to extract readable text from your document. Please ensure the document is clear, high-resolution, and contains visible text.";
+          } else if (error.message.includes("Insufficient text extracted") || error.message.includes("clear, high-resolution")) {
+            errorMessage = "Unable to extract readable text from your document. Please ensure the document is clear, high-resolution, and contains visible text. For scanned documents, try uploading a higher quality version.";
+          } else if (error.message.includes("Academic analysis requires transcripts")) {
+            errorMessage = "This document is not suitable for academic analysis. Please upload university transcripts, degree certificates, or enrollment documents only.";
           } else {
             errorMessage = "The document could not be validated for academic analysis. Please ensure you're uploading a university transcript, degree certificate, or enrollment document.";
           }
