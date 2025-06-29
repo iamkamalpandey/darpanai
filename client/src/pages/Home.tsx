@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { ProfileCompletionPopup } from "@/components/ProfileCompletionPopup";
+import { ProfileCompletionPrompt } from "@/components/ProfileCompletionPrompt";
 import { 
   Shield, 
   FileText, 
@@ -38,8 +38,6 @@ interface PlatformStats {
 }
 
 export default function Home() {
-  const [showCompletionPrompt, setShowCompletionPrompt] = useState(false);
-  const [popupDismissed, setPopupDismissed] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['/api/user'],
@@ -68,25 +66,11 @@ export default function Home() {
     staleTime: 30 * 60 * 1000,
   });
 
-  useEffect(() => {
-    // Clear any existing session storage for testing
-    sessionStorage.removeItem('profilePopupDismissed');
-    
-    if (profileCompletion) {
-      console.log('Profile completion data:', profileCompletion);
-      // Show popup if profile is incomplete (less than 100%)
-      if (!profileCompletion.isComplete || profileCompletion.completionPercentage < 100) {
-        console.log('Setting popup to show');
-        setShowCompletionPrompt(true);
-      }
-    }
-  }, [profileCompletion]);
+  // The ProfileCompletionPrompt component handles its own visibility logic internally
 
   const handlePopupDismiss = () => {
-    setShowCompletionPrompt(false);
-    setPopupDismissed(true);
-    // Remember dismissal for this session
-    sessionStorage.setItem('profilePopupDismissed', 'true');
+    // ProfileCompletionPrompt component handles its own visibility internally
+    console.log('Popup dismissed');
   };
 
   const analysisOptions = [
@@ -273,44 +257,19 @@ export default function Home() {
         </div>
 
         {/* Profile Completion Popup */}
-        {showCompletionPrompt && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
-              <h2 className="text-xl font-bold mb-4">Complete Your Profile</h2>
-              <p className="mb-4">
-                Your profile is {profileCompletion?.completionPercentage || 0}% complete. 
-                Complete your profile to get genuine, personalized AI reports.
-              </p>
-              <div className="flex gap-3">
-                <Button 
-                  onClick={handlePopupDismiss}
-                  variant="outline"
-                >
-                  Later
-                </Button>
-                <Button asChild>
-                  <Link href="/profile">Complete Now</Link>
-                </Button>
-              </div>
-            </div>
-          </div>
+        {profileCompletion && (
+          <ProfileCompletionPrompt
+            profileData={{
+              isComplete: profileCompletion.isComplete || false,
+              completionPercentage: profileCompletion.completionPercentage || 0,
+              missingFields: profileCompletion.missingFields || [],
+              completedSections: profileCompletion.completedSections || [],
+              pendingSections: profileCompletion.pendingSections || []
+            }}
+            onDismiss={handlePopupDismiss}
+          />
         )}
-        
-        {/* Debug info */}
-        <div className="fixed bottom-4 right-4 bg-black text-white p-2 text-xs z-50">
-          <div>Show Popup: {showCompletionPrompt.toString()}</div>
-          <div>Has Data: {!!profileCompletion}</div>
-          <div>Completion: {profileCompletion?.completionPercentage}%</div>
-          <div>Is Complete: {profileCompletion?.isComplete?.toString()}</div>
-          <div>Dismissed: {popupDismissed.toString()}</div>
-          <div>Session Dismissed: {!!sessionStorage.getItem('profilePopupDismissed')}</div>
-          <button 
-            onClick={() => setShowCompletionPrompt(true)} 
-            className="bg-blue-500 px-2 py-1 mt-2 text-white rounded text-xs"
-          >
-            Test Popup
-          </button>
-        </div>
+
 
       </div>
     </DashboardLayout>
