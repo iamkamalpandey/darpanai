@@ -69,21 +69,16 @@ export default function Home() {
 
   useEffect(() => {
     console.log('Home: Profile completion data received:', profileCompletion);
-    console.log('Home: showCompletionPrompt state:', showCompletionPrompt);
     
-    if (profileCompletion && profileCompletion.isComplete === false && profileCompletion.completionPercentage < 100) {
-      console.log('Home: Conditions met, setting timer for popup');
-      const timer = setTimeout(() => {
-        console.log('Home: Timer fired, setting showCompletionPrompt to true');
+    if (profileCompletion) {
+      console.log('Home: Profile data exists, checking completion...');
+      console.log('  - isComplete:', profileCompletion.isComplete);
+      console.log('  - completionPercentage:', profileCompletion.completionPercentage);
+      
+      // Show popup immediately if profile is incomplete
+      if (!profileCompletion.isComplete || profileCompletion.completionPercentage < 100) {
+        console.log('Home: Profile incomplete, showing popup immediately');
         setShowCompletionPrompt(true);
-      }, 2000);
-      return () => clearTimeout(timer);
-    } else {
-      console.log('Home: Conditions not met for showing popup');
-      console.log('  - profileCompletion exists:', !!profileCompletion);
-      if (profileCompletion) {
-        console.log('  - isComplete:', profileCompletion.isComplete);
-        console.log('  - completionPercentage:', profileCompletion.completionPercentage);
       }
     }
   }, [profileCompletion]);
@@ -272,18 +267,30 @@ export default function Home() {
         </div>
 
         {/* Profile Completion Prompt */}
-        {console.log('Home: Rendering popup?', showCompletionPrompt, !!profileCompletion)}
         {showCompletionPrompt && profileCompletion && (
-          <ProfileCompletionPrompt 
-            profileData={{
-              isComplete: profileCompletion.isComplete || false,
-              completionPercentage: profileCompletion.completionPercentage || 0,
-              missingFields: profileCompletion.missingFields || [],
-              completedSections: profileCompletion.completedSections || [],
-              pendingSections: profileCompletion.pendingSections || []
-            }}
-            onDismiss={() => setShowCompletionPrompt(false)} 
-          />
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+              <h2 className="text-xl font-bold mb-4">Complete Your Profile</h2>
+              <p className="mb-4">
+                Your profile is {profileCompletion.completionPercentage}% complete. 
+                Complete your profile to get better AI recommendations.
+              </p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setShowCompletionPrompt(false)}
+                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                >
+                  Later
+                </button>
+                <a 
+                  href="/profile"
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Complete Now
+                </a>
+              </div>
+            </div>
+          </div>
         )}
         
         {/* Debug info */}
