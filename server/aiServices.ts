@@ -204,12 +204,53 @@ Respond with JSON:
     return result;
 
   } catch (error) {
-    console.error('❌ Document classification failed:', error);
+    console.log('⚠️ Claude classification failed, trying OpenAI fallback...');
+    return await classifyDocumentWithOpenAI(text);
+  }
+}
+
+/**
+ * Document Classification fallback using OpenAI
+ */
+async function classifyDocumentWithOpenAI(text: string): Promise<DocumentClassification> {
+  try {
+    console.log('🎯 Classifying document with OpenAI...');
+    
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{
+        role: "user",
+        content: `Analyze this document text and determine if it's an academic document. Academic documents include: transcripts, diplomas, certificates, enrollment letters, graduation certificates, mark sheets, academic records.
+
+NON-academic documents include: experience letters, employment certificates, recommendation letters, personal statements, cover letters.
+
+Document text:
+${text.substring(0, 2000)}
+
+Respond with JSON:
+{
+  "isAcademic": boolean,
+  "documentType": "transcript|diploma|certificate|enrollment_letter|experience_letter|other",
+  "confidence": number (0-100),
+  "reasoning": "Brief explanation"
+}`
+      }],
+      temperature: 0.1
+    });
+
+    const result = JSON.parse(response.choices[0].message.content!);
+    console.log(`✅ Document classified with OpenAI: ${result.documentType} (${result.confidence}% confidence)`);
+    
+    return result;
+
+  } catch (error) {
+    console.error('❌ Document classification failed completely:', error);
+    // Return a permissive classification to allow processing to continue
     return {
-      isAcademic: false,
-      documentType: 'unknown',
-      confidence: 0,
-      reasoning: 'Classification failed'
+      isAcademic: true, // Allow processing to continue
+      documentType: 'other',
+      confidence: 50,
+      reasoning: 'Classification service unavailable, proceeding with analysis'
     };
   }
 }
