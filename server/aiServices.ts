@@ -181,20 +181,43 @@ async function processImageWithOCR(imageBuffer: Buffer): Promise<OCRResult> {
  */
 async function performTesseractOCR(imageBuffer: Buffer): Promise<OCRResult> {
   try {
-    console.log('🔍 Starting Tesseract OCR processing...');
+    console.log('🔍 Starting Enhanced Tesseract OCR processing...');
     
-    // Dynamic import for Tesseract.js
+    // Dynamic import for Tesseract.js and Sharp for image preprocessing
     const { default: Tesseract } = await import('tesseract.js');
     
-    const { data: { text, confidence } } = await Tesseract.recognize(imageBuffer, 'eng', {
+    let processedBuffer = imageBuffer;
+    
+    // Try to enhance image quality with Sharp if available
+    try {
+      const sharp = await import('sharp');
+      console.log('🔧 Preprocessing image for better OCR accuracy...');
+      
+      processedBuffer = await sharp.default(imageBuffer)
+        .resize(null, 1800, { 
+          withoutEnlargement: false,
+          kernel: sharp.default.kernel.lanczos3 
+        })
+        .grayscale()
+        .normalize()
+        .sharpen()
+        .png()
+        .toBuffer();
+        
+      console.log('✅ Image preprocessing completed');
+    } catch (sharpError) {
+      console.log('⚠️ Sharp preprocessing not available, using original image');
+    }
+    
+    const { data: { text, confidence } } = await Tesseract.recognize(processedBuffer, 'eng', {
       logger: (m: any) => {
         if (m.status === 'recognizing text') {
-          console.log(`📊 Tesseract progress: ${Math.round(m.progress * 100)}%`);
+          console.log(`📊 Enhanced Tesseract progress: ${Math.round(m.progress * 100)}%`);
         }
       }
     });
 
-    console.log(`✅ Tesseract OCR completed: ${text.length} characters extracted with ${confidence.toFixed(1)}% confidence`);
+    console.log(`✅ Enhanced Tesseract OCR completed: ${text.length} characters extracted with ${confidence.toFixed(1)}% confidence`);
     console.log('📝 Extracted text preview (first 500 chars):', text.substring(0, 500));
 
     return {
@@ -375,20 +398,24 @@ For Nepalese transcripts specifically look for:
 Return empty strings for missing information. Be precise and accurate with Nepalese academic terminology.`
       }, {
         role: 'user',
-        content: `Extract information from this academic transcript/certificate text. The text may be incomplete due to OCR limitations, but extract what you can:
+        content: `Extract information from this Nepalese academic transcript text. The text is from OCR so may be fragmented, but extract all available information:
 
+OCR Text:
 ${text}
 
-IMPORTANT: Even if the text is fragmented or incomplete, try to identify:
-- Any institution names (look for words like "University", "Board", "College")
-- Student identification numbers or codes
-- Subject names and marks (look for patterns like numbers followed by subject names)
-- Dates (years in AD or BS format)
-- Percentage or grade information
-- Any registration numbers or symbol numbers
-- Grade levels (XI, XII, First Year, etc.)
+EXTRACTION INSTRUCTIONS:
+1. Look for "Tribhuvan University" or similar institution names
+2. Find "Academic Transcript" or similar document types
+3. Extract degree information like "Bachelor's Degree in Business Studies"
+4. Look for "Percentage:" followed by numbers (like "44.59")
+5. Find student names after "Student's Name:" or "Name:"
+6. Extract registration/roll numbers or symbol numbers
+7. Look for campus names or faculty information
+8. Find examination details and course duration
+9. Extract any grade divisions or academic performance data
+10. Look for subject names and marks in table format
 
-Be thorough in examining every piece of text for potential academic information.`
+Even with incomplete OCR text, extract every identifiable piece of academic information. Be specific about what you find and where it appears in the text.`
       }],
       response_format: { type: "json_object" },
       temperature: 0.1
@@ -422,52 +449,43 @@ export async function categorizeAndStructure(extractedInfo: InformationExtractio
       model: 'gpt-4o',
       messages: [{
         role: 'system',
-        content: `You are an expert at organizing academic transcript information, specifically for Nepal and South Asian educational systems. 
+        content: `You are an expert at analyzing Nepalese academic transcripts, specifically from Tribhuvan University and HSEB Nepal. 
 
-Structure the information to match this schema for academic transcripts:
+Based on the OCR text extracted from a Nepalese academic transcript, structure the information into JSON format:
 
 STUDENT INFORMATION:
-- studentName: Full name of the student
-- symbolNumber: Symbol/Registration number (especially for HSEB)
-- registrationNumber: University registration number
-- dateOfBirth: Student's date of birth
-- campus/school: Institution where studied
+- studentName: Extract student's full name (look for patterns like "Student's Name:" or "Name:")
+- registrationNumber: University registration/roll number
+- symbolNumber: Symbol number (common in HSEB documents)
+- campus: Campus name where studied
 
 INSTITUTION DETAILS:
-- institutionName: Name (HSEB Nepal, Tribhuvan University, etc.)
-- institutionType: Type (University, Board, College)
-- institutionCountry: Country (Nepal)
-- institutionCity: City (Kathmandu, etc.)
+- institutionName: "Tribhuvan University" (if mentioned) or other institution name
+- institutionType: "University" or "Board" 
+- institutionCountry: "Nepal"
+- institutionCity: "Kathmandu" (if mentioned) or other city
 
-QUALIFICATION DETAILS:
-- qualificationLevel: Level (Higher Secondary, Bachelor's, etc.)
-- qualificationTitle: Specific degree/certificate name
-- fieldOfStudy: Field (Business Studies, Science, etc.)
-- faculty: Faculty (Management, Science, Humanities)
-- duration: Course duration
+ACADEMIC PROGRAM:
+- qualificationLevel: "Bachelor's" or "Higher Secondary" etc.
+- qualificationTitle: Extract degree name (e.g., "Bachelor's Degree in Business Studies")
+- fieldOfStudy: Field like "Business Studies", "Science", "Management"
+- faculty: Faculty name if mentioned
+- duration: Course duration in years
 
 ACADEMIC PERFORMANCE:
+- percentage: Look for "Percentage:" followed by number (like "44.59")
+- passedDivision: Division achieved (First Division, Second Division, etc.)
 - totalMarks: Total possible marks
-- marksObtained: Total marks achieved
-- percentage: Overall percentage
-- passedDivision: Division achieved (First Division, etc.)
+- marksObtained: Total marks secured
 - passedYear: Year of completion
-- gradeLevel: Grade/Year level
-- subjectMarks: Array of subject-wise performance
+- subjectMarks: Array of subjects with marks if table data is available
 
-PROGRAM DETAILS:
-- programType: Full-time/Part-time
-- academicYear: Academic year (BS/AD format)
-- startDate: Program start
-- endDate: Program completion
+EXAMINATION DETAILS:
+- examinationType: Type of examination (like "Bachelors Degree", "Grade XI", "Grade XII")
+- academicYear: Academic year in BS/AD format if mentioned
+- issueDate: Date of transcript issue
 
-ADDITIONAL INFO:
-- issueNumber: Certificate issue number
-- hsebRegistrationNo: HSEB specific registration
-- languageOfInstruction: Language used
-- accreditation: Accreditation details
-
-Return as structured JSON matching exactly this schema.`
+Return ONLY valid JSON. If information is not clearly visible in the text, use empty string "". Do not make assumptions.`
       }, {
         role: 'user',
         content: `Organize this extracted information:
