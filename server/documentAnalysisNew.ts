@@ -78,7 +78,10 @@ async function validateDocumentForAnalysis(
       // Provide more specific guidance based on the processing attempt
       let reason = 'Insufficient text extracted from document. ';
       if (mimeType === 'application/pdf') {
-        reason += 'This PDF may be password-protected, corrupted, or contain only images. Try converting it to a JPG or PNG image and upload that instead.';
+        reason += 'This PDF appears to be image-based or has very little readable text. For best results, please:\n';
+        reason += '1. Convert the PDF to a JPG or PNG image (screenshot or export)\n';
+        reason += '2. Ensure the image is high-resolution and clear\n';
+        reason += '3. Upload the image file instead of the PDF';
       } else {
         reason += 'Please ensure the image is clear, high-resolution, and contains readable text. For scanned documents, try uploading a higher quality version.';
       }
