@@ -2,6 +2,7 @@ import pdfParse from 'pdf-parse';
 import { createWorker, Worker } from 'tesseract.js';
 import OpenAI from 'openai';
 import { AcademicDocumentAnalysisResults } from '@shared/academicDocumentSchema';
+import { fromBuffer } from 'pdf2pic';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -36,8 +37,53 @@ export async function analyzeDocumentSimplified(
           throw new Error('PDF appears to be image-based or contains insufficient text');
         }
       } catch (pdfError) {
-        console.log('PDF text extraction failed, document may be image-based:', pdfError);
-        throw new Error('Could not extract text from PDF. Please convert the PDF to JPG/PNG format or ensure it contains readable text.');
+        console.log('PDF text extraction failed, trying PDF to image conversion with OCR:', pdfError);
+        
+        // Try to convert PDF to image and use OCR
+        let worker: Worker | null = null;
+        try {
+          console.log('Converting PDF to image for OCR processing...');
+          
+          // Convert PDF to image
+          const convert = fromBuffer(fileBuffer, {
+            density: 200, // Higher density for better text quality
+            saveFilename: "page",
+            savePath: "/tmp",
+            format: "png",
+            width: 2000,
+            height: 2000
+          });
+          
+          // Convert first page only for now
+          const result = await convert(1, { responseType: "buffer" });
+          const imageBuffer = result.buffer;
+          
+          if (!imageBuffer) {
+            throw new Error('Failed to convert PDF to image buffer');
+          }
+          
+          console.log('PDF converted to image, processing with OCR...');
+          
+          // Process with OCR
+          worker = await createWorker('eng');
+          const { data: { text, confidence: ocrConfidence } } = await worker.recognize(imageBuffer as Buffer);
+          
+          extractedText = text?.trim() || '';
+          confidence = ocrConfidence / 100; // Convert percentage to decimal
+          
+          if (extractedText && extractedText.length > 20) {
+            console.log(`OCR extracted ${extractedText.length} characters with ${(confidence * 100).toFixed(1)}% confidence from PDF image`);
+          } else {
+            throw new Error('OCR could not extract sufficient text from PDF image');
+          }
+        } catch (conversionError) {
+          console.error('PDF to image conversion failed:', conversionError);
+          throw new Error('Could not extract text from PDF document. The document may be corrupted, password-protected, or contains unclear text. Please try converting to JPG/PNG format or ensure the PDF contains readable text.');
+        } finally {
+          if (worker) {
+            await worker.terminate();
+          }
+        }
       }
     } else if (mimeType.startsWith('image/')) {
       // Handle image files with OCR
