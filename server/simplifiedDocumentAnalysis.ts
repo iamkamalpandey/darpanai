@@ -44,32 +44,40 @@ export async function analyzeDocumentSimplified(
         try {
           console.log('Converting PDF to image for OCR processing...');
           
-          // Convert PDF to image
+          // Convert PDF to image with better error handling
           const convert = fromBuffer(fileBuffer, {
-            density: 200, // Higher density for better text quality
+            density: 150, // Reduced density for better stability
             saveFilename: "page",
             savePath: "/tmp",
             format: "png",
-            width: 2000,
-            height: 2000
+            width: 1500,
+            height: 1500
           });
           
           // Convert first page only for now
           const result = await convert(1, { responseType: "buffer" });
           const imageBuffer = result.buffer;
           
-          if (!imageBuffer) {
+          if (!imageBuffer || imageBuffer.length === 0) {
             throw new Error('Failed to convert PDF to image buffer');
           }
           
-          console.log('PDF converted to image, processing with OCR...');
+          console.log(`PDF converted to image (${imageBuffer.length} bytes), processing with OCR...`);
           
-          // Process with OCR
+          // Process with OCR with better error handling
           worker = await createWorker('eng');
-          const { data: { text, confidence: ocrConfidence } } = await worker.recognize(imageBuffer as Buffer);
+          
+          // Add timeout and better error handling for OCR
+          const recognitionPromise = worker.recognize(imageBuffer as Buffer);
+          const timeout = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('OCR processing timeout')), 30000)
+          );
+          
+          const ocrResult = await Promise.race([recognitionPromise, timeout]);
+          const { data: { text, confidence: ocrConfidence } } = ocrResult as any;
           
           extractedText = text?.trim() || '';
-          confidence = ocrConfidence / 100; // Convert percentage to decimal
+          confidence = Math.max(0.1, Math.min(1.0, ocrConfidence / 100)); // Ensure confidence is between 0.1 and 1.0
           
           if (extractedText && extractedText.length > 20) {
             console.log(`OCR extracted ${extractedText.length} characters with ${(confidence * 100).toFixed(1)}% confidence from PDF image`);
@@ -80,8 +88,13 @@ export async function analyzeDocumentSimplified(
           console.error('PDF to image conversion failed:', conversionError);
           throw new Error('Could not extract text from PDF document. The document may be corrupted, password-protected, or contains unclear text. Please try converting to JPG/PNG format or ensure the PDF contains readable text.');
         } finally {
+          // Always clean up worker with error handling
           if (worker) {
-            await worker.terminate();
+            try {
+              await worker.terminate();
+            } catch (terminateError) {
+              console.warn('Warning: Failed to terminate OCR worker cleanly:', terminateError);
+            }
           }
         }
       }
@@ -92,10 +105,18 @@ export async function analyzeDocumentSimplified(
       
       try {
         worker = await createWorker('eng');
-        const { data: { text, confidence: ocrConfidence } } = await worker.recognize(fileBuffer);
+        
+        // Add timeout and better error handling for OCR
+        const recognitionPromise = worker.recognize(fileBuffer);
+        const timeout = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('OCR processing timeout')), 30000)
+        );
+        
+        const ocrResult = await Promise.race([recognitionPromise, timeout]);
+        const { data: { text, confidence: ocrConfidence } } = ocrResult as any;
         
         extractedText = text?.trim() || '';
-        confidence = ocrConfidence / 100; // Convert percentage to decimal
+        confidence = Math.max(0.1, Math.min(1.0, ocrConfidence / 100)); // Ensure confidence is between 0.1 and 1.0
         
         if (extractedText && extractedText.length > 20) {
           console.log(`OCR extracted ${extractedText.length} characters with ${(confidence * 100).toFixed(1)}% confidence`);
@@ -106,8 +127,13 @@ export async function analyzeDocumentSimplified(
         console.error('OCR processing failed:', ocrError);
         throw new Error('Could not extract text from image. Please ensure the image is clear and contains readable text.');
       } finally {
+        // Always clean up worker with error handling
         if (worker) {
-          await worker.terminate();
+          try {
+            await worker.terminate();
+          } catch (terminateError) {
+            console.warn('Warning: Failed to terminate OCR worker cleanly:', terminateError);
+          }
         }
       }
     } else {

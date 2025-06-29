@@ -364,6 +364,10 @@ export const offerLetterAnalyses = pgTable("offer_letter_analyses", {
   documentId: integer("document_id").references(() => offerLetterDocuments.id).notNull(),
   userId: integer("user_id").references(() => users.id).notNull(),
   
+  // File Information (added for compatibility)
+  fileName: text("file_name"),
+  fileSize: integer("file_size"),
+  
   // Multi-AI Analysis Results
   analysisResults: jsonb("analysis_results"), // Combined final analysis
   gptAnalysisResults: jsonb("gpt_analysis_results"), // OpenAI GPT-4o analysis
