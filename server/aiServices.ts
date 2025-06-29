@@ -114,7 +114,8 @@ async function processPDFWithOCR(pdfBuffer: Buffer): Promise<OCRResult> {
     console.log('🔄 Converting PDF to images for OCR processing...');
     
     // Convert PDF to images using pdf2pic
-    const convert = require('pdf2pic').fromBuffer(pdfBuffer, {
+    const pdf2pic = await import('pdf2pic');
+    const convert = pdf2pic.fromBuffer(pdfBuffer, {
       density: 200,           // Higher DPI for better OCR
       saveFilename: "page",
       savePath: "/tmp",
