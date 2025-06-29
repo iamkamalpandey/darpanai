@@ -1964,6 +1964,183 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+
+  // CV Analysis methods
+  async createCvAnalysis(analysis: any): Promise<any> {
+    try {
+      const { cvAnalyses } = await import("@shared/cvAnalysisSchema");
+      const [created] = await db.insert(cvAnalyses).values(analysis).returning();
+      return created;
+    } catch (error) {
+      console.error("Error creating CV analysis:", error);
+      throw error;
+    }
+  }
+
+  async getUserCvAnalyses(userId: number): Promise<any[]> {
+    try {
+      const { cvAnalyses } = await import("@shared/cvAnalysisSchema");
+      const analyses = await db.select().from(cvAnalyses).where(eq(cvAnalyses.userId, userId)).orderBy(desc(cvAnalyses.createdAt));
+      return analyses;
+    } catch (error) {
+      console.error("Error getting user CV analyses:", error);
+      throw error;
+    }
+  }
+
+  async getCvAnalysisById(id: number, userId: number): Promise<any | undefined> {
+    try {
+      const { cvAnalyses } = await import("@shared/cvAnalysisSchema");
+      const [analysis] = await db.select().from(cvAnalyses).where(and(eq(cvAnalyses.id, id), eq(cvAnalyses.userId, userId)));
+      return analysis || undefined;
+    } catch (error) {
+      console.error("Error getting CV analysis by ID:", error);
+      throw error;
+    }
+  }
+
+  async applyCvDataToProfile(userId: number, analysisResults: any): Promise<{updatedFields: string[]}> {
+    try {
+      const updatedFields: string[] = [];
+      const updateData: any = {};
+
+      // Map CV analysis results to user profile fields
+      if (analysisResults.personalInfo) {
+        const personal = analysisResults.personalInfo;
+        if (personal.fullName && !updateData.firstName && !updateData.lastName) {
+          const nameParts = personal.fullName.split(' ');
+          updateData.firstName = nameParts[0];
+          updateData.lastName = nameParts.slice(1).join(' ') || nameParts[0];
+          updatedFields.push('firstName', 'lastName');
+        }
+        if (personal.email && !updateData.email) {
+          updateData.email = personal.email;
+          updatedFields.push('email');
+        }
+        if (personal.phone && !updateData.phoneNumber) {
+          updateData.phoneNumber = personal.phone;
+          updatedFields.push('phoneNumber');
+        }
+        if (personal.city && !updateData.city) {
+          updateData.city = personal.city;
+          updatedFields.push('city');
+        }
+        if (personal.country && !updateData.country) {
+          updateData.country = personal.country;
+          updatedFields.push('country');
+        }
+        if (personal.nationality && !updateData.nationality) {
+          updateData.nationality = personal.nationality;
+          updatedFields.push('nationality');
+        }
+        if (personal.dateOfBirth && !updateData.dateOfBirth) {
+          updateData.dateOfBirth = personal.dateOfBirth;
+          updatedFields.push('dateOfBirth');
+        }
+      }
+
+      // Map education data
+      if (analysisResults.education) {
+        const education = analysisResults.education;
+        if (education.highestQualification && !updateData.highestQualification) {
+          updateData.highestQualification = education.highestQualification;
+          updatedFields.push('highestQualification');
+        }
+        if (education.institution && !updateData.highestInstitution) {
+          updateData.highestInstitution = education.institution;
+          updatedFields.push('highestInstitution');
+        }
+        if (education.graduationYear && !updateData.graduationYear) {
+          updateData.graduationYear = parseInt(education.graduationYear);
+          updatedFields.push('graduationYear');
+        }
+        if (education.gpa && !updateData.highestGpa) {
+          updateData.highestGpa = education.gpa;
+          updatedFields.push('highestGpa');
+        }
+        if (education.fieldOfStudy && !updateData.fieldOfStudy) {
+          updateData.fieldOfStudy = education.fieldOfStudy;
+          updatedFields.push('fieldOfStudy');
+        }
+      }
+
+      // Map work experience
+      if (analysisResults.workExperience) {
+        const work = analysisResults.workExperience;
+        if (work.currentEmploymentStatus && !updateData.currentEmploymentStatus) {
+          updateData.currentEmploymentStatus = work.currentEmploymentStatus;
+          updatedFields.push('currentEmploymentStatus');
+        }
+        if (work.totalExperienceYears && !updateData.workExperienceYears) {
+          updateData.workExperienceYears = work.totalExperienceYears;
+          updatedFields.push('workExperienceYears');
+        }
+        if (work.currentJobTitle && !updateData.jobTitle) {
+          updateData.jobTitle = work.currentJobTitle;
+          updatedFields.push('jobTitle');
+        }
+        if (work.currentOrganization && !updateData.organizationName) {
+          updateData.organizationName = work.currentOrganization;
+          updatedFields.push('organizationName');
+        }
+      }
+
+      // Map preferences
+      if (analysisResults.preferences) {
+        const prefs = analysisResults.preferences;
+        if (prefs.interestedCourse && !updateData.interestedCourse) {
+          updateData.interestedCourse = prefs.interestedCourse;
+          updatedFields.push('interestedCourse');
+        }
+        if (prefs.preferredCountries && prefs.preferredCountries.length > 0 && !updateData.preferredCountries) {
+          updateData.preferredCountries = prefs.preferredCountries;
+          updatedFields.push('preferredCountries');
+        }
+      }
+
+      // Map language proficiency
+      if (analysisResults.skills?.languages && analysisResults.skills.languages.length > 0) {
+        updateData.englishProficiencyTests = analysisResults.skills.languages.map((lang: any) => ({
+          testType: 'Other',
+          language: lang.language,
+          proficiency: lang.proficiency,
+          testDate: new Date().toISOString().split('T')[0]
+        }));
+        updatedFields.push('englishProficiencyTests');
+      }
+
+      // Only update if there are fields to update
+      if (Object.keys(updateData).length > 0) {
+        await db.update(users).set(updateData).where(eq(users.id, userId));
+      }
+
+      return { updatedFields };
+    } catch (error) {
+      console.error("Error applying CV data to profile:", error);
+      throw error;
+    }
+  }
+
+  async markCvAnalysisAsApplied(id: number): Promise<void> {
+    try {
+      const { cvAnalyses } = await import("@shared/cvAnalysisSchema");
+      await db.update(cvAnalyses).set({ isAppliedToProfile: true }).where(eq(cvAnalyses.id, id));
+    } catch (error) {
+      console.error("Error marking CV analysis as applied:", error);
+      throw error;
+    }
+  }
+
+  async deleteCvAnalysis(id: number, userId: number): Promise<boolean> {
+    try {
+      const { cvAnalyses } = await import("@shared/cvAnalysisSchema");
+      const result = await db.delete(cvAnalyses).where(and(eq(cvAnalyses.id, id), eq(cvAnalyses.userId, userId)));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error("Error deleting CV analysis:", error);
+      throw error;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

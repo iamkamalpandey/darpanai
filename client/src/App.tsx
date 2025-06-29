@@ -47,6 +47,7 @@ const DocumentChecklist = lazy(() => import("@/pages/document-checklist"));
 const AssessmentPage = lazy(() => import("@/pages/AssessmentPage"));
 const SimpleAssessment = lazy(() => import("@/components/SimpleAssessment"));
 const AdvancedAssessmentPage = lazy(() => import("@/pages/AdvancedAssessmentPage"));
+const CvAnalysis = lazy(() => import("@/pages/CvAnalysis"));
 const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
 const AdminAnalyses = lazy(() => import("@/pages/admin-analyses"));
 const ScholarshipManagement = lazy(() => import("@/pages/admin/ScholarshipManagement"));
@@ -177,6 +178,13 @@ function Router() {
             </Suspense>
           )} />
         )}
+      </Route>
+      <Route path="/cv-analysis">
+        <UserProtectedRoute path="/cv-analysis" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <CvAnalysis />
+          </Suspense>
+        )} />
       </Route>
       <Route path="/scholarship-research">
         <UserProtectedRoute path="/scholarship-research" component={() => (

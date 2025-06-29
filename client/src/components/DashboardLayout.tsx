@@ -92,6 +92,7 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
         { icon: <Shield size={18} />, label: 'Visa Document Analysis', href: '/visa-analysis' },
         { icon: <FileText size={18} />, label: 'COE Certificate Analysis', href: '/coe-analysis' },
         { icon: <FileCheck size={18} />, label: 'Offer Letter Analysis', href: '/offer-letter-analysis' },
+        { icon: <User size={18} />, label: 'CV Analysis & Auto-Fill', href: '/cv-analysis' },
       ]
     },
 
