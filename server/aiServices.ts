@@ -100,10 +100,11 @@ export async function performAdvancedOCR(imageBuffer: Buffer): Promise<OCRResult
  * Tesseract OCR fallback function
  */
 async function performTesseractOCR(imageBuffer: Buffer): Promise<OCRResult> {
-  const Tesseract = require('tesseract.js');
-  
   try {
     console.log('🔍 Starting Tesseract OCR processing...');
+    
+    // Dynamic import for Tesseract.js
+    const { default: Tesseract } = await import('tesseract.js');
     
     const { data: { text, confidence } } = await Tesseract.recognize(imageBuffer, 'eng', {
       logger: (m: any) => {
