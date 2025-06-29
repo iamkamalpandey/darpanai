@@ -3279,9 +3279,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Save to database - handle different result structures
-      const results = analysisResult.analysisResults || analysisResult.results;
-      const extractedText = analysisResult.extractedText || '';
-      const confidence = analysisResult.confidence || 0;
+      const results = (analysisResult as any).analysisResults || (analysisResult as any).results;
+      const extractedText = (analysisResult as any).extractedText || '';
+      const confidence = (analysisResult as any).confidence || 0;
       
       const academicDocumentAnalysis = await storage.createAcademicDocumentAnalysis({
         userId,

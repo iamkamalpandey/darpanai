@@ -39,8 +39,8 @@ export async function analyzeDocumentWithTesseract(buffer: Buffer): Promise<{
           };
         }
       } catch (pdfError) {
-        console.log('PDF extraction failed, PDF may be image-based, skipping OCR for PDF');
-        throw new Error('Could not extract text from PDF document. The document may be image-based or corrupted. Please convert to a standard PDF with text or use a JPG/PNG image instead.');
+        console.log('PDF extraction failed, PDF may be image-based, cannot process with OCR');
+        throw new Error('Could not extract text from PDF document. The document may be image-based or corrupted. Please convert to a JPG/PNG image for better text recognition or ensure the PDF contains readable text.');
       }
     }
 
