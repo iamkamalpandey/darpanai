@@ -196,6 +196,13 @@ function Router() {
           </Suspense>
         )} />
       </Route>
+      <Route path="/academic-document-details/:id">
+        <UserProtectedRoute path="/academic-document-details/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AcademicDocumentDetails />
+          </Suspense>
+        )} />
+      </Route>
       <Route path="/scholarship-research">
         <UserProtectedRoute path="/scholarship-research" component={() => (
           <Suspense fallback={<LoadingFallback />}>
