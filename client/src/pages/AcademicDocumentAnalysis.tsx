@@ -85,6 +85,8 @@ export default function AcademicDocumentAnalysis() {
             errorMessage = "Unable to process this PDF document. Please convert it to a JPG or PNG image and try again.";
           } else if (error.message.includes("PDF conversion failed")) {
             errorMessage = "PDF processing failed. Please save your document as a JPG or PNG image and upload that instead.";
+          } else if (error.message.includes("password-protected, corrupted, or contain only images")) {
+            errorMessage = "This PDF cannot be processed. It may be password-protected or contain only images. Please convert it to a JPG or PNG image and try again.";
           } else {
             errorMessage = "The document could not be validated for academic analysis. Please ensure you're uploading a university transcript, degree certificate, or enrollment document.";
           }
