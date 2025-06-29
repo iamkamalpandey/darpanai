@@ -61,11 +61,12 @@ interface InformationExtraction {
 }
 
 /**
- * Advanced OCR using Google Cloud Vision API
+ * Advanced OCR with Google Cloud Vision API and Tesseract fallback
  */
 export async function performAdvancedOCR(imageBuffer: Buffer): Promise<OCRResult> {
+  // First try Google Cloud Vision API if available and enabled
   try {
-    console.log('🔍 Performing advanced OCR with Google Cloud Vision...');
+    console.log('🔍 Attempting Google Cloud Vision OCR...');
     
     const [result] = await visionClient.textDetection({
       image: { content: imageBuffer },
@@ -73,13 +74,14 @@ export async function performAdvancedOCR(imageBuffer: Buffer): Promise<OCRResult
 
     const detections = result.textAnnotations || [];
     if (detections.length === 0) {
-      return { text: '', confidence: 0 };
+      console.log('⚠️ No text detected by Google Vision, falling back to Tesseract...');
+      return await performTesseractOCR(imageBuffer);
     }
 
     const fullText = detections[0]?.description || '';
-    const confidence = detections[0]?.score || 0.8; // Google Vision typically has high confidence
+    const confidence = detections[0]?.score || 0.8;
 
-    console.log(`✅ OCR completed: ${fullText.length} characters extracted with ${(confidence * 100).toFixed(1)}% confidence`);
+    console.log(`✅ Google Cloud Vision OCR completed: ${fullText.length} characters extracted with ${(confidence * 100).toFixed(1)}% confidence`);
 
     return {
       text: fullText,
@@ -88,9 +90,41 @@ export async function performAdvancedOCR(imageBuffer: Buffer): Promise<OCRResult
     };
 
   } catch (error) {
-    console.error('❌ Google Cloud Vision OCR failed:', error);
+    console.log('⚠️ Google Cloud Vision failed, falling back to Tesseract OCR...');
+    console.log('Error details:', error instanceof Error ? error.message : 'Unknown error');
+    return await performTesseractOCR(imageBuffer);
+  }
+}
+
+/**
+ * Tesseract OCR fallback function
+ */
+async function performTesseractOCR(imageBuffer: Buffer): Promise<OCRResult> {
+  const Tesseract = require('tesseract.js');
+  
+  try {
+    console.log('🔍 Starting Tesseract OCR processing...');
+    
+    const { data: { text, confidence } } = await Tesseract.recognize(imageBuffer, 'eng', {
+      logger: (m: any) => {
+        if (m.status === 'recognizing text') {
+          console.log(`📊 Tesseract progress: ${Math.round(m.progress * 100)}%`);
+        }
+      }
+    });
+
+    console.log(`✅ Tesseract OCR completed: ${text.length} characters extracted with ${confidence.toFixed(1)}% confidence`);
+
+    return {
+      text: text || '',
+      confidence: confidence || 85,
+      blocks: []
+    };
+
+  } catch (error) {
+    console.error('❌ Tesseract OCR failed:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    throw new Error(`Advanced OCR failed: ${errorMessage}`);
+    throw new Error(`OCR processing failed: ${errorMessage}`);
   }
 }
 
