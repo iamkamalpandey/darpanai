@@ -50,7 +50,7 @@ export default function EnhancedAcademicDocumentAnalysis() {
   const queryClient = useQueryClient();
 
   // Fetch user's previous analyses
-  const { data: analyses = [], isLoading: analysesLoading } = useQuery({
+  const { data: analyses = [], isLoading: analysesLoading } = useQuery<DocumentAnalysis[]>({
     queryKey: ['/api/academic-document-analyses'],
   });
 
