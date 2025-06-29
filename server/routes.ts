@@ -3223,53 +3223,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'File size must be less than 10MB' });
       }
 
-      // Extract text from the uploaded file
-      let extractedText = '';
-
-      if (file.mimetype === 'application/pdf') {
-        const pdfParse = (await import('pdf-parse')).default;
-        const dataBuffer = file.buffer;
-        const pdfData = await pdfParse(dataBuffer);
-        extractedText = pdfData.text;
-      } else if (file.mimetype.startsWith('image/')) {
-        const { createWorker } = await import('tesseract.js');
-        const worker = await createWorker('eng');
-        const result = await worker.recognize(file.buffer);
-        extractedText = result.data.text;
-        await worker.terminate();
-      }
-
-      console.log(`Extracted text length: ${extractedText?.length || 0}`);
-      console.log(`First 200 chars: ${extractedText?.substring(0, 200) || 'No text'}`);
+      // Use Google Vision API for enhanced document analysis
+      let analysisResult;
       
-      if (!extractedText || extractedText.trim().length < 50) {
+      if (file.mimetype === 'application/pdf') {
+        // For PDFs, first try traditional text extraction for better accuracy
+        try {
+          const pdfParse = (await import('pdf-parse')).default;
+          const pdfData = await pdfParse(file.buffer);
+          
+          if (pdfData.text && pdfData.text.trim().length > 50) {
+            console.log(`PDF text extraction successful: ${pdfData.text.length} characters`);
+            const { analyzeAcademicDocumentContent } = await import('./academicDocumentAnalysisService');
+            const result = await analyzeAcademicDocumentContent(pdfData.text);
+            analysisResult = {
+              ...result,
+              extractedText: pdfData.text,
+              confidence: 0.95 // High confidence for PDF text extraction
+            };
+          } else {
+            throw new Error('Insufficient text from PDF, using Google Vision API');
+          }
+        } catch (pdfError) {
+          console.log('PDF text extraction failed, using Google Vision API:', pdfError.message);
+          const { analyzeAcademicDocumentWithVision } = await import('./academicDocumentAnalysisService');
+          analysisResult = await analyzeAcademicDocumentWithVision(file.buffer);
+        }
+      } else if (file.mimetype.startsWith('image/')) {
+        // For images, use Google Vision API directly
+        console.log('Using Google Vision API for image analysis...');
+        const { analyzeAcademicDocumentWithVision } = await import('./academicDocumentAnalysisService');
+        analysisResult = await analyzeAcademicDocumentWithVision(file.buffer);
+      } else {
         return res.status(400).json({ 
-          error: 'Could not extract sufficient text from the academic document. Please ensure the document is clear, high-resolution, and contains readable text. PDF format typically provides the best results for text extraction.'
+          error: 'Unsupported file type. Please upload PDF, JPG, or PNG files only.'
         });
       }
-
-      // Analyze academic document content using OpenAI
-      const { analyzeAcademicDocumentContent } = await import('./academicDocumentAnalysisService');
-      const { analysisResults, tokensUsed, processingTime } = await analyzeAcademicDocumentContent(extractedText);
 
       // Save to database
       const academicDocumentAnalysis = await storage.createAcademicDocumentAnalysis({
         userId,
         fileName: file.originalname,
         fileSize: file.size,
-        extractedText,
-        analysisResults,
-        tokensUsed,
-        processingTime,
+        extractedText: analysisResult.extractedText || '',
+        analysisResults: analysisResult.analysisResults,
+        tokensUsed: analysisResult.tokensUsed,
+        processingTime: analysisResult.processingTime,
       });
 
       res.json({
         id: academicDocumentAnalysis.id,
         fileName: file.originalname,
         fileSize: file.size,
-        analysisResults,
-        processingTime,
-        tokensUsed,
+        analysisResults: analysisResult.analysisResults,
+        processingTime: analysisResult.processingTime,
+        tokensUsed: analysisResult.tokensUsed,
+        confidence: analysisResult.confidence || 1.0,
+        extractedText: analysisResult.extractedText,
         createdAt: academicDocumentAnalysis.createdAt,
       });
 

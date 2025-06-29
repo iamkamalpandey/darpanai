@@ -1,9 +1,51 @@
 import OpenAI from 'openai';
 import type { AcademicDocumentAnalysisResults } from '@shared/academicDocumentSchema';
+import { googleVisionService } from './googleVisionService';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+export async function analyzeAcademicDocumentWithVision(imageBuffer: Buffer): Promise<{
+  analysisResults: AcademicDocumentAnalysisResults;
+  tokensUsed: number;
+  processingTime: number;
+  confidence: number;
+  extractedText: string;
+}> {
+  const startTime = Date.now();
+
+  try {
+    // Step 1: Extract text using Google Vision API
+    console.log('Starting Google Vision text extraction...');
+    const visionResult = await googleVisionService.analyzeDocument(imageBuffer);
+    const extractedText = visionResult.text;
+    
+    console.log(`Google Vision extracted ${extractedText.length} characters with ${(visionResult.confidence * 100).toFixed(1)}% confidence`);
+    console.log(`First 200 chars: ${extractedText.substring(0, 200)}`);
+    
+    if (!extractedText || extractedText.trim().length < 20) {
+      throw new Error('Insufficient text extracted from document. Please ensure the document is clear and contains readable text.');
+    }
+
+    // Step 2: Analyze with OpenAI using the extracted text
+    const analysisResult = await analyzeAcademicDocumentContent(extractedText);
+    
+    const totalProcessingTime = Date.now() - startTime;
+    
+    return {
+      analysisResults: analysisResult.analysisResults,
+      tokensUsed: analysisResult.tokensUsed,
+      processingTime: totalProcessingTime,
+      confidence: visionResult.confidence,
+      extractedText: extractedText
+    };
+    
+  } catch (error) {
+    console.error('Error in analyzeAcademicDocumentWithVision:', error);
+    throw error;
+  }
+}
 
 export async function analyzeAcademicDocumentContent(extractedText: string): Promise<{
   analysisResults: AcademicDocumentAnalysisResults;
