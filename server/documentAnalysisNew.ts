@@ -118,7 +118,7 @@ async function classifyDocumentType(extractedText: string): Promise<{
           content: `You are a document classification expert. Analyze the provided text and classify it into one of these categories:
 
 ACADEMIC: University transcripts, degree certificates, enrollment letters, academic records, grade reports, course completion certificates, educational institution documents
-EXPERIENCE: Employment letters, work experience certificates, job letters, salary certificates, employment verification, work history documents
+EXPERIENCE: Employment letters, work experience certificates, job letters, salary certificates, employment verification, work history documents  
 FINANCIAL: Bank statements, financial aid documents, loan documents, income certificates, tax documents, financial records
 OTHER: Any other type of document not fitting the above categories
 
@@ -185,10 +185,10 @@ export async function analyzeDocumentSimplified(
     const extractedText = validation.extractedText!;
     const confidence = validation.confidence;
 
+    // Step 2: Perform AI analysis on validated academic document
     console.log('Analyzing extracted text with OpenAI...');
     console.log('Text preview:', extractedText.substring(0, 200));
 
-    // Analyze with OpenAI
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [

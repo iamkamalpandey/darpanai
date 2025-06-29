@@ -3341,12 +3341,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'File size must be less than 10MB' });
       }
 
-      // Use simplified document analysis
+      // Use new enhanced document analysis with validation
       console.log(`Analyzing ${file.mimetype} document: ${file.originalname}`);
       
       let analysisResult;
       try {
-        const { analyzeDocumentSimplified } = await import('./simplifiedDocumentAnalysis');
+        const { analyzeDocumentSimplified } = await import('./documentAnalysisNew');
         analysisResult = await analyzeDocumentSimplified(file.buffer, file.mimetype);
         
         console.log(`Document analysis completed successfully`);
@@ -3364,11 +3364,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Save to database
+      // Check for conflicts with existing academic documents
       const results = analysisResult.results;
       const extractedText = analysisResult.extractedText;
       const confidence = analysisResult.confidence;
       
+      // Step 3: Check for existing academic documents from the same institution/qualification
+      const existingDocuments = await storage.getAcademicDocumentAnalysesByUserId(userId);
+      const conflictingDocuments = existingDocuments.filter(doc => {
+        const existing = doc.analysisResults;
+        return (
+          existing.institutionName?.toLowerCase() === results.institutionName?.toLowerCase() ||
+          (existing.qualificationTitle?.toLowerCase() === results.qualificationTitle?.toLowerCase() && 
+           existing.qualificationLevel?.toLowerCase() === results.qualificationLevel?.toLowerCase())
+        );
+      });
+
+      // Step 4: Handle conflicts - only save latest academic documents
+      if (conflictingDocuments.length > 0) {
+        console.log(`Found ${conflictingDocuments.length} conflicting academic documents for user ${userId}`);
+        
+        // Check if this is a newer/better document (higher confidence or more recent)
+        const shouldReplace = conflictingDocuments.some(doc => {
+          const existingDate = new Date(doc.createdAt);
+          const daysDifference = Math.abs((Date.now() - existingDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          // Replace if confidence is significantly higher or if document is more recent and similar confidence
+          return confidence > (doc.analysisResults.confidence || 0.5) + 0.2 || 
+                 (daysDifference < 7 && confidence >= (doc.analysisResults.confidence || 0.5) - 0.1);
+        });
+
+        if (shouldReplace) {
+          // Delete conflicting documents before saving new one
+          for (const doc of conflictingDocuments) {
+            await storage.deleteAcademicDocumentAnalysis(doc.id, userId);
+            console.log(`Replaced older academic document: ${doc.fileName}`);
+          }
+        } else {
+          // Return conflict information for user decision
+          return res.status(409).json({
+            error: 'ACADEMIC_DOCUMENT_CONFLICT',
+            message: 'A similar academic document already exists. Please review and decide.',
+            conflictingDocuments: conflictingDocuments.map(doc => ({
+              id: doc.id,
+              fileName: doc.fileName,
+              institutionName: doc.analysisResults.institutionName,
+              qualificationTitle: doc.analysisResults.qualificationTitle,
+              qualificationLevel: doc.analysisResults.qualificationLevel,
+              createdAt: doc.createdAt,
+              confidence: doc.analysisResults.confidence || 0.5
+            })),
+            newDocument: {
+              fileName: file.originalname,
+              institutionName: results.institutionName,
+              qualificationTitle: results.qualificationTitle,
+              qualificationLevel: results.qualificationLevel,
+              confidence: confidence
+            }
+          });
+        }
+      }
+
+      // Step 5: Save validated academic document to database
       const academicDocumentAnalysis = await storage.createAcademicDocumentAnalysis({
         userId,
         fileName: file.originalname,
