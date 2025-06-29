@@ -2,7 +2,6 @@ import pdfParse from 'pdf-parse';
 import { createWorker, Worker } from 'tesseract.js';
 import OpenAI from 'openai';
 import { AcademicDocumentAnalysisResults } from '@shared/academicDocumentSchema';
-import { fromBuffer } from 'pdf2pic';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -39,56 +38,30 @@ export async function analyzeDocumentSimplified(
       } catch (pdfError) {
         console.log('PDF text extraction failed, trying PDF to image conversion with OCR:', pdfError);
         
-        // Try to convert PDF to image and use OCR
+        // For image-based PDFs, try direct OCR on the buffer
         let worker: Worker | null = null;
+        
         try {
-          console.log('Converting PDF to image for OCR processing...');
+          console.log('Attempting direct OCR on PDF buffer (for image-based PDFs)...');
           
-          // Convert PDF to image with better error handling
-          const convert = fromBuffer(fileBuffer, {
-            density: 150, // Reduced density for better stability
-            saveFilename: "page",
-            savePath: "/tmp",
-            format: "png",
-            width: 1500,
-            height: 1500
-          });
-          
-          // Convert first page only for now
-          const result = await convert(1, { responseType: "buffer" });
-          const imageBuffer = result.buffer;
-          
-          if (!imageBuffer || imageBuffer.length === 0) {
-            throw new Error('Failed to convert PDF to image buffer');
-          }
-          
-          console.log(`PDF converted to image (${imageBuffer.length} bytes), processing with OCR...`);
-          
-          // Process with OCR with better error handling
           worker = await createWorker('eng');
           
-          // Add timeout and better error handling for OCR
-          const recognitionPromise = worker.recognize(imageBuffer as Buffer);
-          const timeout = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('OCR processing timeout')), 30000)
-          );
-          
-          const ocrResult = await Promise.race([recognitionPromise, timeout]);
-          const { data: { text, confidence: ocrConfidence } } = ocrResult as any;
-          
-          extractedText = text?.trim() || '';
-          confidence = Math.max(0.1, Math.min(1.0, ocrConfidence / 100)); // Ensure confidence is between 0.1 and 1.0
+          // Try OCR directly on the PDF buffer
+          const directResult = await worker.recognize(fileBuffer);
+          extractedText = directResult.data.text?.trim() || '';
+          confidence = Math.max(0.1, Math.min(1.0, directResult.data.confidence / 100));
           
           if (extractedText && extractedText.length > 20) {
-            console.log(`OCR extracted ${extractedText.length} characters with ${(confidence * 100).toFixed(1)}% confidence from PDF image`);
+            console.log(`Direct OCR extracted ${extractedText.length} characters with ${(confidence * 100).toFixed(1)}% confidence from PDF`);
           } else {
-            throw new Error('OCR could not extract sufficient text from PDF image');
+            throw new Error('Could not extract sufficient text from PDF. This PDF may be image-based with unclear text, password-protected, or corrupted. Please try: 1) Converting the PDF to a clear JPG/PNG image, 2) Ensuring the PDF is not password-protected, or 3) Using a different, clearer document.');
           }
-        } catch (conversionError) {
-          console.error('PDF to image conversion failed:', conversionError);
-          throw new Error('Could not extract text from PDF document. The document may be corrupted, password-protected, or contains unclear text. Please try converting to JPG/PNG format or ensure the PDF contains readable text.');
+          
+        } catch (ocrError: any) {
+          console.error('Direct OCR on PDF failed:', ocrError.message);
+          throw new Error('Could not extract text from PDF document. This PDF may contain unclear text, be password-protected, or be corrupted. Please try: 1) Converting the PDF to a clear JPG/PNG image, 2) Ensuring the PDF is not password-protected, or 3) Using a text-based PDF instead of an image-based one.');
         } finally {
-          // Always clean up worker with error handling
+          // Clean up worker
           if (worker) {
             try {
               await worker.terminate();
