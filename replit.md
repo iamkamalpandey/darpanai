@@ -130,6 +130,18 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**June 29, 2025 - Academic Document Analysis Tool Critical Bug Fixes & Performance Enhancement:**
+- ✓ Fixed critical Tesseract.js OCR integration replacing deprecated recognize() method with createWorker('eng') pattern
+- ✓ Resolved OpenAI JSON parsing issue by implementing markdown code block extraction handling (```json content ```)
+- ✓ Enhanced OpenAI API call with response_format: { type: "json_object" } parameter for guaranteed JSON responses
+- ✓ Improved text extraction validation lowering threshold from 100 to 50 characters with better error messaging
+- ✓ Added comprehensive debugging logs for text extraction troubleshooting (text length, first 200 characters)
+- ✓ Enhanced error handling with specific messages for AI service issues, timeouts, and text extraction failures
+- ✓ Applied progress feedback during document processing with 30-60 second processing time indicators
+- ✓ Implemented better empty state guidance with upload tips and document type recommendations
+- ✓ Successfully resolved "Tesseract.recognize is not a function" and "Failed to parse AI analysis results" errors
+- ✓ Academic Document Analyser now fully functional with proper PDF and image OCR processing capabilities
+
 **June 29, 2025 - Complete Profile Completion Popup System Implementation:**
 - ✓ Created comprehensive ProfileCompletionPopup component with professional UI design emphasizing AI analysis benefits
 - ✓ Implemented intelligent popup system that appears for users with profile completion < 100%
