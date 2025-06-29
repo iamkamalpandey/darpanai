@@ -3251,8 +3251,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             analysisResult = await analyzeAcademicDocumentWithVision(file.buffer);
           } catch (visionError: any) {
             console.log('Google Vision API failed, using PDF fallback:', visionError.message);
-            const { analyzePdfWithFallback } = await import('./pdfFallbackService');
-            analysisResult = await analyzePdfWithFallback(file.buffer);
+            try {
+              const { analyzePdfWithFallback } = await import('./pdfFallbackService');
+              analysisResult = await analyzePdfWithFallback(file.buffer);
+            } catch (pdfError: any) {
+              console.log('PDF fallback failed, using OCR:', pdfError.message);
+              const { analyzeDocumentWithTesseract } = await import('./tesseractFallbackService');
+              analysisResult = await analyzeDocumentWithTesseract(file.buffer);
+            }
           }
         }
       } else if (file.mimetype.startsWith('image/')) {
@@ -3262,8 +3268,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const { analyzeAcademicDocumentWithVision } = await import('./academicDocumentAnalysisService');
           analysisResult = await analyzeAcademicDocumentWithVision(file.buffer);
         } catch (visionError: any) {
-          console.log('Google Vision API failed for image:', visionError.message);
-          throw new Error('Image processing requires Google Vision API. Please enable the Google Cloud Vision API in your Google Cloud Console, or convert your image to PDF format.');
+          console.log('Google Vision API failed for image, using OCR fallback:', visionError.message);
+          const { analyzeDocumentWithTesseract } = await import('./tesseractFallbackService');
+          analysisResult = await analyzeDocumentWithTesseract(file.buffer);
         }
       } else {
         return res.status(400).json({ 
