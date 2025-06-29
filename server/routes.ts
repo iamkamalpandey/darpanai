@@ -3226,11 +3226,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Use simplified document analysis
       console.log(`Analyzing ${file.mimetype} document: ${file.originalname}`);
       
-      const { analyzeDocumentSimplified } = await import('./simplifiedDocumentAnalysis');
-      const analysisResult = await analyzeDocumentSimplified(file.buffer, file.mimetype);
-      
-      console.log(`Document analysis completed successfully`);
-      console.log(`Extracted ${analysisResult.extractedText.length} characters with ${(analysisResult.confidence * 100).toFixed(1)}% confidence`);
+      let analysisResult;
+      try {
+        const { analyzeDocumentSimplified } = await import('./simplifiedDocumentAnalysis');
+        analysisResult = await analyzeDocumentSimplified(file.buffer, file.mimetype);
+        
+        console.log(`Document analysis completed successfully`);
+        console.log(`Extracted ${analysisResult.extractedText.length} characters with ${(analysisResult.confidence * 100).toFixed(1)}% confidence`);
+      } catch (analysisError: any) {
+        console.error('Document analysis failed:', analysisError.message);
+        
+        // Handle specific analysis errors gracefully
+        if (analysisError.message?.includes('OCR') || analysisError.message?.includes('tesseract')) {
+          throw new Error('Document processing failed due to OCR limitations. Please try converting your PDF to a JPG or PNG image for better results.');
+        } else if (analysisError.message?.includes('OpenAI') || analysisError.message?.includes('API')) {
+          throw new Error('AI analysis service is temporarily unavailable. Please try again in a few moments.');
+        } else {
+          throw new Error(`Document analysis failed: ${analysisError.message}`);
+        }
+      }
 
       // Save to database
       const results = analysisResult.results;

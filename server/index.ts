@@ -171,6 +171,18 @@ function setupGracefulShutdown(server: any) {
   process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
+// Add global error handlers to prevent app crashes
+process.on('uncaughtException', (error) => {
+  logWithLevel(`Uncaught Exception: ${error.message}`, 'error');
+  console.error('Stack trace:', error.stack);
+  // Don't exit the process, just log the error
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logWithLevel(`Unhandled Rejection at: ${promise}, reason: ${reason}`, 'error');
+  // Don't exit the process, just log the error
+});
+
 // Main application startup with comprehensive error handling
 (async () => {
   try {

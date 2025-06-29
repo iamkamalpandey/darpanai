@@ -42,28 +42,12 @@ export async function analyzeDocumentSimplified(
         let worker: Worker | null = null;
         
         try {
-          console.log('Attempting direct OCR on PDF buffer (for image-based PDFs)...');
+          console.log('PDF text extraction failed, skipping OCR on PDF buffer as it\'s not supported');
           
-          worker = await createWorker('eng');
-          
-          // Try OCR directly on the PDF buffer
-          const directResult = await worker.recognize(fileBuffer);
-          extractedText = directResult.data.text?.trim() || '';
-          confidence = Math.max(0.1, Math.min(1.0, directResult.data.confidence / 100));
-          
-          if (extractedText && extractedText.length > 20) {
-            console.log(`Direct OCR extracted ${extractedText.length} characters with ${(confidence * 100).toFixed(1)}% confidence from PDF`);
-          } else {
-            throw new Error('Could not extract sufficient text from PDF. This PDF may be image-based with unclear text, password-protected, or corrupted. Please try: 1) Converting the PDF to a clear JPG/PNG image, 2) Ensuring the PDF is not password-protected, or 3) Using a different, clearer document.');
-          }
-          
-        } catch (ocrError: any) {
-          console.error('Direct OCR on PDF failed:', ocrError.message);
-          
-          // As a final fallback, return a meaningful message that explains the issue
-          // and provides helpful suggestions to the user
+          // Skip OCR on PDF buffer as Tesseract doesn't handle PDFs well
+          // Instead, provide a meaningful fallback message
           const fallbackText = `
-This appears to be a complex PDF document that our current processing system cannot fully analyze. 
+This appears to be an image-based PDF document that our current processing system cannot fully analyze. 
 
 Based on the file type and structure, this document may be:
 - An image-based PDF (scanned document)
@@ -84,15 +68,16 @@ We apologize for any inconvenience and are continuously working to improve our d
           console.log('PDF processing limitation encountered - providing fallback response');
           extractedText = fallbackText;
           confidence = 0.3; // Low confidence for fallback
+          
+        } catch (ocrError: any) {
+          console.error('PDF processing fallback failed:', ocrError.message);
+          
+          // Final fallback for any unexpected errors
+          extractedText = 'Unable to process this PDF document. Please try converting to JPG/PNG format for better results.';
+          confidence = 0.1;
         } finally {
-          // Clean up worker
-          if (worker) {
-            try {
-              await worker.terminate();
-            } catch (terminateError) {
-              console.warn('Warning: Failed to terminate OCR worker cleanly:', terminateError);
-            }
-          }
+          // Clean up worker - worker is never initialized in this path, so no cleanup needed
+          // This is intentionally left empty as we skip OCR for PDFs
         }
       }
     } else if (mimeType.startsWith('image/')) {
