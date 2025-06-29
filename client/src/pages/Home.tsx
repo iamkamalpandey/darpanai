@@ -73,20 +73,14 @@ export default function Home() {
     const sessionDismissed = sessionStorage.getItem('profilePopupDismissed');
     
     if (profileCompletion && !popupDismissed && !sessionDismissed) {
-      console.log('Home: Checking profile completion for popup...');
-      console.log('  - isComplete:', profileCompletion.isComplete);
-      console.log('  - completionPercentage:', profileCompletion.completionPercentage);
-      
       // Show popup if profile is incomplete (less than 100%)
       if (!profileCompletion.isComplete || profileCompletion.completionPercentage < 100) {
-        console.log('Home: Profile incomplete, showing popup');
         setShowCompletionPrompt(true);
       }
     }
   }, [profileCompletion, popupDismissed]);
 
   const handlePopupDismiss = () => {
-    console.log('Home: Popup dismissed');
     setShowCompletionPrompt(false);
     setPopupDismissed(true);
     // Remember dismissal for this session
