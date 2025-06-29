@@ -3,6 +3,7 @@ export * from "./offerLetterSchema";
 export * from "./coeSchema";
 export * from "./scholarshipSchema";
 export * from "./cvAnalysisSchema";
+export * from "./academicDocumentSchema";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";

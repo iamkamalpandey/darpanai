@@ -2141,6 +2141,122 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+
+  // Academic Document Analysis methods
+  async createAcademicDocumentAnalysis(analysis: any): Promise<any> {
+    try {
+      const { academicDocumentAnalyses } = await import("@shared/academicDocumentSchema");
+      const [created] = await db.insert(academicDocumentAnalyses).values(analysis).returning();
+      return created;
+    } catch (error) {
+      console.error("Error creating academic document analysis:", error);
+      throw error;
+    }
+  }
+
+  async getUserAcademicDocumentAnalyses(userId: number): Promise<any[]> {
+    try {
+      const { academicDocumentAnalyses } = await import("@shared/academicDocumentSchema");
+      const analyses = await db.select().from(academicDocumentAnalyses).where(eq(academicDocumentAnalyses.userId, userId)).orderBy(desc(academicDocumentAnalyses.createdAt));
+      return analyses;
+    } catch (error) {
+      console.error("Error getting user academic document analyses:", error);
+      throw error;
+    }
+  }
+
+  async getAcademicDocumentAnalysisById(id: number, userId: number): Promise<any | undefined> {
+    try {
+      const { academicDocumentAnalyses } = await import("@shared/academicDocumentSchema");
+      const [analysis] = await db.select().from(academicDocumentAnalyses).where(and(eq(academicDocumentAnalyses.id, id), eq(academicDocumentAnalyses.userId, userId)));
+      return analysis || undefined;
+    } catch (error) {
+      console.error("Error getting academic document analysis by ID:", error);
+      throw error;
+    }
+  }
+
+  async applyAcademicDocumentDataToProfile(userId: number, analysisResults: any): Promise<{updatedFields: string[]}> {
+    try {
+      const updatedFields: string[] = [];
+      const updateData: any = {};
+
+      // Map institution information to profile
+      if (analysisResults.institutionName) {
+        updateData.highestInstitution = analysisResults.institutionName;
+        updatedFields.push('highestInstitution');
+      }
+
+      if (analysisResults.institutionCountry) {
+        updateData.highestCountry = analysisResults.institutionCountry;
+        updatedFields.push('highestCountry');
+      }
+
+      // Map qualification information
+      if (analysisResults.qualificationLevel) {
+        updateData.highestQualification = analysisResults.qualificationLevel;
+        updatedFields.push('highestQualification');
+      }
+
+      if (analysisResults.fieldOfStudy) {
+        updateData.fieldOfStudy = analysisResults.fieldOfStudy;
+        updatedFields.push('fieldOfStudy');
+      }
+
+      // Map academic performance
+      if (analysisResults.gpa) {
+        updateData.highestGpa = analysisResults.gpa;
+        updatedFields.push('highestGpa');
+      }
+
+      // Map graduation information
+      if (analysisResults.graduationDate || analysisResults.endDate) {
+        const gradDate = analysisResults.graduationDate || analysisResults.endDate;
+        const year = new Date(gradDate).getFullYear();
+        if (!isNaN(year) && year >= 1950 && year <= new Date().getFullYear()) {
+          updateData.graduationYear = year;
+          updatedFields.push('graduationYear');
+        }
+      }
+
+      // Map interested course
+      if (analysisResults.qualificationTitle || analysisResults.major) {
+        updateData.interestedCourse = analysisResults.qualificationTitle || analysisResults.major;
+        updatedFields.push('interestedCourse');
+      }
+
+      // Only update if there are fields to update
+      if (Object.keys(updateData).length > 0) {
+        await db.update(users).set(updateData).where(eq(users.id, userId));
+      }
+
+      return { updatedFields };
+    } catch (error) {
+      console.error("Error applying academic document data to profile:", error);
+      throw error;
+    }
+  }
+
+  async markAcademicDocumentAnalysisAsApplied(id: number): Promise<void> {
+    try {
+      const { academicDocumentAnalyses } = await import("@shared/academicDocumentSchema");
+      await db.update(academicDocumentAnalyses).set({ isAppliedToProfile: true }).where(eq(academicDocumentAnalyses.id, id));
+    } catch (error) {
+      console.error("Error marking academic document analysis as applied:", error);
+      throw error;
+    }
+  }
+
+  async deleteAcademicDocumentAnalysis(id: number, userId: number): Promise<boolean> {
+    try {
+      const { academicDocumentAnalyses } = await import("@shared/academicDocumentSchema");
+      const result = await db.delete(academicDocumentAnalyses).where(and(eq(academicDocumentAnalyses.id, id), eq(academicDocumentAnalyses.userId, userId)));
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error("Error deleting academic document analysis:", error);
+      throw error;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

@@ -3200,6 +3200,173 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   console.log("[INFO] [express] ✓ CV analysis routes registered successfully");
 
+  // ===== ACADEMIC DOCUMENT ANALYSIS ROUTES =====
+  console.log("[INFO] [express] ✓ Setting up Academic Document analysis routes...");
+
+  // Upload and analyze academic document
+  app.post('/api/academic-document-analysis', requireAuth, upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      // File validation
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({ error: 'Only PDF, JPG, and PNG files are allowed' });
+      }
+
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        return res.status(400).json({ error: 'File size must be less than 10MB' });
+      }
+
+      // Extract text from the uploaded file
+      let extractedText = '';
+
+      if (file.mimetype === 'application/pdf') {
+        const pdfParse = (await import('pdf-parse')).default;
+        const dataBuffer = file.buffer;
+        const pdfData = await pdfParse(dataBuffer);
+        extractedText = pdfData.text;
+      } else if (file.mimetype.startsWith('image/')) {
+        const Tesseract = await import('tesseract.js');
+        const { data: { text } } = await Tesseract.recognize(file.buffer, 'eng');
+        extractedText = text;
+      }
+
+      if (!extractedText || extractedText.trim().length < 100) {
+        return res.status(400).json({ error: 'Could not extract sufficient text from the academic document. Please ensure the file is clear and readable.' });
+      }
+
+      // Analyze academic document content using OpenAI
+      const { analyzeAcademicDocumentContent } = await import('./academicDocumentAnalysisService');
+      const { analysisResults, tokensUsed, processingTime } = await analyzeAcademicDocumentContent(extractedText);
+
+      // Save to database
+      const academicDocumentAnalysis = await storage.createAcademicDocumentAnalysis({
+        userId,
+        fileName: file.originalname,
+        fileSize: file.size,
+        extractedText,
+        analysisResults,
+        tokensUsed,
+        processingTime,
+      });
+
+      res.json({
+        id: academicDocumentAnalysis.id,
+        fileName: file.originalname,
+        fileSize: file.size,
+        analysisResults,
+        processingTime,
+        tokensUsed,
+        createdAt: academicDocumentAnalysis.createdAt,
+      });
+
+    } catch (error) {
+      console.error('Error in academic document analysis:', error);
+      res.status(500).json({ error: 'Academic document analysis failed. Please try again.' });
+    }
+  });
+
+  // Get user's academic document analyses
+  app.get('/api/academic-document-analyses', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const analyses = await storage.getUserAcademicDocumentAnalyses(userId);
+      res.json(analyses);
+    } catch (error) {
+      console.error('Error fetching academic document analyses:', error);
+      res.status(500).json({ error: 'Failed to fetch academic document analyses' });
+    }
+  });
+
+  // Get specific academic document analysis
+  app.get('/api/academic-document-analyses/:id', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const analysisId = parseInt(req.params.id);
+
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+
+      const analysis = await storage.getAcademicDocumentAnalysisById(analysisId, userId);
+      
+      if (!analysis) {
+        return res.status(404).json({ error: 'Academic document analysis not found' });
+      }
+
+      res.json(analysis);
+    } catch (error) {
+      console.error('Error fetching academic document analysis:', error);
+      res.status(500).json({ error: 'Failed to fetch academic document analysis' });
+    }
+  });
+
+  // Apply academic document data to user profile
+  app.post('/api/academic-document-analyses/:id/apply-to-profile', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const analysisId = parseInt(req.params.id);
+
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+
+      const analysis = await storage.getAcademicDocumentAnalysisById(analysisId, userId);
+      
+      if (!analysis) {
+        return res.status(404).json({ error: 'Academic document analysis not found' });
+      }
+
+      // Apply academic document data to user profile
+      const result = await storage.applyAcademicDocumentDataToProfile(userId, analysis.analysisResults);
+      
+      // Mark analysis as applied
+      await storage.markAcademicDocumentAnalysisAsApplied(analysisId);
+
+      res.json({ 
+        success: true, 
+        message: 'Academic document data successfully applied to profile',
+        updatedFields: result.updatedFields 
+      });
+
+    } catch (error) {
+      console.error('Error applying academic document data to profile:', error);
+      res.status(500).json({ error: 'Failed to apply academic document data to profile' });
+    }
+  });
+
+  // Delete academic document analysis
+  app.delete('/api/academic-document-analyses/:id', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const analysisId = parseInt(req.params.id);
+
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+
+      const success = await storage.deleteAcademicDocumentAnalysis(analysisId, userId);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'Academic document analysis not found' });
+      }
+
+      res.json({ success: true, message: 'Academic document analysis deleted successfully' });
+
+    } catch (error) {
+      console.error('Error deleting academic document analysis:', error);
+      res.status(500).json({ error: 'Failed to delete academic document analysis' });
+    }
+  });
+
+  console.log("[INFO] [express] ✓ Academic Document analysis routes registered successfully");
+
   const httpServer = createServer(app);
 
   return httpServer;
