@@ -69,10 +69,11 @@ export default function EnhancedAcademicDocumentAnalysis() {
       const progressInterval = setInterval(() => {
         setAnalysisProgress((prev) => {
           const stages = [
-            { progress: 25, stage: '🔍 Google Cloud Vision OCR Processing...' },
-            { progress: 45, stage: '🎯 Anthropic Document Classification...' },
-            { progress: 65, stage: '📊 OpenAI Information Extraction...' },
-            { progress: 85, stage: '🏗️ Data Structuring & Categorization...' }
+            { progress: 20, stage: '📄 Analyzing document structure...' },
+            { progress: 35, stage: '🔍 Google Document AI extraction...' },
+            { progress: 55, stage: '🎯 Claude Sonnet 4.0 classification...' },
+            { progress: 75, stage: '📊 OpenAI GPT-4 information extraction...' },
+            { progress: 90, stage: '🏗️ Structuring Nepalese academic data...' }
           ];
           
           const currentStage = stages.find(s => prev < s.progress);
@@ -82,7 +83,7 @@ export default function EnhancedAcademicDocumentAnalysis() {
           }
           return prev;
         });
-      }, 2000);
+      }, 2500);
 
       try {
         const response = await fetch('/api/academic-document-analysis', {
@@ -120,8 +121,8 @@ export default function EnhancedAcademicDocumentAnalysis() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/academic-document-analyses'] });
       toast({
-        title: '🎉 Analysis Complete!',
-        description: 'Your academic document has been successfully analyzed using our Multi-AI pipeline.',
+        title: 'Analysis Complete!',
+        description: 'Document processed successfully using Google Document AI, Claude Sonnet 4.0, and OpenAI GPT-4.',
       });
     },
     onError: (error: any) => {
@@ -210,28 +211,91 @@ export default function EnhancedAcademicDocumentAnalysis() {
             <h1 className="text-4xl font-bold">Academic Document Analysis</h1>
           </div>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Powered by advanced Multi-AI technology featuring Google Cloud Vision, Anthropic Claude, and OpenAI GPT-4 
-            for enterprise-grade document processing and information extraction.
+            Enterprise-grade Multi-AI document processing system featuring Google Document AI for structured data extraction, 
+            Anthropic Claude Sonnet 4.0 for intelligent classification, and OpenAI GPT-4 for comprehensive information extraction.
           </p>
           
           {/* AI Technology Badges */}
           <div className="flex flex-wrap justify-center gap-3 mt-6">
-            <Badge variant="outline" className="px-4 py-2 text-sm font-medium">
-              <Eye className="h-4 w-4 mr-2" />
-              Google Cloud Vision OCR
+            <Badge variant="outline" className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+              <Map className="h-4 w-4 mr-2 text-blue-600" />
+              Google Document AI
             </Badge>
-            <Badge variant="outline" className="px-4 py-2 text-sm font-medium">
-              <Target className="h-4 w-4 mr-2" />
-              Anthropic Claude Classification
+            <Badge variant="outline" className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
+              <Target className="h-4 w-4 mr-2 text-purple-600" />
+              Claude Sonnet 4.0
             </Badge>
-            <Badge variant="outline" className="px-4 py-2 text-sm font-medium">
-              <Brain className="h-4 w-4 mr-2" />
-              OpenAI GPT-4 Extraction
+            <Badge variant="outline" className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+              <Brain className="h-4 w-4 mr-2 text-green-600" />
+              OpenAI GPT-4
             </Badge>
-            <Badge variant="outline" className="px-4 py-2 text-sm font-medium">
-              <Sparkles className="h-4 w-4 mr-2" />
-              99%+ Accuracy
+            <Badge variant="outline" className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200">
+              <Sparkles className="h-4 w-4 mr-2 text-orange-600" />
+              95%+ Accuracy
             </Badge>
+          </div>
+          
+          {/* Processing Pipeline Visual */}
+          <div className="mt-8 bg-white rounded-xl p-6 shadow-sm border border-gray-100 max-w-4xl mx-auto">
+            <h3 className="text-sm font-semibold text-gray-700 mb-4 text-center">Multi-AI Processing Pipeline</h3>
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+              <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg border border-blue-200">
+                <Map className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-700">Document AI</span>
+              </div>
+              <div className="hidden md:block text-gray-400">→</div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-purple-50 rounded-lg border border-purple-200">
+                <Target className="h-4 w-4 text-purple-600" />
+                <span className="text-sm font-medium text-purple-700">Classification</span>
+              </div>
+              <div className="hidden md:block text-gray-400">→</div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-lg border border-green-200">
+                <Brain className="h-4 w-4 text-green-600" />
+                <span className="text-sm font-medium text-green-700">Extraction</span>
+              </div>
+              <div className="hidden md:block text-gray-400">→</div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-lg border border-orange-200">
+                <Sparkles className="h-4 w-4 text-orange-600" />
+                <span className="text-sm font-medium text-orange-700">Structured Data</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Specialized Features Section */}
+        <div className="mb-12">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="p-6 text-center border-blue-200 bg-gradient-to-b from-blue-50 to-white">
+              <div className="w-12 h-12 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                <Map className="h-6 w-6 text-blue-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Document AI Processing</h3>
+              <p className="text-sm text-gray-600">Advanced table and form field extraction from structured academic documents</p>
+            </Card>
+            
+            <Card className="p-6 text-center border-purple-200 bg-gradient-to-b from-purple-50 to-white">
+              <div className="w-12 h-12 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
+                <BookOpen className="h-6 w-6 text-purple-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Nepalese System Expertise</h3>
+              <p className="text-sm text-gray-600">Specialized analysis for Tribhuvan University and HSEB academic transcripts</p>
+            </Card>
+            
+            <Card className="p-6 text-center border-green-200 bg-gradient-to-b from-green-50 to-white">
+              <div className="w-12 h-12 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                <Target className="h-6 w-6 text-green-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Intelligent Classification</h3>
+              <p className="text-sm text-gray-600">AI-powered document type detection preventing incorrect analysis</p>
+            </Card>
+            
+            <Card className="p-6 text-center border-orange-200 bg-gradient-to-b from-orange-50 to-white">
+              <div className="w-12 h-12 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-orange-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-2">Subject-wise Analysis</h3>
+              <p className="text-sm text-gray-600">Detailed extraction of marks, grades, and academic performance data</p>
+            </Card>
           </div>
         </div>
 
@@ -245,7 +309,7 @@ export default function EnhancedAcademicDocumentAnalysis() {
                   Upload Document
                 </CardTitle>
                 <CardDescription>
-                  Upload transcripts, diplomas, certificates, or academic records
+                  Upload academic transcripts for Multi-AI analysis with specialized Nepalese system support
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -298,19 +362,19 @@ export default function EnhancedAcademicDocumentAnalysis() {
                 <div className="mt-6 space-y-3">
                   <div className="flex items-center gap-3 text-sm text-gray-600">
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    Advanced OCR with 99%+ accuracy
+                    Google Document AI for table extraction
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-600">
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    AI-powered document validation
+                    Specialized Nepalese transcript analysis
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-600">
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    Structured information extraction
+                    Multi-AI processing with fallbacks
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-600">
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    Enterprise-grade security
+                    Subject-wise performance extraction
                   </div>
                 </div>
               </CardContent>
@@ -348,7 +412,7 @@ export default function EnhancedAcademicDocumentAnalysis() {
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">No documents analyzed yet</h3>
                     <p className="text-gray-500 mb-6">
-                      Upload your first academic document to see detailed AI-powered analysis results
+                      Upload your first academic transcript to experience our enhanced Multi-AI processing system
                     </p>
                     <Button 
                       onClick={() => fileInputRef.current?.click()}
