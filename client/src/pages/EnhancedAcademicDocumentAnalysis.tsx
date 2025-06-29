@@ -63,6 +63,8 @@ export default function EnhancedAcademicDocumentAnalysis() {
 
       const formData = new FormData();
       formData.append('file', file);
+      console.log('FormData created with file:', file.name, file.size);
+      console.log('FormData entries:', Array.from(formData.entries()));
 
       // Simulate progress updates during processing
       const progressInterval = setInterval(() => {
@@ -84,8 +86,20 @@ export default function EnhancedAcademicDocumentAnalysis() {
       }, 2000);
 
       try {
-        const response = await apiRequest('POST', '/api/academic-document-analysis', formData);
+        const response = await fetch('/api/academic-document-analysis', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
+        });
+        
         clearInterval(progressInterval);
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to analyze academic document');
+        }
+        
+        const result = await response.json();
         setAnalysisProgress(100);
         setProcessingStage('✅ Multi-AI Analysis Complete!');
         
@@ -95,7 +109,7 @@ export default function EnhancedAcademicDocumentAnalysis() {
           setProcessingStage('');
         }, 1500);
 
-        return response;
+        return result;
       } catch (error) {
         clearInterval(progressInterval);
         setIsProcessing(false);
@@ -142,7 +156,9 @@ export default function EnhancedAcademicDocumentAnalysis() {
     maxSize: 10 * 1024 * 1024, // 10MB
     multiple: false,
     onDrop: (acceptedFiles) => {
+      console.log('Files dropped:', acceptedFiles);
       if (acceptedFiles.length > 0) {
+        console.log('Uploading file:', acceptedFiles[0].name, acceptedFiles[0].size, 'bytes');
         uploadMutation.mutate(acceptedFiles[0]);
       }
     },

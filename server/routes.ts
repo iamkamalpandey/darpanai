@@ -3326,8 +3326,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user!.id;
       const file = req.file;
+      
+      console.log('Academic document upload request received');
+      console.log('User ID:', userId);
+      console.log('File received:', file ? `${file.originalname} (${file.size} bytes)` : 'NO FILE');
+      console.log('Request body keys:', Object.keys(req.body));
+      console.log('Request files:', req.files);
 
       if (!file) {
+        console.log('ERROR: No file in request');
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
