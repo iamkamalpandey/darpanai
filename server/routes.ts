@@ -1822,6 +1822,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Selective profile update for document analysis integration
+  app.patch('/api/user/profile-selective-update', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      
+      // Flexible validation schema that accepts any profile field
+      const selectiveUpdateSchema = z.object({
+        // Personal Information
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        dateOfBirth: z.string().optional(),
+        gender: z.string().optional(),
+        nationality: z.string().optional(),
+        passportNumber: z.string().optional(),
+        phoneNumber: z.string().optional(),
+        secondaryNumber: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        country: z.string().optional(),
+        
+        // Academic Information
+        highestQualification: z.string().optional(),
+        highestInstitution: z.string().optional(),
+        highestCountry: z.string().optional(),
+        highestGpa: z.string().optional(),
+        graduationYear: z.union([z.string(), z.number()]).optional(),
+        currentAcademicGap: z.union([z.string(), z.number()]).optional(),
+        educationHistory: z.string().optional(),
+        
+        // Study Preferences
+        interestedCourse: z.string().optional(),
+        fieldOfStudy: z.string().optional(),
+        preferredIntake: z.string().optional(),
+        budgetRange: z.string().optional(),
+        preferredCountries: z.array(z.string()).optional(),
+        interestedServices: z.array(z.string()).optional(),
+        partTimeInterest: z.boolean().optional(),
+        accommodationRequired: z.boolean().optional(),
+        hasDependents: z.boolean().optional(),
+        
+        // Financial Information
+        fundingSource: z.string().optional(),
+        estimatedBudget: z.string().optional(),
+        savingsAmount: z.union([z.string(), z.number()]).optional(),
+        loanApproval: z.boolean().optional(),
+        loanAmount: z.union([z.string(), z.number()]).optional(),
+        sponsorDetails: z.string().optional(),
+        financialDocuments: z.string().optional(),
+        
+        // Employment Information
+        currentEmploymentStatus: z.string().optional(),
+        workExperienceYears: z.union([z.string(), z.number()]).optional(),
+        jobTitle: z.string().optional(),
+        organizationName: z.string().optional(),
+        fieldOfWork: z.string().optional(),
+        gapReasonIfAny: z.string().optional(),
+        
+        // Language Proficiency
+        englishProficiencyTests: z.array(z.any()).optional(),
+        standardizedTests: z.array(z.any()).optional(),
+      });
+      
+      const validatedData = selectiveUpdateSchema.parse(req.body);
+      
+      // Convert graduation year to number if provided as string
+      if (validatedData.graduationYear && typeof validatedData.graduationYear === 'string') {
+        const yearNum = parseInt(validatedData.graduationYear);
+        if (!isNaN(yearNum)) {
+          validatedData.graduationYear = yearNum;
+        }
+      }
+      
+      // Convert numeric fields if provided as strings
+      if (validatedData.currentAcademicGap && typeof validatedData.currentAcademicGap === 'string') {
+        const gapNum = parseInt(validatedData.currentAcademicGap);
+        if (!isNaN(gapNum)) {
+          validatedData.currentAcademicGap = gapNum;
+        }
+      }
+      
+      if (validatedData.workExperienceYears && typeof validatedData.workExperienceYears === 'string') {
+        const yearsNum = parseInt(validatedData.workExperienceYears);
+        if (!isNaN(yearsNum)) {
+          validatedData.workExperienceYears = yearsNum;
+        }
+      }
+      
+      // Update user profile
+      const updatedUser = await storage.updateUserProfile(userId, validatedData);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      // Log the successful update
+      console.log(`Selective profile update successful for user ${userId}:`, Object.keys(validatedData));
+      
+      res.json({
+        success: true,
+        message: 'Profile updated successfully',
+        updatedFields: Object.keys(validatedData),
+        user: updatedUser
+      });
+      
+    } catch (error: any) {
+      console.error('Error in selective profile update:', error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          error: 'Invalid data format', 
+          details: error.errors 
+        });
+      }
+      
+      res.status(500).json({ error: 'Failed to update profile' });
+    }
+  });
+
   // Destination suggestion routes removed - feature discontinued
 
   // Updates/Notifications API Routes
