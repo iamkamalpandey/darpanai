@@ -3223,65 +3223,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'File size must be less than 10MB' });
       }
 
-      // Use Google Vision API for enhanced document analysis
-      let analysisResult;
+      // Use simplified document analysis
+      console.log(`Analyzing ${file.mimetype} document: ${file.originalname}`);
       
-      if (file.mimetype === 'application/pdf') {
-        // For PDFs, first try traditional text extraction for better accuracy
-        try {
-          const pdfParse = (await import('pdf-parse')).default;
-          const pdfData = await pdfParse(file.buffer);
-          
-          if (pdfData.text && pdfData.text.trim().length > 50) {
-            console.log(`PDF text extraction successful: ${pdfData.text.length} characters`);
-            const { analyzeAcademicDocumentContent } = await import('./academicDocumentAnalysisService');
-            const result = await analyzeAcademicDocumentContent(pdfData.text);
-            analysisResult = {
-              ...result,
-              extractedText: pdfData.text,
-              confidence: 0.95 // High confidence for PDF text extraction
-            };
-          } else {
-            throw new Error('Insufficient text from PDF, using Google Vision API');
-          }
-        } catch (pdfError: any) {
-          console.log('PDF text extraction failed, trying Google Vision API:', pdfError.message);
-          try {
-            const { analyzeAcademicDocumentWithVision } = await import('./academicDocumentAnalysisService');
-            analysisResult = await analyzeAcademicDocumentWithVision(file.buffer);
-          } catch (visionError: any) {
-            console.log('Google Vision API failed, using PDF fallback:', visionError.message);
-            try {
-              const { analyzePdfWithFallback } = await import('./pdfFallbackService');
-              analysisResult = await analyzePdfWithFallback(file.buffer);
-            } catch (pdfError: any) {
-              console.log('PDF fallback failed, using OCR:', pdfError.message);
-              const { analyzeDocumentWithTesseract } = await import('./tesseractFallbackService');
-              analysisResult = await analyzeDocumentWithTesseract(file.buffer);
-            }
-          }
-        }
-      } else if (file.mimetype.startsWith('image/')) {
-        // For images, use Google Vision API directly
-        console.log('Using Google Vision API for image analysis...');
-        try {
-          const { analyzeAcademicDocumentWithVision } = await import('./academicDocumentAnalysisService');
-          analysisResult = await analyzeAcademicDocumentWithVision(file.buffer);
-        } catch (visionError: any) {
-          console.log('Google Vision API failed for image, using OCR fallback:', visionError.message);
-          const { analyzeDocumentWithTesseract } = await import('./tesseractFallbackService');
-          analysisResult = await analyzeDocumentWithTesseract(file.buffer);
-        }
-      } else {
-        return res.status(400).json({ 
-          error: 'Unsupported file type. Please upload PDF, JPG, or PNG files only.'
-        });
-      }
+      const { analyzeDocumentSimplified } = await import('./simplifiedDocumentAnalysis');
+      const analysisResult = await analyzeDocumentSimplified(file.buffer, file.mimetype);
+      
+      console.log(`Document analysis completed successfully`);
+      console.log(`Extracted ${analysisResult.extractedText.length} characters with ${(analysisResult.confidence * 100).toFixed(1)}% confidence`);
 
-      // Save to database - handle different result structures
-      const results = (analysisResult as any).analysisResults || (analysisResult as any).results;
-      const extractedText = (analysisResult as any).extractedText || '';
-      const confidence = (analysisResult as any).confidence || 0;
+      // Save to database
+      const results = analysisResult.results;
+      const extractedText = analysisResult.extractedText;
+      const confidence = analysisResult.confidence;
       
       const academicDocumentAnalysis = await storage.createAcademicDocumentAnalysis({
         userId,
