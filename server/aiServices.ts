@@ -195,6 +195,7 @@ async function performTesseractOCR(imageBuffer: Buffer): Promise<OCRResult> {
     });
 
     console.log(`✅ Tesseract OCR completed: ${text.length} characters extracted with ${confidence.toFixed(1)}% confidence`);
+    console.log('📝 Extracted text preview (first 500 chars):', text.substring(0, 500));
 
     return {
       text: text || '',

@@ -165,6 +165,18 @@ FRONTEND_URL=your_domain_url
 - ✓ Enhanced PDF processing with pdf-parse for text-based documents and proper OCR fallback for image-based PDFs
 - ✓ Applied comprehensive error recovery ensuring system continues processing regardless of external API limitations
 
+**June 29, 2025 - Enhanced Nepalese Academic Transcript Analysis System with Improved OCR and Content Structuring:**
+- ✓ Enhanced AI prompts specifically for Nepalese educational systems (HSEB, Tribhuvan University) with comprehensive schema mapping
+- ✓ Improved data categorization system to properly handle Nepalese transcript structures including symbol numbers, HSEB registration, academic years, and division-based grading
+- ✓ Enhanced information extraction prompts to work with fragmented OCR text from low-quality document scans
+- ✓ Added specialized schema fields for Nepalese academic systems: symbolNumber, hsebRegistrationNo, passedDivision, totalMarks, marksObtained, percentage, faculty, campus, school
+- ✓ Built subject-wise performance table display for detailed Nepalese transcript analysis with proper formatting
+- ✓ Enhanced academic document details page with dedicated sections for Nepalese Academic System Details and Subject-wise Performance
+- ✓ Improved document classification to be more generous with fragmented text containing academic indicators
+- ✓ Added debug logging to track OCR text extraction quality and identify content analysis issues
+- ✓ Enhanced multi-AI processing pipeline to better handle incomplete text extraction from academic documents
+- ✓ Fixed data mapping in analysis results to properly populate all Nepalese-specific fields from structured AI responses
+
 **June 29, 2025 - Complete Profile Completion Popup System Implementation:**
 - ✓ Created comprehensive ProfileCompletionPopup component with professional UI design emphasizing AI analysis benefits
 - ✓ Implemented intelligent popup system that appears for users with profile completion < 100%
