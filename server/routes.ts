@@ -3370,8 +3370,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const confidence = analysisResult.confidence;
       
       // Step 3: Check for existing academic documents from the same institution/qualification
-      const existingDocuments = await storage.getAcademicDocumentAnalysesByUserId(userId);
-      const conflictingDocuments = existingDocuments.filter(doc => {
+      const existingDocuments = await storage.getUserAcademicDocumentAnalyses(userId);
+      const conflictingDocuments = existingDocuments.filter((doc: any) => {
         const existing = doc.analysisResults;
         return (
           existing.institutionName?.toLowerCase() === results.institutionName?.toLowerCase() ||
@@ -3385,7 +3385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Found ${conflictingDocuments.length} conflicting academic documents for user ${userId}`);
         
         // Check if this is a newer/better document (higher confidence or more recent)
-        const shouldReplace = conflictingDocuments.some(doc => {
+        const shouldReplace = conflictingDocuments.some((doc: any) => {
           const existingDate = new Date(doc.createdAt);
           const daysDifference = Math.abs((Date.now() - existingDate.getTime()) / (1000 * 60 * 60 * 24));
           
@@ -3405,7 +3405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(409).json({
             error: 'ACADEMIC_DOCUMENT_CONFLICT',
             message: 'A similar academic document already exists. Please review and decide.',
-            conflictingDocuments: conflictingDocuments.map(doc => ({
+            conflictingDocuments: conflictingDocuments.map((doc: any) => ({
               id: doc.id,
               fileName: doc.fileName,
               institutionName: doc.analysisResults.institutionName,
