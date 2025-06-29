@@ -1647,7 +1647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const completionPercentage = Math.round((completedFields / Object.keys(requiredFields).length) * 100);
       const isComplete = missingFields.length === 0;
 
-      res.json({
+      const responseData = {
         isComplete,
         completionPercentage,
         missingFields,
@@ -1657,7 +1657,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pendingSections: missingFields, // Add pending sections for the popup component
         totalFields: Object.keys(requiredFields).length,
         completedFields
-      });
+      };
+      
+      console.log('Profile completion response:', JSON.stringify(responseData, null, 2));
+      res.json(responseData);
     } catch (error) {
       console.error('Error checking profile completion:', error);
       res.status(500).json({ error: 'Failed to check profile completion' });

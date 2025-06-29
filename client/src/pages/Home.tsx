@@ -58,7 +58,8 @@ export default function Home() {
     pendingSections: string[];
   }>({
     queryKey: ['/api/user/profile-completion'],
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0, // Disable caching for debugging
+    refetchInterval: 5000, // Refetch every 5 seconds for debugging
   });
 
   const { data: platformStats } = useQuery<PlatformStats>({

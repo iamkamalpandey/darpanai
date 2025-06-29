@@ -31,12 +31,19 @@ export function ProfileCompletionPrompt({ profileData, onDismiss }: ProfileCompl
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    console.log('ProfileCompletionPrompt received data:', profileData);
+    console.log('IsComplete:', profileData.isComplete, 'Completion:', profileData.completionPercentage);
+    
     // Show popup only if profile is not 100% complete
     if (!profileData.isComplete && profileData.completionPercentage < 100) {
+      console.log('ProfileCompletionPrompt: Setting timer to show popup');
       const timer = setTimeout(() => {
+        console.log('ProfileCompletionPrompt: Making popup visible');
         setIsVisible(true);
       }, 2000); // Show after 2 seconds
       return () => clearTimeout(timer);
+    } else {
+      console.log('ProfileCompletionPrompt: Not showing popup - profile complete or 100%');
     }
   }, [profileData.isComplete, profileData.completionPercentage]);
 
