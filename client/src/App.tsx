@@ -50,6 +50,7 @@ const AdvancedAssessmentPage = lazy(() => import("@/pages/AdvancedAssessmentPage
 const CvAnalysis = lazy(() => import("@/pages/CvAnalysis"));
 const AcademicDocumentAnalysis = lazy(() => import("@/pages/AcademicDocumentAnalysis"));
 const EnhancedAcademicDocumentAnalysis = lazy(() => import("@/pages/EnhancedAcademicDocumentAnalysis"));
+const AcademicDocumentDetails = lazy(() => import("@/pages/AcademicDocumentDetails"));
 const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
 const AdminAnalyses = lazy(() => import("@/pages/admin-analyses"));
 const ScholarshipManagement = lazy(() => import("@/pages/admin/ScholarshipManagement"));

@@ -74,41 +74,17 @@ export async function performAdvancedOCR(fileBuffer: Buffer, mimeType: string = 
         console.log(`✅ PDF text extraction successful: ${pdfResult.text.length} characters`);
         return pdfResult;
       }
-      console.log('⚠️ PDF has insufficient text, trying OCR methods...');
+      console.log('⚠️ PDF has insufficient text, converting to images for OCR...');
+      // Convert PDF to images for OCR processing
+      return await processPDFWithOCR(fileBuffer);
     } catch (error) {
-      console.log('⚠️ PDF text extraction failed, trying OCR methods...');
+      console.log('⚠️ PDF text extraction failed, converting to images for OCR...');
+      return await processPDFWithOCR(fileBuffer);
     }
   }
 
-  // Try Google Cloud Vision API if available
-  try {
-    console.log('🔍 Attempting Google Cloud Vision OCR...');
-    
-    const [result] = await visionClient.textDetection({
-      image: { content: fileBuffer },
-    });
-
-    const detections = result.textAnnotations || [];
-    if (detections.length === 0) {
-      console.log('⚠️ No text detected by Google Vision, trying Tesseract...');
-      return await performTesseractOCR(fileBuffer, mimeType);
-    }
-
-    const fullText = detections[0]?.description || '';
-    const confidence = detections[0]?.score || 0.8;
-
-    console.log(`✅ Google Cloud Vision OCR completed: ${fullText.length} characters with ${(confidence * 100).toFixed(1)}% confidence`);
-
-    return {
-      text: fullText,
-      confidence: confidence * 100,
-      blocks: (result.textAnnotations || []) as any[]
-    };
-
-  } catch (error) {
-    console.log('⚠️ Google Cloud Vision failed, trying Tesseract OCR...');
-    return await performTesseractOCR(fileBuffer, mimeType);
-  }
+  // For image files, process directly with OCR
+  return await processImageWithOCR(fileBuffer);
 }
 
 /**
@@ -131,21 +107,81 @@ async function extractTextFromPDF(pdfBuffer: Buffer): Promise<OCRResult> {
 }
 
 /**
- * Tesseract OCR fallback function - only for images
+ * Process PDF by converting to images and performing OCR
  */
-async function performTesseractOCR(fileBuffer: Buffer, mimeType: string): Promise<OCRResult> {
+async function processPDFWithOCR(pdfBuffer: Buffer): Promise<OCRResult> {
   try {
-    // Tesseract only works with images, not PDFs
-    if (mimeType === 'application/pdf') {
-      throw new Error('Tesseract does not support PDF files directly');
+    console.log('🔄 Converting PDF to images for OCR processing...');
+    
+    // Convert PDF to images using pdf2pic
+    const convert = require('pdf2pic').fromBuffer(pdfBuffer, {
+      density: 200,           // Higher DPI for better OCR
+      saveFilename: "page",
+      savePath: "/tmp",
+      format: "png",
+      width: 1200,
+      height: 1600
+    });
+    
+    // Convert first page to image buffer
+    const image = await convert(1, { responseType: "buffer" });
+    const imageBuffer = image.buffer;
+    
+    console.log('✅ PDF converted to image, processing with OCR...');
+    return await processImageWithOCR(imageBuffer);
+    
+  } catch (error) {
+    console.error('❌ PDF to image conversion failed:', error);
+    throw new Error('PDF conversion and OCR processing failed');
+  }
+}
+
+/**
+ * Process images with Google Cloud Vision and Tesseract fallback
+ */
+async function processImageWithOCR(imageBuffer: Buffer): Promise<OCRResult> {
+  // Try Google Cloud Vision API first
+  try {
+    console.log('🔍 Attempting Google Cloud Vision OCR...');
+    
+    const [result] = await visionClient.textDetection({
+      image: { content: imageBuffer },
+    });
+
+    const detections = result.textAnnotations || [];
+    if (detections.length === 0) {
+      console.log('⚠️ No text detected by Google Vision, trying Tesseract...');
+      return await performTesseractOCR(imageBuffer);
     }
 
+    const fullText = detections[0]?.description || '';
+    const confidence = detections[0]?.score || 0.8;
+
+    console.log(`✅ Google Cloud Vision OCR completed: ${fullText.length} characters with ${(confidence * 100).toFixed(1)}% confidence`);
+
+    return {
+      text: fullText,
+      confidence: confidence * 100,
+      blocks: (result.textAnnotations || []) as any[]
+    };
+
+  } catch (error) {
+    console.log('⚠️ Google Cloud Vision failed, trying Tesseract OCR...');
+    return await performTesseractOCR(imageBuffer);
+  }
+}
+
+/**
+ * Tesseract OCR fallback function - for image buffers only
+ */
+async function performTesseractOCR(imageBuffer: Buffer): Promise<OCRResult> {
+  try {
     console.log('🔍 Starting Tesseract OCR processing...');
     
     // Dynamic import for Tesseract.js
     const { default: Tesseract } = await import('tesseract.js');
     
-    const { data: { text, confidence } } = await Tesseract.recognize(fileBuffer, 'eng', {
+    const { data: { text, confidence } } = await Tesseract.recognize(imageBuffer, 'eng', {
       logger: (m: any) => {
         if (m.status === 'recognizing text') {
           console.log(`📊 Tesseract progress: ${Math.round(m.progress * 100)}%`);
@@ -238,7 +274,11 @@ Respond with JSON:
       temperature: 0.1
     });
 
-    const result = JSON.parse(response.choices[0].message.content!);
+    let content = response.choices[0].message.content!;
+    // Clean up content if it contains markdown code blocks
+    content = content.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    
+    const result = JSON.parse(content);
     console.log(`✅ Document classified with OpenAI: ${result.documentType} (${result.confidence}% confidence)`);
     
     return result;
