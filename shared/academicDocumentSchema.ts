@@ -38,11 +38,41 @@ export const academicDocumentAnalysisResultsSchema = z.object({
   credits: z.string().optional(),
   thesis: z.string().optional(),
   
+  // Student Information
+  studentName: z.string().optional(),
+  studentId: z.string().optional(),
+  registrationNumber: z.string().optional(),
+  symbolNumber: z.string().optional(), // For Nepalese transcripts
+  dateOfBirth: z.string().optional(),
+  campus: z.string().optional(),
+  school: z.string().optional(),
+  
+  // Nepalese Academic System Specific
+  hsebRegistrationNo: z.string().optional(),
+  issueNumber: z.string().optional(),
+  academicYear: z.string().optional(), // 2067, 2068 BS or 2010, 2011 AD
+  passedYear: z.string().optional(),
+  passedDivision: z.string().optional(), // First Division, Second Division, Pass
+  totalMarks: z.string().optional(),
+  marksObtained: z.string().optional(),
+  percentage: z.string().optional(),
+  
+  // Grade/Year Information
+  gradeLevel: z.string().optional(), // Grade XI, Grade XII, First Year, etc.
+  faculty: z.string().optional(), // Management, Science, Humanities
+  
+  // Academic Performance Details
+  subjectMarks: z.array(z.object({
+    subject: z.string(),
+    fullMarks: z.string().optional(),
+    passMarks: z.string().optional(),
+    marksObtained: z.string().optional(),
+    grade: z.string().optional()
+  })).optional(),
+  
   // Additional Information
   accreditation: z.string().optional(),
   languageOfInstruction: z.string().optional(),
-  studentId: z.string().optional(),
-  studentName: z.string().optional(),
   
   // Course and Skills Information
   courses: z.array(z.string()).optional(),

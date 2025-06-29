@@ -128,8 +128,12 @@ async function processPDFWithOCR(pdfBuffer: Buffer): Promise<OCRResult> {
     const image = await convert(1, { responseType: "buffer" });
     const imageBuffer = image.buffer;
     
+    if (!imageBuffer) {
+      throw new Error('Failed to convert PDF page to image buffer');
+    }
+    
     console.log('✅ PDF converted to image, processing with OCR...');
-    return await processImageWithOCR(imageBuffer);
+    return await processImageWithOCR(imageBuffer as Buffer);
     
   } catch (error) {
     console.error('❌ PDF to image conversion failed:', error);
@@ -307,18 +311,55 @@ export async function extractInformation(text: string, documentType: string): Pr
       model: 'gpt-4o',
       messages: [{
         role: 'system',
-        content: `You are an expert at extracting structured information from academic documents. Extract relevant information and return it as JSON.
+        content: `You are an expert at extracting structured information from academic transcripts and certificates, especially from Nepal and South Asian institutions (HSEB, Tribhuvan University, etc.). Extract relevant information and return it as JSON.
 
 Document type: ${documentType}
 
-Focus on extracting:
-- Student information (name, ID, DOB)
-- Institution details (name, address, accreditation)
-- Program information (name, degree, major, dates)
-- Academic records (grades, GPA, credits, subjects)
-- Certificate information (type, issue date, validity)
+For academic transcripts, focus on extracting:
 
-Return empty strings for missing information. Be precise and accurate.`
+STUDENT INFORMATION:
+- Student's Name
+- Registration/Symbol Number
+- Date of Birth
+- School/Campus name
+
+INSTITUTION DETAILS:
+- Institution Name (e.g., "Higher Secondary Education Board Nepal", "Tribhuvan University")
+- Office/Controller (e.g., "Office of the Controller of Examinations")
+- Location (Kathmandu, Nepal, etc.)
+- Issue Number/Registration Number
+
+ACADEMIC PROGRAM:
+- Degree/Certificate Type (Bachelor's Degree, HSEB Certificate, etc.)
+- Field of Study (Business Studies, Science, Management, etc.)
+- Course Duration (3 Academic Years, 2 Years, etc.)
+- Program Starting/Ending Year
+- Institute/Faculty name
+
+ACADEMIC PERFORMANCE:
+- Individual Subject Marks (Full Marks, Pass Marks, Marks Obtained)
+- Grade levels (Grade XI, Grade XII, First Year, Second Year, Third Year)
+- Total Marks and Percentage
+- Division/Grade (First Division, Second Division, Pass, etc.)
+- Year of Completion
+- Passed Year
+
+GRADING SYSTEM:
+- Total possible marks
+- Marks obtained
+- Percentage achieved
+- Division achieved
+- Grading scale used
+
+For Nepalese transcripts specifically look for:
+- HSEB Registration Numbers
+- Symbol Numbers
+- Academic Years (2067, 2068 BS or 2010, 2011 AD)
+- Nepali date formats
+- Subject codes (MGT.311, ENG.201, etc.)
+- Faculty names (Management, Science, Humanities)
+
+Return empty strings for missing information. Be precise and accurate with Nepalese academic terminology.`
       }, {
         role: 'user',
         content: `Extract information from this academic document:
@@ -357,17 +398,52 @@ export async function categorizeAndStructure(extractedInfo: InformationExtractio
       model: 'gpt-4o',
       messages: [{
         role: 'system',
-        content: `You are an expert at organizing academic document information into structured categories. 
+        content: `You are an expert at organizing academic transcript information, specifically for Nepal and South Asian educational systems. 
 
-Take the extracted information and organize it into these categories:
-1. STUDENT_DETAILS - Personal information about the student
-2. INSTITUTION_DETAILS - Information about the educational institution
-3. PROGRAM_DETAILS - Details about the academic program/course
-4. ACADEMIC_PERFORMANCE - Grades, GPA, academic achievements
-5. CERTIFICATION_DETAILS - Certificate/diploma specific information
-6. ADDITIONAL_INFO - Any other relevant academic information
+Structure the information to match this schema for academic transcripts:
 
-Format the response as a well-structured JSON with clear categorization.`
+STUDENT INFORMATION:
+- studentName: Full name of the student
+- symbolNumber: Symbol/Registration number (especially for HSEB)
+- registrationNumber: University registration number
+- dateOfBirth: Student's date of birth
+- campus/school: Institution where studied
+
+INSTITUTION DETAILS:
+- institutionName: Name (HSEB Nepal, Tribhuvan University, etc.)
+- institutionType: Type (University, Board, College)
+- institutionCountry: Country (Nepal)
+- institutionCity: City (Kathmandu, etc.)
+
+QUALIFICATION DETAILS:
+- qualificationLevel: Level (Higher Secondary, Bachelor's, etc.)
+- qualificationTitle: Specific degree/certificate name
+- fieldOfStudy: Field (Business Studies, Science, etc.)
+- faculty: Faculty (Management, Science, Humanities)
+- duration: Course duration
+
+ACADEMIC PERFORMANCE:
+- totalMarks: Total possible marks
+- marksObtained: Total marks achieved
+- percentage: Overall percentage
+- passedDivision: Division achieved (First Division, etc.)
+- passedYear: Year of completion
+- gradeLevel: Grade/Year level
+- subjectMarks: Array of subject-wise performance
+
+PROGRAM DETAILS:
+- programType: Full-time/Part-time
+- academicYear: Academic year (BS/AD format)
+- startDate: Program start
+- endDate: Program completion
+
+ADDITIONAL INFO:
+- issueNumber: Certificate issue number
+- hsebRegistrationNo: HSEB specific registration
+- languageOfInstruction: Language used
+- accreditation: Accreditation details
+
+Return as structured JSON matching exactly this schema.`
       }, {
         role: 'user',
         content: `Organize this extracted information:

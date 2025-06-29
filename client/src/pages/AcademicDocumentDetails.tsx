@@ -203,7 +203,7 @@ export default function AcademicDocumentDetails() {
       )}
 
       {/* Academic Performance */}
-      {(analysisResults.gpa || analysisResults.overallGrade || analysisResults.honors) && (
+      {(analysisResults.gpa || analysisResults.overallGrade || analysisResults.honors || analysisResults.percentage || analysisResults.totalMarks) && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -216,6 +216,70 @@ export default function AcademicDocumentDetails() {
             <InfoItem icon={TrendingUp} label="Grade Scale" value={analysisResults.gradeScale} />
             <InfoItem icon={TrendingUp} label="Overall Grade" value={analysisResults.overallGrade} />
             <InfoItem icon={Award} label="Honors" value={analysisResults.honors} />
+            <InfoItem icon={TrendingUp} label="Total Marks" value={analysisResults.totalMarks} />
+            <InfoItem icon={TrendingUp} label="Marks Obtained" value={analysisResults.marksObtained} />
+            <InfoItem icon={TrendingUp} label="Percentage" value={analysisResults.percentage} />
+            <InfoItem icon={Award} label="Division" value={analysisResults.passedDivision} />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Nepalese Academic System Information */}
+      {(analysisResults.symbolNumber || analysisResults.hsebRegistrationNo || analysisResults.academicYear || analysisResults.gradeLevel) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Academic System Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <InfoItem icon={User} label="Symbol Number" value={analysisResults.symbolNumber} />
+            <InfoItem icon={User} label="HSEB Registration" value={analysisResults.hsebRegistrationNo} />
+            <InfoItem icon={Calendar} label="Academic Year" value={analysisResults.academicYear} />
+            <InfoItem icon={BookOpen} label="Grade Level" value={analysisResults.gradeLevel} />
+            <InfoItem icon={BookOpen} label="Faculty" value={analysisResults.faculty} />
+            <InfoItem icon={Calendar} label="Passed Year" value={analysisResults.passedYear} />
+            <InfoItem icon={Building} label="Campus" value={analysisResults.campus} />
+            <InfoItem icon={Building} label="School" value={analysisResults.school} />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Subject-wise Performance */}
+      {analysisResults.subjectMarks && analysisResults.subjectMarks.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5" />
+              Subject-wise Performance
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-gray-300">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="border border-gray-300 p-2 text-left">Subject</th>
+                    <th className="border border-gray-300 p-2 text-center">Full Marks</th>
+                    <th className="border border-gray-300 p-2 text-center">Pass Marks</th>
+                    <th className="border border-gray-300 p-2 text-center">Marks Obtained</th>
+                    <th className="border border-gray-300 p-2 text-center">Grade</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analysisResults.subjectMarks.map((subject, index) => (
+                    <tr key={index} className="hover:bg-gray-50">
+                      <td className="border border-gray-300 p-2 font-medium">{subject.subject}</td>
+                      <td className="border border-gray-300 p-2 text-center">{subject.fullMarks || '-'}</td>
+                      <td className="border border-gray-300 p-2 text-center">{subject.passMarks || '-'}</td>
+                      <td className="border border-gray-300 p-2 text-center">{subject.marksObtained || '-'}</td>
+                      <td className="border border-gray-300 p-2 text-center">{subject.grade || '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
       )}
