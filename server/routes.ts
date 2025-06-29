@@ -2396,10 +2396,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const savedAnalysis = await storage.saveOfferLetterAnalysis({
         fileName: file.originalname,
         fileSize: file.size,
-        documentText: extractedText,
         analysisResults: {
           ...analysis,
-          coreStudentInfo: coreInfo // Add core student info to analysis results
+          coreStudentInfo: coreInfo, // Add core student info to analysis results
+          extractedText: extractedText // Include extracted text in analysis results
         },
         tokensUsed,
         processingTime,
@@ -2496,10 +2496,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const savedAnalysis = await storage.saveOfferLetterAnalysis({
         fileName: file.originalname,
         fileSize: file.size,
-        documentText: extractedText,
         analysisResults: {
           ...analysis,
-          coreStudentInfo: coreInfo
+          coreStudentInfo: coreInfo,
+          extractedText: extractedText
         },
         tokensUsed,
         processingTime,
