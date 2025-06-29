@@ -1,24 +1,50 @@
 import { ImageAnnotatorClient } from '@google-cloud/vision';
 
 interface GoogleVisionConfig {
-  apiKey: string;
+  apiKey?: string;
+  credentials?: any;
 }
 
 class GoogleVisionService {
-  private client: ImageAnnotatorClient;
+  private client: ImageAnnotatorClient | null = null;
+  private isEnabled: boolean = false;
 
   constructor(config: GoogleVisionConfig) {
-    if (!config.apiKey) {
-      throw new Error('Google Vision API key not provided');
+    try {
+      // Try to initialize Google Vision client with proper authentication
+      if (config.credentials) {
+        // Use service account credentials (preferred method)
+        this.client = new ImageAnnotatorClient({
+          credentials: config.credentials,
+        });
+        this.isEnabled = true;
+      } else if (config.apiKey) {
+        // Fallback to API key (less reliable)
+        this.client = new ImageAnnotatorClient({
+          apiKey: config.apiKey,
+        });
+        this.isEnabled = true;
+      } else {
+        console.warn('Google Vision API not configured - using fallback methods');
+        this.isEnabled = false;
+      }
+    } catch (error) {
+      console.warn('Failed to initialize Google Vision API:', error);
+      this.isEnabled = false;
     }
-    this.client = new ImageAnnotatorClient({
-      apiKey: config.apiKey,
-    });
+  }
+
+  isAvailable(): boolean {
+    return this.isEnabled && this.client !== null;
   }
 
   async extractTextFromImage(imageBuffer: Buffer): Promise<string> {
+    if (!this.isAvailable()) {
+      throw new Error('Google Vision API is not available - service not configured');
+    }
+
     try {
-      const [result] = await this.client.textDetection({
+      const [result] = await this.client!.textDetection({
         image: {
           content: imageBuffer.toString('base64'),
         },
@@ -43,8 +69,12 @@ class GoogleVisionService {
     confidence: number;
     pages: number;
   }> {
+    if (!this.isAvailable()) {
+      throw new Error('Google Vision API is not available - service not configured');
+    }
+
     try {
-      const [result] = await this.client.documentTextDetection({
+      const [result] = await this.client!.documentTextDetection({
         image: {
           content: imageBuffer.toString('base64'),
         },
@@ -85,9 +115,28 @@ class GoogleVisionService {
   }
 }
 
-// Export singleton instance
-const googleVisionService = new GoogleVisionService({
-  apiKey: process.env.GOOGLE_CLOUD_VISION_API_KEY || '',
-});
+// Export singleton instance with proper error handling
+let googleVisionService: GoogleVisionService;
+
+try {
+  // Try to parse service account credentials from environment
+  let credentials;
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
+    try {
+      credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+    } catch (error) {
+      console.warn('Failed to parse GOOGLE_APPLICATION_CREDENTIALS_JSON:', error);
+    }
+  }
+
+  googleVisionService = new GoogleVisionService({
+    apiKey: process.env.GOOGLE_CLOUD_VISION_API_KEY,
+    credentials: credentials,
+  });
+} catch (error) {
+  console.warn('Failed to initialize Google Vision service:', error);
+  // Create a disabled service instance
+  googleVisionService = new GoogleVisionService({});
+}
 
 export { googleVisionService, GoogleVisionService };

@@ -17,6 +17,33 @@ export async function analyzeDocumentWithTesseract(buffer: Buffer): Promise<{
   let worker;
   
   try {
+    // For PDF files, use pdf-parse first to avoid Tesseract PDF issues
+    const fileHeader = buffer.slice(0, 4).toString();
+    if (fileHeader === '%PDF') {
+      console.log('PDF detected, extracting text before OCR...');
+      try {
+        const pdfParse = (await import('pdf-parse')).default;
+        const pdfData = await pdfParse(buffer);
+        
+        if (pdfData.text && pdfData.text.trim().length > 20) {
+          console.log(`PDF text extraction successful: ${pdfData.text.length} characters`);
+          const { analyzeAcademicDocumentContent } = await import('./academicDocumentAnalysisService');
+          const result = await analyzeAcademicDocumentContent(pdfData.text);
+          
+          return {
+            results: result.analysisResults,
+            extractedText: pdfData.text,
+            tokensUsed: result.tokensUsed,
+            processingTime: result.processingTime,
+            confidence: 0.9 // High confidence for PDF text extraction
+          };
+        }
+      } catch (pdfError) {
+        console.log('PDF extraction failed, PDF may be image-based, skipping OCR for PDF');
+        throw new Error('Could not extract text from PDF document. The document may be image-based or corrupted. Please convert to a standard PDF with text or use a JPG/PNG image instead.');
+      }
+    }
+
     console.log('Initializing Tesseract.js worker...');
     worker = await createWorker('eng');
     

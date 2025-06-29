@@ -16,6 +16,11 @@ export async function analyzeAcademicDocumentWithVision(imageBuffer: Buffer): Pr
   const startTime = Date.now();
 
   try {
+    // Check if Google Vision API is available
+    if (!googleVisionService.isAvailable()) {
+      throw new Error('Google Vision API is not available - service not configured');
+    }
+
     // Step 1: Extract text using Google Vision API
     console.log('Starting Google Vision text extraction...');
     const visionResult = await googleVisionService.analyzeDocument(imageBuffer);

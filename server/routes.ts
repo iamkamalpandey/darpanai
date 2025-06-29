@@ -3299,9 +3299,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fileSize: file.size,
         analysisResults: results,
         processingTime: analysisResult.processingTime,
-        confidence,
+        confidence: analysisResult.confidence || confidence || 1.0,
         tokensUsed: analysisResult.tokensUsed,
-        confidence: analysisResult.confidence || 1.0,
         extractedText: analysisResult.extractedText,
         createdAt: academicDocumentAnalysis.createdAt,
       });
