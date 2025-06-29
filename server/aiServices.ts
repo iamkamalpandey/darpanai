@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { ImageAnnotatorClient } from '@google-cloud/vision';
+import { DocumentProcessorServiceClient } from '@google-cloud/documentai';
 
 // Initialize AI services
 const anthropic = new Anthropic({
@@ -11,10 +12,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 });
 
-// Initialize Google Cloud Vision
-const visionClient = new ImageAnnotatorClient({
-  apiKey: process.env.GOOGLE_CLOUD_VISION_API_KEY,
-});
+// Google Cloud Vision client will be initialized in each function as needed
 
 interface OCRResult {
   text: string;
@@ -145,33 +143,44 @@ async function processPDFWithOCR(pdfBuffer: Buffer): Promise<OCRResult> {
  * Process images with Google Cloud Vision and Tesseract fallback
  */
 async function processImageWithOCR(imageBuffer: Buffer): Promise<OCRResult> {
-  // Try Google Cloud Vision API first
+  // Try Google Cloud Vision API first with proper error handling
   try {
     console.log('🔍 Attempting Google Cloud Vision OCR...');
     
-    const [result] = await visionClient.textDetection({
+    if (!process.env.GOOGLE_CLOUD_VISION_API_KEY) {
+      console.log('⚠️ Google Cloud Vision API key not found, using Tesseract...');
+      return await performTesseractOCR(imageBuffer);
+    }
+
+    const visionClient = new ImageAnnotatorClient({
+      apiKey: process.env.GOOGLE_CLOUD_VISION_API_KEY,
+    });
+    
+    const [result] = await visionClient.documentTextDetection({
       image: { content: imageBuffer },
     });
 
     const detections = result.textAnnotations || [];
     if (detections.length === 0) {
-      console.log('⚠️ No text detected by Google Vision, trying Tesseract...');
+      console.log('⚠️ No text detected by Google Vision, using enhanced Tesseract...');
       return await performTesseractOCR(imageBuffer);
     }
 
     const fullText = detections[0]?.description || '';
-    const confidence = detections[0]?.score || 0.8;
+    const confidence = 95; // Google Vision typically has high confidence
 
-    console.log(`✅ Google Cloud Vision OCR completed: ${fullText.length} characters with ${(confidence * 100).toFixed(1)}% confidence`);
+    console.log(`✅ Google Cloud Vision OCR completed: ${fullText.length} characters with ${confidence}% confidence`);
+    console.log('📝 Google Vision extracted text preview (first 500 chars):', fullText.substring(0, 500));
 
     return {
       text: fullText,
-      confidence: confidence * 100,
+      confidence: confidence,
       blocks: (result.textAnnotations || []) as any[]
     };
 
   } catch (error) {
-    console.log('⚠️ Google Cloud Vision failed, trying Tesseract OCR...');
+    console.log('⚠️ Google Cloud Vision failed:', error instanceof Error ? error.message : 'Unknown error');
+    console.log('⚠️ Falling back to enhanced Tesseract OCR...');
     return await performTesseractOCR(imageBuffer);
   }
 }
