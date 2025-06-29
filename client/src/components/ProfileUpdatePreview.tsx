@@ -185,7 +185,15 @@ export default function ProfileUpdatePreview({
     // Date Information
     if (analysisResults.graduationDate || analysisResults.endDate) {
       const gradDate = analysisResults.graduationDate || analysisResults.endDate;
-      const gradYear = gradDate ? new Date(gradDate).getFullYear() : null;
+      let gradYear: number | null = null;
+      
+      if (gradDate) {
+        try {
+          gradYear = new Date(gradDate).getFullYear();
+        } catch (error) {
+          console.warn('Invalid date format:', gradDate);
+        }
+      }
       
       if (gradYear && gradYear !== profile.graduationYear) {
         fields.push({

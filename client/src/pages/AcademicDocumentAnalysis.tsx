@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, FileText, Brain, Download, CheckCircle, Trash2, Eye, Calendar, Clock, Info, Shield, AlertCircle } from 'lucide-react';
+import { Upload, FileText, Brain, Download, CheckCircle, Trash2, Eye, Calendar, Clock, Info, Shield, AlertCircle, Settings } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AcademicDocumentAnalysisResults } from '@shared/academicDocumentSchema';
+import ProfileUpdatePreview from '@/components/ProfileUpdatePreview';
 
 interface AcademicDocumentAnalysis {
   id: number;
@@ -24,6 +25,8 @@ interface AcademicDocumentAnalysis {
 export default function AcademicDocumentAnalysis() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [selectedAnalysisForPreview, setSelectedAnalysisForPreview] = useState<AcademicDocumentAnalysis | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -94,37 +97,18 @@ export default function AcademicDocumentAnalysis() {
     }
   });
 
-  // Apply academic document data to profile mutation
-  const applyToProfileMutation = useMutation({
-    mutationFn: async (analysisId: number) => {
-      const response = await fetch(`/api/academic-document-analyses/${analysisId}/apply-to-profile`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to apply academic document data to profile');
-      }
-      
-      return response.json();
-    },
-    onSuccess: (data: any) => {
-      toast({
-        title: "Profile Updated!",
-        description: `Successfully updated ${data.updatedFields?.length || 0} profile fields from your academic document.`,
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/academic-document-analyses'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile-completion'] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to Update Profile",
-        description: error.message || "Failed to apply academic document data to profile.",
-        variant: "destructive",
-      });
-    }
-  });
+  // Handle opening the profile update preview
+  const handleOpenPreview = (analysis: AcademicDocumentAnalysis) => {
+    setSelectedAnalysisForPreview(analysis);
+    setPreviewModalOpen(true);
+  };
+
+  // Handle successful profile update from preview modal
+  const handlePreviewSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/academic-document-analyses'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/user/profile-completion'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+  };
 
   // Delete academic document analysis mutation
   const deleteMutation = useMutation({
@@ -447,18 +431,11 @@ export default function AcademicDocumentAnalysis() {
                         {!analysis.isAppliedToProfile && (
                           <Button
                             size="sm"
-                            onClick={() => applyToProfileMutation.mutate(analysis.id)}
-                            disabled={applyToProfileMutation.isPending}
-                            className="bg-green-600 hover:bg-green-700"
+                            onClick={() => handleOpenPreview(analysis)}
+                            className="bg-blue-600 hover:bg-blue-700"
                           >
-                            {applyToProfileMutation.isPending ? (
-                              <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-                            ) : (
-                              <>
-                                <Download className="w-4 h-4 mr-1" />
-                                Apply to Profile
-                              </>
-                            )}
+                            <Settings className="w-4 h-4 mr-1" />
+                            Update Profile
                           </Button>
                         )}
                       </div>
@@ -470,6 +447,23 @@ export default function AcademicDocumentAnalysis() {
           )}
         </CardContent>
       </Card>
+
+      {/* Profile Update Preview Modal */}
+      {selectedAnalysisForPreview && (
+        <ProfileUpdatePreview
+          isOpen={previewModalOpen}
+          onClose={() => {
+            setPreviewModalOpen(false);
+            setSelectedAnalysisForPreview(null);
+          }}
+          analysisData={{
+            id: selectedAnalysisForPreview.id,
+            fileName: selectedAnalysisForPreview.fileName,
+            analysisResults: selectedAnalysisForPreview.analysisResults,
+          }}
+          onSuccess={handlePreviewSuccess}
+        />
+      )}
     </div>
   );
 }
