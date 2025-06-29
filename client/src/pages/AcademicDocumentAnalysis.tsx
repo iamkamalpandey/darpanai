@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, FileText, Brain, Download, CheckCircle, Trash2, Eye, Calendar, Clock } from 'lucide-react';
+import { Upload, FileText, Brain, Download, CheckCircle, Trash2, Eye, Calendar, Clock, Info, Shield, AlertCircle } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AcademicDocumentAnalysisResults } from '@shared/academicDocumentSchema';
 
@@ -59,9 +59,30 @@ export default function AcademicDocumentAnalysis() {
       setIsUploading(false);
     },
     onError: (error: any) => {
+      let errorMessage = "Failed to analyze academic document. Please try again.";
+      let errorTitle = "Analysis Failed";
+      
+      if (error.message) {
+        if (error.message.includes("Could not extract sufficient text")) {
+          errorTitle = "Text Extraction Failed";
+          errorMessage = "Unable to extract readable text from your document. Please ensure the document is clear, high-resolution, and contains visible text. PDF format works best.";
+        } else if (error.message.includes("file too large")) {
+          errorTitle = "File Too Large";
+          errorMessage = "Your file exceeds the 10MB limit. Please compress the file or use a smaller image.";
+        } else if (error.message.includes("invalid file type")) {
+          errorTitle = "Invalid File Type";
+          errorMessage = "Please upload only PDF, JPG, or PNG files.";
+        } else if (error.message.includes("processing failed")) {
+          errorTitle = "Processing Error";
+          errorMessage = "Document processing failed. Please try uploading a clearer version or different format.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
-        title: "Analysis Failed",
-        description: error.message || "Failed to analyze academic document. Please try again.",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive",
       });
       setIsUploading(false);
@@ -184,6 +205,61 @@ export default function AcademicDocumentAnalysis() {
         </p>
       </div>
 
+      {/* Upload Guidelines */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardHeader>
+          <CardTitle className="text-blue-900 flex items-center gap-2">
+            <Info className="w-5 h-5" />
+            Upload Guidelines & Best Practices
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-semibold text-blue-900 mb-3">✅ Recommended Documents:</h4>
+              <ul className="text-blue-800 space-y-2 text-sm">
+                <li>• Official degree certificates (Bachelor's, Master's, PhD)</li>
+                <li>• Academic transcripts with grades and GPA</li>
+                <li>• Diploma certificates from recognized institutions</li>
+                <li>• Professional certification documents</li>
+                <li>• Mark sheets with clear institutional letterhead</li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-blue-900 mb-3">📋 Technical Requirements:</h4>
+              <ul className="text-blue-800 space-y-2 text-sm">
+                <li>• Supported formats: PDF, JPG, PNG</li>
+                <li>• Maximum file size: 10MB</li>
+                <li>• High resolution (300 DPI recommended)</li>
+                <li>• Clear, readable text without blur</li>
+                <li>• Complete document (all pages included)</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="bg-yellow-100 border border-yellow-300 p-4 rounded-lg">
+            <h4 className="font-semibold text-yellow-900 mb-2 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" />
+              Common Upload Issues & Solutions:
+            </h4>
+            <ul className="text-yellow-800 space-y-1 text-sm">
+              <li>• <strong>Blurry text:</strong> Use higher resolution scan or better lighting</li>
+              <li>• <strong>Incomplete extraction:</strong> Ensure all text is clearly visible</li>
+              <li>• <strong>Failed analysis:</strong> Try uploading a different format (PDF works best)</li>
+              <li>• <strong>Large file size:</strong> Compress PDF or reduce image quality</li>
+            </ul>
+          </div>
+
+          <div className="bg-blue-100 p-4 rounded-lg">
+            <p className="text-blue-900 text-sm font-medium flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              Your documents are processed securely with end-to-end encryption and never stored permanently on our servers.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Upload Section */}
       <Card>
         <CardHeader>
@@ -236,6 +312,18 @@ export default function AcademicDocumentAnalysis() {
                   )}
                 </Button>
               </div>
+              
+              {(uploadMutation.isPending || isUploading) && (
+                <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin w-5 h-5 border-2 border-yellow-600 border-t-transparent rounded-full"></div>
+                    <div>
+                      <p className="font-medium text-yellow-900">Processing your academic document...</p>
+                      <p className="text-sm text-yellow-700">This may take 30-60 seconds depending on document complexity and file size.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
@@ -256,9 +344,21 @@ export default function AcademicDocumentAnalysis() {
               <p className="text-gray-600">Loading analyses...</p>
             </div>
           ) : academicDocumentAnalyses.length === 0 ? (
-            <div className="text-center py-8">
-              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-600">No academic document analyses yet. Upload your first document to get started!</p>
+            <div className="text-center py-12">
+              <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Academic Documents Analyzed Yet</h3>
+              <p className="text-gray-600 mb-4 max-w-md mx-auto">
+                Upload your first academic document to extract comprehensive academic information and auto-populate your profile.
+              </p>
+              <div className="bg-gray-50 rounded-lg p-4 max-w-lg mx-auto">
+                <h4 className="font-medium text-gray-900 mb-2">💡 Quick Tips:</h4>
+                <ul className="text-sm text-gray-600 space-y-1 text-left">
+                  <li>• Upload clear, high-resolution documents</li>
+                  <li>• PDF format provides best results</li>
+                  <li>• Ensure all text is visible and readable</li>
+                  <li>• Processing typically takes 30-60 seconds</li>
+                </ul>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
