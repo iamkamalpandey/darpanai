@@ -306,23 +306,7 @@ export default function StudentAIDashboard() {
         />
       )}
 
-      {/* Temporary Debug Panel */}
-      <div className="fixed bottom-4 right-4 bg-black text-white p-3 text-xs rounded shadow-lg z-50 max-w-xs">
-        <div className="font-bold mb-2">Profile Completion Debug</div>
-        <div>Has Data: {!!profileCompletion ? 'Yes' : 'No'}</div>
-        <div>IsComplete: {profileCompletion?.isComplete?.toString()}</div>
-        <div>Completion %: {profileCompletion?.completionPercentage}%</div>
-        <div>Session Dismissed: {!!sessionStorage.getItem('profilePopupDismissed') ? 'Yes' : 'No'}</div>
-        <button 
-          onClick={() => {
-            sessionStorage.removeItem('profilePopupDismissed');
-            window.location.reload();
-          }}
-          className="bg-blue-500 px-2 py-1 mt-2 text-white rounded text-xs w-full"
-        >
-          Clear & Reload
-        </button>
-      </div>
+
 
     </DashboardLayout>
   );

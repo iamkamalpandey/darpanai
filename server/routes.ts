@@ -3031,6 +3031,175 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup comprehensive multi-AI offer letter analysis routes
   setupOfferLetterRoutes(app, requireAuth, requireAdmin);
 
+  // ===== CV ANALYSIS ROUTES =====
+  console.log("[INFO] [express] ✓ Setting up CV analysis routes...");
+
+  // Upload and analyze CV
+  app.post('/api/cv-analysis', requireAuth, upload.single('cv'), async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ error: 'No CV file provided' });
+      }
+
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({ error: 'Invalid file type. Please upload PDF, JPG, or PNG files.' });
+      }
+
+      // Validate file size (10MB limit)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        return res.status(400).json({ error: 'File too large. Maximum size is 10MB.' });
+      }
+
+      let extractedText: string;
+
+      // Extract text based on file type
+      if (file.mimetype === 'application/pdf') {
+        const pdfParse = await import('pdf-parse');
+        const pdfData = await pdfParse.default(file.buffer);
+        extractedText = pdfData.text;
+      } else {
+        // Image files - use Tesseract OCR
+        const Tesseract = await import('tesseract.js');
+        const { data: { text } } = await Tesseract.recognize(file.buffer, 'eng');
+        extractedText = text;
+      }
+
+      if (!extractedText || extractedText.trim().length < 100) {
+        return res.status(400).json({ error: 'Could not extract sufficient text from the CV. Please ensure the file is clear and readable.' });
+      }
+
+      // Analyze CV content using OpenAI
+      const { analyzeCvContent } = await import('./cvAnalysisService');
+      const { analysisResults, tokensUsed, processingTime } = await analyzeCvContent(extractedText);
+
+      // Save to database
+      const cvAnalysis = await storage.createCvAnalysis({
+        userId,
+        fileName: file.originalname,
+        fileSize: file.size,
+        extractedText,
+        analysisResults,
+        tokensUsed,
+        processingTime,
+      });
+
+      res.json({
+        id: cvAnalysis.id,
+        fileName: file.originalname,
+        fileSize: file.size,
+        analysisResults,
+        processingTime,
+        tokensUsed,
+        createdAt: cvAnalysis.createdAt,
+      });
+
+    } catch (error) {
+      console.error('Error in CV analysis:', error);
+      res.status(500).json({ error: 'CV analysis failed. Please try again.' });
+    }
+  });
+
+  // Get user's CV analyses
+  app.get('/api/cv-analyses', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const analyses = await storage.getUserCvAnalyses(userId);
+      res.json(analyses);
+    } catch (error) {
+      console.error('Error fetching CV analyses:', error);
+      res.status(500).json({ error: 'Failed to fetch CV analyses' });
+    }
+  });
+
+  // Get specific CV analysis
+  app.get('/api/cv-analyses/:id', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const analysisId = parseInt(req.params.id);
+
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+
+      const analysis = await storage.getCvAnalysisById(analysisId, userId);
+      
+      if (!analysis) {
+        return res.status(404).json({ error: 'CV analysis not found' });
+      }
+
+      res.json(analysis);
+    } catch (error) {
+      console.error('Error fetching CV analysis:', error);
+      res.status(500).json({ error: 'Failed to fetch CV analysis' });
+    }
+  });
+
+  // Apply CV data to user profile
+  app.post('/api/cv-analyses/:id/apply-to-profile', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const analysisId = parseInt(req.params.id);
+
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+
+      const analysis = await storage.getCvAnalysisById(analysisId, userId);
+      
+      if (!analysis) {
+        return res.status(404).json({ error: 'CV analysis not found' });
+      }
+
+      // Apply CV data to user profile
+      const result = await storage.applyCvDataToProfile(userId, analysis.analysisResults);
+      
+      // Mark analysis as applied
+      await storage.markCvAnalysisAsApplied(analysisId);
+
+      res.json({ 
+        success: true, 
+        message: 'CV data successfully applied to profile',
+        updatedFields: result.updatedFields 
+      });
+
+    } catch (error) {
+      console.error('Error applying CV data to profile:', error);
+      res.status(500).json({ error: 'Failed to apply CV data to profile' });
+    }
+  });
+
+  // Delete CV analysis
+  app.delete('/api/cv-analyses/:id', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const analysisId = parseInt(req.params.id);
+
+      if (isNaN(analysisId)) {
+        return res.status(400).json({ error: 'Invalid analysis ID' });
+      }
+
+      const success = await storage.deleteCvAnalysis(analysisId, userId);
+      
+      if (!success) {
+        return res.status(404).json({ error: 'CV analysis not found' });
+      }
+
+      res.json({ success: true, message: 'CV analysis deleted successfully' });
+
+    } catch (error) {
+      console.error('Error deleting CV analysis:', error);
+      res.status(500).json({ error: 'Failed to delete CV analysis' });
+    }
+  });
+
+  console.log("[INFO] [express] ✓ CV analysis routes registered successfully");
+
   const httpServer = createServer(app);
 
   return httpServer;

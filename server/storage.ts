@@ -188,6 +188,14 @@ export interface IStorage {
   createUniversityMatches(assessmentId: number, matches: Array<{universityId: number, matchScore: number, matchReasons: string[]}>): Promise<UniversityMatch[]>;
   getAssessmentMatches(assessmentId: number): Promise<UniversityMatch[]>;
   getAssessmentResults(assessmentId: number): Promise<{assessment: Assessment, matches: Array<UniversityMatch & {university: University}>}>;
+
+  // CV Analysis methods
+  createCvAnalysis(analysis: any): Promise<any>;
+  getUserCvAnalyses(userId: number): Promise<any[]>;
+  getCvAnalysisById(id: number, userId: number): Promise<any | undefined>;
+  applyCvDataToProfile(userId: number, analysisResults: any): Promise<{updatedFields: string[]}>;
+  markCvAnalysisAsApplied(id: number): Promise<void>;
+  deleteCvAnalysis(id: number, userId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
