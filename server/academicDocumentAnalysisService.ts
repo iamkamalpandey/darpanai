@@ -115,6 +115,17 @@ Return only valid JSON without any additional text or formatting.`;
 
   } catch (error: any) {
     console.error('Error analyzing academic document:', error);
-    throw new Error(`Academic document analysis failed: ${error.message}`);
+    
+    if (error.code === 'insufficient_quota') {
+      throw new Error('AI service temporarily unavailable. Please try again in a few moments.');
+    } else if (error.code === 'rate_limit_exceeded') {
+      throw new Error('Service is currently busy. Please wait a moment and try again.');
+    } else if (error.message?.includes('timeout')) {
+      throw new Error('Document processing timed out. Please try uploading a smaller or clearer document.');
+    } else if (error.message?.includes('parse')) {
+      throw new Error('Unable to process document content. Please ensure the document contains clear, readable text.');
+    } else {
+      throw new Error('Academic document analysis failed. Please ensure your document is clear and contains readable text, then try again.');
+    }
   }
 }

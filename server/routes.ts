@@ -3237,8 +3237,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         extractedText = text;
       }
 
-      if (!extractedText || extractedText.trim().length < 100) {
-        return res.status(400).json({ error: 'Could not extract sufficient text from the academic document. Please ensure the file is clear and readable.' });
+      if (!extractedText || extractedText.trim().length < 50) {
+        return res.status(400).json({ 
+          error: 'Could not extract sufficient text from the academic document. Please ensure the document is clear, high-resolution, and contains readable text. PDF format typically provides the best results for text extraction.'
+        });
       }
 
       // Analyze academic document content using OpenAI
@@ -3266,9 +3268,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: academicDocumentAnalysis.createdAt,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error in academic document analysis:', error);
-      res.status(500).json({ error: 'Academic document analysis failed. Please try again.' });
+      
+      // Provide specific error messages based on error type
+      if (error.message?.includes('AI service temporarily unavailable')) {
+        res.status(503).json({ error: error.message });
+      } else if (error.message?.includes('Service is currently busy')) {
+        res.status(429).json({ error: error.message });
+      } else if (error.message?.includes('timeout')) {
+        res.status(408).json({ error: error.message });
+      } else if (error.message?.includes('Unable to process document content')) {
+        res.status(400).json({ error: error.message });
+      } else if (error.message?.includes('text extraction')) {
+        res.status(400).json({ error: 'Could not extract text from the document. Please ensure the file is not corrupted and contains readable text.' });
+      } else {
+        res.status(500).json({ error: 'Academic document analysis failed. Please ensure your document is clear and readable, then try again.' });
+      }
     }
   });
 
