@@ -29,9 +29,9 @@ class GoogleVisionService {
       // The first annotation contains the full text
       const fullText = detections[0].description || '';
       return fullText;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Google Vision API error:', error);
-      throw new Error(`Failed to extract text from image: ${error.message}`);
+      throw new Error(`Failed to extract text from image: ${error?.message || 'Unknown error'}`);
     }
   }
 
@@ -61,7 +61,7 @@ class GoogleVisionService {
       
       fullTextAnnotation.pages?.forEach(page => {
         page.blocks?.forEach(block => {
-          if (block.confidence !== undefined) {
+          if (block.confidence !== undefined && block.confidence !== null) {
             totalConfidence += block.confidence;
             confidenceCount++;
           }
@@ -75,9 +75,9 @@ class GoogleVisionService {
         confidence,
         pages
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Google Vision document analysis error:', error);
-      throw new Error(`Failed to analyze document: ${error.message}`);
+      throw new Error(`Failed to analyze document: ${error?.message || 'Unknown error'}`);
     }
   }
 }

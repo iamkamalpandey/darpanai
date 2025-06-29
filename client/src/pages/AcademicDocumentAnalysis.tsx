@@ -15,6 +15,8 @@ interface AcademicDocumentAnalysis {
   analysisResults: AcademicDocumentAnalysisResults;
   processingTime: number;
   tokensUsed: number;
+  confidence?: number;
+  extractedText: string;
   createdAt: string;
   isAppliedToProfile: boolean;
 }
@@ -50,9 +52,10 @@ export default function AcademicDocumentAnalysis() {
       return response.json();
     },
     onSuccess: (data: any) => {
+      const confidenceText = data.confidence ? ` Text extraction confidence: ${Math.round(data.confidence * 100)}%.` : '';
       toast({
         title: "Analysis Complete!",
-        description: `Your academic document has been analyzed successfully. Processing took ${Math.round(data.processingTime / 1000)} seconds.`,
+        description: `Your academic document has been analyzed successfully using Google Vision API. Processing took ${Math.round(data.processingTime / 1000)} seconds.${confidenceText}`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/academic-document-analyses'] });
       setSelectedFile(null);
@@ -269,6 +272,7 @@ export default function AcademicDocumentAnalysis() {
           </CardTitle>
           <CardDescription>
             Upload your diploma, degree certificate, transcript, or any official academic document. 
+            Using Google Vision API for superior text recognition and analysis accuracy.
             Supported formats: PDF, JPG, PNG (max 10MB)
           </CardDescription>
         </CardHeader>

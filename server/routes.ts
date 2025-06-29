@@ -3244,7 +3244,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             throw new Error('Insufficient text from PDF, using Google Vision API');
           }
-        } catch (pdfError) {
+        } catch (pdfError: any) {
           console.log('PDF text extraction failed, using Google Vision API:', pdfError.message);
           const { analyzeAcademicDocumentWithVision } = await import('./academicDocumentAnalysisService');
           analysisResult = await analyzeAcademicDocumentWithVision(file.buffer);
