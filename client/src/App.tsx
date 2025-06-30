@@ -49,7 +49,7 @@ const SimpleAssessment = lazy(() => import("@/components/SimpleAssessment"));
 const AdvancedAssessmentPage = lazy(() => import("@/pages/AdvancedAssessmentPage"));
 const CvAnalysis = lazy(() => import("@/pages/CvAnalysis"));
 const AcademicDocumentAnalysis = lazy(() => import("@/pages/AcademicDocumentAnalysis"));
-const EnhancedAcademicDocumentAnalysis = lazy(() => import("@/pages/EnhancedAcademicDocumentAnalysis"));
+const SimpleTranscriptAnalysis = lazy(() => import("@/pages/SimpleTranscriptAnalysis"));
 const AcademicDocumentDetails = lazy(() => import("@/pages/AcademicDocumentDetails"));
 const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
 const AdminAnalyses = lazy(() => import("@/pages/admin-analyses"));
@@ -192,7 +192,7 @@ function Router() {
       <Route path="/academic-document-analysis">
         <UserProtectedRoute path="/academic-document-analysis" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <EnhancedAcademicDocumentAnalysis />
+            <SimpleTranscriptAnalysis />
           </Suspense>
         )} />
       </Route>
