@@ -117,7 +117,7 @@ export default function AcademicDocumentDetails() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setLocation('/enhanced-academic-document-analysis')}
+            onClick={() => setLocation('/academic-document-analysis')}
             className="gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
