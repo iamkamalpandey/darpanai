@@ -174,7 +174,10 @@ export default function SimpleTranscriptAnalysis() {
                     </div>
                     <div>
                       <p className="text-lg font-medium text-gray-900">Analyzing Your Transcript</p>
-                      <p className="text-gray-600">This may take a few moments...</p>
+                      <p className="text-gray-600">Processing document and extracting academic data...</p>
+                    </div>
+                    <div className="w-48 mx-auto bg-gray-200 rounded-full h-2">
+                      <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '70%' }}></div>
                     </div>
                   </div>
                 ) : (
@@ -265,17 +268,48 @@ export default function SimpleTranscriptAnalysis() {
         )}
 
         {/* Help Section */}
-        <div className="mt-8 p-6 bg-blue-50 rounded-lg">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div>
-              <h4 className="font-medium text-blue-900 mb-2">Tips for Best Results</h4>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Ensure your transcript is clearly visible and well-lit</li>
-                <li>• For PDF files, make sure they contain readable text</li>
-                <li>• Upload high-quality images (JPG/PNG) if PDF processing fails</li>
-                <li>• Academic transcripts with subject marks work best</li>
-              </ul>
+        <div className="mt-8 space-y-6">
+          <div className="p-6 bg-blue-50 rounded-lg">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-blue-900 mb-3">Tips for Best Results</h4>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <h5 className="font-medium text-blue-800 mb-2">Document Quality</h5>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• Ensure transcript is clearly visible and well-lit</li>
+                      <li>• Upload high-quality images (JPG/PNG) for best results</li>
+                      <li>• Avoid blurry or low-resolution documents</li>
+                      <li>• Make sure all text is readable</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h5 className="font-medium text-blue-800 mb-2">Acceptable Documents</h5>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• NEB/HSEB Higher Secondary transcripts</li>
+                      <li>• University transcripts with detailed marks</li>
+                      <li>• Academic mark sheets with subject grades</li>
+                      <li>• Official transcripts from educational institutions</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 bg-amber-50 rounded-lg">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-amber-900 mb-2">Documents NOT Accepted</h4>
+                <ul className="text-sm text-amber-800 space-y-1">
+                  <li>• Experience letters or employment certificates</li>
+                  <li>• Simple certificates without detailed marks</li>
+                  <li>• Recommendation letters or personal statements</li>
+                  <li>• Application forms or admission letters</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

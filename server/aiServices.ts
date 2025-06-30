@@ -135,8 +135,24 @@ async function processPDFWithOCR(pdfBuffer: Buffer): Promise<OCRResult> {
     
   } catch (error) {
     console.error('❌ PDF to image conversion failed:', error);
-    // Fallback: try to extract any available text from PDF
-    throw new Error('PDF processing unavailable - please convert your PDF to JPG/PNG image format for upload');
+    // Fallback: try to extract any available text from PDF using simple method
+    try {
+      const pdfParse = await import('pdf-parse');
+      const data = await pdfParse.default(pdfBuffer);
+      
+      if (data.text && data.text.length > 50) {
+        console.log('✅ Fallback PDF text extraction successful');
+        return {
+          text: data.text,
+          confidence: 70,
+          blocks: []
+        };
+      }
+    } catch (fallbackError) {
+      console.log('❌ Fallback PDF extraction also failed');
+    }
+    
+    throw new Error('PDF processing failed. Please convert your PDF to a high-quality JPG or PNG image and upload that instead.');
   }
 }
 
@@ -293,11 +309,7 @@ async function performTesseractOCR(imageBuffer: Buffer): Promise<OCRResult> {
   } catch (error) {
     console.error('❌ Tesseract OCR failed:', error);
     // Return a minimal result rather than failing completely
-    return {
-      text: 'OCR processing encountered issues with this image. Please try uploading a clearer image or convert PDF to JPG/PNG format.',
-      confidence: 0,
-      blocks: []
-    };
+    throw new Error('Unable to extract text from this image. Please ensure your transcript is clear and try uploading a high-quality JPG or PNG image instead.');
   }
 }
 
@@ -646,7 +658,7 @@ export async function processDocumentWithMultiAI(fileBuffer: Buffer, mimeType: s
         extractedInfo: { studentInfo: {}, institutionInfo: {}, programInfo: {}, academicRecords: {}, certificateInfo: {} },
         structuredData: {},
         processingTime: Date.now() - startTime,
-        error: 'Insufficient text extracted from document'
+        error: 'Unable to extract readable text from this document. Please ensure your transcript is clear and well-lit, or try uploading a higher quality JPG/PNG image instead of PDF.'
       };
     }
     
@@ -654,6 +666,19 @@ export async function processDocumentWithMultiAI(fileBuffer: Buffer, mimeType: s
     const classification = await classifyDocument(ocrResult.text);
     
     if (!classification.isAcademic) {
+      // Provide specific error messages based on document type
+      let errorMessage = 'Please upload only academic transcripts with subject-wise marks.';
+      
+      if (classification.documentType === 'experience_letter') {
+        errorMessage = 'This appears to be an experience letter. Please upload academic transcripts that contain subject-wise marks and grades from educational institutions.';
+      } else if (classification.documentType === 'certificate') {
+        errorMessage = 'This appears to be a certificate or diploma. Please upload detailed academic transcripts with subject marks, not just certificates.';
+      } else if (ocrResult.text.includes('employment') || ocrResult.text.includes('experience') || ocrResult.text.includes('work')) {
+        errorMessage = 'This document appears to be related to employment or work experience. Please upload academic transcripts from schools, colleges, or universities.';
+      } else if (classification.documentType === 'other') {
+        errorMessage = 'This document does not appear to be an academic transcript. Please upload transcripts that contain detailed academic records with subject marks.';
+      }
+      
       return {
         success: false,
         ocrResult,
@@ -661,7 +686,7 @@ export async function processDocumentWithMultiAI(fileBuffer: Buffer, mimeType: s
         extractedInfo: { studentInfo: {}, institutionInfo: {}, programInfo: {}, academicRecords: {}, certificateInfo: {} },
         structuredData: {},
         processingTime: Date.now() - startTime,
-        error: `Document is not academic: ${classification.reasoning}`
+        error: errorMessage
       };
     }
     
