@@ -69,11 +69,11 @@ export default function EnhancedAcademicDocumentAnalysis() {
       const progressInterval = setInterval(() => {
         setAnalysisProgress((prev) => {
           const stages = [
-            { progress: 20, stage: '📄 Analyzing document structure...' },
-            { progress: 35, stage: '🔍 Google Document AI extraction...' },
-            { progress: 55, stage: '🎯 Claude Sonnet 4.0 classification...' },
-            { progress: 75, stage: '📊 OpenAI GPT-4 information extraction...' },
-            { progress: 90, stage: '🏗️ Structuring Nepalese academic data...' }
+            { progress: 20, stage: '📄 Identifying transcript type (NEB/HSEB/University)...' },
+            { progress: 35, stage: '🔍 Extracting transcript structure and tables...' },
+            { progress: 55, stage: '🎯 Validating academic document format...' },
+            { progress: 75, stage: '📊 Processing subject-wise marks and grades...' },
+            { progress: 90, stage: '🏗️ Structuring transcript data for analysis...' }
           ];
           
           const currentStage = stages.find(s => prev < s.progress);
@@ -207,12 +207,12 @@ export default function EnhancedAcademicDocumentAnalysis() {
         {/* Header Section */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            <Brain className="h-8 w-8 text-blue-600" />
-            <h1 className="text-4xl font-bold">Academic Document Analysis</h1>
+            <BookOpen className="h-8 w-8 text-blue-600" />
+            <h1 className="text-4xl font-bold">Academic Transcript Analysis</h1>
           </div>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Enterprise-grade Multi-AI document processing system featuring Google Document AI for structured data extraction, 
-            Anthropic Claude Sonnet 4.0 for intelligent classification, and OpenAI GPT-4 for comprehensive information extraction.
+            Specialized AI-powered transcript processing system for NEB/HSEB, Tribhuvan University, and other Nepalese academic institutions. 
+            Upload only academic transcripts for intelligent analysis and structured data extraction.
           </p>
           
           {/* AI Technology Badges */}
@@ -269,32 +269,32 @@ export default function EnhancedAcademicDocumentAnalysis() {
               <div className="w-12 h-12 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
                 <Map className="h-6 w-6 text-blue-600" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Document AI Processing</h3>
-              <p className="text-sm text-gray-600">Advanced table and form field extraction from structured academic documents</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Transcript Type Detection</h3>
+              <p className="text-sm text-gray-600">Automatically identifies NEB/HSEB, Tribhuvan University, and other institutional formats</p>
             </Card>
             
             <Card className="p-6 text-center border-purple-200 bg-gradient-to-b from-purple-50 to-white">
               <div className="w-12 h-12 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
                 <BookOpen className="h-6 w-6 text-purple-600" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Nepalese System Expertise</h3>
-              <p className="text-sm text-gray-600">Specialized analysis for Tribhuvan University and HSEB academic transcripts</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Academic Institution Support</h3>
+              <p className="text-sm text-gray-600">Specialized parsing for Nepalese educational system transcript structures</p>
             </Card>
             
             <Card className="p-6 text-center border-green-200 bg-gradient-to-b from-green-50 to-white">
               <div className="w-12 h-12 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
                 <Target className="h-6 w-6 text-green-600" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Intelligent Classification</h3>
-              <p className="text-sm text-gray-600">AI-powered document type detection preventing incorrect analysis</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Dynamic Data Extraction</h3>
+              <p className="text-sm text-gray-600">Adapts to different transcript layouts and extracts relevant academic fields</p>
             </Card>
             
             <Card className="p-6 text-center border-orange-200 bg-gradient-to-b from-orange-50 to-white">
               <div className="w-12 h-12 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
                 <TrendingUp className="h-6 w-6 text-orange-600" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Subject-wise Analysis</h3>
-              <p className="text-sm text-gray-600">Detailed extraction of marks, grades, and academic performance data</p>
+              <h3 className="font-semibold text-gray-900 mb-2">Structured Data Output</h3>
+              <p className="text-sm text-gray-600">Organizes semester/year data with subject codes, marks, and performance metrics</p>
             </Card>
           </div>
         </div>
@@ -306,10 +306,10 @@ export default function EnhancedAcademicDocumentAnalysis() {
               <CardHeader className="text-center">
                 <CardTitle className="flex items-center justify-center gap-2">
                   <Upload className="h-5 w-5" />
-                  Upload Document
+                  Upload Transcript
                 </CardTitle>
                 <CardDescription>
-                  Upload academic transcripts for Multi-AI analysis with specialized Nepalese system support
+                  Upload academic transcripts only (NEB/HSEB, Tribhuvan University, etc.) for intelligent analysis
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -343,14 +343,14 @@ export default function EnhancedAcademicDocumentAnalysis() {
                       </div>
                       
                       {isDragActive ? (
-                        <p className="text-blue-600 font-medium">Drop your document here</p>
+                        <p className="text-blue-600 font-medium">Drop your transcript here</p>
                       ) : (
                         <div className="space-y-2">
                           <p className="text-gray-900 font-medium">
-                            Drag & drop your document or click to browse
+                            Drag & drop your academic transcript or click to browse
                           </p>
                           <p className="text-sm text-gray-500">
-                            Supports PDF, JPG, PNG • Max 10MB
+                            Academic transcripts only • PDF, JPG, PNG • Max 10MB
                           </p>
                         </div>
                       )}
@@ -362,21 +362,30 @@ export default function EnhancedAcademicDocumentAnalysis() {
                 <div className="mt-6 space-y-3">
                   <div className="flex items-center gap-3 text-sm text-gray-600">
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    Google Document AI for table extraction
+                    Intelligent transcript type identification
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-600">
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    Specialized Nepalese transcript analysis
+                    NEB/HSEB and university transcript support
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-600">
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    Multi-AI processing with fallbacks
+                    Subject-wise marks and grade extraction
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-600">
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    Subject-wise performance extraction
+                    Semester/year-wise academic data
                   </div>
                 </div>
+                
+                {/* Transcript Only Warning */}
+                <Alert className="mt-6 border-orange-200 bg-orange-50">
+                  <AlertCircle className="h-4 w-4 text-orange-600" />
+                  <AlertDescription className="text-orange-800">
+                    <strong>Transcripts Only:</strong> Please upload academic transcripts only. 
+                    Other documents (certificates, experience letters) will be rejected.
+                  </AlertDescription>
+                </Alert>
               </CardContent>
             </Card>
           </div>
@@ -517,10 +526,10 @@ export default function EnhancedAcademicDocumentAnalysis() {
         {/* Technical Details Footer */}
         <div className="mt-16 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-8">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Enhanced Multi-AI Technology</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Intelligent Transcript Analysis</h2>
             <p className="text-gray-600 max-w-3xl mx-auto">
-              Our advanced system combines specialized AI services for superior academic document processing, 
-              with particular expertise in Nepalese educational systems.
+              Advanced AI system specifically designed for academic transcript processing, with intelligent type detection 
+              and specialized support for Nepalese educational institutions.
             </p>
           </div>
           
@@ -529,10 +538,10 @@ export default function EnhancedAcademicDocumentAnalysis() {
               <div className="w-16 h-16 mx-auto mb-4 bg-blue-500 rounded-full flex items-center justify-center">
                 <Map className="h-8 w-8 text-white" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Google Document AI</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">Transcript Type Detection</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Advanced structured document analysis with table extraction, form field recognition, 
-                and intelligent layout understanding for academic transcripts.
+                AI-powered identification of transcript types including NEB/HSEB Higher Secondary, 
+                Tribhuvan University Bachelor's, and other Nepalese educational institutions.
               </p>
             </div>
             
@@ -540,10 +549,10 @@ export default function EnhancedAcademicDocumentAnalysis() {
               <div className="w-16 h-16 mx-auto mb-4 bg-purple-500 rounded-full flex items-center justify-center">
                 <Target className="h-8 w-8 text-white" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Claude Sonnet 4.0</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">Dynamic Data Extraction</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Latest Anthropic AI for intelligent document classification, preventing misanalysis 
-                of experience letters and ensuring academic document validation.
+                Adaptive parsing system that adjusts to different transcript layouts and 
+                structures to extract subject codes, marks, grades, and semester data.
               </p>
             </div>
             
@@ -551,10 +560,10 @@ export default function EnhancedAcademicDocumentAnalysis() {
               <div className="w-16 h-16 mx-auto mb-4 bg-green-500 rounded-full flex items-center justify-center">
                 <Brain className="h-8 w-8 text-white" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">OpenAI GPT-4</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">Structured Output</h3>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Comprehensive information extraction specialized for Nepalese academic systems, 
-                handling HSEB, Tribhuvan University formats with subject-wise analysis.
+                Organizes extracted data into structured JSON format with semester/year groupings, 
+                subject-wise performance metrics, and academic progression tracking.
               </p>
             </div>
           </div>
