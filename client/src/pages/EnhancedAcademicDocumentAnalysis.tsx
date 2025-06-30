@@ -121,8 +121,8 @@ export default function EnhancedAcademicDocumentAnalysis() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/academic-document-analyses'] });
       toast({
-        title: 'Analysis Complete!',
-        description: 'Document processed successfully using Google Document AI, Claude Sonnet 4.0, and OpenAI GPT-4.',
+        title: 'Transcript Analysis Complete!',
+        description: 'Your academic transcript has been successfully analyzed and structured data extracted.',
       });
     },
     onError: (error: any) => {
@@ -397,14 +397,14 @@ export default function EnhancedAcademicDocumentAnalysis() {
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
-                    Analysis Results
+                    Transcript Analysis Results
                   </div>
                   <Badge variant="outline" className="px-3 py-1">
-                    {analyses.length} Document{analyses.length !== 1 ? 's' : ''} Analyzed
+                    {analyses.length} Transcript{analyses.length !== 1 ? 's' : ''} Analyzed
                   </Badge>
                 </CardTitle>
                 <CardDescription>
-                  View and manage your academic document analysis history
+                  View and manage your academic transcript analysis history
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -419,9 +419,9 @@ export default function EnhancedAcademicDocumentAnalysis() {
                     <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                       <FileText className="h-8 w-8 text-gray-400" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No documents analyzed yet</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No transcripts analyzed yet</h3>
                     <p className="text-gray-500 mb-6">
-                      Upload your first academic transcript to experience our enhanced Multi-AI processing system
+                      Upload your first academic transcript to experience intelligent transcript analysis with structured data extraction
                     </p>
                     <Button 
                       onClick={() => fileInputRef.current?.click()}

@@ -302,19 +302,31 @@ export async function classifyDocument(text: string): Promise<DocumentClassifica
       max_tokens: 1000,
       messages: [{
         role: 'user',
-        content: `Analyze this document text and determine if it's an academic document. Academic documents include: transcripts, diplomas, certificates, enrollment letters, graduation certificates, mark sheets, academic records.
+        content: `Analyze this document text and determine if it's an academic TRANSCRIPT specifically. This system only processes academic transcripts.
 
-NON-academic documents include: experience letters, employment certificates, recommendation letters, personal statements, cover letters.
+ACCEPTABLE TRANSCRIPTS include:
+- NEB/HSEB Higher Secondary transcripts
+- University transcripts (Tribhuvan University, etc.)
+- Academic mark sheets with subject-wise grades
+- Official academic transcripts with semester/year data
+
+REJECT these documents:
+- Experience letters, employment certificates
+- Diplomas or certificates (without detailed marks)
+- Recommendation letters, personal statements
+- Application forms or admission letters
 
 Document text:
 ${text.substring(0, 2000)}
 
+Look for transcript indicators: subject codes, marks tables, semesters/years, academic institutions, student registration numbers.
+
 Respond with JSON:
 {
   "isAcademic": boolean,
-  "documentType": "transcript|diploma|certificate|enrollment_letter|experience_letter|other",
+  "documentType": "transcript|non_transcript",
   "confidence": number (0-100),
-  "reasoning": "Brief explanation"
+  "reasoning": "Brief explanation of what makes this a transcript or not"
 }`
       }]
     });
@@ -342,12 +354,23 @@ async function classifyDocumentWithOpenAI(text: string): Promise<DocumentClassif
       model: "gpt-4o-mini",
       messages: [{
         role: "user",
-        content: `Analyze this document text and determine if it's an academic document. The text may be incomplete due to OCR processing, but look for any academic indicators.
+        content: `Analyze this document text and determine if it's an academic TRANSCRIPT. This system only accepts transcripts with detailed academic records.
 
-Academic documents include: transcripts, diplomas, certificates, enrollment letters, graduation certificates, mark sheets, academic records, HSEB documents, university transcripts.
+ACCEPTABLE TRANSCRIPTS must have:
+- Subject-wise marks or grades
+- Academic institution name (University, Board, College)
+- Student information and registration details
+- Semester/year academic data
+- Academic transcript structure
 
-Look for keywords like:
-- Institution names (University, Board, College, HSEB)
+REJECT if it's:
+- Experience letter or employment certificate
+- Simple diploma without detailed marks
+- Application or admission form
+- Recommendation letter
+
+Look for transcript keywords:
+- Institution names (Tribhuvan University, HSEB, NEB)
 - Academic terms (Grade XI, Grade XII, Bachelor, First Division)
 - Subject names with marks/grades
 - Student identifiers (Symbol No, Registration No)
