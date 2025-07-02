@@ -270,7 +270,7 @@ ${conversationContext}
 
 Current Student Question: "${message}"
 
-Respond as ${specialist.name} would, providing beautifully formatted educational guidance with proper paragraphs, bullet points, and bold text for emphasis.${initialProfilePrompt}`;
+Respond as ${specialist.name} would, providing beautifully formatted educational guidance with proper paragraphs, bullet points, and bold text for emphasis.`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4o',

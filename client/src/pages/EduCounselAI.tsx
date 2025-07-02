@@ -14,6 +14,7 @@ interface ChatMessage {
   timestamp: Date;
   specialist?: string;
   formatted?: boolean;
+  suggestsBooking?: boolean;
 }
 
 interface ChatResponse {
@@ -79,7 +80,8 @@ export default function EduCounselAI() {
         isUser: false,
         timestamp: new Date(),
         specialist: data.specialist || 'Alex',
-        formatted: true
+        formatted: true,
+        suggestsBooking: data.suggestsBooking || false
       };
       
       console.log('AI Message:', aiMessage);
