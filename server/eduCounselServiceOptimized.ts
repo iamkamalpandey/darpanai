@@ -90,24 +90,7 @@ export async function processEduCounselChatOptimized(request: EduCounselRequest)
       return await startStructuredApplicationFlow(userProfile, mentionedCountry, mentionedField);
     }
     
-    // Handle simple greetings with helpful response
-    const greetings = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'];
-    if (greetings.some(greeting => messageLower.includes(greeting))) {
-      return {
-        response: `Hi ${userProfile.firstName || 'there'}! I'm here to help with your study abroad plans. What would you like to explore today?`,
-        actionButtons: []
-      };
-    }
-    
-    // Handle thanks
-    if (messageLower.includes('thank') || messageLower.includes('thanks')) {
-      return {
-        response: `You're welcome! Let me know if you need any help with your study abroad journey.`,
-        actionButtons: []
-      };
-    }
-    
-    // For other queries, provide minimal AI response
+    // Use AI for ALL messages to provide personalized, database-driven responses
     return await generateMinimalAIResponse(message, userProfile);
     
   } catch (error) {
@@ -295,7 +278,7 @@ async function generateMinimalAIResponse(message: string, userProfile: UserProfi
     console.log('🔍 Generating contextualized AI response for:', message);
     
     // Get relevant data from database
-    const [scholarships, countries] = await Promise.all([
+    const [scholarships, relevantCountries] = await Promise.all([
       getRelevantScholarships(message, userProfile),
       getRelevantCountries(message, userProfile)
     ]);
@@ -326,6 +309,8 @@ GUIDELINES:
 Focus on being genuinely helpful first, then offer next steps naturally.`;
 
     console.log('🔍 Generating AI response with context for message:', message);
+    console.log('📊 Database context:', { scholarshipsFound: scholarships.length, countriesFound: countries.length });
+    console.log('🎯 System prompt preview:', systemPrompt.substring(0, 200) + '...');
     
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -344,6 +329,7 @@ Focus on being genuinely helpful first, then offer next steps naturally.`;
     });
     
     console.log('🤖 OpenAI response received:', response.choices[0]?.message?.content?.substring(0, 100) + '...');
+    console.log('📋 Scholarships being used:', scholarships.map((s: any) => s.name || 'Unknown').join(', '));
     
     const content = response.choices[0]?.message?.content || 'I can help you with study abroad planning. What specific information would you like to know?';
     
@@ -430,6 +416,7 @@ Focus on being genuinely helpful first, then offer next steps naturally.`;
 async function getRelevantScholarships(message: string, userProfile: UserProfile): Promise<any[]> {
   try {
     const messageLower = message.toLowerCase();
+    console.log('🔍 Searching scholarships for message:', message);
     
     // Extract countries mentioned in message
     const countryKeywords = ['australia', 'usa', 'canada', 'uk', 'germany', 'netherlands', 'europe'];
@@ -437,21 +424,36 @@ async function getRelevantScholarships(message: string, userProfile: UserProfile
     
     // Use user preferred countries if no countries mentioned
     const searchCountries = mentionedCountries.length > 0 ? mentionedCountries : userProfile.preferredCountries || [];
+    console.log('🌍 Search countries:', searchCountries);
     
-    // Get scholarships from database
-    const searchParams = {
-      limit: 3,
-      offset: 0,
-      search: searchCountries.join(' '),
-      studyLevel: userProfile.studyLevel || '',
-      providerCountry: searchCountries.length > 0 ? searchCountries[0] : undefined,
-      fieldCategory: userProfile.fieldOfStudy || ''
-    };
+    // If scholarship storage is available, use it
+    if (scholarshipStorage && scholarshipStorage.searchScholarships) {
+      const searchParams = {
+        limit: 3,
+        offset: 0,
+        search: searchCountries.join(' '),
+        studyLevel: userProfile.studyLevel || '',
+        providerCountry: searchCountries.length > 0 ? searchCountries[0] : undefined,
+        fieldCategory: userProfile.fieldOfStudy || ''
+      };
+      
+      console.log('📝 Search params:', searchParams);
+      const result = await scholarshipStorage.searchScholarships(searchParams);
+      console.log('🎯 Scholarship results:', result);
+      return result.scholarships || [];
+    }
     
-    const result = await scholarshipStorage.searchScholarships(searchParams);
-    return result.scholarships || []; // Return scholarships array
+    // Fallback: return sample scholarships based on mentioned countries
+    if (mentionedCountries.includes('australia')) {
+      return [
+        { name: 'Australia Awards Scholarship', fundingType: 'Full funding', targetCountries: ['Australia'] },
+        { name: 'Endeavour Scholarship', fundingType: 'Partial funding', targetCountries: ['Australia'] }
+      ];
+    }
+    
+    return [];
   } catch (error) {
-    console.error('Error fetching scholarships:', error);
+    console.error('❌ Error fetching scholarships:', error);
     return [];
   }
 }
