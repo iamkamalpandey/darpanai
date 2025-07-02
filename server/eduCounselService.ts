@@ -392,6 +392,7 @@ async function manageApplicationProcess(message: string, userProfile: UserProfil
     const mentionedField = fields.find(field => messageLower.includes(field));
     
     // Start immediate step-by-step data collection
+    console.log('🎯 Study intent detected, starting structured application workflow');
     const applicationFlow = await startApplicationDataCollection(userProfile, mentionedCountry, mentionedField);
     return applicationFlow;
   }

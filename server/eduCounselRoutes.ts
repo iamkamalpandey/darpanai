@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { processEduCounselChat, getConversationHistory, saveConversationHistory } from './eduCounselService';
+import { processEduCounselChatOptimized } from './eduCounselServiceOptimized';
+import { getConversationHistory, saveConversationHistory } from './eduCounselService';
 
 // Local auth middleware
 const requireAuth = (req: Request, res: Response, next: any) => {
@@ -26,12 +27,11 @@ router.post('/chat', requireAuth, async (req: Request, res: Response) => {
     // Get user profile for context
     const userProfile = req.user;
     
-    // Process chat with AI
-    const response = await processEduCounselChat({
+    // Process chat with optimized AI service
+    const response = await processEduCounselChatOptimized({
       message,
       conversationHistory: conversationHistory || [],
-      userProfile,
-      userId
+      userProfile
     });
 
     // Save conversation to database
