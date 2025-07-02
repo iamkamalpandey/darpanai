@@ -118,11 +118,11 @@ export default function SmartApplicationManagement() {
   
   // Enhanced filtering with smart search
   const filteredApplications = applications.filter((app: Application) => {
-    const matchesSearch = 
-      app.applicationNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      `${app.personalDetails?.firstName} ${app.personalDetails?.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.targetCountry.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.fieldOfStudy.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = searchQuery === '' ||
+      (app.applicationNumber && app.applicationNumber.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      `${app.personalDetails?.firstName || ''} ${app.personalDetails?.lastName || ''}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (app.targetCountry && app.targetCountry.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (app.fieldOfStudy && app.fieldOfStudy.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || app.priority === priorityFilter;
@@ -143,7 +143,7 @@ export default function SmartApplicationManagement() {
       (applications.filter(app => app.status === 'approved').length / applications.length) * 100 : 0,
     highPriorityCount: applications.filter(app => app.priority === 'high').length,
     documentsToReview: applications.reduce((sum, app) => 
-      sum + app.documents.filter(doc => !doc.verified).length, 0
+      sum + (app.documents && Array.isArray(app.documents) ? app.documents.filter(doc => !doc.verified).length : 0), 0
     ),
   };
 
@@ -333,9 +333,9 @@ export default function SmartApplicationManagement() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900">
-                          {application.personalDetails?.firstName} {application.personalDetails?.lastName}
+                          {application.personalDetails?.firstName || 'Unknown'} {application.personalDetails?.lastName || 'Student'}
                         </h3>
-                        <p className="text-sm text-gray-600">{application.applicationNumber}</p>
+                        <p className="text-sm text-gray-600">{application.applicationNumber || 'No number'}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -351,15 +351,15 @@ export default function SmartApplicationManagement() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
                     <div>
                       <p className="text-sm text-gray-600">Study Level</p>
-                      <p className="font-medium">{application.studyLevel}</p>
+                      <p className="font-medium">{application.studyLevel || 'Not specified'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Target Country</p>
-                      <p className="font-medium">{application.targetCountry}</p>
+                      <p className="font-medium">{application.targetCountry || 'Not specified'}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Field of Study</p>
-                      <p className="font-medium">{application.fieldOfStudy}</p>
+                      <p className="font-medium">{application.fieldOfStudy || 'Not specified'}</p>
                     </div>
                   </div>
 
