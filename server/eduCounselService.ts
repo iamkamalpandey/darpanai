@@ -479,7 +479,7 @@ Respond as ${specialist.name} would, providing beautifully formatted educational
     // Create a meaningful response based on the question
     let fallbackResponse = `I'm experiencing some technical issues, but I can still help you! `;
     
-    if (message.toLowerCase().includes('dekin') || message.toLowerCase().includes('deakin')) {
+    if (request.message.toLowerCase().includes('dekin') || request.message.toLowerCase().includes('deakin')) {
       fallbackResponse += `Regarding Deakin University in Australia:
 
 • Deakin is a well-respected Australian university with campuses in Melbourne, Geelong, and Warrnambool
