@@ -4,6 +4,14 @@ import { countryWorkflowStorage } from './countryWorkflowStorage';
 import { scholarshipStorage } from './scholarshipStorage';
 import { db } from './db';
 
+// Initialize AI clients with triple fallback system
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const deepseek = new OpenAI({
+  apiKey: process.env.DEEPSEEK_API_KEY,
+  baseURL: 'https://api.deepseek.com/v1'
+});
+
 // Import types
 interface EduCounselRequest {
   message: string;
@@ -48,14 +56,6 @@ interface ActionButton {
 }
 
 const DEFAULT_MODEL_STR = "claude-sonnet-4-20250514";
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 /**
  * Optimized EduCounsel chat processing with immediate application flow detection
@@ -290,7 +290,7 @@ PERSONALITY: Be warm, knowledgeable, and genuinely helpful like Apple's customer
 
 AVAILABLE DATA:
 ${scholarships.length > 0 ? `Relevant Scholarships: ${scholarships.map(s => `${s.name} (${s.targetCountries?.join(', ')}) - ${s.fundingType}`).join('; ')}` : ''}
-${countries.length > 0 ? `Countries info available: ${countries.join(', ')}` : ''}
+${relevantCountries.length > 0 ? `Countries info available: ${relevantCountries.join(', ')}` : ''}
 
 USER CONTEXT:
 - Name: ${userProfile.firstName || 'Student'}
@@ -309,29 +309,69 @@ GUIDELINES:
 Focus on being genuinely helpful first, then offer next steps naturally.`;
 
     console.log('🔍 Generating AI response with context for message:', message);
-    console.log('📊 Database context:', { scholarshipsFound: scholarships.length, countriesFound: countries.length });
+    console.log('📊 Database context:', { scholarshipsFound: scholarships.length, countriesFound: relevantCountries.length });
     console.log('🎯 System prompt preview:', systemPrompt.substring(0, 200) + '...');
     
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      max_tokens: 300,
-      temperature: 0.3,
-      messages: [
-        {
-          role: "system",
-          content: systemPrompt
-        },
-        {
-          role: "user",
-          content: message
+    // Triple AI fallback system: DeepSeek → OpenAI → Anthropic Claude
+    let content = '';
+    let usedModel = 'Unknown';
+    
+    try {
+      // Try DeepSeek first (primary AI)
+      console.log('🎯 Attempting DeepSeek...');
+      const deepseekResponse = await deepseek.chat.completions.create({
+        model: "deepseek-chat",
+        max_tokens: 300,
+        temperature: 0.3,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: message }
+        ]
+      });
+      content = deepseekResponse.choices[0]?.message?.content || '';
+      usedModel = 'DeepSeek';
+      console.log('✅ DeepSeek response received');
+    } catch (deepseekError) {
+      console.log('⚠️ DeepSeek failed, trying OpenAI...');
+      try {
+        // Fallback to OpenAI GPT (secondary AI)
+        const openaiResponse = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          max_tokens: 300,
+          temperature: 0.3,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: message }
+          ]
+        });
+        content = openaiResponse.choices[0]?.message?.content || '';
+        usedModel = 'OpenAI GPT-4o-mini';
+        console.log('✅ OpenAI response received');
+      } catch (openaiError) {
+        console.log('⚠️ OpenAI failed, trying Anthropic Claude...');
+        try {
+          // Final fallback to Anthropic Claude (tertiary AI)
+          const anthropicResponse = await anthropic.messages.create({
+            model: DEFAULT_MODEL_STR,
+            max_tokens: 300,
+            messages: [{
+              role: 'user',
+              content: `${systemPrompt}\n\nUser question: ${message}`
+            }]
+          });
+          content = anthropicResponse.content[0]?.type === 'text' ? (anthropicResponse.content[0] as any).text : '';
+          usedModel = 'Anthropic Claude';
+          console.log('✅ Anthropic response received');
+        } catch (anthropicError) {
+          console.error('❌ All AI services failed:', { deepseekError, openaiError, anthropicError });
+          content = 'I can help you with study abroad planning. What specific information would you like to know?';
+          usedModel = 'Fallback';
         }
-      ]
-    });
+      }
+    }
     
-    console.log('🤖 OpenAI response received:', response.choices[0]?.message?.content?.substring(0, 100) + '...');
+    console.log(`🤖 ${usedModel} response received:`, content.substring(0, 100) + '...');
     console.log('📋 Scholarships being used:', scholarships.map((s: any) => s.name || 'Unknown').join(', '));
-    
-    const content = response.choices[0]?.message?.content || 'I can help you with study abroad planning. What specific information would you like to know?';
     
     // Determine appropriate action buttons based on context and message content
     const actionButtons: ActionButton[] = [];
