@@ -22,7 +22,11 @@ import {
   TrendingUp,
   Award,
   MapPin,
-  Search
+  Search,
+  MessageSquare,
+  Brain,
+  CheckCircle,
+  Activity
 } from 'lucide-react';
 
 const SidebarItem = ({ icon, label, href, active }: {
@@ -81,8 +85,11 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
   const sidebarItems = [
     // Priority 1: Core user actions
     { icon: <Home size={20} />, label: 'Dashboard', href: '/' },
+    { icon: <Brain size={20} />, label: 'EduCounsel AI', href: '/educounsel-ai' },
     { icon: <Calendar size={20} />, label: 'Consultation Booking', href: '/consultations' },
     { icon: <FileText size={20} />, label: 'Study Abroad Applications', href: '/student-applications' },
+    { icon: <CheckCircle size={20} />, label: 'Profile-Based Application', href: '/profile-based-application' },
+    { icon: <Activity size={20} />, label: 'Smart Application Tracker', href: '/smart-application-tracker' },
     
     // Priority 2: Analysis tools (most used features)
     { 

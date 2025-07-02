@@ -148,9 +148,9 @@ export default function AdminApplicationManagement() {
   // Filter applications
   const filteredApplications = applications.filter((app: Application) => {
     const matchesSearch = 
-      app.applicationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `${app.personalDetails.firstName} ${app.personalDetails.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.personalDetails.email.toLowerCase().includes(searchTerm.toLowerCase());
+      app.applicationNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${app.personalDetails?.firstName || ''} ${app.personalDetails?.lastName || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.personalDetails?.email?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || app.status === statusFilter;
     const matchesPriority = priorityFilter === "all" || app.priority === priorityFilter;
@@ -349,10 +349,10 @@ export default function AdminApplicationManagement() {
                     <td className="p-4">
                       <div>
                         <p className="font-medium">
-                          {application.personalDetails.firstName} {application.personalDetails.lastName}
+                          {application.personalDetails?.firstName || 'N/A'} {application.personalDetails?.lastName || ''}
                         </p>
-                        <p className="text-sm text-gray-600">{application.personalDetails.email}</p>
-                        <p className="text-sm text-gray-600">{application.personalDetails.phoneNumber}</p>
+                        <p className="text-sm text-gray-600">{application.personalDetails?.email || 'No email provided'}</p>
+                        <p className="text-sm text-gray-600">{application.personalDetails?.phoneNumber || 'No phone provided'}</p>
                       </div>
                     </td>
                     <td className="p-4">
@@ -421,14 +421,14 @@ export default function AdminApplicationManagement() {
                                     <div>
                                       <label className="text-sm font-medium text-gray-600">Full Name</label>
                                       <p className="text-sm">
-                                        {selectedApplication.personalDetails.firstName} {selectedApplication.personalDetails.lastName}
+                                        {selectedApplication.personalDetails?.firstName || 'N/A'} {selectedApplication.personalDetails?.lastName || ''}
                                       </p>
                                     </div>
                                     <div>
                                       <label className="text-sm font-medium text-gray-600">Email</label>
                                       <p className="text-sm flex items-center gap-1">
                                         <Mail className="h-4 w-4" />
-                                        {selectedApplication.personalDetails.email}
+                                        {selectedApplication.personalDetails?.email || 'No email provided'}
                                       </p>
                                     </div>
                                     <div>
