@@ -211,6 +211,68 @@ What specific aspect would you like to discuss today?`;
     });
   };
 
+  const handleActionButtonClick = (button: ActionButton) => {
+    if (button.url) {
+      window.open(button.url, '_blank');
+      return;
+    }
+
+    // Handle different button types
+    switch (button.type) {
+      case 'apply_now':
+        // Trigger application flow by sending explicit application intent message
+        const applicationMessage: ChatMessage = {
+          id: Date.now().toString(),
+          content: button.label,
+          isUser: true,
+          timestamp: new Date()
+        };
+
+        setMessages(prev => [...prev, applicationMessage]);
+        setIsTyping(true);
+        
+        // Send application trigger message to AI
+        sendMessageMutation.mutate({
+          message: "Start Application Begin your university application process",
+          conversationHistory: [...messages, applicationMessage]
+        });
+        break;
+
+      case 'book_consultation':
+        // Navigate to consultation booking page
+        window.location.href = '/consultations';
+        break;
+
+      case 'complete_profile':
+        // Navigate to profile completion page
+        window.location.href = '/profile';
+        break;
+
+      case 'explore_scholarships':
+        // Navigate to scholarship research page
+        window.location.href = '/scholarship-research';
+        break;
+
+      default:
+        // Fallback - treat as conversational message
+        const fallbackMessage: ChatMessage = {
+          id: Date.now().toString(),
+          content: button.label,
+          isUser: true,
+          timestamp: new Date()
+        };
+
+        setMessages(prev => [...prev, fallbackMessage]);
+        setIsTyping(true);
+        
+        sendMessageMutation.mutate({
+          message: button.description || button.label,
+          conversationHistory: [...messages, fallbackMessage]
+        });
+        break;
+    }
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -389,11 +451,7 @@ What specific aspect would you like to discuss today?`;
                             {msg.actionButtons.map((button, index) => (
                               <div key={index}>
                                 <button
-                                  onClick={() => {
-                                    if (button.url) {
-                                      window.open(button.url, '_blank');
-                                    }
-                                  }}
+                                  onClick={() => handleActionButtonClick(button)}
                                   className={`w-full text-left px-4 py-2 rounded-lg border transition-all duration-200 hover:shadow-md ${
                                     button.type === 'book_consultation' 
                                       ? 'bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700'
