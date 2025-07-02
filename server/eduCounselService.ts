@@ -502,6 +502,63 @@ Would you like more specific information about programs, admission requirements,
 }
 
 /**
+ * Enhanced EduCounsel response with database-driven institution recommendations
+ */
+async function enhanceResponseWithInstitutions(
+  response: string,
+  userProfile: UserProfile,
+  userMessage: string
+): Promise<{ response: string; actionButtons: ActionButton[] }> {
+  const messageLower = userMessage.toLowerCase();
+  const responseLower = response.toLowerCase();
+  
+  // Check if user is asking about specific countries, programs, or universities
+  const askingAboutInstitutions = 
+    messageLower.includes('university') || messageLower.includes('college') ||
+    messageLower.includes('program') || messageLower.includes('course') ||
+    ['usa', 'canada', 'australia', 'germany', 'uk'].some(country => messageLower.includes(country));
+  
+  if (askingAboutInstitutions && userProfile.fieldOfStudy && userProfile.preferredCountries) {
+    try {
+      // Import the service dynamically to avoid circular dependencies
+      const { institutionRecommendationService } = await import('./institutionRecommendationService');
+      
+      const recommendations = await institutionRecommendationService.getRecommendationsForUser({
+        preferredCountries: userProfile.preferredCountries,
+        fieldOfStudy: userProfile.fieldOfStudy,
+        studyLevel: userProfile.studyLevel,
+        budgetRange: userProfile.budgetRange
+      });
+
+      if (recommendations.length > 0) {
+        let institutionInfo = '\n\n**🏛️ Recommended Universities & Programs:**\n\n';
+        
+        recommendations.slice(0, 3).forEach((inst, index) => {
+          institutionInfo += `**${index + 1}. ${inst.institutionName}** (${inst.country})\n`;
+          institutionInfo += `• ${inst.reasonForRecommendation}\n`;
+          
+          if (inst.matchingPrograms.length > 0) {
+            const program = inst.matchingPrograms[0];
+            institutionInfo += `• **Program**: ${program.programName} (${program.degree})\n`;
+            if (program.fees.totalEstimated > 0) {
+              institutionInfo += `• **Estimated Fees**: ${program.fees.currency} ${program.fees.totalEstimated.toLocaleString()}/year\n`;
+            }
+          }
+          institutionInfo += '\n';
+        });
+        
+        response = response + institutionInfo;
+      }
+    } catch (error) {
+      console.error('Error fetching institution recommendations:', error);
+    }
+  }
+  
+  const actionButtons = generateActionButtons(response, userProfile, userMessage);
+  return { response, actionButtons };
+}
+
+/**
  * Generate contextual action buttons based on conversation content
  */
 function generateActionButtons(response: string, userProfile: UserProfile, userMessage: string): ActionButton[] {
