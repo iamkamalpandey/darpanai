@@ -1,12 +1,26 @@
 import { Router } from "express";
 import { countryWorkflowStorage } from "./countryWorkflowStorage";
-import { isAuthenticated, requireAdmin } from "./auth";
 import { 
   insertCountryWorkflowSchema,
   insertChecklistItemSchema,
   insertUserApplicationSchema,
   insertConsultationBookingSchema
 } from "@shared/schema";
+
+// Local middleware functions
+const requireAuth = (req: any, res: any, next: any) => {
+  if (!req.user) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+  next();
+};
+
+const requireAdmin = (req: any, res: any, next: any) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ error: "Admin access required" });
+  }
+  next();
+};
 
 const router = Router();
 
@@ -185,7 +199,7 @@ router.get('/check-workflow/:countryCode/:studyLevel', async (req, res) => {
 });
 
 // Get workflow with checklist for user
-router.get('/workflow/:countryCode/:studyLevel', isAuthenticated, async (req, res) => {
+router.get('/workflow/:countryCode/:studyLevel', requireAuth, async (req, res) => {
   try {
     const { countryCode, studyLevel } = req.params;
     const workflow = await countryWorkflowStorage.getWorkflowByCountry(countryCode.toUpperCase(), studyLevel);

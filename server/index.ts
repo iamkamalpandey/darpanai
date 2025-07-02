@@ -240,6 +240,11 @@ process.on('unhandledRejection', (reason, promise) => {
     app.use('/api/educounsel', eduCounselRoutes.default);
     logWithLevel('✓ EduCounsel AI routes registered successfully');
     
+    // Register Country Workflow Management routes
+    const countryWorkflowRoutes = await import('./countryWorkflowRoutes');
+    app.use('/api/country-workflow', countryWorkflowRoutes.default);
+    logWithLevel('✓ Country workflow management routes registered successfully');
+    
     // Register application management routes
     const applicationRoutes = await import('./applicationRoutes');
     app.use('/api/applications', applicationRoutes.default);
