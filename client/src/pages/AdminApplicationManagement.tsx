@@ -97,13 +97,15 @@ export default function AdminApplicationManagement() {
   const queryClient = useQueryClient();
 
   // Fetch applications
-  const { data: applications, isLoading } = useQuery({
+  const { data: responseData, isLoading } = useQuery({
     queryKey: ["/api/admin/applications"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/admin/applications");
       return response.json();
     }
   });
+
+  const applications = responseData?.applications || [];
 
   // Add note mutation
   const addNoteMutation = useMutation({
@@ -144,7 +146,7 @@ export default function AdminApplicationManagement() {
   });
 
   // Filter applications
-  const filteredApplications = applications?.filter((app: Application) => {
+  const filteredApplications = applications.filter((app: Application) => {
     const matchesSearch = 
       app.applicationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       `${app.personalDetails.firstName} ${app.personalDetails.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -154,15 +156,15 @@ export default function AdminApplicationManagement() {
     const matchesPriority = priorityFilter === "all" || app.priority === priorityFilter;
     
     return matchesSearch && matchesStatus && matchesPriority;
-  }) || [];
+  });
 
   // Calculate statistics
   const stats = {
-    total: applications?.length || 0,
-    submitted: applications?.filter((app: Application) => app.status === 'submitted').length || 0,
-    underReview: applications?.filter((app: Application) => app.status === 'under_review').length || 0,
-    approved: applications?.filter((app: Application) => app.status === 'approved').length || 0,
-    highPriority: applications?.filter((app: Application) => app.priority === 'high').length || 0
+    total: applications.length,
+    submitted: applications.filter((app: Application) => app.status === 'submitted').length,
+    underReview: applications.filter((app: Application) => app.status === 'under_review').length,
+    approved: applications.filter((app: Application) => app.status === 'approved').length,
+    highPriority: applications.filter((app: Application) => app.priority === 'high').length
   };
 
   const handleAddNote = () => {

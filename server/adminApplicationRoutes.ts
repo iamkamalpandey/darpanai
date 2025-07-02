@@ -110,7 +110,7 @@ router.get("/applications", async (req: Request, res: Response) => {
       notes: app.notes || []
     }));
 
-    res.json(applications);
+    res.json({ success: true, applications });
   } catch (error) {
     console.error("Error fetching applications:", error);
     res.status(500).json({ 
