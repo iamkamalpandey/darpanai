@@ -221,7 +221,7 @@ router.get('/workflow/:countryCode/:studyLevel', requireAuth, async (req, res) =
 });
 
 // Start user application
-router.post('/applications/start', isAuthenticated, async (req, res) => {
+router.post('/applications/start', requireAuth, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const { workflowId } = req.body;
@@ -251,7 +251,7 @@ router.post('/applications/start', isAuthenticated, async (req, res) => {
 });
 
 // Get user's applications
-router.get('/applications', isAuthenticated, async (req, res) => {
+router.get('/applications', requireAuth, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const applications = await countryWorkflowStorage.getUserApplications(userId);
@@ -263,7 +263,7 @@ router.get('/applications', isAuthenticated, async (req, res) => {
 });
 
 // Get specific user application
-router.get('/applications/:id', isAuthenticated, async (req, res) => {
+router.get('/applications/:id', requireAuth, async (req, res) => {
   try {
     const applicationId = parseInt(req.params.id);
     const application = await countryWorkflowStorage.getUserApplication(applicationId);
@@ -286,7 +286,7 @@ router.get('/applications/:id', isAuthenticated, async (req, res) => {
 });
 
 // Update application progress
-router.patch('/applications/:id/progress', isAuthenticated, async (req, res) => {
+router.patch('/applications/:id/progress', requireAuth, async (req, res) => {
   try {
     const applicationId = parseInt(req.params.id);
     const { applicationData, completedItems, progressPercentage } = req.body;
@@ -319,7 +319,7 @@ router.patch('/applications/:id/progress', isAuthenticated, async (req, res) => 
 // ===== CONSULTATION BOOKING ROUTES =====
 
 // Book consultation for unsupported country
-router.post('/consultations/book', isAuthenticated, async (req, res) => {
+router.post('/consultations/book', requireAuth, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const bookingData = insertConsultationBookingSchema.parse({
@@ -336,7 +336,7 @@ router.post('/consultations/book', isAuthenticated, async (req, res) => {
 });
 
 // Get user's consultation bookings
-router.get('/consultations', isAuthenticated, async (req, res) => {
+router.get('/consultations', requireAuth, async (req, res) => {
   try {
     const userId = (req.user as any).id;
     const bookings = await countryWorkflowStorage.getConsultationBookings(userId);
