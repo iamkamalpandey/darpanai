@@ -374,54 +374,109 @@ function generateShortResponse(message: string, userProfile: UserProfile): strin
 async function manageApplicationProcess(message: string, userProfile: UserProfile): Promise<{response: string, actionButtons: ActionButton[]}> {
   const messageLower = message.toLowerCase();
   
-  // Check if user wants to apply for a specific program
-  if (messageLower.includes('apply') || messageLower.includes('application')) {
-    // Check if user has selected institution and program
-    if (!userProfile.preferredCountries || !userProfile.fieldOfStudy) {
-      return {
-        response: `To start your application, I need to know your preferences first. Please complete your profile with:\n\n• Preferred study countries\n• Field of study\n• Academic background\n\nOnce complete, I can guide you through applications to specific universities.`,
-        actionButtons: [{
-          type: 'complete_profile',
-          label: 'Complete Profile',
-          description: 'Add your study preferences and academic background'
-        }]
-      };
-    }
+  // Check if user wants to study in a specific country or apply
+  const studyIntentPatterns = [
+    'want to study', 'study in', 'apply', 'application', 'university', 'college',
+    'admission', 'course', 'program', 'degree', 'masters', 'bachelor'
+  ];
+  
+  const hasStudyIntent = studyIntentPatterns.some(pattern => messageLower.includes(pattern));
+  
+  if (hasStudyIntent) {
+    // Extract country mention
+    const countries = ['australia', 'canada', 'usa', 'uk', 'united kingdom', 'germany', 'netherlands'];
+    const mentionedCountry = countries.find(country => messageLower.includes(country));
     
-    // Get institution recommendations and guide application
+    // Extract field mention
+    const fields = ['information technology', 'computer science', 'engineering', 'business', 'it', 'cs'];
+    const mentionedField = fields.find(field => messageLower.includes(field));
+    
+    // If user has study intent, start immediate application process
     try {
       const { institutionRecommendationService } = await import('./institutionRecommendationService');
-      const recommendations = await institutionRecommendationService.getRecommendationsForUser({
-        preferredCountries: userProfile.preferredCountries,
-        fieldOfStudy: userProfile.fieldOfStudy,
-        studyLevel: userProfile.studyLevel,
-        budgetRange: userProfile.budgetRange
-      });
+      
+      // Use mentioned preferences or fallback to profile
+      const searchCriteria = {
+        preferredCountries: mentionedCountry ? [mentionedCountry] : (userProfile.preferredCountries || ['australia']),
+        fieldOfStudy: mentionedField || userProfile.fieldOfStudy || 'Information Technology',
+        studyLevel: userProfile.studyLevel || 'Masters',
+        budgetRange: userProfile.budgetRange || 'medium'
+      };
+      
+      const recommendations = await institutionRecommendationService.getRecommendationsForUser(searchCriteria);
 
       if (recommendations.length > 0) {
         const inst = recommendations[0]; // Top recommendation
+        const program = inst.matchingPrograms[0];
+        
+        // Start collecting missing information immediately
+        const missingInfo = [];
+        if (!userProfile.firstName || !userProfile.lastName) missingInfo.push('Full name');
+        if (!userProfile.dateOfBirth) missingInfo.push('Date of birth');
+        if (!userProfile.nationality) missingInfo.push('Nationality');
+        if (!userProfile.email) missingInfo.push('Email address');
+        if (!userProfile.gpa) missingInfo.push('Academic GPA');
+        if (!userProfile.previousQualification) missingInfo.push('Previous degree');
+        
+        let response = `Perfect! I found the ideal match for you:\n\n`;
+        response += `🎓 **${inst.institutionName}** (${inst.country})\n`;
+        response += `📚 **${program?.programName}** (${program?.degree})\n`;
+        response += `💰 **Annual Fees**: ${inst.averageFees.currency} ${inst.averageFees.totalEstimated.toLocaleString()}\n`;
+        response += `📊 **Match Score**: ${inst.matchScore}/100\n\n`;
+        response += `${inst.reasonForRecommendation}\n\n`;
+        
+        if (missingInfo.length > 0) {
+          response += `To start your application, I need:\n${missingInfo.map(info => `• ${info}`).join('\n')}\n\n`;
+          response += `Let's collect this information step by step. What's your full name?`;
+          
+          return {
+            response,
+            actionButtons: [{
+              type: 'start_application',
+              label: 'Start Application Process',
+              description: `Apply to ${inst.institutionName}`,
+              url: `/apply/${inst.institutionId}/${program?.programId}`
+            }, {
+              type: 'complete_profile',
+              label: 'Complete Profile First',
+              description: 'Fill out your complete profile for better recommendations'
+            }]
+          };
+        } else {
+          response += `Your profile is complete! Ready to submit your application?\n\n`;
+          response += `**Next Steps:**\n• Review application details\n• Upload required documents\n• Submit application\n• Track status`;
+          
+          return {
+            response,
+            actionButtons: [{
+              type: 'apply_now',
+              label: 'Submit Application',
+              description: `Apply to ${inst.institutionName} now`,
+              url: `/apply/${inst.institutionId}/${program?.programId}`
+            }]
+          };
+        }
+      } else {
         return {
-          response: `Perfect! Based on your profile, I recommend starting with **${inst.institutionName}** in ${inst.country}.\n\n**${inst.matchingPrograms[0]?.programName}** (${inst.matchingPrograms[0]?.degree})\n• ${inst.reasonForRecommendation}\n• Fees: ${inst.averageFees.currency} ${inst.averageFees.totalEstimated.toLocaleString()}/year\n\nReady to start your application? I'll guide you step-by-step through:\n1. Document preparation\n2. Eligibility verification\n3. Application submission\n4. Status tracking`,
+          response: `I understand you want to study ${mentionedField || 'in your field'} ${mentionedCountry ? `in ${mentionedCountry}` : ''}. Let me help you find the right programs.\n\nTo provide specific university recommendations with exact fees and requirements, I need to know:\n• Your academic background\n• Preferred study level\n• Budget range\n\nShall we start with your previous qualification?`,
           actionButtons: [{
-            type: 'apply_now',
-            label: 'Start Application',
-            description: `Begin application for ${inst.institutionName}`,
-            url: `/apply/${inst.institutionId}/${inst.matchingPrograms[0]?.programId}`
+            type: 'complete_profile',
+            label: 'Provide Academic Details',
+            description: 'Share your background for personalized recommendations'
           }]
         };
       }
     } catch (error) {
       console.error('Error getting recommendations:', error);
+      return {
+        response: `I can help you apply to study ${mentionedField || ''} ${mentionedCountry ? `in ${mentionedCountry}` : ''}. Let me gather some information first.\n\nWhat's your current educational background?`,
+        actionButtons: [{
+          type: 'complete_profile',
+          label: 'Share Academic Background',
+          description: 'Tell me about your education'
+        }]
+      };
     }
-    
-    return {
-      response: `I'll help you find and apply to the right university. Let me get some recommendations based on your profile first.`,
-      actionButtons: [{
-        type: 'explore_scholarships',
-        label: 'Explore Universities',
-        description: 'Find institutions matching your profile'
-      }]
-    };
   }
   
   // Check for document-related queries

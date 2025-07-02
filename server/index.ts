@@ -240,6 +240,11 @@ process.on('unhandledRejection', (reason, promise) => {
     app.use('/api/educounsel', eduCounselRoutes.default);
     logWithLevel('✓ EduCounsel AI routes registered successfully');
     
+    // Register application management routes
+    const applicationRoutes = await import('./applicationRoutes');
+    app.use('/api/applications', applicationRoutes.default);
+    logWithLevel('✓ Application management routes registered successfully');
+    
     // Institution routes temporarily disabled due to auth dependency
     // Will be enabled after fixing requireAuth import
     logWithLevel('✓ Institution routes preparation completed');
