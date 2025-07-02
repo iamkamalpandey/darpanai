@@ -65,7 +65,16 @@ interface EduCounselResponse {
   nextSteps?: string[];
   requiresMoreInfo?: boolean;
   suggestsBooking?: boolean;
+  actionButtons?: ActionButton[];
   missingProfileData?: string[];
+}
+
+interface ActionButton {
+  type: 'book_consultation' | 'apply_now' | 'explore_scholarships' | 'complete_profile';
+  label: string;
+  description: string;
+  url?: string;
+  action?: string;
 }
 
 // AI Specialist definitions
@@ -452,11 +461,15 @@ Respond as ${specialist.name} would, providing beautifully formatted educational
       missingProfileData.push('field of study');
     }
     
+    // Generate contextual action buttons
+    const actionButtons = generateActionButtons(aiResponse, userProfile, message);
+    
     return {
-      response: aiResponse + initialProfilePrompt,
+      response: aiResponse,
       specialist: specialist.name,
       requiresMoreInfo,
       suggestsBooking,
+      actionButtons,
       missingProfileData: missingProfileData.length > 0 ? missingProfileData : undefined
     };
     
@@ -486,6 +499,72 @@ Would you like more specific information about programs, admission requirements,
       requiresMoreInfo: false
     };
   }
+}
+
+/**
+ * Generate contextual action buttons based on conversation content
+ */
+function generateActionButtons(response: string, userProfile: UserProfile, userMessage: string): ActionButton[] {
+  const buttons: ActionButton[] = [];
+  const responseLower = response.toLowerCase();
+  const messageLower = userMessage.toLowerCase();
+  
+  // Check if discussing specific countries or application processes
+  const discussingCountries = ['usa', 'united states', 'canada', 'australia', 'uk', 'germany', 'france'].some(country => 
+    responseLower.includes(country) || messageLower.includes(country)
+  );
+  
+  // Check if discussing costs, fees, or financial planning
+  const discussingCosts = ['cost', 'fee', 'tuition', 'expense', 'budget', 'financial', 'scholarship'].some(term => 
+    responseLower.includes(term) || messageLower.includes(term)
+  );
+  
+  // Check if discussing application process or requirements
+  const discussingApplication = ['application', 'apply', 'requirement', 'document', 'visa', 'admission'].some(term => 
+    responseLower.includes(term) || messageLower.includes(term)
+  );
+  
+  // Add consultation booking button for country-specific or application discussions
+  if (discussingCountries || discussingApplication) {
+    buttons.push({
+      type: 'book_consultation',
+      label: 'Book Free Consultation',
+      description: 'Get personalized guidance from our education counselors',
+      url: '/consultations'
+    });
+  }
+  
+  // Add apply now button for application-related discussions
+  if (discussingApplication && userProfile.completionPercentage && userProfile.completionPercentage > 70) {
+    buttons.push({
+      type: 'apply_now',
+      label: 'Start Application Process',
+      description: 'Begin your study abroad application journey',
+      url: '/simple-assessment'
+    });
+  }
+  
+  // Add scholarship exploration for cost discussions
+  if (discussingCosts) {
+    buttons.push({
+      type: 'explore_scholarships',
+      label: 'Explore Scholarships',
+      description: 'Find funding opportunities for your studies',
+      url: '/scholarship-research'
+    });
+  }
+  
+  // Add profile completion if profile is incomplete
+  if (!userProfile.completionPercentage || userProfile.completionPercentage < 80) {
+    buttons.push({
+      type: 'complete_profile',
+      label: 'Complete Profile',
+      description: 'Get more personalized recommendations',
+      url: '/profile'
+    });
+  }
+  
+  return buttons;
 }
 
 /**

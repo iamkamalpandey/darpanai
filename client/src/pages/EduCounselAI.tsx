@@ -15,6 +15,15 @@ interface ChatMessage {
   specialist?: string;
   formatted?: boolean;
   suggestsBooking?: boolean;
+  actionButtons?: ActionButton[];
+}
+
+interface ActionButton {
+  type: 'book_consultation' | 'apply_now' | 'explore_scholarships' | 'complete_profile';
+  label: string;
+  description: string;
+  url?: string;
+  action?: string;
 }
 
 interface ChatResponse {
@@ -81,7 +90,8 @@ export default function EduCounselAI() {
         timestamp: new Date(),
         specialist: data.specialist || 'Alex',
         formatted: true,
-        suggestsBooking: data.suggestsBooking || false
+        suggestsBooking: data.suggestsBooking || false,
+        actionButtons: data.actionButtons || []
       };
       
       console.log('AI Message:', aiMessage);
@@ -342,6 +352,47 @@ What specific aspect would you like to discuss today?`;
                           <span className="text-xs text-gray-500">
                             Guided by {msg.specialist}
                           </span>
+                        </div>
+                      )}
+                      
+                      {/* Action Buttons */}
+                      {msg.actionButtons && msg.actionButtons.length > 0 && !msg.isUser && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="space-y-2">
+                            {msg.actionButtons.map((button, index) => (
+                              <div key={index}>
+                                <button
+                                  onClick={() => {
+                                    if (button.url) {
+                                      window.open(button.url, '_blank');
+                                    }
+                                  }}
+                                  className={`w-full text-left px-4 py-2 rounded-lg border transition-all duration-200 hover:shadow-md ${
+                                    button.type === 'book_consultation' 
+                                      ? 'bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700'
+                                      : button.type === 'apply_now'
+                                      ? 'bg-green-50 border-green-200 hover:bg-green-100 text-green-700'
+                                      : button.type === 'explore_scholarships'
+                                      ? 'bg-purple-50 border-purple-200 hover:bg-purple-100 text-purple-700'
+                                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-700'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <div className="font-medium text-sm">{button.label}</div>
+                                      <div className="text-xs opacity-80">{button.description}</div>
+                                    </div>
+                                    <div className="ml-2">
+                                      {button.type === 'book_consultation' && <Calendar className="w-4 h-4" />}
+                                      {button.type === 'apply_now' && <FileText className="w-4 h-4" />}
+                                      {button.type === 'explore_scholarships' && <Search className="w-4 h-4" />}
+                                      {button.type === 'complete_profile' && <User className="w-4 h-4" />}
+                                    </div>
+                                  </div>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
