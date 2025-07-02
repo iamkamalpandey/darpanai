@@ -26,7 +26,8 @@ import {
   MessageSquare,
   Brain,
   CheckCircle,
-  Activity
+  Activity,
+  FileSearch
 } from 'lucide-react';
 
 const SidebarItem = ({ icon, label, href, active }: {
@@ -90,6 +91,8 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
     { icon: <FileText size={20} />, label: 'Study Abroad Applications', href: '/student-applications' },
     { icon: <CheckCircle size={20} />, label: 'Profile-Based Application', href: '/profile-based-application' },
     { icon: <Activity size={20} />, label: 'Smart Application Tracker', href: '/smart-application-tracker' },
+    { icon: <MessageSquare size={20} />, label: 'Communication Center', href: '/communication-center' },
+    { icon: <FileSearch size={20} />, label: 'Document Intelligence', href: '/document-intelligence' },
     
     // Priority 2: Analysis tools (most used features)
     { 

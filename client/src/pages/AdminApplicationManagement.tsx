@@ -435,7 +435,7 @@ export default function AdminApplicationManagement() {
                                       <label className="text-sm font-medium text-gray-600">Phone</label>
                                       <p className="text-sm flex items-center gap-1">
                                         <Phone className="h-4 w-4" />
-                                        {selectedApplication.personalDetails.phoneNumber}
+                                        {selectedApplication.personalDetails?.phoneNumber || 'No phone provided'}
                                       </p>
                                     </div>
                                     <div>

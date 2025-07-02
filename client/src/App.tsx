@@ -91,6 +91,8 @@ const GamifiedLearningPath = lazy(() => import("@/pages/GamifiedLearningPathSimp
 const StudentApplicationSystem = lazy(() => import("@/pages/StudentApplicationSystem"));
 const ProfileBasedApplication = lazy(() => import("@/pages/ProfileBasedApplication"));
 const SmartApplicationTracker = lazy(() => import("@/pages/SmartApplicationTracker"));
+const CommunicationCenter = lazy(() => import("@/pages/CommunicationCenter"));
+const DocumentIntelligenceHub = lazy(() => import("@/pages/DocumentIntelligenceHub"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -265,6 +267,20 @@ function Router() {
         <UserProtectedRoute path="/smart-application-tracker" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <SmartApplicationTracker />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/communication-center">
+        <UserProtectedRoute path="/communication-center" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <CommunicationCenter />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/document-intelligence">
+        <UserProtectedRoute path="/document-intelligence" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <DocumentIntelligenceHub />
           </Suspense>
         )} />
       </Route>
