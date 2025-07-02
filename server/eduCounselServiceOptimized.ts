@@ -11,6 +11,11 @@ interface EduCounselRequest {
 interface EduCounselResponse {
   response: string;
   actionButtons: ActionButton[];
+  requiresSelection?: {
+    type: 'study_level' | 'field_of_study' | 'country';
+    options: string[];
+    question: string;
+  };
 }
 
 interface ChatMessage {
@@ -138,23 +143,48 @@ async function startStructuredApplicationFlow(
   
   if (!userProfile.studyLevel) {
     return {
-      response: `Perfect, ${userProfile.firstName}!\n\n**What level of study are you applying for?**\n\n• Bachelor's Degree\n• Master's Degree\n• PhD/Doctorate`,
+      response: `Perfect, ${userProfile.firstName}!\n\nI need to know what level of study you're applying for to recommend the best universities and programs.`,
       actionButtons: [{
         type: 'complete_profile',
-        label: 'Select Study Level',
-        description: 'Choose your degree level'
-      }]
+        label: 'Continue',
+        description: 'Complete your application'
+      }],
+      requiresSelection: {
+        type: 'study_level',
+        options: [
+          'Bachelor\'s Degree',
+          'Master\'s Degree',
+          'PhD/Doctorate',
+          'Diploma/Certificate',
+          'Foundation/Pathway Program'
+        ],
+        question: 'What level of study are you applying for?'
+      }
     };
   }
   
   if (!userProfile.fieldOfStudy) {
     return {
-      response: `**What field would you like to study?**\n\n• Information Technology\n• Computer Science\n• Engineering\n• Business Administration\n• Other`,
+      response: `Great choice on ${userProfile.studyLevel}!\n\nNow I need to know what field you want to study to find the best programs and universities.`,
       actionButtons: [{
         type: 'complete_profile',
-        label: 'Select Field',
-        description: 'Choose your study field'
-      }]
+        label: 'Continue',
+        description: 'Complete your application'
+      }],
+      requiresSelection: {
+        type: 'field_of_study',
+        options: [
+          'Information Technology',
+          'Computer Science',
+          'Engineering',
+          'Business Administration',
+          'Data Science',
+          'Cybersecurity',
+          'Medicine',
+          'Other (please specify)'
+        ],
+        question: 'What field would you like to study?'
+      }
     };
   }
   

@@ -421,6 +421,27 @@ What specific aspect would you like to discuss today?`;
                           </div>
                         </div>
                       )}
+
+                      {/* Interactive Selection Dropdown */}
+                      {msg.requiresSelection && !msg.isUser && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium text-gray-700">{msg.requiresSelection.question}</p>
+                            <Select onValueChange={(value) => handleSelectionChange(msg.requiresSelection!.type, value)}>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Choose your degree level" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {msg.requiresSelection.options.map((option, index) => (
+                                  <SelectItem key={index} value={option}>
+                                    {option}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
