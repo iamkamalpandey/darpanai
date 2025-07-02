@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import {
@@ -216,6 +217,46 @@ export default function UnifiedApplicationManagement() {
   const [attachments, setAttachments] = useState<File[]>([]);
   const [isInternal, setIsInternal] = useState(false);
   const [editData, setEditData] = useState<Partial<Application>>({});
+
+  // Admin dialog state variables
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [remarkDialogOpen, setRemarkDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [statusDialogApplication, setStatusDialogApplication] = useState<Application | null>(null);
+  const [remarkDialogApplication, setRemarkDialogApplication] = useState<Application | null>(null);
+  const [editDialogApplication, setEditDialogApplication] = useState<Application | null>(null);
+  const [statusNotes, setStatusNotes] = useState('');
+  const [newRemark, setNewRemark] = useState({
+    type: 'general',
+    message: '',
+    isInternal: false,
+    requestedDocuments: [] as string[],
+    attachments: [] as File[]
+  });
+  const [editFormData, setEditFormData] = useState({
+    priority: '',
+    status: '',
+    personalDetails: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phoneNumber: '',
+      nationality: '',
+      passportNumber: ''
+    },
+    academicDetails: {
+      highestQualification: '',
+      institution: '',
+      gpa: '',
+      graduationYear: ''
+    },
+    targetCountry: '',
+    studyLevel: '',
+    fieldOfStudy: '',
+    preferredIntake: '',
+    budgetRange: '',
+    fundingSource: ''
+  });
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -434,65 +475,92 @@ export default function UnifiedApplicationManagement() {
     setIsInternal(false);
   };
 
+
+
+  // Dialog handler functions
+  const openStatusDialog = (application: Application) => {
+    setStatusDialogApplication(application);
+    setNewStatus(application.status);
+    setStatusNotes('');
+    setStatusDialogOpen(true);
+  };
+
+  const openRemarkDialog = (application: Application) => {
+    setRemarkDialogApplication(application);
+    setNewRemark({
+      type: 'general',
+      message: '',
+      isInternal: false,
+      requestedDocuments: [],
+      attachments: []
+    });
+    setRemarkDialogOpen(true);
+  };
+
+  const openEditDialog = (application: Application) => {
+    setEditDialogApplication(application);
+    setEditFormData({
+      priority: application.priority || '',
+      status: application.status || '',
+      personalDetails: {
+        firstName: application.personalDetails?.firstName || '',
+        lastName: application.personalDetails?.lastName || '',
+        email: application.personalDetails?.email || '',
+        phoneNumber: application.personalDetails?.phoneNumber || '',
+        nationality: application.personalDetails?.nationality || '',
+        passportNumber: application.personalDetails?.passportNumber || ''
+      },
+      academicDetails: {
+        highestQualification: application.academicDetails?.highestQualification || '',
+        institution: application.academicDetails?.institution || '',
+        gpa: application.academicDetails?.gpa || '',
+        graduationYear: application.academicDetails?.graduationYear || ''
+      },
+      targetCountry: application.targetCountry || '',
+      studyLevel: application.studyLevel || '',
+      fieldOfStudy: application.fieldOfStudy || '',
+      preferredIntake: application.preferredIntake || '',
+      budgetRange: application.budgetRange || '',
+      fundingSource: application.fundingSource || ''
+    });
+    setEditDialogOpen(true);
+  };
+
   const handleStatusUpdate = () => {
-    if (!selectedApplication) return;
+    if (!statusDialogApplication) return;
     
     updateStatusMutation.mutate({
-      applicationId: selectedApplication.id,
+      applicationId: statusDialogApplication.id,
       status: newStatus || undefined,
-      priority: newPriority || undefined,
-      remarks: remarkText || undefined,
+      remarks: statusNotes || undefined,
     });
   };
 
   const handleAddRemark = () => {
-    if (!selectedApplication || !remarkText.trim()) return;
+    if (!remarkDialogApplication || !newRemark.message.trim()) return;
     
     addRemarkMutation.mutate({
-      applicationId: selectedApplication.id,
-      type: remarkType,
-      message: remarkText,
-      requestedDocuments: requestedDocuments.length > 0 ? requestedDocuments : undefined,
-      isInternal,
-      attachments: attachments.length > 0 ? attachments : undefined,
+      applicationId: remarkDialogApplication.id,
+      type: newRemark.type,
+      message: newRemark.message,
+      requestedDocuments: newRemark.requestedDocuments.length > 0 ? newRemark.requestedDocuments : undefined,
+      isInternal: newRemark.isInternal,
+      attachments: newRemark.attachments.length > 0 ? newRemark.attachments : undefined,
     });
   };
 
   const handleEditApplication = () => {
-    if (!selectedApplication) return;
+    if (!editDialogApplication) return;
     
     updateApplicationMutation.mutate({
-      applicationId: selectedApplication.id,
-      updateData: editData,
+      applicationId: editDialogApplication.id,
+      updateData: editFormData,
     });
   };
 
-  const openStatusDialog = (application: Application) => {
-    setSelectedApplication(application);
-    setNewStatus(application.status);
-    setNewPriority(application.priority);
-    setShowStatusDialog(true);
-  };
 
-  const openRemarkDialog = (application: Application) => {
-    setSelectedApplication(application);
-    setShowRemarkDialog(true);
-  };
 
-  const openEditDialog = (application: Application) => {
-    setSelectedApplication(application);
-    setEditData({
-      personalDetails: application.personalDetails,
-      academicDetails: application.academicDetails,
-      targetCountry: application.targetCountry,
-      studyLevel: application.studyLevel,
-      fieldOfStudy: application.fieldOfStudy,
-      preferredIntake: application.preferredIntake,
-      budgetRange: application.budgetRange,
-      fundingSource: application.fundingSource,
-    });
-    setShowEditDialog(true);
-  };
+
 
   // Additional helper functions
   const getStatusBadge = (status: string) => {
