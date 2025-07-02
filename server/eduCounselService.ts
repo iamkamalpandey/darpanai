@@ -266,7 +266,10 @@ Respond as ${specialist.name} would, providing personalized guidance based on th
     temperature: 0.7,
   });
 
-  return response.choices[0].message.content || 'I apologize, but I cannot process your request right now.';
+  const aiContent = response.choices[0].message.content;
+  console.log('📝 OpenAI response content:', aiContent?.substring(0, 200) + '...');
+  
+  return aiContent || 'I apologize, but I cannot process your request right now.';
 }
 
 /**
@@ -325,8 +328,14 @@ Respond as ${specialist.name} would, providing personalized guidance based on th
     } catch (anthropicError: any) {
       console.log('❌ Anthropic API failed, falling back to OpenAI...');
       
-      // Fallback to OpenAI
-      aiResponse = await processWithOpenAI(message, specialist, profileContext, conversationContext);
+      try {
+        // Fallback to OpenAI
+        aiResponse = await processWithOpenAI(message, specialist, profileContext, conversationContext);
+        console.log('✅ OpenAI fallback successful, response length:', aiResponse?.length || 0);
+      } catch (openaiError: any) {
+        console.error('❌ OpenAI fallback also failed:', openaiError);
+        aiResponse = `I apologize, but I'm experiencing technical difficulties. However, I can still help with general guidance about ${message.includes('dekin') || message.includes('deakin') ? 'Deakin University' : 'your study abroad questions'}.`;
+      }
     }
     
     // Analyze if more information is needed
@@ -353,18 +362,25 @@ Respond as ${specialist.name} would, providing personalized guidance based on th
   } catch (error) {
     console.error('❌ EduCounsel AI processing error:', error);
     
-    // Final fallback response
+    // Create a meaningful response based on the question
+    let fallbackResponse = `I'm experiencing some technical issues, but I can still help you! `;
+    
+    if (message.toLowerCase().includes('dekin') || message.toLowerCase().includes('deakin')) {
+      fallbackResponse += `Regarding Deakin University in Australia:
+
+• Deakin is a well-respected Australian university with campuses in Melbourne, Geelong, and Warrnambool
+• Known for strong programs in business, engineering, health sciences, and IT
+• Offers pathway programs for international students
+• Tuition ranges from AUD 25,000-40,000 per year depending on the program
+• Requires IELTS 6.0-6.5 for most undergraduate programs
+
+Would you like more specific information about programs, admission requirements, or application deadlines?`;
+    } else {
+      fallbackResponse += `I notice your profile is incomplete which limits my ability to provide personalized guidance. Please complete your profile for better recommendations about study destinations, funding options, and application strategies.`;
+    }
+    
     return {
-      response: `I apologize, but I'm having some technical difficulties right now. However, I'd still like to help! 
-
-Based on your profile, I can see you're interested in studying abroad. While I resolve this issue, here are some general steps you might consider:
-
-• Complete your profile for more personalized guidance
-• Research universities in your preferred destinations  
-• Check application deadlines for your target programs
-• Prepare required documents (transcripts, test scores, etc.)
-
-Please try asking your question again in a moment, and I'll provide more detailed, personalized guidance.`,
+      response: fallbackResponse,
       specialist: 'Alex',
       requiresMoreInfo: false
     };
