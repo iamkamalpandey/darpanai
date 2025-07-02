@@ -86,6 +86,7 @@ const UserAdminCoeDetails = lazy(() => import("@/pages/UserAdminCoeDetails"));
 
 const MyWatchlist = lazy(() => import("@/pages/MyWatchlist"));
 const EduCounselAI = lazy(() => import("@/pages/EduCounselAI"));
+const GamifiedLearningPath = lazy(() => import("@/pages/GamifiedLearningPathSimple"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -288,6 +289,14 @@ function Router() {
         <UserProtectedRoute path="/assessment" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <AdvancedAssessmentPage />
+          </Suspense>
+        )} />
+      </Route>
+
+      <Route path="/learning-path">
+        <UserProtectedRoute path="/learning-path" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <GamifiedLearningPath />
           </Suspense>
         )} />
       </Route>

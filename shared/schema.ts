@@ -957,6 +957,277 @@ export const insertDocumentChecklistSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
+// Gamified Learning Path System - Application Process Gamification
+
+// Learning Path Milestones - Predefined achievement points in application journey
+export const learningPathMilestones = pgTable("learning_path_milestones", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // "Profile Setup Master", "Document Detective", "Application Ace"
+  description: text("description").notNull(),
+  category: text("category").notNull(), // "profile", "documents", "applications", "tests", "financial"
+  milestoneType: text("milestone_type").notNull(), // "achievement", "progress", "completion"
+  points: integer("points").notNull().default(0), // XP points earned
+  requiredActions: jsonb("required_actions").notNull().default([]), // Array of required actions
+  badge: text("badge").notNull(), // Badge identifier for frontend
+  color: text("color").notNull().default("#3B82F6"), // Badge color
+  level: integer("level").notNull().default(1), // Difficulty level 1-5
+  order: integer("order").notNull().default(0), // Display order
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// User Progress Tracking - Individual user's journey through learning path
+export const userLearningProgress = pgTable("user_learning_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  milestoneId: integer("milestone_id").references(() => learningPathMilestones.id).notNull(),
+  status: text("status").notNull().default("locked"), // "locked", "active", "completed", "skipped"
+  progress: integer("progress").notNull().default(0), // Progress percentage 0-100
+  pointsEarned: integer("points_earned").notNull().default(0),
+  completedAt: timestamp("completed_at"),
+  startedAt: timestamp("started_at"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  
+  // Achievement details
+  completionData: jsonb("completion_data").default({}), // Store completion details
+  feedback: text("feedback"), // User feedback on milestone
+  difficultyRating: integer("difficulty_rating"), // User rated difficulty 1-5
+}, (table) => ({
+  userMilestoneUnique: uniqueIndex("user_milestone_unique").on(table.userId, table.milestoneId)
+}));
+
+// Gamification User Stats - Overall progress and achievements
+export const userGamificationStats = pgTable("user_gamification_stats", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull().unique(),
+  totalPoints: integer("total_points").notNull().default(0),
+  currentLevel: integer("current_level").notNull().default(1),
+  currentStreak: integer("current_streak").notNull().default(0), // Days of consecutive activity
+  longestStreak: integer("longest_streak").notNull().default(0),
+  totalMilestones: integer("total_milestones").notNull().default(0),
+  completedMilestones: integer("completed_milestones").notNull().default(0),
+  
+  // Engagement metrics
+  lastActivityDate: timestamp("last_activity_date"),
+  weeklyGoal: integer("weekly_goal").default(3), // Milestones per week
+  weeklyCompleted: integer("weekly_completed").default(0),
+  weekStartDate: timestamp("week_start_date").defaultNow(),
+  
+  // Achievement categories
+  profileCompletionLevel: integer("profile_completion_level").default(0), // 0-5
+  documentMasteryLevel: integer("document_mastery_level").default(0), // 0-5
+  applicationExpertLevel: integer("application_expert_level").default(0), // 0-5
+  financialPlanningLevel: integer("financial_planning_level").default(0), // 0-5
+  testPrepLevel: integer("test_prep_level").default(0), // 0-5
+  
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Learning Path Activities - Individual actions within milestones
+export const learningPathActivities = pgTable("learning_path_activities", {
+  id: serial("id").primaryKey(),
+  milestoneId: integer("milestone_id").references(() => learningPathMilestones.id).notNull(),
+  name: text("name").notNull(), // "Upload Transcript", "Complete IELTS Practice Test"
+  description: text("description").notNull(),
+  activityType: text("activity_type").notNull(), // "upload", "form", "quiz", "external", "verification"
+  instructions: text("instructions").notNull(),
+  
+  // Activity configuration
+  estimatedTime: text("estimated_time").notNull(), // "5 minutes", "30 minutes"
+  difficulty: text("difficulty").notNull().default("easy"), // "easy", "medium", "hard"
+  points: integer("points").notNull().default(10),
+  isRequired: boolean("is_required").default(true).notNull(),
+  order: integer("order").notNull().default(0),
+  
+  // Activity metadata
+  externalUrl: text("external_url"), // For external activities
+  validationCriteria: jsonb("validation_criteria").default({}), // Validation rules
+  tips: jsonb("tips").default([]), // Helpful tips array
+  commonMistakes: jsonb("common_mistakes").default([]), // Common mistakes to avoid
+  
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// User Activity Progress - Progress on individual activities
+export const userActivityProgress = pgTable("user_activity_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  activityId: integer("activity_id").references(() => learningPathActivities.id).notNull(),
+  milestoneId: integer("milestone_id").references(() => learningPathMilestones.id).notNull(),
+  
+  status: text("status").notNull().default("not_started"), // "not_started", "in_progress", "completed", "verified"
+  progress: integer("progress").notNull().default(0), // 0-100
+  pointsEarned: integer("points_earned").notNull().default(0),
+  
+  // Activity specific data
+  submissionData: jsonb("submission_data").default({}), // User's submitted data
+  feedback: text("feedback"), // System or admin feedback
+  attempts: integer("attempts").notNull().default(0),
+  timeSpent: integer("time_spent").default(0), // Time in minutes
+  
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  lastAttemptAt: timestamp("last_attempt_at"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userActivityUnique: uniqueIndex("user_activity_unique").on(table.userId, table.activityId)
+}));
+
+// Achievement Badges - Collectible badges for special accomplishments
+export const achievementBadges = pgTable("achievement_badges", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // "Speed Demon", "Perfectionist", "Helper"
+  description: text("description").notNull(),
+  badgeType: text("badge_type").notNull(), // "speed", "accuracy", "consistency", "special", "social"
+  icon: text("icon").notNull(), // Icon identifier
+  color: text("color").notNull(),
+  rarity: text("rarity").notNull().default("common"), // "common", "rare", "epic", "legendary"
+  
+  // Unlock criteria
+  unlockCriteria: jsonb("unlock_criteria").notNull(), // Conditions to unlock
+  points: integer("points").notNull().default(50),
+  isSecret: boolean("is_secret").default(false), // Hidden until unlocked
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// User Earned Badges - Badges earned by users
+export const userEarnedBadges = pgTable("user_earned_badges", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  badgeId: integer("badge_id").references(() => achievementBadges.id).notNull(),
+  earnedAt: timestamp("earned_at").defaultNow().notNull(),
+  
+  // Context of earning
+  contextType: text("context_type"), // "milestone", "activity", "streak", "special"
+  contextId: integer("context_id"), // Related milestone/activity ID
+  earnedData: jsonb("earned_data").default({}), // Achievement specific data
+  
+  isDisplayed: boolean("is_displayed").default(true), // Show on profile
+  notificationSent: boolean("notification_sent").default(false),
+}, (table) => ({
+  userBadgeUnique: uniqueIndex("user_badge_unique").on(table.userId, table.badgeId)
+}));
+
+// Learning Path Challenges - Time-limited challenges and events
+export const learningPathChallenges = pgTable("learning_path_challenges", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // "Application Sprint Week", "Document Upload Challenge"
+  description: text("description").notNull(),
+  challengeType: text("challenge_type").notNull(), // "speed", "consistency", "completion", "social"
+  
+  // Challenge timing
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  
+  // Challenge configuration
+  targetMilestones: jsonb("target_milestones").default([]), // Specific milestones
+  bonusMultiplier: decimal("bonus_multiplier", { precision: 3, scale: 2 }).default("1.5"), // Points multiplier
+  maxParticipants: integer("max_participants"),
+  
+  // Rewards
+  rewards: jsonb("rewards").default([]), // Special rewards for completion
+  leaderboardEnabled: boolean("leaderboard_enabled").default(true),
+  
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// User Challenge Participation - User participation in challenges
+export const userChallengeParticipation = pgTable("user_challenge_participation", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  challengeId: integer("challenge_id").references(() => learningPathChallenges.id).notNull(),
+  
+  status: text("status").notNull().default("active"), // "active", "completed", "withdrawn"
+  pointsEarned: integer("points_earned").notNull().default(0),
+  milestonesCompleted: integer("milestones_completed").notNull().default(0),
+  rank: integer("rank"), // Current rank in challenge
+  
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+  lastActivityAt: timestamp("last_activity_at"),
+}, (table) => ({
+  userChallengeUnique: uniqueIndex("user_challenge_unique").on(table.userId, table.challengeId)
+}));
+
+// Gamification schemas
+export const insertLearningPathMilestoneSchema = createInsertSchema(learningPathMilestones).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserLearningProgressSchema = createInsertSchema(userLearningProgress).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export const insertUserGamificationStatsSchema = createInsertSchema(userGamificationStats).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertLearningPathActivitySchema = createInsertSchema(learningPathActivities).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserActivityProgressSchema = createInsertSchema(userActivityProgress).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export const insertAchievementBadgeSchema = createInsertSchema(achievementBadges).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserEarnedBadgeSchema = createInsertSchema(userEarnedBadges).omit({
+  id: true,
+  earnedAt: true,
+});
+
+export const insertLearningPathChallengeSchema = createInsertSchema(learningPathChallenges).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserChallengeParticipationSchema = createInsertSchema(userChallengeParticipation).omit({
+  id: true,
+  joinedAt: true,
+});
+
+// Gamification type exports
+export type LearningPathMilestone = typeof learningPathMilestones.$inferSelect;
+export type InsertLearningPathMilestone = z.infer<typeof insertLearningPathMilestoneSchema>;
+
+export type UserLearningProgress = typeof userLearningProgress.$inferSelect;
+export type InsertUserLearningProgress = z.infer<typeof insertUserLearningProgressSchema>;
+
+export type UserGamificationStats = typeof userGamificationStats.$inferSelect;
+export type InsertUserGamificationStats = z.infer<typeof insertUserGamificationStatsSchema>;
+
+export type LearningPathActivity = typeof learningPathActivities.$inferSelect;
+export type InsertLearningPathActivity = z.infer<typeof insertLearningPathActivitySchema>;
+
+export type UserActivityProgress = typeof userActivityProgress.$inferSelect;
+export type InsertUserActivityProgress = z.infer<typeof insertUserActivityProgressSchema>;
+
+export type AchievementBadge = typeof achievementBadges.$inferSelect;
+export type InsertAchievementBadge = z.infer<typeof insertAchievementBadgeSchema>;
+
+export type UserEarnedBadge = typeof userEarnedBadges.$inferSelect;
+export type InsertUserEarnedBadge = z.infer<typeof insertUserEarnedBadgeSchema>;
+
+export type LearningPathChallenge = typeof learningPathChallenges.$inferSelect;
+export type InsertLearningPathChallenge = z.infer<typeof insertLearningPathChallengeSchema>;
+
+export type UserChallengeParticipation = typeof userChallengeParticipation.$inferSelect;
+export type InsertUserChallengeParticipation = z.infer<typeof insertUserChallengeParticipationSchema>;
+
 // Type exports for document templates and checklists
 export type DocumentTemplate = typeof documentTemplates.$inferSelect;
 export type InsertDocumentTemplate = z.infer<typeof insertDocumentTemplateSchema>;

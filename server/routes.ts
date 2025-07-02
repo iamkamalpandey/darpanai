@@ -12,6 +12,7 @@ import { extractCoreStudentInfo, type CoreStudentInfo } from "./documentParser";
 import { analysisResponseSchema, professionalApplicationSchema, insertDocumentTemplateSchema, insertEnrollmentAnalysisSchema, insertDocumentCategorySchema, insertDocumentTypeSchema, insertAnalysisFeedbackSchema } from "@shared/schema";
 import { z } from 'zod';
 import { setupAuth } from "./auth";
+import gamificationRoutes from "./gamificationRoutes";
 
 // Simple in-memory cache for performance optimization
 const cache = new Map<string, { data: any; timestamp: number; ttl: number }>();
@@ -3148,6 +3149,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Setup comprehensive multi-AI offer letter analysis routes
   setupOfferLetterRoutes(app, requireAuth, requireAdmin);
+  
+  // Setup gamification routes with authentication
+  app.use('/api/gamification', requireAuth, gamificationRoutes);
 
   // ===== CV ANALYSIS ROUTES =====
   console.log("[INFO] [express] ✓ Setting up CV analysis routes...");
