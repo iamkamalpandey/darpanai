@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send, Sparkles, Upload, User, Bot, Calendar, FileText, Search } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +17,11 @@ interface ChatMessage {
   formatted?: boolean;
   suggestsBooking?: boolean;
   actionButtons?: ActionButton[];
+  requiresSelection?: {
+    type: 'study_level' | 'field_of_study' | 'country';
+    options: string[];
+    question: string;
+  };
 }
 
 interface ActionButton {
@@ -182,6 +188,26 @@ What specific aspect would you like to discuss today?`;
     });
 
     setMessage('');
+  };
+
+  const handleSelectionChange = (selectionType: string, value: string) => {
+    if (!value) return;
+
+    const selectionMessage: ChatMessage = {
+      id: Date.now().toString(),
+      content: value,
+      isUser: true,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, selectionMessage]);
+    setIsTyping(true);
+    
+    // Send selection to AI
+    sendMessageMutation.mutate({
+      message: value,
+      conversationHistory: [...messages, selectionMessage]
+    });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
