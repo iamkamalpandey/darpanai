@@ -43,15 +43,112 @@ export const applicationChecklistItems = pgTable("application_checklist_items", 
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// User Application Progress
+// Enhanced Student Applications for Study Abroad
+export const studentApplications = pgTable("student_applications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  
+  // Application Basic Information
+  applicationNumber: text("application_number").notNull().unique(), // Auto-generated unique ID
+  status: text("status").default("draft").notNull(), // draft, submitted, under_review, documents_requested, approved, rejected, on_hold
+  priority: text("priority").default("normal").notNull(), // urgent, high, normal, low
+  
+  // Study Destination & Program
+  targetCountry: text("target_country").notNull(),
+  studyLevel: text("study_level").notNull(), // bachelor, master, phd, diploma, certificate
+  fieldOfStudy: text("field_of_study").notNull(),
+  preferredIntake: text("preferred_intake").notNull(), // Fall 2024, Spring 2025, etc.
+  specificInstitutions: jsonb("specific_institutions"), // Array of preferred universities
+  
+  // Personal Information (from user profile + additional)
+  personalDetails: jsonb("personal_details").notNull(), // Full personal info snapshot
+  emergencyContact: jsonb("emergency_contact"), // Emergency contact details
+  
+  // Academic Background
+  academicDetails: jsonb("academic_details").notNull(), // Education history, GPA, etc.
+  highestQualificationDocument: text("highest_qualification_document"), // File path for highest academic document
+  
+  // Financial Information
+  budgetRange: text("budget_range").notNull(),
+  fundingSource: text("funding_source").notNull(), // self-funded, scholarship, loan, family, sponsor
+  financialDocuments: jsonb("financial_documents"), // Array of financial document references
+  sponsorInformation: jsonb("sponsor_information"), // If sponsored
+  
+  // Language Proficiency
+  englishProficiency: jsonb("english_proficiency"), // IELTS, TOEFL, PTE scores
+  languageCertificates: jsonb("language_certificates"), // Document references
+  
+  // Additional Documents
+  requiredDocuments: jsonb("required_documents").default([]).notNull(), // List of required docs
+  uploadedDocuments: jsonb("uploaded_documents").default([]).notNull(), // Array of uploaded file references
+  documentStatus: jsonb("document_status").default({}).notNull(), // Document verification status
+  
+  // Application Progress
+  currentStep: text("current_step").default("personal_info"), // personal_info, academic_info, documents, review, submit
+  completedSteps: jsonb("completed_steps").default([]).notNull(), // Array of completed step names
+  progressPercentage: integer("progress_percentage").default(0).notNull(),
+  
+  // Admin Management
+  assignedCounselor: text("assigned_counselor"), // Admin user handling the application
+  internalNotes: text("internal_notes"), // Admin notes (not visible to student)
+  publicNotes: text("public_notes"), // Notes visible to student
+  followUpDate: timestamp("follow_up_date"), // When admin should follow up
+  
+  // Communication & Updates
+  lastContactDate: timestamp("last_contact_date"),
+  communicationLog: jsonb("communication_log").default([]).notNull(), // Array of communication records
+  studentQueries: jsonb("student_queries").default([]).notNull(), // Student questions/concerns
+  
+  // Timeline
+  submittedAt: timestamp("submitted_at"),
+  reviewStartedAt: timestamp("review_started_at"),
+  documentRequestedAt: timestamp("document_requested_at"),
+  completedAt: timestamp("completed_at"),
+  estimatedDecisionDate: timestamp("estimated_decision_date"),
+  
+  // Metadata
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  termsAccepted: boolean("terms_accepted").default(false).notNull(),
+  dataProcessingConsent: boolean("data_processing_consent").default(false).notNull(),
+});
+
+// Application Status History for tracking changes
+export const applicationStatusHistory = pgTable("application_status_history", {
+  id: serial("id").primaryKey(),
+  applicationId: integer("application_id").references(() => studentApplications.id).notNull(),
+  previousStatus: text("previous_status"),
+  newStatus: text("new_status").notNull(),
+  changedBy: integer("changed_by").references(() => users.id), // Admin who made the change
+  reason: text("reason"), // Reason for status change
+  notes: text("notes"), // Additional notes
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Application Requirements Template (for different countries/programs)
+export const applicationRequirements = pgTable("application_requirements", {
+  id: serial("id").primaryKey(),
+  country: text("country").notNull(),
+  studyLevel: text("study_level").notNull(),
+  requirements: jsonb("requirements").notNull(), // Detailed requirements object
+  documentTypes: jsonb("document_types").notNull(), // Required document types
+  minimumScores: jsonb("minimum_scores"), // Minimum language/academic scores
+  processingTime: text("processing_time"), // Expected processing time
+  fees: jsonb("fees"), // Application fees
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Legacy table for backward compatibility - will be phased out
 export const userApplications = pgTable("user_applications", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
-  workflowId: integer("workflow_id").references(() => countryWorkflows.id).notNull(),
-  status: text("status").default("in_progress").notNull(), // in_progress, completed, submitted, on_hold
-  applicationData: jsonb("application_data").notNull(), // Collected form data
-  completedItems: jsonb("completed_items").default([]).notNull(), // Array of completed checklist item IDs
-  documentsUploaded: jsonb("documents_uploaded").default([]).notNull(), // File references
+  workflowId: integer("workflow_id").references(() => countryWorkflows.id),
+  status: text("status").default("in_progress").notNull(),
+  applicationData: jsonb("application_data").notNull(),
+  completedItems: jsonb("completed_items").default([]).notNull(),
+  documentsUploaded: jsonb("documents_uploaded").default([]).notNull(),
   currentStep: text("current_step"),
   progressPercentage: integer("progress_percentage").default(0).notNull(),
   submittedAt: timestamp("submitted_at"),
@@ -768,6 +865,92 @@ export type LoginUser = z.infer<typeof loginUserSchema>;
 
 export type Analysis = typeof analyses.$inferSelect;
 export type InsertAnalysis = z.infer<typeof insertAnalysisSchema>;
+
+// Student Application Types
+export type StudentApplication = typeof studentApplications.$inferSelect;
+export type InsertStudentApplication = typeof studentApplications.$inferInsert;
+export type ApplicationStatusHistory = typeof applicationStatusHistory.$inferSelect;
+export type InsertApplicationStatusHistory = typeof applicationStatusHistory.$inferInsert;
+export type ApplicationRequirement = typeof applicationRequirements.$inferSelect;
+export type InsertApplicationRequirement = typeof applicationRequirements.$inferInsert;
+
+// Application-related schemas
+export const insertStudentApplicationSchema = createInsertSchema(studentApplications);
+export const insertApplicationStatusHistorySchema = createInsertSchema(applicationStatusHistory);
+export const insertApplicationRequirementSchema = createInsertSchema(applicationRequirements);
+
+// Application step validation schemas
+export const personalInfoStepSchema = z.object({
+  personalDetails: z.object({
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    dateOfBirth: z.string().min(1, "Date of birth is required"),
+    nationality: z.string().min(1, "Nationality is required"),
+    passportNumber: z.string().min(1, "Passport number is required"),
+    phoneNumber: z.string().min(1, "Phone number is required"),
+    email: z.string().email("Valid email is required"),
+    address: z.string().min(1, "Address is required"),
+  }),
+  emergencyContact: z.object({
+    name: z.string().min(1, "Emergency contact name is required"),
+    relationship: z.string().min(1, "Relationship is required"),
+    phoneNumber: z.string().min(1, "Emergency contact phone is required"),
+    email: z.string().email("Valid emergency contact email is required").optional(),
+  }).optional(),
+});
+
+export const academicInfoStepSchema = z.object({
+  academicDetails: z.object({
+    highestQualification: z.string().min(1, "Highest qualification is required"),
+    highestInstitution: z.string().min(1, "Institution name is required"),
+    highestCountry: z.string().min(1, "Country of study is required"),
+    highestGpa: z.string().min(1, "GPA/Grade is required"),
+    graduationYear: z.number().min(1980).max(new Date().getFullYear() + 10),
+    educationHistory: z.array(z.object({
+      level: z.string(),
+      institution: z.string(),
+      country: z.string(),
+      gpa: z.string(),
+      graduationYear: z.number(),
+    })).optional(),
+  }),
+});
+
+export const documentsStepSchema = z.object({
+  uploadedDocuments: z.array(z.object({
+    documentType: z.string(),
+    fileName: z.string(),
+    filePath: z.string(),
+    uploadedAt: z.string(),
+  })),
+  highestQualificationDocument: z.string().min(1, "Highest qualification document is required"),
+});
+
+export const financialInfoStepSchema = z.object({
+  budgetRange: z.string().min(1, "Budget range is required"),
+  fundingSource: z.string().min(1, "Funding source is required"),
+  financialDocuments: z.array(z.object({
+    documentType: z.string(),
+    fileName: z.string(),
+    filePath: z.string(),
+  })).optional(),
+  sponsorInformation: z.object({
+    sponsorName: z.string(),
+    relationship: z.string(),
+    annualIncome: z.string(),
+    sponsorCountry: z.string(),
+  }).optional(),
+});
+
+export const applicationSubmissionSchema = z.object({
+  targetCountry: z.string().min(1, "Target country is required"),
+  studyLevel: z.string().min(1, "Study level is required"),
+  fieldOfStudy: z.string().min(1, "Field of study is required"),
+  preferredIntake: z.string().min(1, "Preferred intake is required"),
+  specificInstitutions: z.array(z.string()).optional(),
+  termsAccepted: z.boolean().refine(val => val === true, "Terms must be accepted"),
+  dataProcessingConsent: z.boolean().refine(val => val === true, "Data processing consent is required"),
+});
 
 // Scholarship Watchlist types
 export type ScholarshipWatchlist = typeof scholarshipWatchlist.$inferSelect;

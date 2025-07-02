@@ -3153,6 +3153,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup gamification routes with authentication
   app.use('/api/gamification', requireAuth, gamificationRoutes);
 
+  // Setup student application routes
+  const { registerStudentApplicationRoutes } = await import("./studentApplicationRoutes");
+  registerStudentApplicationRoutes(app, requireAuth, requireAdmin);
+  console.log('✓ Student application routes registered successfully');
+
   // ===== CV ANALYSIS ROUTES =====
   console.log("[INFO] [express] ✓ Setting up CV analysis routes...");
 

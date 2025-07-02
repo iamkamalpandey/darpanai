@@ -82,6 +82,7 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
     // Priority 1: Core user actions
     { icon: <Home size={20} />, label: 'Dashboard', href: '/' },
     { icon: <Calendar size={20} />, label: 'Consultation Booking', href: '/consultations' },
+    { icon: <FileText size={20} />, label: 'Study Abroad Applications', href: '/student-applications' },
     
     // Priority 2: Analysis tools (most used features)
     { 
