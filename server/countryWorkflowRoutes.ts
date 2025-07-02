@@ -2,7 +2,7 @@ import { Router } from "express";
 import { countryWorkflowStorage } from "./countryWorkflowStorage";
 import { 
   insertCountryWorkflowSchema,
-  insertChecklistItemSchema,
+  // insertChecklistItemSchema, // TODO: Define this schema
   insertUserApplicationSchema,
   insertConsultationBookingSchema
 } from "@shared/schema";

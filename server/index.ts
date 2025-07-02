@@ -245,10 +245,20 @@ process.on('unhandledRejection', (reason, promise) => {
     app.use('/api/country-workflow', countryWorkflowRoutes.default);
     logWithLevel('✓ Country workflow management routes registered successfully');
     
+    // Register Document Requirements Management routes
+    const documentRequirementsRoutes = await import('./documentRequirementsRoutes');
+    app.use('/api/document-requirements', documentRequirementsRoutes.default);
+    logWithLevel('✓ Document requirements management routes registered successfully');
+    
     // Register application management routes
     const applicationRoutes = await import('./applicationRoutes');
     app.use('/api/applications', applicationRoutes.default);
     logWithLevel('✓ Application management routes registered successfully');
+    
+    // Register admin application management routes
+    const adminApplicationRoutes = await import('./adminApplicationRoutes');
+    app.use('/api/admin', adminApplicationRoutes.default);
+    logWithLevel('✓ Admin application management routes registered successfully');
     
     // Institution routes temporarily disabled due to auth dependency
     // Will be enabled after fixing requireAuth import

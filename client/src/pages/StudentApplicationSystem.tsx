@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -83,40 +83,109 @@ const FUNDING_SOURCES = [
 function ApplicationForm({ onSuccess }: { onSuccess: () => void }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [applicationData, setApplicationData] = useState({});
+  const [documentRequirements, setDocumentRequirements] = useState<any[]>([]);
+  const [uploadedDocuments, setUploadedDocuments] = useState<Record<string, File>>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Get user data to pre-populate form
+  const { data: user } = useQuery({
+    queryKey: ['/api/user'],
+  });
+
+  // Pre-populate forms with user data when available
   const personalForm = useForm<PersonalInfo>({
     resolver: zodResolver(personalInfoSchema),
     defaultValues: {
-      fullName: '',
-      email: '',
-      phoneNumber: '',
-      dateOfBirth: '',
-      nationality: '',
-      passportNumber: ''
+      fullName: user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '',
+      email: user?.email || '',
+      phoneNumber: user?.phoneNumber || '',
+      dateOfBirth: user?.dateOfBirth || '',
+      nationality: user?.nationality || '',
+      passportNumber: user?.passportNumber || ''
     }
   });
+
+  // Update form values when user data loads
+  useEffect(() => {
+    if (user) {
+      personalForm.reset({
+        fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+        email: user.email || '',
+        phoneNumber: user.phoneNumber || '',
+        dateOfBirth: user.dateOfBirth || '',
+        nationality: user.nationality || '',
+        passportNumber: user.passportNumber || ''
+      });
+    }
+  }, [user, personalForm]);
 
   const academicForm = useForm<AcademicInfo>({
     resolver: zodResolver(academicInfoSchema),
     defaultValues: {
-      studyLevel: '',
-      fieldOfStudy: '',
+      studyLevel: user?.studyLevel || '',
+      fieldOfStudy: user?.fieldOfStudy || '',
       preferredIntake: '',
-      targetCountry: '',
+      targetCountry: user?.preferredCountries?.[0] || '',
       previousQualifications: ''
     }
   });
 
+  // Update academic form when user data loads
+  useEffect(() => {
+    if (user) {
+      academicForm.reset({
+        studyLevel: user.studyLevel || '',
+        fieldOfStudy: user.fieldOfStudy || '',
+        preferredIntake: '',
+        targetCountry: user.preferredCountries?.[0] || '',
+        previousQualifications: ''
+      });
+    }
+  }, [user, academicForm]);
+
   const financialForm = useForm<FinancialInfo>({
     resolver: zodResolver(financialInfoSchema),
     defaultValues: {
-      budgetRange: '',
+      budgetRange: user?.budgetRange || '',
       fundingSource: '',
       sponsorshipDetails: ''
     }
   });
+
+  // Update financial form when user data loads
+  useEffect(() => {
+    if (user) {
+      financialForm.reset({
+        budgetRange: user.budgetRange || '',
+        fundingSource: '',
+        sponsorshipDetails: ''
+      });
+    }
+  }, [user, financialForm]);
+
+  // Fetch document requirements when country and study level are selected
+  useEffect(() => {
+    const countryValue = academicForm.watch('targetCountry');
+    const studyLevelValue = academicForm.watch('studyLevel');
+    
+    if (countryValue && studyLevelValue) {
+      const fetchRequirements = async () => {
+        try {
+          const response = await fetch(`/api/document-requirements/requirements/${countryValue}/${studyLevelValue}`);
+          if (response.ok) {
+            const requirements = await response.json();
+            setDocumentRequirements(requirements);
+          }
+        } catch (error) {
+          console.error('Failed to fetch document requirements:', error);
+        }
+      };
+      fetchRequirements();
+    } else {
+      setDocumentRequirements([]);
+    }
+  }, [academicForm.watch('targetCountry'), academicForm.watch('studyLevel')]);
 
   const createApplicationMutation = useMutation({
     mutationFn: (data: any) => apiRequest('POST', '/api/applications', data),

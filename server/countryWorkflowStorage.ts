@@ -1,13 +1,13 @@
 import { db } from "./db";
 import { 
   countryWorkflows, 
-  applicationChecklistItems, 
+  // applicationChecklistItems, // TODO: Define this table
   userApplications, 
   consultationBookings,
   type CountryWorkflow,
   type InsertCountryWorkflow,
-  type ApplicationChecklistItem,
-  type InsertApplicationChecklistItem,
+  // type ApplicationChecklistItem,
+  // type InsertApplicationChecklistItem,
   type UserApplication,
   type InsertUserApplication,
   type ConsultationBooking,

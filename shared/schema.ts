@@ -26,21 +26,36 @@ export const countryWorkflows = pgTable("country_workflows", {
   currency: text("currency").default("USD"),
 });
 
-// Application Checklist Items
-export const applicationChecklistItems = pgTable("application_checklist_items", {
+// Country Document Requirements
+export const countryDocumentRequirements = pgTable("country_document_requirements", {
   id: serial("id").primaryKey(),
-  workflowId: integer("workflow_id").references(() => countryWorkflows.id).notNull(),
-  itemType: text("item_type").notNull(), // personal_info, academic_docs, financial_docs, language_tests, etc.
-  fieldName: text("field_name").notNull(), // passport, transcript, bank_statement, ielts_score
-  displayLabel: text("display_label").notNull(), // "Valid Passport"
-  description: text("description"),
+  countryCode: text("country_code").notNull(), // AU, US, UK, CA, etc.
+  studyLevel: text("study_level").notNull(), // bachelor, master, phd, diploma
+  documentType: text("document_type").notNull(), // passport, transcript, sop, financial_proof, etc.
+  documentName: text("document_name").notNull(), // "Valid Passport", "Academic Transcripts"
+  description: text("description").notNull(),
   isRequired: boolean("is_required").default(true).notNull(),
-  fieldType: text("field_type").notNull(), // text, number, date, file, dropdown, checkbox
-  validationRules: jsonb("validation_rules"), // min/max values, file types, etc.
-  options: jsonb("options"), // for dropdown fields
+  acceptedFormats: text("accepted_formats").array(), // ["pdf", "jpg", "png"]
+  maxFileSize: integer("max_file_size").default(10485760), // 10MB in bytes
+  notes: text("notes"),
   sortOrder: integer("sort_order").default(0).notNull(),
-  helpText: text("help_text"),
+  isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Application Documents Uploaded
+export const applicationDocuments = pgTable("application_documents", {
+  id: serial("id").primaryKey(),
+  applicationId: integer("application_id").references(() => studentApplications.id).notNull(),
+  documentType: text("document_type").notNull(),
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: text("mime_type").notNull(),
+  uploadStatus: text("upload_status").default("uploaded").notNull(), // uploaded, verified, rejected
+  verificationNotes: text("verification_notes"),
+  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
 });
 
 // Enhanced Student Applications for Study Abroad
@@ -1625,28 +1640,29 @@ export const insertCountryWorkflowSchema = createInsertSchema(countryWorkflows, 
   updatedAt: true,
 });
 
-export const insertChecklistItemSchema = createInsertSchema(applicationChecklistItems, {
-  workflowId: z.number().positive("Workflow ID is required"),
-  itemType: z.enum(["personal_info", "academic_docs", "financial_docs", "language_tests", "visa_docs", "other"]),
-  fieldName: z.string().min(1, "Field name is required"),
-  displayLabel: z.string().min(1, "Display label is required"),
-  description: z.string().optional(),
-  fieldType: z.enum(["text", "number", "date", "file", "dropdown", "checkbox", "textarea"]),
-  validationRules: z.object({
-    required: z.boolean().default(true),
-    minLength: z.number().optional(),
-    maxLength: z.number().optional(),
-    pattern: z.string().optional(),
-    fileTypes: z.array(z.string()).optional(),
-    maxFileSize: z.number().optional(),
-  }).optional(),
-  options: z.array(z.string()).optional(),
-  sortOrder: z.number().default(0),
-  helpText: z.string().optional(),
-}).omit({
-  id: true,
-  createdAt: true,
-});
+// TODO: Define applicationChecklistItems table first
+// export const insertChecklistItemSchema = createInsertSchema(applicationChecklistItems, {
+//   workflowId: z.number().positive("Workflow ID is required"),
+//   itemType: z.enum(["personal_info", "academic_docs", "financial_docs", "language_tests", "visa_docs", "other"]),
+//   fieldName: z.string().min(1, "Field name is required"),
+//   displayLabel: z.string().min(1, "Display label is required"),
+//   description: z.string().optional(),
+//   fieldType: z.enum(["text", "number", "date", "file", "dropdown", "checkbox", "textarea"]),
+//   validationRules: z.object({
+//     required: z.boolean().default(true),
+//     minLength: z.number().optional(),
+//     maxLength: z.number().optional(),
+//     pattern: z.string().optional(),
+//     fileTypes: z.array(z.string()).optional(),
+//     maxFileSize: z.number().optional(),
+//   }).optional(),
+//   options: z.array(z.string()).optional(),
+//   sortOrder: z.number().default(0),
+//   helpText: z.string().optional(),
+// }).omit({
+//   id: true,
+//   createdAt: true,
+// });
 
 export const insertUserApplicationSchema = createInsertSchema(userApplications, {
   userId: z.number().positive("User ID is required"),
