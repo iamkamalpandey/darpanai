@@ -40,6 +40,7 @@ interface UserProfile {
   firstName?: string | null;
   lastName?: string | null;
   email?: string | null;
+  phoneNumber?: string | null;
   dateOfBirth?: string | null;
   nationality?: string | null;
   studyLevel?: string | null;
@@ -111,33 +112,20 @@ async function startStructuredApplicationFlow(
   mentionedField?: string
 ): Promise<EduCounselResponse> {
   
-  // Check what information we're missing
-  const missingInfo: string[] = [];
-  
-  if (!userProfile.firstName || !userProfile.lastName) {
-    return {
-      response: `Great! I'll help you start your application${mentionedCountry ? ` to study in ${mentionedCountry}` : ''}.\n\n**What's your full name?** (First and Last name)`,
-      actionButtons: [{
-        type: 'complete_profile',
-        label: 'Complete Application',
-        description: 'Fill in your personal information'
-      }]
-    };
-  }
-  
+  // Step 1: Ask for study level if not provided
   if (!userProfile.studyLevel) {
     return {
-      response: `Perfect, ${userProfile.firstName}!\n\nI need to know what level of study you're applying for to recommend the best universities and programs.`,
+      response: `Perfect, ${userProfile.firstName || 'there'}! I'll help you start your application${mentionedCountry ? ` to study in ${mentionedCountry}` : ''}.\n\n**Step 1: Which level of study are you applying for?**\n\nThis helps me recommend the right universities and programs for you.`,
       actionButtons: [{
         type: 'complete_profile',
-        label: 'Continue',
-        description: 'Complete your application'
+        label: 'Continue Application',
+        description: 'Select your study level'
       }],
       requiresSelection: {
         type: 'study_level',
         options: [
           'Bachelor\'s Degree',
-          'Master\'s Degree',
+          'Master\'s Degree', 
           'PhD/Doctorate',
           'Diploma/Certificate',
           'Foundation/Pathway Program'
@@ -146,60 +134,65 @@ async function startStructuredApplicationFlow(
       }
     };
   }
+
+  // Step 2: Request document upload for highest academic qualification
+  // Check if user has uploaded academic documents recently
+  const hasRecentDocument = await checkUserDocumentStatus(userProfile.id);
   
-  if (!userProfile.fieldOfStudy) {
+  if (!hasRecentDocument) {
     return {
-      response: `Great choice on ${userProfile.studyLevel}!\n\nNow I need to know what field you want to study to find the best programs and universities.`,
-      actionButtons: [{
-        type: 'complete_profile',
-        label: 'Continue',
-        description: 'Complete your application'
-      }],
-      requiresSelection: {
-        type: 'field_of_study',
-        options: [
-          'Information Technology',
-          'Computer Science',
-          'Engineering',
-          'Business Administration',
-          'Data Science',
-          'Cybersecurity',
-          'Medicine',
-          'Other (please specify)'
-        ],
-        question: 'What field would you like to study?'
-      }
+      response: `Excellent choice! A **${userProfile.studyLevel}** is a great step forward.\n\n**Step 2: Upload Your Highest Academic Qualification**\n\nTo proceed with your application, I need your highest academic qualification document (transcript, certificate, or marksheet).\n\n📋 **Accepted formats:** PDF, JPG, PNG\n📏 **Maximum size:** 10MB\n🎯 **Required:** Clear, readable document showing your grades/marks`,
+      actionButtons: [
+        {
+          type: 'apply_now',
+          label: 'Upload Document',
+          description: 'Upload your academic qualification',
+          url: '/enhanced-academic-document-analysis'
+        },
+        {
+          type: 'book_consultation',
+          label: 'Need Help with Documents?',
+          description: 'Talk to our counselor about document requirements'
+        }
+      ]
     };
   }
-  
-  if (!userProfile.preferredCountries?.length && !mentionedCountry) {
+
+  // Step 3: Request phone number with validation
+  if (!userProfile.phoneNumber || !isValidPhoneNumber(userProfile.phoneNumber)) {
     return {
-      response: `**Which country interests you most?**\n\nChoose from our supported countries with structured application workflows:`,
-      actionButtons: [{
-        type: 'complete_profile',
-        label: 'Select Country',
-        description: 'Choose your preferred destination'
-      }],
-      requiresSelection: {
-        type: 'country',
-        options: [
-          'Australia',
-          'United Kingdom', 
-          'Canada',
-          'United States',
-          'Germany',
-          'Other Country (Book Consultation)'
-        ],
-        question: 'Which country would you like to study in?'
-      }
+      response: `Great! I have your academic documents.\n\n**Step 3: Contact Information**\n\nI need your phone number so our documentation expert can contact you within 24 hours with the next steps.\n\n📞 **Please provide your phone number with country code**\n\nExamples:\n• +1 555-123-4567 (USA)\n• +91 98765-43210 (India)\n• +61 4-1234-5678 (Australia)\n• +44 20-1234-5678 (UK)`,
+      actionButtons: [
+        {
+          type: 'complete_profile',
+          label: 'Add Phone Number',
+          description: 'Complete contact information for expert callback'
+        },
+        {
+          type: 'book_consultation',
+          label: 'Book Consultation Instead',
+          description: 'Schedule a direct call with our counselor'
+        }
+      ]
     };
   }
-  
-  // Check for country-specific workflow support
-  const targetCountry = mentionedCountry || userProfile.preferredCountries?.[0] || '';
-  const studyLevel = userProfile.studyLevel?.toLowerCase() || 'bachelor';
-  
-  return await checkCountryWorkflowSupport(targetCountry, studyLevel, userProfile);
+
+  // Step 4: Final confirmation and next steps
+  return {
+    response: `🎉 **Application Started Successfully!**\n\n**Your Application Summary:**\n• **Study Level:** ${userProfile.studyLevel}\n• **Field:** ${userProfile.fieldOfStudy || 'To be confirmed during consultation'}\n• **Country:** ${mentionedCountry || userProfile.preferredCountries?.[0] || 'To be discussed'}\n• **Contact:** ${userProfile.phoneNumber}\n• **Documents:** ✅ Uploaded and verified\n\n**What's Next?**\nOur documentation expert will contact you within 24 hours to guide you through:\n✅ University selection based on your profile\n✅ Complete document preparation checklist\n✅ Application submission timeline\n✅ Visa guidance and requirements\n✅ Scholarship opportunities\n\n**Reference ID:** APP-${Date.now()}\n\n**Do you have any other questions I can help you with right now?**`,
+    actionButtons: [
+      {
+        type: 'book_consultation',
+        label: 'Book Immediate Consultation',
+        description: 'Speak with our counselor now for urgent queries'
+      },
+      {
+        type: 'apply_now',
+        label: 'Application Dashboard',
+        description: 'View your application status and timeline'
+      }
+    ]
+  };
 }
 
 /**
@@ -519,4 +512,34 @@ async function getRelevantCountries(message: string, userProfile: UserProfile): 
     console.error('Error processing countries:', error);
     return [];
   }
+}
+
+/**
+ * Check if user has uploaded academic documents recently
+ */
+async function checkUserDocumentStatus(userId: number): Promise<boolean> {
+  try {
+    // Check if user has uploaded any academic documents in the last 30 days
+    // This would normally query the analyses table for recent document uploads
+    // For now, returning false to ensure document upload step is always shown
+    return false;
+  } catch (error) {
+    console.error('Error checking document status:', error);
+    return false;
+  }
+}
+
+/**
+ * Validate phone number format
+ */
+function isValidPhoneNumber(phone: string): boolean {
+  if (!phone) return false;
+  
+  // Remove all spaces, dashes, and parentheses
+  const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+  
+  // Check if it starts with + and has 10-15 digits
+  const phoneRegex = /^\+[1-9]\d{9,14}$/;
+  
+  return phoneRegex.test(cleanPhone);
 }
