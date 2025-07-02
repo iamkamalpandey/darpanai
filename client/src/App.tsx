@@ -85,6 +85,7 @@ const AdminOfferLetterInfo = lazy(() => import("@/pages/admin/AdminOfferLetterIn
 const UserAdminCoeDetails = lazy(() => import("@/pages/UserAdminCoeDetails"));
 
 const MyWatchlist = lazy(() => import("@/pages/MyWatchlist"));
+const EduCounselAI = lazy(() => import("@/pages/EduCounselAI"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -193,6 +194,13 @@ function Router() {
         <UserProtectedRoute path="/academic-document-analysis" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <SimpleTranscriptAnalysis />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/educounsel-ai">
+        <UserProtectedRoute path="/educounsel-ai" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <EduCounselAI />
           </Suspense>
         )} />
       </Route>

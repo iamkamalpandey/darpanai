@@ -1,6 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { processEduCounselChat, getConversationHistory, saveConversationHistory } from './eduCounselService';
-import { requireAuth } from './auth';
+
+// Local auth middleware
+const requireAuth = (req: Request, res: Response, next: any) => {
+  if (!req.user) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+  next();
+};
 
 const router = Router();
 

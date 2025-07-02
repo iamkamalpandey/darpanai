@@ -235,6 +235,11 @@ process.on('unhandledRejection', (reason, promise) => {
     app.use('/api/chatbot', chatbotRoutes.default);
     logWithLevel('✓ Chatbot routes registered successfully');
     
+    // Register EduCounsel AI routes
+    const eduCounselRoutes = await import('./eduCounselRoutes');
+    app.use('/api/educounsel', eduCounselRoutes.default);
+    logWithLevel('✓ EduCounsel AI routes registered successfully');
+    
     // Register scholarship matching routes
     const { scholarshipMatchingRoutes } = await import('./scholarshipMatchingRoutes');
     app.use('/api/scholarship-matching', scholarshipMatchingRoutes);

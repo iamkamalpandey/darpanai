@@ -66,7 +66,8 @@ export default function EduCounselAI() {
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: { message: string; conversationHistory: ChatMessage[] }) => {
-      return apiRequest('POST', '/api/educounsel/chat', messageData) as Promise<ChatResponse>;
+      const response = await apiRequest('POST', '/api/educounsel/chat', messageData);
+      return response as ChatResponse;
     },
     onSuccess: (response: ChatResponse) => {
       const aiMessage: ChatMessage = {
