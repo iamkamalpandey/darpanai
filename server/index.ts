@@ -230,6 +230,11 @@ process.on('unhandledRejection', (reason, promise) => {
     app.use('/api', scholarshipRoutes.default); // Add direct API mount for admin routes
     logWithLevel('✓ Scholarship routes registered successfully');
     
+    // Register AI-powered scholarship matching routes
+    const scholarshipAIRoutes = await import('./scholarshipAIRoutes');
+    app.use('/api/scholarships', scholarshipAIRoutes.default);
+    logWithLevel('✓ AI scholarship matching routes registered successfully');
+    
     // Register chatbot routes
     const chatbotRoutes = await import('./chatbotRoutes');
     app.use('/api/chatbot', chatbotRoutes.default);
