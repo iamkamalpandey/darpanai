@@ -63,10 +63,13 @@ const DEFAULT_MODEL_STR = "claude-sonnet-4-20250514";
  */
 export async function processEduCounselChatOptimized(request: EduCounselRequest): Promise<EduCounselResponse> {
   try {
-    const { message, userProfile } = request;
+    const { message, userProfile, conversationHistory } = request;
     const messageLower = message.toLowerCase();
     
     console.log('🤖 Processing optimized EduCounsel chat for user', userProfile.id);
+    
+    // Extract user profile context for personalization
+    const profileContext = extractUserProfileContext(userProfile);
     
     // EXPLICIT APPLICATION INTENT DETECTION - Only trigger when user clearly wants to apply
     const explicitApplicationKeywords = [
@@ -81,18 +84,15 @@ export async function processEduCounselChatOptimized(request: EduCounselRequest)
     if (hasExplicitApplicationIntent) {
       console.log('🎯 Explicit application intent detected - starting application workflow');
       
-      // Extract country and field mentions
-      const countries = ['australia', 'canada', 'usa', 'uk', 'united kingdom', 'germany', 'netherlands'];
-      const mentionedCountry = countries.find(country => messageLower.includes(country));
-      
-      const fields = ['information technology', 'computer science', 'engineering', 'business', 'it', 'cs'];
-      const mentionedField = fields.find(field => messageLower.includes(field));
+      // Extract country and field mentions from current message and conversation history
+      const mentionedCountry = extractCountryFromContext(message, conversationHistory);
+      const mentionedField = extractFieldFromContext(message, conversationHistory);
       
       return await startStructuredApplicationFlow(userProfile, mentionedCountry, mentionedField);
     }
     
-    // Use AI for ALL messages to provide personalized, database-driven responses
-    return await generateMinimalAIResponse(message, userProfile);
+    // Use AI for ALL messages to provide personalized, database-driven responses with conversation memory
+    return await generateContextualAIResponse(message, userProfile, conversationHistory, profileContext);
     
   } catch (error) {
     console.error('❌ Error in optimized EduCounsel processing:', error);
@@ -264,9 +264,9 @@ async function checkCountryWorkflowSupport(country: string, studyLevel: string, 
 }
 
 /**
- * Generate contextual AI response using real database information
+ * Generate contextual AI response using real database information with conversation memory
  */
-async function generateMinimalAIResponse(message: string, userProfile: UserProfile): Promise<EduCounselResponse> {
+async function generateContextualAIResponse(message: string, userProfile: UserProfile, conversationHistory: ChatMessage[], profileContext: string): Promise<EduCounselResponse> {
   try {
     console.log('🔍 Generating contextualized AI response for:', message);
     
@@ -277,27 +277,39 @@ async function generateMinimalAIResponse(message: string, userProfile: UserProfi
     ]);
 
     // Enhanced system prompt with real data context
+    // Prepare conversation context with memory
+    let conversationContext = '';
+    if (conversationHistory && conversationHistory.length > 0) {
+      // Use last 6 messages for better context
+      const recentMessages = conversationHistory.slice(-6);
+      conversationContext = `\nCONVERSATION HISTORY:\n${recentMessages.map(msg => 
+        `${msg.role}: ${msg.content}`
+      ).join('\n')}\n\nCONTINUE the conversation naturally, referencing previous topics when relevant.\n`;
+    }
+
     const systemPrompt = `You are Alex, a professional study abroad counselor with access to real institutional data.
 
 PERSONALITY: Be warm, knowledgeable, and genuinely helpful like Apple's customer service approach.
-
+${conversationContext}
 AVAILABLE DATA:
 ${scholarships.length > 0 ? `Relevant Scholarships: ${scholarships.map(s => `${s.name} (${s.targetCountries?.join(', ')}) - ${s.fundingType}`).join('; ')}` : ''}
 ${relevantCountries.length > 0 ? `Countries info available: ${relevantCountries.join(', ')}` : ''}
 
-USER CONTEXT:
+USER CONTEXT: 
 - Name: ${userProfile.firstName || 'Student'}
 - From: ${userProfile.nationality || 'international'}
 - Field: ${userProfile.fieldOfStudy || 'exploring options'}
 - Interested countries: ${userProfile.preferredCountries?.join(', ') || 'open to suggestions'}
+- Profile context: ${profileContext}
 
 GUIDELINES:
-1. Use the available data to give specific, helpful answers
-2. If scholarships match their query, mention 2-3 specific ones with key details
-3. Provide realistic cost ranges and requirements
-4. Be conversational and encouraging, not sales-y
-5. After helpful info, ask if they want to explore applications or need guidance
-6. Keep under 200 words but be comprehensive
+1. Continue conversation naturally, building on previous interactions
+2. Use the available data to give specific, helpful answers
+3. If scholarships match their query, mention 2-3 specific ones with key details
+4. Provide realistic cost ranges and requirements
+5. Be conversational and encouraging, not sales-y
+6. After helpful info, ask if they want to explore applications or need guidance
+7. Keep under 200 words but be comprehensive
 
 Focus on being genuinely helpful first, then offer next steps naturally.`;
 
@@ -393,8 +405,14 @@ Focus on being genuinely helpful first, then offer next steps naturally.`;
       description: 'Get personalized guidance from education expert'
     });
     
+    // Add profile extraction feedback
+    let profileFeedback = '';
+    if (profileContext && profileContext !== 'basic profile information') {
+      profileFeedback = `\n\n💡 **Personalized Response:** I'm using your profile information (${profileContext}) to provide targeted recommendations. Want different guidance? [Update your profile](/profile) or let me know what you'd prefer to focus on.`;
+    }
+
     return {
-      response: content,
+      response: content + profileFeedback,
       actionButtons
     };
     
@@ -542,4 +560,66 @@ function isValidPhoneNumber(phone: string): boolean {
   const phoneRegex = /^\+[1-9]\d{9,14}$/;
   
   return phoneRegex.test(cleanPhone);
+}
+
+/**
+ * Extract user profile context for personalization feedback
+ */
+function extractUserProfileContext(userProfile: UserProfile): string {
+  const context = [];
+  
+  if (userProfile.fieldOfStudy) context.push(`field: ${userProfile.fieldOfStudy}`);
+  if (userProfile.studyLevel) context.push(`level: ${userProfile.studyLevel}`);
+  if (userProfile.preferredCountries?.length) context.push(`countries: ${userProfile.preferredCountries.join(', ')}`);
+  if (userProfile.budgetRange) context.push(`budget: ${userProfile.budgetRange}`);
+  
+  return context.length > 0 ? context.join(', ') : 'basic profile information';
+}
+
+/**
+ * Extract country mentions from message and conversation history
+ */
+function extractCountryFromContext(message: string, conversationHistory: ChatMessage[]): string | undefined {
+  const countries = ['australia', 'canada', 'usa', 'uk', 'united kingdom', 'germany', 'netherlands'];
+  const messageLower = message.toLowerCase();
+  
+  // Check current message first
+  const mentionedCountry = countries.find(country => messageLower.includes(country));
+  if (mentionedCountry) return mentionedCountry;
+  
+  // Check recent conversation history
+  if (conversationHistory?.length > 0) {
+    const recentMessages = conversationHistory.slice(-5);
+    for (const msg of recentMessages) {
+      const msgLower = msg.content.toLowerCase();
+      const foundCountry = countries.find(country => msgLower.includes(country));
+      if (foundCountry) return foundCountry;
+    }
+  }
+  
+  return undefined;
+}
+
+/**
+ * Extract field of study mentions from message and conversation history
+ */
+function extractFieldFromContext(message: string, conversationHistory: ChatMessage[]): string | undefined {
+  const fields = ['information technology', 'computer science', 'engineering', 'business', 'it', 'cs'];
+  const messageLower = message.toLowerCase();
+  
+  // Check current message first
+  const mentionedField = fields.find(field => messageLower.includes(field));
+  if (mentionedField) return mentionedField;
+  
+  // Check recent conversation history
+  if (conversationHistory?.length > 0) {
+    const recentMessages = conversationHistory.slice(-5);
+    for (const msg of recentMessages) {
+      const msgLower = msg.content.toLowerCase();
+      const foundField = fields.find(field => msgLower.includes(field));
+      if (foundField) return foundField;
+    }
+  }
+  
+  return undefined;
 }

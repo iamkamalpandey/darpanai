@@ -130,6 +130,18 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**July 2, 2025 - Enhanced Profile Information Extraction & Conversation Memory Implementation:**
+- ✓ Added profile information extraction transparency informing users what data is being used for personalization
+- ✓ Implemented conversation memory continuity maintaining context across 6+ previous interactions for natural flow
+- ✓ Enhanced AI response generation with profile context feedback and direct links to profile edit page
+- ✓ Added helper functions for extracting countries and fields from conversation history for better context awareness
+- ✓ Integrated profile extraction feedback showing users exactly what information is being used (field, level, countries, budget)
+- ✓ Enhanced system prompts to include conversation history and continue discussions naturally referencing previous topics
+- ✓ Implemented user control through profile edit page links allowing users to update information for different responses
+- ✓ Applied Apple-like premium user experience with transparent data usage and user empowerment over personalization
+- ✓ Fixed application intent detection to work with conversation context rather than isolated message analysis
+- ✓ Successfully deployed enhanced conversational AI with memory continuity and profile transparency features
+
 **July 2, 2025 - Enhanced Structured Application Flow Implementation:**
 - ✓ Implemented structured 4-step application workflow: Study Level Selection → Document Upload → Phone Validation → Expert Contact
 - ✓ Enhanced application flow with document upload validation requiring highest academic qualification for proceeding
