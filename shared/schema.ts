@@ -4,6 +4,7 @@ export * from "./coeSchema";
 export * from "./scholarshipSchema";
 export * from "./cvAnalysisSchema";
 export * from "./academicDocumentSchema";
+export * from "./institutionSchema";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
