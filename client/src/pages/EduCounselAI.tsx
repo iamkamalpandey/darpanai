@@ -67,18 +67,21 @@ export default function EduCounselAI() {
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData: { message: string; conversationHistory: ChatMessage[] }) => {
       const response = await apiRequest('POST', '/api/educounsel/chat', messageData);
-      return response as ChatResponse;
+      return response;
     },
-    onSuccess: (response: ChatResponse) => {
+    onSuccess: (response: any) => {
+      console.log('API Response:', response);
+      
       const aiMessage: ChatMessage = {
         id: Date.now().toString() + '_ai',
-        content: response.response,
+        content: response.response || 'No response available',
         isUser: false,
         timestamp: new Date(),
-        specialist: response.specialist,
+        specialist: response.specialist || 'Alex',
         formatted: true
       };
       
+      console.log('AI Message:', aiMessage);
       setMessages(prev => [...prev, aiMessage]);
       setIsTyping(false);
     },
