@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 
 /*
 <important_code_snippet_instructions>
@@ -14,6 +15,10 @@ const DEFAULT_MODEL_STR = "claude-sonnet-4-20250514";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
+});
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 interface ChatMessage {
@@ -209,7 +214,7 @@ function generateProfileContext(userProfile: UserProfile): string {
  * Generate conversation context summary
  */
 function generateConversationContext(conversationHistory: ChatMessage[]): string {
-  if (conversationHistory.length === 0) return '';
+  if (!conversationHistory || conversationHistory.length === 0) return '';
   
   let context = '\nRecent Conversation Context:\n';
   
@@ -217,8 +222,11 @@ function generateConversationContext(conversationHistory: ChatMessage[]): string
   const recentMessages = conversationHistory.slice(-6);
   
   recentMessages.forEach((msg, index) => {
+    // Safely handle message properties
     const speaker = msg.isUser ? 'Student' : `AI (${msg.specialist || 'Assistant'})`;
-    const content = msg.content.length > 150 ? msg.content.substring(0, 150) + '...' : msg.content;
+    const content = msg.content && typeof msg.content === 'string' 
+      ? (msg.content.length > 150 ? msg.content.substring(0, 150) + '...' : msg.content)
+      : 'No content';
     context += `${speaker}: ${content}\n`;
   });
   
@@ -226,24 +234,10 @@ function generateConversationContext(conversationHistory: ChatMessage[]): string
 }
 
 /**
- * Process EduCounsel chat with intelligent AI specialist selection
+ * Process chat with OpenAI fallback when Anthropic is unavailable
  */
-export async function processEduCounselChat(request: EduCounselRequest): Promise<EduCounselResponse> {
-  try {
-    const { message, conversationHistory, userProfile } = request;
-    
-    // Select appropriate AI specialist
-    const selectedSpecialist = selectAISpecialist(message, conversationHistory, userProfile);
-    const specialist = AI_SPECIALISTS[selectedSpecialist];
-    
-    console.log(`🎯 Selected AI Specialist: ${specialist.name} (${specialist.role})`);
-    
-    // Generate context
-    const profileContext = generateProfileContext(userProfile);
-    const conversationContext = generateConversationContext(conversationHistory);
-    
-    // Construct AI prompt
-    const systemPrompt = `You are ${specialist.name}, a ${specialist.role} specializing in ${specialist.specialty}. Your personality is ${specialist.personality}.
+async function processWithOpenAI(message: string, specialist: any, profileContext: string, conversationContext: string): Promise<string> {
+  const systemPrompt = `You are ${specialist.name}, a ${specialist.role} specializing in ${specialist.specialty}. Your personality is ${specialist.personality}.
 
 Key Guidelines:
 1. Provide personalized guidance based on the student's profile
@@ -262,20 +256,78 @@ Current Student Question: "${message}"
 
 Respond as ${specialist.name} would, providing personalized guidance based on the student's profile and conversation history. If you need additional information to provide better guidance, ask ONE specific question related to your specialty area.`;
 
-    const response = await anthropic.messages.create({
-      model: DEFAULT_MODEL_STR,
-      max_tokens: 1000,
-      temperature: 0.7,
-      system: systemPrompt,
-      messages: [
-        {
-          role: 'user',
-          content: message
-        }
-      ]
-    });
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: message }
+    ],
+    max_tokens: 1000,
+    temperature: 0.7,
+  });
 
-    const aiResponse = response.content[0].type === 'text' ? response.content[0].text : 'I apologize, but I cannot process your request right now.';
+  return response.choices[0].message.content || 'I apologize, but I cannot process your request right now.';
+}
+
+/**
+ * Process EduCounsel chat with intelligent AI specialist selection and OpenAI fallback
+ */
+export async function processEduCounselChat(request: EduCounselRequest): Promise<EduCounselResponse> {
+  try {
+    const { message, conversationHistory, userProfile } = request;
+    
+    // Select appropriate AI specialist
+    const selectedSpecialist = selectAISpecialist(message, conversationHistory, userProfile);
+    const specialist = AI_SPECIALISTS[selectedSpecialist];
+    
+    console.log(`🎯 Selected AI Specialist: ${specialist.name} (${specialist.role})`);
+    
+    // Generate context
+    const profileContext = generateProfileContext(userProfile);
+    const conversationContext = generateConversationContext(conversationHistory);
+    
+    let aiResponse: string;
+    
+    try {
+      // Try Anthropic first
+      const response = await anthropic.messages.create({
+        model: DEFAULT_MODEL_STR,
+        max_tokens: 1000,
+        temperature: 0.7,
+        system: `You are ${specialist.name}, a ${specialist.role} specializing in ${specialist.specialty}. Your personality is ${specialist.personality}.
+
+Key Guidelines:
+1. Provide personalized guidance based on the student's profile
+2. If missing critical information, ask ONE specific question at a time
+3. Reference existing profile data to avoid asking for information already provided
+4. Keep responses conversational, helpful, and beautifully formatted
+5. Use bullet points, numbered lists, and proper paragraphs for clarity
+6. Provide actionable advice and next steps
+7. Be encouraging and supportive
+8. If the question is outside your specialty, acknowledge it but still provide helpful guidance
+
+${profileContext}
+${conversationContext}
+
+Current Student Question: "${message}"
+
+Respond as ${specialist.name} would, providing personalized guidance based on the student's profile and conversation history. If you need additional information to provide better guidance, ask ONE specific question related to your specialty area.`,
+        messages: [
+          {
+            role: 'user',
+            content: message
+          }
+        ]
+      });
+
+      aiResponse = response.content[0].type === 'text' ? response.content[0].text : 'I apologize, but I cannot process your request right now.';
+      
+    } catch (anthropicError: any) {
+      console.log('❌ Anthropic API failed, falling back to OpenAI...');
+      
+      // Fallback to OpenAI
+      aiResponse = await processWithOpenAI(message, specialist, profileContext, conversationContext);
+    }
     
     // Analyze if more information is needed
     const requiresMoreInfo = aiResponse.toLowerCase().includes('could you tell me') || 
@@ -301,7 +353,7 @@ Respond as ${specialist.name} would, providing personalized guidance based on th
   } catch (error) {
     console.error('❌ EduCounsel AI processing error:', error);
     
-    // Fallback response
+    // Final fallback response
     return {
       response: `I apologize, but I'm having some technical difficulties right now. However, I'd still like to help! 
 

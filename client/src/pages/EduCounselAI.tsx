@@ -210,6 +210,11 @@ What specific aspect would you like to discuss today?`;
   };
 
   const formatMessageContent = (content: string) => {
+    // Handle undefined or null content
+    if (!content || typeof content !== 'string') {
+      return <p className="text-sm text-gray-500">No content available</p>;
+    }
+    
     // Split content into paragraphs and format
     const paragraphs = content.split('\n\n');
     
