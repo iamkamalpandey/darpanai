@@ -16,6 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { AlertCircle, FileText, Upload, Calendar, CheckCircle, Clock, XCircle, BookOpen, MapPin, User, DollarSign, GraduationCap, Phone } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { z } from 'zod';
+import DashboardLayout from '@/components/DashboardLayout';
 
 // Form schemas for each step
 const personalInfoSchema = z.object({
@@ -556,9 +557,11 @@ function ApplicationForm({ onSuccess }: { onSuccess: () => void }) {
 }
 
 function ApplicationsList() {
-  const { data: applications, isLoading } = useQuery({
+  const { data: response, isLoading } = useQuery({
     queryKey: ['/api/applications/my'],
   });
+  
+  const applications = response?.applications || [];
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -599,7 +602,7 @@ function ApplicationsList() {
 
   return (
     <div className="space-y-4">
-      {applications && applications.length > 0 ? (
+      {applications.length > 0 ? (
         applications.map((app: any) => (
           <Card key={app.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-6">
@@ -668,38 +671,36 @@ export default function StudentApplicationSystem() {
   const [activeTab, setActiveTab] = useState('applications');
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Study Abroad Applications
-          </h1>
-          <p className="text-gray-600">
-            Apply to study in your desired country with our guided application system
-          </p>
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
-            <TabsTrigger value="applications" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              My Applications
-            </TabsTrigger>
-            <TabsTrigger value="create" className="flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              Create New
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="applications">
-            <ApplicationsList />
-          </TabsContent>
-
-          <TabsContent value="create">
-            <ApplicationForm onSuccess={() => setActiveTab('applications')} />
-          </TabsContent>
-        </Tabs>
+    <DashboardLayout>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Study Abroad Applications
+        </h1>
+        <p className="text-gray-600">
+          Apply to study in your desired country with our guided application system
+        </p>
       </div>
-    </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsTrigger value="applications" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            My Applications
+          </TabsTrigger>
+          <TabsTrigger value="create" className="flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            Create New
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="applications">
+          <ApplicationsList />
+        </TabsContent>
+
+        <TabsContent value="create">
+          <ApplicationForm onSuccess={() => setActiveTab('applications')} />
+        </TabsContent>
+      </Tabs>
+    </DashboardLayout>
   );
 }
