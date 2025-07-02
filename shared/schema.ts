@@ -9,6 +9,74 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
+// Country Application Workflows
+export const countryWorkflows = pgTable("country_workflows", {
+  id: serial("id").primaryKey(),
+  countryCode: text("country_code").notNull().unique(), // ISO country code (AU, US, UK, CA, etc.)
+  countryName: text("country_name").notNull(),
+  studyLevel: text("study_level").notNull(), // bachelor, master, phd, diploma
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  // Workflow metadata
+  workflowTitle: text("workflow_title").notNull(),
+  workflowDescription: text("workflow_description"),
+  estimatedCompletionTime: text("estimated_completion_time"), // "2-3 weeks"
+  applicationFee: decimal("application_fee", { precision: 10, scale: 2 }),
+  currency: text("currency").default("USD"),
+});
+
+// Application Checklist Items
+export const applicationChecklistItems = pgTable("application_checklist_items", {
+  id: serial("id").primaryKey(),
+  workflowId: integer("workflow_id").references(() => countryWorkflows.id).notNull(),
+  itemType: text("item_type").notNull(), // personal_info, academic_docs, financial_docs, language_tests, etc.
+  fieldName: text("field_name").notNull(), // passport, transcript, bank_statement, ielts_score
+  displayLabel: text("display_label").notNull(), // "Valid Passport"
+  description: text("description"),
+  isRequired: boolean("is_required").default(true).notNull(),
+  fieldType: text("field_type").notNull(), // text, number, date, file, dropdown, checkbox
+  validationRules: jsonb("validation_rules"), // min/max values, file types, etc.
+  options: jsonb("options"), // for dropdown fields
+  sortOrder: integer("sort_order").default(0).notNull(),
+  helpText: text("help_text"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// User Application Progress
+export const userApplications = pgTable("user_applications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  workflowId: integer("workflow_id").references(() => countryWorkflows.id).notNull(),
+  status: text("status").default("in_progress").notNull(), // in_progress, completed, submitted, on_hold
+  applicationData: jsonb("application_data").notNull(), // Collected form data
+  completedItems: jsonb("completed_items").default([]).notNull(), // Array of completed checklist item IDs
+  documentsUploaded: jsonb("documents_uploaded").default([]).notNull(), // File references
+  currentStep: text("current_step"),
+  progressPercentage: integer("progress_percentage").default(0).notNull(),
+  submittedAt: timestamp("submitted_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Consultation Bookings for Unsupported Countries
+export const consultationBookings = pgTable("consultation_bookings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  requestedCountry: text("requested_country").notNull(),
+  studyLevel: text("study_level").notNull(),
+  fieldOfStudy: text("field_of_study"),
+  preferredDate: text("preferred_date"),
+  preferredTime: text("preferred_time"),
+  message: text("message"),
+  status: text("status").default("pending").notNull(), // pending, confirmed, completed, cancelled
+  assignedCounselor: text("assigned_counselor"),
+  meetingLink: text("meeting_link"),
+  scheduledAt: timestamp("scheduled_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Enhanced User Model with User Types
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -1086,5 +1154,105 @@ export type InsertDocumentCategory = z.infer<typeof insertDocumentCategorySchema
 
 export type DocumentType = typeof documentTypes.$inferSelect;
 export type InsertDocumentType = z.infer<typeof insertDocumentTypeSchema>;
+
+// Country Workflow schemas and types
+export const insertCountryWorkflowSchema = createInsertSchema(countryWorkflows, {
+  countryCode: z.string().min(2, "Country code is required (e.g., US, AU, UK)"),
+  countryName: z.string().min(1, "Country name is required"),
+  studyLevel: z.enum(["bachelor", "master", "phd", "diploma", "certificate"]),
+  workflowTitle: z.string().min(1, "Workflow title is required"),
+  workflowDescription: z.string().optional(),
+  estimatedCompletionTime: z.string().optional(),
+  applicationFee: z.string().optional(),
+  currency: z.string().default("USD"),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertChecklistItemSchema = createInsertSchema(applicationChecklistItems, {
+  workflowId: z.number().positive("Workflow ID is required"),
+  itemType: z.enum(["personal_info", "academic_docs", "financial_docs", "language_tests", "visa_docs", "other"]),
+  fieldName: z.string().min(1, "Field name is required"),
+  displayLabel: z.string().min(1, "Display label is required"),
+  description: z.string().optional(),
+  fieldType: z.enum(["text", "number", "date", "file", "dropdown", "checkbox", "textarea"]),
+  validationRules: z.object({
+    required: z.boolean().default(true),
+    minLength: z.number().optional(),
+    maxLength: z.number().optional(),
+    pattern: z.string().optional(),
+    fileTypes: z.array(z.string()).optional(),
+    maxFileSize: z.number().optional(),
+  }).optional(),
+  options: z.array(z.string()).optional(),
+  sortOrder: z.number().default(0),
+  helpText: z.string().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserApplicationSchema = createInsertSchema(userApplications, {
+  userId: z.number().positive("User ID is required"),
+  workflowId: z.number().positive("Workflow ID is required"),
+  status: z.enum(["in_progress", "completed", "submitted", "on_hold"]).default("in_progress"),
+  applicationData: z.record(z.any()).default({}),
+  completedItems: z.array(z.number()).default([]),
+  documentsUploaded: z.array(z.object({
+    fieldName: z.string(),
+    fileName: z.string(),
+    fileUrl: z.string(),
+    uploadedAt: z.string(),
+  })).default([]),
+  currentStep: z.string().optional(),
+  progressPercentage: z.number().min(0).max(100).default(0),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  submittedAt: true,
+});
+
+export const insertConsultationBookingSchema = createInsertSchema(consultationBookings, {
+  userId: z.number().positive("User ID is required"),
+  requestedCountry: z.string().min(1, "Country is required"),
+  studyLevel: z.enum(["bachelor", "master", "phd", "diploma", "certificate"]),
+  fieldOfStudy: z.string().optional(),
+  preferredDate: z.string().min(1, "Preferred date is required"),
+  preferredTime: z.string().min(1, "Preferred time is required"),
+  message: z.string().optional(),
+  status: z.enum(["pending", "confirmed", "completed", "cancelled"]).default("pending"),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  assignedCounselor: true,
+  meetingLink: true,
+  scheduledAt: true,
+});
+
+// Type exports for Country Workflow system
+export type CountryWorkflow = typeof countryWorkflows.$inferSelect;
+export type InsertCountryWorkflow = z.infer<typeof insertCountryWorkflowSchema>;
+
+export type ApplicationChecklistItem = typeof applicationChecklistItems.$inferSelect;
+export type InsertApplicationChecklistItem = z.infer<typeof insertChecklistItemSchema>;
+
+export type UserApplication = typeof userApplications.$inferSelect;
+export type InsertUserApplication = z.infer<typeof insertUserApplicationSchema>;
+
+export type ConsultationBooking = typeof consultationBookings.$inferSelect;
+export type InsertConsultationBooking = z.infer<typeof insertConsultationBookingSchema>;
+
+// Country selection workflow schema for AI interactions
+export const countrySelectionSchema = z.object({
+  selectedCountry: z.string().min(1, "Country selection is required"),
+  studyLevel: z.enum(["bachelor", "master", "phd", "diploma", "certificate"]),
+  fieldOfStudy: z.string().optional(),
+  hasWorkflowSupport: z.boolean(),
+  workflowId: z.number().optional(),
+});
 
 

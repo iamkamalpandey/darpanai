@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+import { countryWorkflowStorage } from './countryWorkflowStorage';
 
 // Import types
 interface EduCounselRequest {
@@ -190,12 +191,24 @@ async function startStructuredApplicationFlow(
   
   if (!userProfile.preferredCountries?.length && !mentionedCountry) {
     return {
-      response: `**Which country interests you most?**\n\n• Australia\n• United Kingdom\n• Canada\n• United States\n• Germany`,
+      response: `**Which country interests you most?**\n\nChoose from our supported countries with structured application workflows:`,
       actionButtons: [{
         type: 'complete_profile',
         label: 'Select Country',
         description: 'Choose your preferred destination'
-      }]
+      }],
+      requiresSelection: {
+        type: 'country',
+        options: [
+          'Australia',
+          'United Kingdom', 
+          'Canada',
+          'United States',
+          'Germany',
+          'Other Country (Book Consultation)'
+        ],
+        question: 'Which country would you like to study in?'
+      }
     };
   }
   
