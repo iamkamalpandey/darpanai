@@ -94,6 +94,7 @@ const ProfileBasedApplication = lazy(() => import("@/pages/ProfileBasedApplicati
 const SmartApplicationTracker = lazy(() => import("@/pages/SmartApplicationTracker"));
 const CommunicationCenter = lazy(() => import("@/pages/CommunicationCenter"));
 const DocumentIntelligenceHub = lazy(() => import("@/pages/DocumentIntelligenceHub"));
+const UnifiedApplicationManagement = lazy(() => import("@/pages/UnifiedApplicationManagement"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -524,6 +525,13 @@ function Router() {
         <AdminProtectedRoute path="/admin/professional-applications" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <AdminProfessionalApplications />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/unified-applications">
+        <AdminProtectedRoute path="/admin/unified-applications" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <UnifiedApplicationManagement />
           </Suspense>
         )} />
       </Route>
