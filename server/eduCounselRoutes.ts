@@ -37,7 +37,15 @@ router.post('/chat', requireAuth, async (req: Request, res: Response) => {
     // Save conversation to database
     await saveConversationHistory(userId, message, response);
 
-    res.json(response);
+    // Format response for frontend compatibility
+    const formattedResponse = {
+      response: response.response,
+      specialist: 'Alex', // Default specialist
+      actionButtons: response.actionButtons || [],
+      requiresSelection: response.requiresSelection
+    };
+
+    res.json(formattedResponse);
   } catch (error) {
     console.error('❌ EduCounsel chat error:', error);
     res.status(500).json({ 

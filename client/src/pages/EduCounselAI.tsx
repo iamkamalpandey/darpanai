@@ -97,7 +97,8 @@ export default function EduCounselAI() {
         specialist: data.specialist || 'Alex',
         formatted: true,
         suggestsBooking: data.suggestsBooking || false,
-        actionButtons: data.actionButtons || []
+        actionButtons: data.actionButtons || [],
+        requiresSelection: data.requiresSelection
       };
       
       console.log('AI Message:', aiMessage);
