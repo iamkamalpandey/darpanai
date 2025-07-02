@@ -1,6 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { countryWorkflowStorage } from './countryWorkflowStorage';
+import { scholarshipStorage } from './scholarshipStorage';
+import { db } from './db';
 
 // Import types
 interface EduCounselRequest {
@@ -286,32 +288,49 @@ async function checkCountryWorkflowSupport(country: string, studyLevel: string, 
 }
 
 /**
- * Generate helpful, conversational AI response for educational queries
+ * Generate contextual AI response using real database information
  */
 async function generateMinimalAIResponse(message: string, userProfile: UserProfile): Promise<EduCounselResponse> {
   try {
-    // Enhanced system prompt for natural, helpful conversation
-    const systemPrompt = `You are Alex, a friendly study abroad counselor. Your role is to:
+    console.log('🔍 Generating contextualized AI response for:', message);
+    
+    // Get relevant data from database
+    const [scholarships, countries] = await Promise.all([
+      getRelevantScholarships(message, userProfile),
+      getRelevantCountries(message, userProfile)
+    ]);
 
-1. Provide helpful, accurate information about studying abroad
-2. Answer questions about universities, courses, costs, visa processes, scholarships
-3. Be conversational and supportive, not pushy
-4. After providing helpful information, offer options like:
-   - "Would you like me to help you find specific universities?"
-   - "Do you need help with the application process?"
-   - "Would you prefer to speak with a human counselor?"
+    // Enhanced system prompt with real data context
+    const systemPrompt = `You are Alex, a professional study abroad counselor with access to real institutional data.
 
-Keep responses under 150 words. Focus on being helpful first, not pushing applications.
-If user asks about costs, provide realistic ranges and helpful context.
-If user asks about requirements, give practical advice.
-Always end with asking what else they'd like to know or offering next steps.`;
+PERSONALITY: Be warm, knowledgeable, and genuinely helpful like Apple's customer service approach.
 
-    console.log('🔍 Generating AI response for message:', message);
+AVAILABLE DATA:
+${scholarships.length > 0 ? `Relevant Scholarships: ${scholarships.map(s => `${s.name} (${s.targetCountries?.join(', ')}) - ${s.fundingType}`).join('; ')}` : ''}
+${countries.length > 0 ? `Countries info available: ${countries.join(', ')}` : ''}
+
+USER CONTEXT:
+- Name: ${userProfile.firstName || 'Student'}
+- From: ${userProfile.nationality || 'international'}
+- Field: ${userProfile.fieldOfStudy || 'exploring options'}
+- Interested countries: ${userProfile.preferredCountries?.join(', ') || 'open to suggestions'}
+
+GUIDELINES:
+1. Use the available data to give specific, helpful answers
+2. If scholarships match their query, mention 2-3 specific ones with key details
+3. Provide realistic cost ranges and requirements
+4. Be conversational and encouraging, not sales-y
+5. After helpful info, ask if they want to explore applications or need guidance
+6. Keep under 200 words but be comprehensive
+
+Focus on being genuinely helpful first, then offer next steps naturally.`;
+
+    console.log('🔍 Generating AI response with context for message:', message);
     
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      max_tokens: 250,
-      temperature: 0.4,
+      max_tokens: 300,
+      temperature: 0.3,
       messages: [
         {
           role: "system",
@@ -319,7 +338,7 @@ Always end with asking what else they'd like to know or offering next steps.`;
         },
         {
           role: "user",
-          content: `User profile: ${userProfile.firstName || 'Student'} from ${userProfile.nationality || 'international'}, interested in ${userProfile.fieldOfStudy || 'various fields'}, preferred countries: ${userProfile.preferredCountries?.join(', ') || 'exploring options'}.\n\nQuestion: ${message}`
+          content: message
         }
       ]
     });
@@ -328,12 +347,19 @@ Always end with asking what else they'd like to know or offering next steps.`;
     
     const content = response.choices[0]?.message?.content || 'I can help you with study abroad planning. What specific information would you like to know?';
     
-    // Determine appropriate action buttons based on message content
+    // Determine appropriate action buttons based on context and message content
     const actionButtons: ActionButton[] = [];
     const messageLower = message.toLowerCase();
     
-    // Only suggest application if user seems ready or asks about it
-    if (messageLower.includes('ready') || messageLower.includes('want to') || messageLower.includes('should i apply')) {
+    // Check if user is showing interest in applying or ready to proceed
+    const showingApplicationInterest = messageLower.includes('ready') || 
+                                       messageLower.includes('want to') || 
+                                       messageLower.includes('should i apply') ||
+                                       messageLower.includes('apply') ||
+                                       messageLower.includes('interested') ||
+                                       scholarships.length > 0; // If we found relevant scholarships
+    
+    if (showingApplicationInterest) {
       actionButtons.push({
         type: 'apply_now',
         label: 'Start Application',
@@ -353,7 +379,7 @@ Always end with asking what else they'd like to know or offering next steps.`;
       actionButtons
     };
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error in AI response generation:', error);
     console.error('Error details:', error?.message || 'Unknown error');
     
@@ -372,7 +398,7 @@ Always end with asking what else they'd like to know or offering next steps.`;
         ]
       });
       
-      const anthropicContent = anthropicResponse.content[0]?.text || 'I can help with study abroad planning. What specific information would you like?';
+      const anthropicContent = (anthropicResponse.content[0] as any)?.text || 'I can help with study abroad planning. What specific information would you like?';
       console.log('✅ Anthropic fallback successful');
       
       return {
@@ -395,5 +421,60 @@ Always end with asking what else they'd like to know or offering next steps.`;
         }]
       };
     }
+  }
+}
+
+/**
+ * Get relevant scholarships based on message content and user profile
+ */
+async function getRelevantScholarships(message: string, userProfile: UserProfile): Promise<any[]> {
+  try {
+    const messageLower = message.toLowerCase();
+    
+    // Extract countries mentioned in message
+    const countryKeywords = ['australia', 'usa', 'canada', 'uk', 'germany', 'netherlands', 'europe'];
+    const mentionedCountries = countryKeywords.filter(country => messageLower.includes(country));
+    
+    // Use user preferred countries if no countries mentioned
+    const searchCountries = mentionedCountries.length > 0 ? mentionedCountries : userProfile.preferredCountries || [];
+    
+    // Get scholarships from database
+    const searchParams = {
+      limit: 3,
+      offset: 0,
+      search: searchCountries.join(' '),
+      studyLevel: userProfile.studyLevel || '',
+      providerCountry: searchCountries.length > 0 ? searchCountries[0] : undefined,
+      fieldCategory: userProfile.fieldOfStudy || ''
+    };
+    
+    const result = await scholarshipStorage.searchScholarships(searchParams);
+    return result.scholarships || []; // Return scholarships array
+  } catch (error) {
+    console.error('Error fetching scholarships:', error);
+    return [];
+  }
+}
+
+/**
+ * Get relevant country information
+ */
+async function getRelevantCountries(message: string, userProfile: UserProfile): Promise<string[]> {
+  try {
+    const messageLower = message.toLowerCase();
+    
+    // Extract countries mentioned in message
+    const countryKeywords = ['australia', 'usa', 'canada', 'uk', 'germany', 'netherlands'];
+    const mentionedCountries = countryKeywords.filter(country => messageLower.includes(country));
+    
+    if (mentionedCountries.length > 0) {
+      return mentionedCountries;
+    }
+    
+    // Return user's preferred countries
+    return userProfile.preferredCountries || [];
+  } catch (error) {
+    console.error('Error processing countries:', error);
+    return [];
   }
 }
