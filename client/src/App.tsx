@@ -62,6 +62,7 @@ const AdminAppointments = lazy(() => import("@/pages/admin-appointments"));
 const AdminUsers = lazy(() => import("@/pages/admin-users"));
 const AdminProfessionalApplications = lazy(() => import("@/pages/admin-professional-applications"));
 const AdminApplicationManagement = lazy(() => import("@/pages/AdminApplicationManagement"));
+const SmartApplicationManagement = lazy(() => import("@/pages/SmartApplicationManagement"));
 const AdminUpdates = lazy(() => import("@/pages/admin-updates"));
 const AdminSettings = lazy(() => import("@/pages/admin-settings"));
 const AdminDocumentTemplates = lazy(() => import("@/pages/admin-document-templates"));
@@ -530,6 +531,13 @@ function Router() {
         <AdminProtectedRoute path="/admin/applications" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <AdminApplicationManagement />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/smart-applications">
+        <AdminProtectedRoute path="/admin/smart-applications" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <SmartApplicationManagement />
           </Suspense>
         )} />
       </Route>

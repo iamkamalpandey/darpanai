@@ -442,16 +442,16 @@ export default function AdminApplicationManagement() {
                                       <label className="text-sm font-medium text-gray-600">Date of Birth</label>
                                       <p className="text-sm flex items-center gap-1">
                                         <Calendar className="h-4 w-4" />
-                                        {selectedApplication.personalDetails.dateOfBirth}
+                                        {selectedApplication.personalDetails?.dateOfBirth || 'Not provided'}
                                       </p>
                                     </div>
                                     <div>
                                       <label className="text-sm font-medium text-gray-600">Nationality</label>
-                                      <p className="text-sm">{selectedApplication.personalDetails.nationality}</p>
+                                      <p className="text-sm">{selectedApplication.personalDetails?.nationality || 'Not provided'}</p>
                                     </div>
                                     <div>
                                       <label className="text-sm font-medium text-gray-600">Passport Number</label>
-                                      <p className="text-sm">{selectedApplication.personalDetails.passportNumber}</p>
+                                      <p className="text-sm">{selectedApplication.personalDetails?.passportNumber || 'Not provided'}</p>
                                     </div>
                                   </CardContent>
                                 </Card>

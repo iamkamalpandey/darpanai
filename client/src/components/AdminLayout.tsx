@@ -17,7 +17,8 @@ import {
   ChevronDown,
   ChevronRight,
   FolderOpen,
-  MessageSquare
+  MessageSquare,
+  Brain
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/Footer';
@@ -79,6 +80,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     { icon: <Calendar size={20} />, label: 'Appointments', href: '/admin/appointments' },
     { icon: <Briefcase size={20} />, label: 'Professional Applications', href: '/admin/professional-applications' },
     { icon: <FileText size={20} />, label: 'Application Management', href: '/admin/applications' },
+    { icon: <Brain size={20} />, label: 'Smart Application Management', href: '/admin/smart-applications' },
     { icon: <Bell size={20} />, label: 'Updates & Notifications', href: '/admin/updates' },
     { icon: <FileText size={20} />, label: 'Scholarship Management', href: '/admin/scholarships' },
     { 
