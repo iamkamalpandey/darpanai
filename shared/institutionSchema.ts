@@ -83,21 +83,103 @@ export const institutionPrograms = pgTable("institution_programs", {
   createdAt: timestamp("created_at").defaultNow().notNull()
 });
 
-// Student Applications Table
+// Complete Student Application Process Management
 export const studentApplications = pgTable("student_applications", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(), // Reference to users table
+  userId: integer("user_id").notNull(),
   institutionId: integer("institution_id").references(() => institutions.id).notNull(),
   programId: integer("program_id").references(() => programs.id).notNull(),
-  applicationStatus: text("application_status").default("draft").notNull(), // draft, submitted, under_review, accepted, rejected
+  
+  // Application status tracking
+  applicationStatus: text("application_status").default("draft").notNull(), 
+  // draft, document_collection, eligibility_verification, application_review, submitted, under_institutional_review, accepted, rejected, waitlisted, withdrawn
+  
+  // Application reference and tracking
+  applicationReference: varchar("application_reference"), // Unique ID like APP-2025-001
+  currentStep: varchar("current_step").default("personal_info"), // personal_info, academic_info, documents, eligibility, review, terms, submit
+  completionPercentage: integer("completion_percentage").default(0),
+  stepsCompleted: jsonb("steps_completed").default([]),
+  
+  // Personal Information
+  personalInfo: jsonb("personal_info"), // Full name, DOB, nationality, passport, contact details
+  academicBackground: jsonb("academic_background"), // Previous qualifications, GPA, institution details
+  englishProficiency: jsonb("english_proficiency"), // IELTS, TOEFL scores and dates
+  workExperience: jsonb("work_experience"), // Professional background if required
+  
+  // Program and Study Preferences  
+  programPreferences: jsonb("program_preferences"), // Intake period, study mode, campus preference
+  motivationStatement: text("motivation_statement"), // Statement of Purpose
+  careerGoals: text("career_goals"),
+  
+  // Financial Information
+  financialInfo: jsonb("financial_info"), // Funding source, sponsor details, financial capacity
+  
+  // Document Management
+  requiredDocuments: jsonb("required_documents"), // List of docs needed for this program
+  uploadedDocuments: jsonb("uploaded_documents"), // Files with verification status
+  documentVerification: jsonb("document_verification"), // AI verification results
+  missingDocuments: jsonb("missing_documents").default([]),
+  
+  // Eligibility Assessment
+  eligibilityCheck: jsonb("eligibility_check"), // Automated requirement verification
+  meetsRequirements: boolean("meets_requirements").default(false),
+  requirementGaps: jsonb("requirement_gaps"), // What needs improvement
+  eligibilityScore: integer("eligibility_score"), // 0-100 match score
+  
+  // Terms and Legal Compliance
+  termsAccepted: boolean("terms_accepted").default(false),
+  termsAcceptedAt: timestamp("terms_accepted_at"),
+  privacyPolicyAccepted: boolean("privacy_policy_accepted").default(false),
+  dataProcessingConsent: boolean("data_processing_consent").default(false),
+  
+  // Submission and Processing
   submittedAt: timestamp("submitted_at"),
+  institutionSubmittedAt: timestamp("institution_submitted_at"), // When sent to institution
+  expectedResponse: timestamp("expected_response"), // Institution response deadline
+  
+  // Admin and Counselor Management
+  assignedCounselor: varchar("assigned_counselor"), // Staff member handling application
   counselorNotes: text("counselor_notes"),
-  applicationData: jsonb("application_data"), // Form data, documents, etc.
+  adminNotes: text("admin_notes"),
+  internalPriority: text("internal_priority").default("medium"), // high, medium, low
+  
+  // Communication and Updates
+  statusHistory: jsonb("status_history").default([]), // All status changes with timestamps
+  communicationLog: jsonb("communication_log").default([]), // Messages between user/admin/institution
+  lastUserActivity: timestamp("last_user_activity").defaultNow(),
+  lastAdminActivity: timestamp("last_admin_activity"),
+  
+  // Follow-up and Reminders
   followUpDate: timestamp("follow_up_date"),
-  priority: text("priority").default("medium").notNull(), // high, medium, low
-  source: text("source").default("chat").notNull(), // chat, direct, referral
+  remindersSent: integer("reminders_sent").default(0),
+  urgentFlag: boolean("urgent_flag").default(false),
+  
+  // Application Source and Analytics
+  source: text("source").default("chat").notNull(), // chat, direct, referral, consultation
+  referredBy: varchar("referred_by"), // Referral source if applicable
+  campaignSource: varchar("campaign_source"), // Marketing attribution
+  
+  // Institution Response
+  institutionResponse: jsonb("institution_response"), // Decision details from institution
+  institutionFeedback: text("institution_feedback"),
+  alternativeOffers: jsonb("alternative_offers"), // Other programs offered
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()
+});
+
+// Document Requirements by Program
+export const programDocumentRequirements = pgTable("program_document_requirements", {
+  id: serial("id").primaryKey(),
+  programId: integer("program_id").references(() => programs.id).notNull(),
+  documentType: varchar("document_type").notNull(), // transcript, diploma, passport, english_test, sop, lor, financial_proof
+  isRequired: boolean("is_required").default(true),
+  minimumRequirement: jsonb("minimum_requirement"), // GPA, test scores, etc.
+  description: text("description"),
+  verificationCriteria: jsonb("verification_criteria"),
+  acceptedFormats: jsonb("accepted_formats").default(["PDF", "JPG", "PNG"]),
+  maxFileSize: integer("max_file_size").default(10485760), // 10MB in bytes
+  createdAt: timestamp("created_at").defaultNow()
 });
 
 // Relations

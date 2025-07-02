@@ -318,7 +318,129 @@ function calculateProfileCompletion(userProfile: any): number {
 }
 
 /**
- * Process EduCounsel chat with intelligent AI specialist selection and OpenAI fallback
+ * Check if query needs short response (greetings, simple questions)
+ */
+function needsShortResponse(message: string): boolean {
+  const messageLower = message.toLowerCase().trim();
+  const shortResponseTriggers = [
+    'hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening',
+    'how are you', 'what\'s up', 'thanks', 'thank you', 'ok', 'okay', 'yes', 'no',
+    'bye', 'goodbye', 'see you', 'take care'
+  ];
+  
+  return shortResponseTriggers.some(trigger => messageLower.includes(trigger)) && messageLower.length < 50;
+}
+
+/**
+ * Generate short, natural responses for simple queries
+ */
+function generateShortResponse(message: string, userProfile: UserProfile): string {
+  const messageLower = message.toLowerCase().trim();
+  
+  if (messageLower.includes('hello') || messageLower.includes('hi') || messageLower.includes('hey')) {
+    return `Hello! I'm your education counselor. Ready to help you with study abroad plans. What would you like to explore today?`;
+  }
+  
+  if (messageLower.includes('good morning')) {
+    return `Good morning! How can I assist with your education journey today?`;
+  }
+  
+  if (messageLower.includes('good afternoon') || messageLower.includes('good evening')) {
+    return `Good ${messageLower.includes('afternoon') ? 'afternoon' : 'evening'}! What study abroad questions can I help with?`;
+  }
+  
+  if (messageLower.includes('how are you')) {
+    return `I'm here and ready to help! What aspect of studying abroad interests you?`;
+  }
+  
+  if (messageLower.includes('thank') || messageLower.includes('thanks')) {
+    return `You're welcome! Feel free to ask about universities, programs, or application processes anytime.`;
+  }
+  
+  if (messageLower.includes('bye') || messageLower.includes('goodbye')) {
+    return `Goodbye! Come back anytime for study abroad guidance. Good luck with your education plans!`;
+  }
+  
+  if (messageLower === 'ok' || messageLower === 'okay' || messageLower === 'yes') {
+    return `Great! What would you like to know about studying abroad?`;
+  }
+  
+  return `I'm here to help with your study abroad journey. What specific information do you need?`;
+}
+
+/**
+ * Enhanced application process management - guide users through complete application
+ */
+async function manageApplicationProcess(message: string, userProfile: UserProfile): Promise<{response: string, actionButtons: ActionButton[]}> {
+  const messageLower = message.toLowerCase();
+  
+  // Check if user wants to apply for a specific program
+  if (messageLower.includes('apply') || messageLower.includes('application')) {
+    // Check if user has selected institution and program
+    if (!userProfile.preferredCountries || !userProfile.fieldOfStudy) {
+      return {
+        response: `To start your application, I need to know your preferences first. Please complete your profile with:\n\n• Preferred study countries\n• Field of study\n• Academic background\n\nOnce complete, I can guide you through applications to specific universities.`,
+        actionButtons: [{
+          type: 'complete_profile',
+          label: 'Complete Profile',
+          description: 'Add your study preferences and academic background'
+        }]
+      };
+    }
+    
+    // Get institution recommendations and guide application
+    try {
+      const { institutionRecommendationService } = await import('./institutionRecommendationService');
+      const recommendations = await institutionRecommendationService.getRecommendationsForUser({
+        preferredCountries: userProfile.preferredCountries,
+        fieldOfStudy: userProfile.fieldOfStudy,
+        studyLevel: userProfile.studyLevel,
+        budgetRange: userProfile.budgetRange
+      });
+
+      if (recommendations.length > 0) {
+        const inst = recommendations[0]; // Top recommendation
+        return {
+          response: `Perfect! Based on your profile, I recommend starting with **${inst.institutionName}** in ${inst.country}.\n\n**${inst.matchingPrograms[0]?.programName}** (${inst.matchingPrograms[0]?.degree})\n• ${inst.reasonForRecommendation}\n• Fees: ${inst.averageFees.currency} ${inst.averageFees.totalEstimated.toLocaleString()}/year\n\nReady to start your application? I'll guide you step-by-step through:\n1. Document preparation\n2. Eligibility verification\n3. Application submission\n4. Status tracking`,
+          actionButtons: [{
+            type: 'apply_now',
+            label: 'Start Application',
+            description: `Begin application for ${inst.institutionName}`,
+            url: `/apply/${inst.institutionId}/${inst.matchingPrograms[0]?.programId}`
+          }]
+        };
+      }
+    } catch (error) {
+      console.error('Error getting recommendations:', error);
+    }
+    
+    return {
+      response: `I'll help you find and apply to the right university. Let me get some recommendations based on your profile first.`,
+      actionButtons: [{
+        type: 'explore_scholarships',
+        label: 'Explore Universities',
+        description: 'Find institutions matching your profile'
+      }]
+    };
+  }
+  
+  // Check for document-related queries
+  if (messageLower.includes('document') || messageLower.includes('transcript') || messageLower.includes('upload')) {
+    return {
+      response: `For university applications, you'll typically need:\n\n**Academic Documents:**\n• Official transcripts\n• Diploma/degree certificates\n• English proficiency test (IELTS/TOEFL)\n\n**Personal Documents:**\n• Passport copy\n• Statement of Purpose\n• Letters of Recommendation\n\n**Financial Documents:**\n• Bank statements\n• Financial guarantee\n\nI can help verify if your documents meet specific university requirements once you select a program.`,
+      actionButtons: [{
+        type: 'apply_now',
+        label: 'Check Requirements',
+        description: 'See specific document requirements for your target programs'
+      }]
+    };
+  }
+  
+  return { response: '', actionButtons: [] };
+}
+
+/**
+ * Process EduCounsel chat with application-focused guidance and short responses
  */
 export async function processEduCounselChat(request: EduCounselRequest): Promise<EduCounselResponse> {
   try {
