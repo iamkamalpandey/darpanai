@@ -306,6 +306,8 @@ If user asks about costs, provide realistic ranges and helpful context.
 If user asks about requirements, give practical advice.
 Always end with asking what else they'd like to know or offering next steps.`;
 
+    console.log('🔍 Generating AI response for message:', message);
+    
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       max_tokens: 250,
@@ -321,6 +323,8 @@ Always end with asking what else they'd like to know or offering next steps.`;
         }
       ]
     });
+    
+    console.log('🤖 OpenAI response received:', response.choices[0]?.message?.content?.substring(0, 100) + '...');
     
     const content = response.choices[0]?.message?.content || 'I can help you with study abroad planning. What specific information would you like to know?';
     
@@ -350,14 +354,46 @@ Always end with asking what else they'd like to know or offering next steps.`;
     };
     
   } catch (error) {
-    console.error('Error in AI response generation:', error);
-    return {
-      response: `I can help you with studying abroad! Whether you're looking for information about universities, application requirements, costs, or visa processes - just ask me anything.\n\nWhat would you like to know about studying internationally?`,
-      actionButtons: [{
-        type: 'book_consultation',
-        label: 'Speak with Counselor',
-        description: 'Get expert guidance from our education team'
-      }]
-    };
+    console.error('❌ Error in AI response generation:', error);
+    console.error('Error details:', error?.message || 'Unknown error');
+    
+    // Try Anthropic as fallback
+    try {
+      console.log('🔄 Trying Anthropic fallback...');
+      const anthropicResponse = await anthropic.messages.create({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 250,
+        temperature: 0.4,
+        messages: [
+          {
+            role: "user",
+            content: `You are Alex, a friendly study abroad counselor. Answer this question helpfully and conversationally: "${message}". Keep response under 150 words. Focus on being helpful, not pushy.`
+          }
+        ]
+      });
+      
+      const anthropicContent = anthropicResponse.content[0]?.text || 'I can help with study abroad planning. What specific information would you like?';
+      console.log('✅ Anthropic fallback successful');
+      
+      return {
+        response: anthropicContent,
+        actionButtons: [{
+          type: 'book_consultation',
+          label: 'Speak with Counselor',
+          description: 'Get expert guidance from our education team'
+        }]
+      };
+    } catch (anthropicError) {
+      console.error('❌ Anthropic fallback also failed:', anthropicError);
+      
+      return {
+        response: `I can help you with studying abroad! Whether you're looking for information about universities, application requirements, costs, or visa processes - just ask me anything.\n\nWhat would you like to know about studying internationally?`,
+        actionButtons: [{
+          type: 'book_consultation',
+          label: 'Speak with Counselor',
+          description: 'Get expert guidance from our education team'
+        }]
+      };
+    }
   }
 }
