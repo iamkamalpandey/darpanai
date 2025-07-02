@@ -391,92 +391,9 @@ async function manageApplicationProcess(message: string, userProfile: UserProfil
     const fields = ['information technology', 'computer science', 'engineering', 'business', 'it', 'cs'];
     const mentionedField = fields.find(field => messageLower.includes(field));
     
-    // If user has study intent, start immediate application process
-    try {
-      const { institutionRecommendationService } = await import('./institutionRecommendationService');
-      
-      // Use mentioned preferences or fallback to profile
-      const searchCriteria = {
-        preferredCountries: mentionedCountry ? [mentionedCountry] : (userProfile.preferredCountries || ['australia']),
-        fieldOfStudy: mentionedField || userProfile.fieldOfStudy || 'Information Technology',
-        studyLevel: userProfile.studyLevel || 'Masters',
-        budgetRange: userProfile.budgetRange || 'medium'
-      };
-      
-      const recommendations = await institutionRecommendationService.getRecommendationsForUser(searchCriteria);
-
-      if (recommendations.length > 0) {
-        const inst = recommendations[0]; // Top recommendation
-        const program = inst.matchingPrograms[0];
-        
-        // Start collecting missing information immediately
-        const missingInfo = [];
-        if (!userProfile.firstName || !userProfile.lastName) missingInfo.push('Full name');
-        if (!userProfile.dateOfBirth) missingInfo.push('Date of birth');
-        if (!userProfile.nationality) missingInfo.push('Nationality');
-        if (!userProfile.email) missingInfo.push('Email address');
-        if (!userProfile.gpa) missingInfo.push('Academic GPA');
-        if (!userProfile.previousQualification) missingInfo.push('Previous degree');
-        
-        let response = `Perfect! I found the ideal match for you:\n\n`;
-        response += `🎓 **${inst.institutionName}** (${inst.country})\n`;
-        response += `📚 **${program?.programName}** (${program?.degree})\n`;
-        response += `💰 **Annual Fees**: ${inst.averageFees.currency} ${inst.averageFees.totalEstimated.toLocaleString()}\n`;
-        response += `📊 **Match Score**: ${inst.matchScore}/100\n\n`;
-        response += `${inst.reasonForRecommendation}\n\n`;
-        
-        if (missingInfo.length > 0) {
-          response += `To start your application, I need:\n${missingInfo.map(info => `• ${info}`).join('\n')}\n\n`;
-          response += `Let's collect this information step by step. What's your full name?`;
-          
-          return {
-            response,
-            actionButtons: [{
-              type: 'start_application',
-              label: 'Start Application Process',
-              description: `Apply to ${inst.institutionName}`,
-              url: `/apply/${inst.institutionId}/${program?.programId}`
-            }, {
-              type: 'complete_profile',
-              label: 'Complete Profile First',
-              description: 'Fill out your complete profile for better recommendations'
-            }]
-          };
-        } else {
-          response += `Your profile is complete! Ready to submit your application?\n\n`;
-          response += `**Next Steps:**\n• Review application details\n• Upload required documents\n• Submit application\n• Track status`;
-          
-          return {
-            response,
-            actionButtons: [{
-              type: 'apply_now',
-              label: 'Submit Application',
-              description: `Apply to ${inst.institutionName} now`,
-              url: `/apply/${inst.institutionId}/${program?.programId}`
-            }]
-          };
-        }
-      } else {
-        return {
-          response: `I understand you want to study ${mentionedField || 'in your field'} ${mentionedCountry ? `in ${mentionedCountry}` : ''}. Let me help you find the right programs.\n\nTo provide specific university recommendations with exact fees and requirements, I need to know:\n• Your academic background\n• Preferred study level\n• Budget range\n\nShall we start with your previous qualification?`,
-          actionButtons: [{
-            type: 'complete_profile',
-            label: 'Provide Academic Details',
-            description: 'Share your background for personalized recommendations'
-          }]
-        };
-      }
-    } catch (error) {
-      console.error('Error getting recommendations:', error);
-      return {
-        response: `I can help you apply to study ${mentionedField || ''} ${mentionedCountry ? `in ${mentionedCountry}` : ''}. Let me gather some information first.\n\nWhat's your current educational background?`,
-        actionButtons: [{
-          type: 'complete_profile',
-          label: 'Share Academic Background',
-          description: 'Tell me about your education'
-        }]
-      };
-    }
+    // Start immediate step-by-step data collection
+    const applicationFlow = await startApplicationDataCollection(userProfile, mentionedCountry, mentionedField);
+    return applicationFlow;
   }
   
   // Check for document-related queries
@@ -813,6 +730,115 @@ export async function getConversationHistory(userId: number): Promise<{ messages
     console.error('❌ Error fetching conversation history:', error);
     return { messages: [] };
   }
+}
+
+/**
+ * Start structured application data collection step-by-step
+ */
+async function startApplicationDataCollection(userProfile: UserProfile, mentionedCountry?: string, mentionedField?: string): Promise<{response: string, actionButtons: ActionButton[]}> {
+  console.log('Starting application data collection for user:', userProfile.id);
+  
+  // Determine what information we need to collect
+  const dataChecklist = {
+    // Personal Information
+    fullName: !!(userProfile.firstName && userProfile.lastName),
+    dateOfBirth: !!userProfile.dateOfBirth,
+    nationality: !!userProfile.nationality,
+    email: !!userProfile.email,
+    phone: !!userProfile.phone,
+    
+    // Academic Information
+    academicLevel: !!userProfile.studyLevel,
+    fieldOfStudy: !!userProfile.fieldOfStudy,
+    previousEducation: !!userProfile.previousEducation,
+    academicGrades: !!userProfile.academicGrades,
+    
+    // Study Preferences
+    preferredCountry: !!userProfile.preferredCountries?.length,
+    budgetRange: !!userProfile.budgetRange,
+    
+    // Language Proficiency
+    englishTest: !!userProfile.englishTestScore,
+    
+    // Documents (we'll ask for these step by step)
+    documents: false // Always need to collect documents
+  };
+  
+  // Find the first missing piece of information
+  let nextStep = '';
+  let question = '';
+  let actionType: ActionButton['type'] = 'complete_profile';
+  
+  if (!dataChecklist.fullName) {
+    nextStep = 'personal_info';
+    question = `Great! I'll help you apply to study ${mentionedField || 'your chosen field'} ${mentionedCountry ? `in ${mentionedCountry}` : ''}.\n\nLet's start with your personal information.\n\n**What's your full name?** (First and Last name)`;
+  } else if (!dataChecklist.academicLevel) {
+    nextStep = 'academic_level';
+    question = `Perfect, ${userProfile.firstName}! \n\n**What level of study are you applying for?**\n\n• Bachelor's Degree\n• Master's Degree\n• PhD/Doctorate\n• Diploma/Certificate`;
+  } else if (!dataChecklist.fieldOfStudy) {
+    nextStep = 'field_of_study';
+    question = `**What field would you like to study?**\n\n• Information Technology\n• Computer Science\n• Engineering\n• Business Administration\n• Other (please specify)`;
+  } else if (!dataChecklist.preferredCountry && !mentionedCountry) {
+    nextStep = 'preferred_country';
+    question = `**Which country would you prefer to study in?**\n\n• Australia\n• United Kingdom\n• Canada\n• United States\n• Germany\n• Other (please specify)`;
+  } else if (!dataChecklist.previousEducation) {
+    nextStep = 'previous_education';
+    question = `**What's your previous educational qualification?**\n\nPlease provide:\n• Degree/Qualification name\n• Institution name\n• Graduation year\n• GPA/Percentage`;
+  } else if (!dataChecklist.englishTest) {
+    nextStep = 'english_proficiency';
+    question = `**Do you have an English proficiency test score?**\n\n• IELTS (what score?)\n• TOEFL (what score?)\n• PTE (what score?)\n• Not yet taken\n• Native English speaker`;
+  } else if (!dataChecklist.budgetRange) {
+    nextStep = 'budget_planning';
+    question = `**What's your budget range for studying abroad?**\n\n• Under $20,000 per year\n• $20,000 - $40,000 per year\n• $40,000 - $60,000 per year\n• Above $60,000 per year\n• Need scholarship assistance`;
+  } else {
+    // All basic info collected, now ask for documents
+    nextStep = 'document_upload';
+    question = `Excellent! I have your basic information. Now I need to collect your documents for the application.\n\n**Please upload your academic transcripts first.**\n\nAccepted formats: PDF, JPG, PNG (max 10MB)\n\nThis will help me:\n• Verify your academic qualifications\n• Calculate your GPA for university requirements\n• Check course prerequisites`;
+    actionType = 'apply_now';
+  }
+  
+  // Get institution recommendation if we have enough info
+  let institutionInfo = '';
+  if (dataChecklist.preferredCountry || mentionedCountry) {
+    try {
+      const { institutionRecommendationService } = await import('./institutionRecommendationService');
+      const searchCriteria = {
+        preferredCountries: mentionedCountry ? [mentionedCountry] : (userProfile.preferredCountries || []),
+        fieldOfStudy: mentionedField || userProfile.fieldOfStudy || 'Information Technology',
+        studyLevel: userProfile.studyLevel || 'Masters',
+        budgetRange: userProfile.budgetRange || 'medium'
+      };
+      
+      const recommendations = await institutionRecommendationService.getRecommendationsForUser(searchCriteria);
+      if (recommendations.length > 0) {
+        const inst = recommendations[0];
+        const program = inst.matchingPrograms[0];
+        institutionInfo = `\n\n🎯 **Top Recommendation for You:**\n🏛️ ${inst.institutionName} (${inst.country})\n📚 ${program?.programName} (${program?.degree})\n💰 Annual Fees: ${inst.averageFees.currency} ${inst.averageFees.totalEstimated.toLocaleString()}\n📊 Match Score: ${inst.matchScore}/100`;
+      }
+    } catch (error) {
+      console.error('Error getting recommendations:', error);
+    }
+  }
+  
+  return {
+    response: question + institutionInfo + `\n\n**Progress:** Step ${getCompletedSteps(dataChecklist)}/7 completed`,
+    actionButtons: [{
+      type: actionType,
+      label: nextStep === 'document_upload' ? 'Upload Documents' : 'Continue Application',
+      description: `Complete ${nextStep.replace('_', ' ')}`
+    }, {
+      type: 'complete_profile',
+      label: 'Fill Complete Profile',
+      description: 'Complete your full profile for better recommendations'
+    }]
+  };
+}
+
+/**
+ * Count completed steps for progress tracking
+ */
+function getCompletedSteps(dataChecklist: any): number {
+  return Object.values(dataChecklist).filter(Boolean).length;
 }
 
 /**
