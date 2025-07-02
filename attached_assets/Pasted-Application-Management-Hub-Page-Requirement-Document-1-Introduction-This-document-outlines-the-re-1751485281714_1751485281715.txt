@@ -1,0 +1,195 @@
+Application Management Hub - Page Requirement Document
+1. Introduction
+This document outlines the requirements for the "Application Management Hub" page, a comprehensive platform designed for tracking and managing student applications. The page provides an overview of application metrics, filtering capabilities, and detailed views for individual applications.
+
+2. Page Title & Description
+Title: Application Management Hub
+
+Description: Comprehensive student application tracking and management
+
+3. Key Metrics / Dashboard Section
+This section displays high-level statistics and key performance indicators (KPIs) related to applications.
+
+3.1. Total Applications
+Display: Total number of applications.
+
+Sub-display: Number of applications submitted today.
+
+Icon: Relevant icon (e.g., document, file).
+
+Data Source: Real-time count of all applications in the system.
+
+3.2. Approval Rate
+Display: Percentage of applications approved.
+
+Sub-display: Total number of approved applications.
+
+Icon: Relevant icon (e.g., chart, graph).
+
+Calculation: (Number of Approved Applications / Total Applications) * 100.
+
+3.3. Pending Review
+Display: Number of applications currently awaiting review.
+
+Description: "Documents requiring review".
+
+Icon: Warning or alert icon.
+
+Data Source: Count of applications with a "Pending Review" status.
+
+3.4. AI Completion
+Display: Average AI completion score for applications.
+
+Description: "Average completion score".
+
+Icon: AI or brain-related icon.
+
+Data Source: Average of AI-generated completion scores associated with applications.
+
+4. Actions Section (Top Right)
+4.1. New Application Button
+Label: "+ New Application"
+
+Functionality: Clicking this button should initiate the process of creating a new student application (e.g., navigate to a new application form page or open a modal).
+
+5. Search and Filter Section
+This section allows users to quickly find and narrow down the list of applications.
+
+5.1. Search Input
+Placeholder: "Search applications..."
+
+Functionality: Filters the application list dynamically based on keywords entered by the user (e.g., student name, application ID).
+
+5.2. Status Filter
+Label: "All Statuses" (default)
+
+Type: Dropdown/Select
+
+Options: Should list all possible application statuses (e.g., Draft, Pending Review, Approved, Rejected, Normal, etc.).
+
+Functionality: Filters applications by their current status.
+
+5.3. Priority Filter
+Label: "All Priorities" (default)
+
+Type: Dropdown/Select
+
+Options: Should list defined application priorities (e.g., High, Medium, Low, Normal).
+
+Functionality: Filters applications by their priority level.
+
+5.4. Country Filter
+Label: "All Countries" (default)
+
+Type: Dropdown/Select
+
+Options: Should list all relevant countries for applications.
+
+Functionality: Filters applications by the country associated with the student or application.
+
+5.5. Advanced Filters Button
+Label: "Advanced Filters"
+
+Functionality: Clicking this button should reveal more detailed filtering options (e.g., date ranges, specific document requirements, etc.) or open an advanced filter modal.
+
+6. Application List / Card View
+This section displays individual application details in a card format.
+
+6.1. Application Card Structure (Per Application)
+Each card should display the following information:
+
+Student Identifier:
+
+Student Name (e.g., "Unknown Student")
+
+Application ID (e.g., "APP-mcm9zb50-CAC7AFB2")
+
+Status Tag: A visual tag indicating the application's current status (e.g., "normal", "draft").
+
+Key Details:
+
+Country: Country of origin or target country (e.g., "Canada").
+
+Education Level: Current or target education level (e.g., "High School in 12").
+
+Intake/Term: The academic term or intake period (e.g., "Spring 2026").
+
+Document Status:
+
+Documents: Count of associated documents (e.g., "Documents: 0").
+
+Updated Date: Last updated date for the application (e.g., "Updated: Invalid Date").
+
+6.2. Application Card Actions (Per Application)
+Each card should include the following action buttons:
+
+View Details:
+
+Functionality: Navigates to a dedicated page or opens a modal displaying all comprehensive details of the selected application.
+
+Status:
+
+Functionality: Allows updating the status of the application (e.g., opens a dropdown or modal to change status).
+
+Remarks:
+
+Functionality: Opens a section or modal to view and add remarks/notes related to the application.
+
+Edit:
+
+Functionality: Navigates to an editable form or opens a modal to modify the application's details.
+
+7. CRUD Operations Summary
+Based on the visible elements, the following CRUD (Create, Read, Update, Delete) operations are supported or implied:
+
+Create:
+
+Mechanism: "+ New Application" button.
+
+Description: Allows users to initiate and submit new student applications.
+
+Read:
+
+Mechanism: Dashboard metrics, application list/cards, "View Details" button.
+
+Description: Users can view high-level summaries, browse a list of applications, and access detailed information for each.
+
+Update:
+
+Mechanism: "Edit" button, "Status" button.
+
+Description: Users can modify existing application details and update their status.
+
+Delete (Implied/Potential):
+
+Mechanism: Not explicitly shown, but a common operation in management systems.
+
+Description: Consideration should be given to adding functionality to delete applications, likely with a confirmation step.
+
+8. Statuses and Other Key Data Points
+Application Statuses: Draft, Normal, Pending Review, Approved, Rejected (and potentially others).
+
+Priorities: High, Medium, Low.
+
+Countries: A list of countries relevant to student applications.
+
+AI Completion Score: A metric indicating the completeness or quality as assessed by an AI.
+
+Approval Rate: A calculated metric.
+
+Document Count: Number of supporting documents uploaded for an application.
+
+Updated Date: Timestamp of the last modification to an application.
+
+9. General Requirements
+Responsive Design: The page layout and elements should adapt gracefully to different screen sizes (desktop, tablet, mobile).
+
+User Experience (UX): Intuitive navigation, clear labeling, and efficient workflows.
+
+Performance: The page should load quickly and filters/searches should be responsive.
+
+Data Consistency: Ensure that data displayed across the dashboard, filters, and individual cards is consistent and up-to-date.
+
+Error Handling: Appropriate messages for data loading failures, invalid inputs, etc.
+
+Accessibility: Adherence to accessibility standards for users with disabilities.

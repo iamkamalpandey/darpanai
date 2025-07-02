@@ -13,6 +13,8 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import {
@@ -22,7 +24,9 @@ import {
   Edit3, MessageSquare, Upload, Download, RefreshCw,
   Phone, Mail, MapPin, Flag, Star, ChevronDown, ChevronUp,
   MoreHorizontal, Edit, Save, Send, Paperclip, FileImage, 
-  History, UserCheck, FileCheck, Settings
+  History, UserCheck, FileCheck, Settings, Target, Award,
+  BookOpen, Home, Calendar as CalendarIcon, Zap, BarChart3,
+  PieChart, Activity, Layers, Filter as FilterIcon
 } from 'lucide-react';
 
 // Enhanced interfaces
