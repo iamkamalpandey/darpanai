@@ -64,6 +64,7 @@ interface EduCounselResponse {
   followUpQuestions?: string[];
   nextSteps?: string[];
   requiresMoreInfo?: boolean;
+  suggestsBooking?: boolean;
   missingProfileData?: string[];
 }
 
@@ -261,13 +262,15 @@ CONTENT GUIDELINES:
 4. Be encouraging and supportive but realistic about challenges
 5. Use the student's name and reference their profile when relevant
 6. Focus on actionable next steps
+7. **CONSULTATION BOOKING**: After providing guidance, offer consultation booking by asking: "Would you like to book a consultation to discuss your specific application strategy for [country]? I can help you schedule a call with our counselors."
+8. **PROFILE COMPLETION**: If profile is incomplete, encourage completion for better personalized guidance
 
 ${profileContext}
 ${conversationContext}
 
 Current Student Question: "${message}"
 
-Respond as ${specialist.name} would, providing beautifully formatted educational guidance with proper paragraphs, bullet points, and bold text for emphasis.`;
+Respond as ${specialist.name} would, providing beautifully formatted educational guidance with proper paragraphs, bullet points, and bold text for emphasis.${initialProfilePrompt}`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4o',
@@ -283,6 +286,26 @@ Respond as ${specialist.name} would, providing beautifully formatted educational
   console.log('📝 OpenAI response content:', aiContent?.substring(0, 200) + '...');
   
   return aiContent || 'I apologize, but I cannot process your request right now.';
+}
+
+/**
+ * Calculate profile completion percentage
+ */
+function calculateProfileCompletion(userProfile: any): number {
+  const requiredFields = [
+    'firstName', 'lastName', 'email', 'dateOfBirth', 'nationality',
+    'highestQualification', 'fieldOfStudy', 'graduationYear',
+    'interestedCourse', 'preferredCountries', 'budgetRange'
+  ];
+  
+  let completedFields = 0;
+  requiredFields.forEach(field => {
+    if (userProfile[field] && userProfile[field] !== '' && userProfile[field] !== null) {
+      completedFields++;
+    }
+  });
+  
+  return Math.round((completedFields / requiredFields.length) * 100);
 }
 
 /**
@@ -338,6 +361,14 @@ What specific aspect of studying abroad would you like to discuss today?`,
     const profileContext = generateProfileContext(userProfile);
     const conversationContext = generateConversationContext(conversationHistory);
     
+    // Check profile completion and add initial prompt if incomplete
+    const profileCompletion = calculateProfileCompletion(userProfile);
+    let initialProfilePrompt = '';
+    
+    if (profileCompletion < 100 && conversationHistory.length === 0) {
+      initialProfilePrompt = `\n\n**Profile Completion Notice**: Your profile is ${profileCompletion}% complete. To provide you with the most personalized and accurate guidance, I recommend completing your profile first. This will help me understand your academic background, preferred destinations, and goals better.\n\nWould you like me to guide you through completing your profile, or shall we proceed with your current question?`;
+    }
+    
     let aiResponse: string;
     
     try {
@@ -370,13 +401,15 @@ CONTENT GUIDELINES:
 4. Be encouraging and supportive but realistic about challenges
 5. Use the student's name and reference their profile when relevant
 6. Focus on actionable next steps
+7. **CONSULTATION BOOKING**: After providing guidance, offer consultation booking by asking: "Would you like to book a consultation to discuss your specific application strategy for [country]? I can help you schedule a call with our counselors."
+8. **PROFILE COMPLETION**: If profile is incomplete, encourage completion for better personalized guidance
 
 ${profileContext}
 ${conversationContext}
 
 Current Student Question: "${message}"
 
-Respond as ${specialist.name} would, providing beautifully formatted educational guidance with proper paragraphs, bullet points, and bold text for emphasis.`,
+Respond as ${specialist.name} would, providing beautifully formatted educational guidance with proper paragraphs, bullet points, and bold text for emphasis.${initialProfilePrompt}`,
         messages: [
           {
             role: 'user',
@@ -405,6 +438,11 @@ Respond as ${specialist.name} would, providing beautifully formatted educational
                            aiResponse.toLowerCase().includes('what is your') ||
                            aiResponse.toLowerCase().includes('which') && aiResponse.includes('?');
     
+    // Check if consultation booking is suggested
+    const suggestsBooking = aiResponse.toLowerCase().includes('book a consultation') ||
+                           aiResponse.toLowerCase().includes('schedule a call') ||
+                           aiResponse.toLowerCase().includes('consultation to discuss');
+    
     // Extract any missing profile data mentioned
     const missingProfileData = [];
     if (aiResponse.toLowerCase().includes('budget') && !userProfile.budgetRange) {
@@ -415,9 +453,10 @@ Respond as ${specialist.name} would, providing beautifully formatted educational
     }
     
     return {
-      response: aiResponse,
+      response: aiResponse + initialProfilePrompt,
       specialist: specialist.name,
       requiresMoreInfo,
+      suggestsBooking,
       missingProfileData: missingProfileData.length > 0 ? missingProfileData : undefined
     };
     
