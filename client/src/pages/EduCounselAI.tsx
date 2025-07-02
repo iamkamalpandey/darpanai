@@ -223,26 +223,56 @@ What specific aspect would you like to discuss today?`;
     const paragraphs = content.split('\n\n');
     
     return paragraphs.map((paragraph, index) => {
-      if (paragraph.includes('•')) {
-        // Handle bullet points
+      // Handle numbered lists (1., 2., 3.)
+      if (/^\d+\./.test(paragraph.trim())) {
+        const lines = paragraph.split('\n').filter(line => line.trim());
+        return (
+          <ol key={index} className="ml-4 space-y-2 list-decimal">
+            {lines.map((line, lineIndex) => {
+              const cleanLine = line.replace(/^\d+\.\s*/, '');
+              return (
+                <li key={lineIndex} className="text-sm leading-relaxed">
+                  {formatTextWithBold(cleanLine)}
+                </li>
+              );
+            })}
+          </ol>
+        );
+      }
+      // Handle bullet points
+      else if (paragraph.includes('•')) {
         const items = paragraph.split('•').filter(item => item.trim());
         return (
-          <ul key={index} className="ml-4 space-y-1">
+          <ul key={index} className="ml-4 space-y-2">
             {items.map((item, itemIndex) => (
-              <li key={itemIndex} className="text-sm leading-relaxed">
-                • {item.trim()}
+              <li key={itemIndex} className="text-sm leading-relaxed flex items-start">
+                <span className="text-blue-600 mr-2 mt-1 flex-shrink-0">•</span>
+                <span>{formatTextWithBold(item.trim())}</span>
               </li>
             ))}
           </ul>
         );
-      } else {
-        // Regular paragraph
+      } 
+      // Regular paragraph with bold text support
+      else {
         return (
           <p key={index} className="text-sm leading-relaxed mb-3 last:mb-0">
-            {paragraph}
+            {formatTextWithBold(paragraph)}
           </p>
         );
       }
+    });
+  };
+
+  // Helper function to format bold text
+  const formatTextWithBold = (text: string) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        const boldText = part.slice(2, -2);
+        return <strong key={index} className="font-semibold text-gray-900">{boldText}</strong>;
+      }
+      return part;
     });
   };
 

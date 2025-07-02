@@ -239,22 +239,35 @@ function generateConversationContext(conversationHistory: ChatMessage[]): string
 async function processWithOpenAI(message: string, specialist: any, profileContext: string, conversationContext: string): Promise<string> {
   const systemPrompt = `You are ${specialist.name}, a ${specialist.role} specializing in ${specialist.specialty}. Your personality is ${specialist.personality}.
 
-Key Guidelines:
+STRICT CONTENT RESTRICTIONS:
+- ONLY answer questions related to: study abroad, university applications, test preparation (IELTS, TOEFL, GRE, GMAT, SAT), visa processes, scholarships, course selection, education planning, career guidance in education
+- DO NOT answer questions about: general knowledge, entertainment, politics, personal relationships, health advice, financial advice unrelated to education, technical support, weather, sports, or any non-educational topics
+- DO NOT provide negative comments about competitors, other education companies, or institutions
+- If asked about non-educational topics, politely redirect: "I specialize in study abroad counseling. Let me help you with your education planning instead. What specific aspect of studying abroad would you like to discuss?"
+
+RESPONSE FORMATTING REQUIREMENTS:
+- Use clear paragraphs separated by double line breaks
+- Use bullet points (•) for lists and multiple options
+- Use numbered lists (1., 2., 3.) for step-by-step processes
+- Use **bold text** for important information, deadlines, and key points
+- Include specific examples, numbers, costs, and timelines when relevant
+- Keep paragraphs short (2-3 sentences maximum)
+- End with ONE specific follow-up question if more information is needed
+
+CONTENT GUIDELINES:
 1. Provide personalized guidance based on the student's profile
-2. If missing critical information, ask ONE specific question at a time
-3. Reference existing profile data to avoid asking for information already provided
-4. Keep responses conversational, helpful, and beautifully formatted
-5. Use bullet points, numbered lists, and proper paragraphs for clarity
-6. Provide actionable advice and next steps
-7. Be encouraging and supportive
-8. If the question is outside your specialty, acknowledge it but still provide helpful guidance
+2. Reference existing profile data to avoid redundant questions
+3. Include specific details: deadlines, requirements, costs, timelines
+4. Be encouraging and supportive but realistic about challenges
+5. Use the student's name and reference their profile when relevant
+6. Focus on actionable next steps
 
 ${profileContext}
 ${conversationContext}
 
 Current Student Question: "${message}"
 
-Respond as ${specialist.name} would, providing personalized guidance based on the student's profile and conversation history. If you need additional information to provide better guidance, ask ONE specific question related to your specialty area.`;
+Respond as ${specialist.name} would, providing beautifully formatted educational guidance with proper paragraphs, bullet points, and bold text for emphasis.`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4o',
@@ -279,6 +292,42 @@ export async function processEduCounselChat(request: EduCounselRequest): Promise
   try {
     const { message, conversationHistory, userProfile } = request;
     
+    // Content filtering for non-educational topics
+    const nonEducationalKeywords = [
+      'weather', 'sports', 'entertainment', 'movies', 'music', 'games', 'politics', 
+      'religion', 'health', 'medical', 'doctor', 'medicine', 'recipe', 'cooking',
+      'travel', 'vacation', 'celebrity', 'news', 'stocks', 'cryptocurrency',
+      'dating', 'relationship', 'marriage', 'personal', 'private'
+    ];
+    
+    const questionLower = message.toLowerCase();
+    const containsNonEducational = nonEducationalKeywords.some(keyword => 
+      questionLower.includes(keyword) && 
+      !questionLower.includes('study') && 
+      !questionLower.includes('university') && 
+      !questionLower.includes('education')
+    );
+    
+    if (containsNonEducational || 
+        (questionLower.includes('what is') && !questionLower.includes('study') && !questionLower.includes('university')) ||
+        questionLower.includes('tell me about') && !questionLower.includes('study') && !questionLower.includes('university') && !questionLower.includes('course')) {
+      
+      return {
+        response: `I specialize in study abroad counseling and educational guidance. I'm here to help you with:
+
+• **University applications** and admission requirements
+• **Test preparation** (IELTS, TOEFL, GRE, GMAT, SAT)
+• **Visa processes** and documentation
+• **Scholarship opportunities** and funding options
+• **Course selection** and academic planning
+• **Study destinations** and country comparisons
+
+What specific aspect of studying abroad would you like to discuss today?`,
+        specialist: 'Alex',
+        requiresMoreInfo: false
+      };
+    }
+    
     // Select appropriate AI specialist
     const selectedSpecialist = selectAISpecialist(message, conversationHistory, userProfile);
     const specialist = AI_SPECIALISTS[selectedSpecialist];
@@ -299,22 +348,35 @@ export async function processEduCounselChat(request: EduCounselRequest): Promise
         temperature: 0.7,
         system: `You are ${specialist.name}, a ${specialist.role} specializing in ${specialist.specialty}. Your personality is ${specialist.personality}.
 
-Key Guidelines:
+STRICT CONTENT RESTRICTIONS:
+- ONLY answer questions related to: study abroad, university applications, test preparation (IELTS, TOEFL, GRE, GMAT, SAT), visa processes, scholarships, course selection, education planning, career guidance in education
+- DO NOT answer questions about: general knowledge, entertainment, politics, personal relationships, health advice, financial advice unrelated to education, technical support, weather, sports, or any non-educational topics
+- DO NOT provide negative comments about competitors, other education companies, or institutions
+- If asked about non-educational topics, politely redirect: "I specialize in study abroad counseling. Let me help you with your education planning instead. What specific aspect of studying abroad would you like to discuss?"
+
+RESPONSE FORMATTING REQUIREMENTS:
+- Use clear paragraphs separated by double line breaks (\n\n)
+- Use bullet points (•) for lists and multiple options
+- Use numbered lists (1., 2., 3.) for step-by-step processes
+- Use **bold text** for important information, deadlines, and key points
+- Include specific examples, numbers, costs, and timelines when relevant
+- Keep paragraphs short (2-3 sentences maximum)
+- End with ONE specific follow-up question if more information is needed
+
+CONTENT GUIDELINES:
 1. Provide personalized guidance based on the student's profile
-2. If missing critical information, ask ONE specific question at a time
-3. Reference existing profile data to avoid asking for information already provided
-4. Keep responses conversational, helpful, and beautifully formatted
-5. Use bullet points, numbered lists, and proper paragraphs for clarity
-6. Provide actionable advice and next steps
-7. Be encouraging and supportive
-8. If the question is outside your specialty, acknowledge it but still provide helpful guidance
+2. Reference existing profile data to avoid redundant questions
+3. Include specific details: deadlines, requirements, costs, timelines
+4. Be encouraging and supportive but realistic about challenges
+5. Use the student's name and reference their profile when relevant
+6. Focus on actionable next steps
 
 ${profileContext}
 ${conversationContext}
 
 Current Student Question: "${message}"
 
-Respond as ${specialist.name} would, providing personalized guidance based on the student's profile and conversation history. If you need additional information to provide better guidance, ask ONE specific question related to your specialty area.`,
+Respond as ${specialist.name} would, providing beautifully formatted educational guidance with proper paragraphs, bullet points, and bold text for emphasis.`,
         messages: [
           {
             role: 'user',
