@@ -9,13 +9,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import {
   Search, Filter, Plus, Eye, Brain, FileText, User, Calendar,
   Globe, GraduationCap, DollarSign, Clock, AlertTriangle,
   TrendingUp, Users, CheckCircle, XCircle, AlertCircle,
-  MoreHorizontal, Edit, MessageSquare, Phone, Mail
+  Edit3, MessageSquare, Upload, Download, RefreshCw,
+  Phone, Mail, MapPin, Flag, Star, ChevronDown, ChevronUp,
+  MoreHorizontal, Edit, Save, Send, Paperclip, FileImage, 
+  History, UserCheck, FileCheck, Settings
 } from 'lucide-react';
 
 // Enhanced interfaces
@@ -78,6 +84,37 @@ interface AIInsights {
   nextSteps: string[];
 }
 
+interface AdminRemark {
+  id: string;
+  applicationId: number;
+  adminId: number;
+  adminName: string;
+  type: 'status_change' | 'document_request' | 'general' | 'urgent';
+  message: string;
+  requestedDocuments?: string[];
+  attachments?: {
+    id: string;
+    name: string;
+    type: string;
+    url: string;
+    size: number;
+  }[];
+  previousStatus?: string;
+  newStatus?: string;
+  isInternal: boolean;
+  studentNotified: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ApplicationUpdate {
+  status?: string;
+  priority?: string;
+  remarks?: string;
+  requestedDocuments?: string[];
+  attachments?: File[];
+}
+
 interface Application {
   id: number;
   userId: number;
@@ -122,6 +159,9 @@ interface Application {
   // AI Analysis
   aiInsights?: AIInsights;
   
+  // Admin Remarks and Communication
+  remarks?: AdminRemark[];
+  
   // Counselor Notes
   counselorNotes?: Array<{
     id: string;
@@ -163,6 +203,19 @@ export default function UnifiedApplicationManagement() {
   const [countryFilter, setCountryFilter] = useState<string>('all');
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
+  
+  // Enhanced admin state management
+  const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [showRemarkDialog, setShowRemarkDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [newStatus, setNewStatus] = useState('');
+  const [newPriority, setNewPriority] = useState('');
+  const [remarkText, setRemarkText] = useState('');
+  const [remarkType, setRemarkType] = useState<'general' | 'document_request' | 'urgent' | 'status_change'>('general');
+  const [requestedDocuments, setRequestedDocuments] = useState<string[]>([]);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [isInternal, setIsInternal] = useState(false);
+  const [editData, setEditData] = useState<Partial<Application>>({});
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -271,21 +324,177 @@ export default function UnifiedApplicationManagement() {
     },
   });
 
-  // Status Update
+  // Enhanced Admin Mutation Functions
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ applicationId, status }: { applicationId: number; status: string }) => {
-      return await apiRequest('PATCH', `/api/admin/applications/${applicationId}`, { status });
+    mutationFn: async ({ applicationId, status, priority, remarks }: { 
+      applicationId: number; 
+      status?: string; 
+      priority?: string; 
+      remarks?: string;
+    }) => {
+      return await apiRequest('PATCH', `/api/admin/applications/${applicationId}/status`, { 
+        status, 
+        priority, 
+        remarks 
+      });
     },
     onSuccess: () => {
       toast({
-        title: "Status Updated",
-        description: "Application status has been successfully updated.",
+        title: "Application Updated",
+        description: "Status and priority have been successfully updated.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/applications'] });
+      setShowStatusDialog(false);
+      resetStatusForm();
+    },
+    onError: () => {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update application. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
-  // Helper functions
+  const addRemarkMutation = useMutation({
+    mutationFn: async (remarkData: {
+      applicationId: number;
+      type: string;
+      message: string;
+      requestedDocuments?: string[];
+      isInternal: boolean;
+      attachments?: File[];
+    }) => {
+      const formData = new FormData();
+      Object.entries(remarkData).forEach(([key, value]) => {
+        if (key === 'attachments' && Array.isArray(value)) {
+          value.forEach((file) => formData.append('attachments', file));
+        } else if (key === 'requestedDocuments' && Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value));
+        } else if (value !== undefined) {
+          formData.append(key, String(value));
+        }
+      });
+      return await apiRequest('POST', `/api/admin/applications/${remarkData.applicationId}/remarks`, formData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Remark Added",
+        description: "Administrative remark has been successfully added.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/applications'] });
+      setShowRemarkDialog(false);
+      resetRemarkForm();
+    },
+    onError: () => {
+      toast({
+        title: "Failed to Add Remark",
+        description: "Could not add remark. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateApplicationMutation = useMutation({
+    mutationFn: async ({ applicationId, updateData }: { 
+      applicationId: number; 
+      updateData: Partial<Application>;
+    }) => {
+      return await apiRequest('PATCH', `/api/admin/applications/${applicationId}`, updateData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Application Updated",
+        description: "Application details have been successfully updated.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/applications'] });
+      setShowEditDialog(false);
+      setEditData({});
+    },
+    onError: () => {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update application details. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Helper functions for form management
+  const resetStatusForm = () => {
+    setNewStatus('');
+    setNewPriority('');
+  };
+
+  const resetRemarkForm = () => {
+    setRemarkText('');
+    setRemarkType('general');
+    setRequestedDocuments([]);
+    setAttachments([]);
+    setIsInternal(false);
+  };
+
+  const handleStatusUpdate = () => {
+    if (!selectedApplication) return;
+    
+    updateStatusMutation.mutate({
+      applicationId: selectedApplication.id,
+      status: newStatus || undefined,
+      priority: newPriority || undefined,
+      remarks: remarkText || undefined,
+    });
+  };
+
+  const handleAddRemark = () => {
+    if (!selectedApplication || !remarkText.trim()) return;
+    
+    addRemarkMutation.mutate({
+      applicationId: selectedApplication.id,
+      type: remarkType,
+      message: remarkText,
+      requestedDocuments: requestedDocuments.length > 0 ? requestedDocuments : undefined,
+      isInternal,
+      attachments: attachments.length > 0 ? attachments : undefined,
+    });
+  };
+
+  const handleEditApplication = () => {
+    if (!selectedApplication) return;
+    
+    updateApplicationMutation.mutate({
+      applicationId: selectedApplication.id,
+      updateData: editData,
+    });
+  };
+
+  const openStatusDialog = (application: Application) => {
+    setSelectedApplication(application);
+    setNewStatus(application.status);
+    setNewPriority(application.priority);
+    setShowStatusDialog(true);
+  };
+
+  const openRemarkDialog = (application: Application) => {
+    setSelectedApplication(application);
+    setShowRemarkDialog(true);
+  };
+
+  const openEditDialog = (application: Application) => {
+    setSelectedApplication(application);
+    setEditData({
+      personalDetails: application.personalDetails,
+      academicDetails: application.academicDetails,
+      targetCountry: application.targetCountry,
+      studyLevel: application.studyLevel,
+      fieldOfStudy: application.fieldOfStudy,
+      preferredIntake: application.preferredIntake,
+      budgetRange: application.budgetRange,
+      fundingSource: application.fundingSource,
+    });
+    setShowEditDialog(true);
+  };
+
+  // Additional helper functions
   const getStatusBadge = (status: string) => {
     const statusStyles = {
       draft: { color: 'bg-gray-100 text-gray-800', icon: FileText },
@@ -853,12 +1062,31 @@ export default function UnifiedApplicationManagement() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => generateInsightsMutation.mutate(application.id)}
-                    disabled={generateInsightsMutation.isPending}
+                    onClick={() => openStatusDialog(application)}
                     className="flex items-center gap-1"
                   >
-                    <Brain className="h-4 w-4" />
-                    AI Analysis
+                    <RefreshCw className="h-4 w-4" />
+                    Status
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openRemarkDialog(application)}
+                    className="flex items-center gap-1"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    Remarks
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openEditDialog(application)}
+                    className="flex items-center gap-1"
+                  >
+                    <Edit3 className="h-4 w-4" />
+                    Edit
                   </Button>
                 </div>
               </CardContent>
@@ -883,6 +1111,536 @@ export default function UnifiedApplicationManagement() {
             </CardContent>
           </Card>
         )}
+
+        {/* Status Management Dialog */}
+        <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <RefreshCw className="h-5 w-5" />
+                Update Application Status
+              </DialogTitle>
+            </DialogHeader>
+            
+            {statusDialogApplication && (
+              <div className="space-y-4">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="font-medium">{statusDialogApplication.personalDetails?.firstName} {statusDialogApplication.personalDetails?.lastName}</p>
+                  <p className="text-sm text-gray-600">{statusDialogApplication.applicationNumber}</p>
+                  <Badge className={getStatusBadge(statusDialogApplication.status).color}>
+                    Current: {statusDialogApplication.status.replace('_', ' ')}
+                  </Badge>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">New Status</label>
+                  <Select value={newStatus} onValueChange={setNewStatus}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select new status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="submitted">Submitted</SelectItem>
+                      <SelectItem value="under_review">Under Review</SelectItem>
+                      <SelectItem value="documents_requested">Documents Requested</SelectItem>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                      <SelectItem value="on_hold">On Hold</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Status Update Notes</label>
+                  <Textarea
+                    value={statusNotes}
+                    onChange={(e) => setStatusNotes(e.target.value)}
+                    placeholder="Add notes about this status change..."
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    onClick={() => setStatusDialogOpen(false)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => handleStatusUpdate()}
+                    disabled={updateStatusMutation.isPending || !newStatus}
+                    className="flex-1"
+                  >
+                    {updateStatusMutation.isPending ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Update Status
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Remarks Management Dialog */}
+        <Dialog open={remarkDialogOpen} onOpenChange={setRemarkDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                Application Remarks & Communication
+              </DialogTitle>
+            </DialogHeader>
+            
+            {remarkDialogApplication && (
+              <div className="space-y-4">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="font-medium">{remarkDialogApplication.personalDetails?.firstName} {remarkDialogApplication.personalDetails?.lastName}</p>
+                  <p className="text-sm text-gray-600">{remarkDialogApplication.applicationNumber}</p>
+                </div>
+
+                {/* Existing Remarks */}
+                <div className="space-y-3 max-h-60 overflow-y-auto">
+                  <h4 className="font-medium">Previous Remarks</h4>
+                  {remarkDialogApplication.remarks && remarkDialogApplication.remarks.length > 0 ? (
+                    remarkDialogApplication.remarks.map((remark) => (
+                      <div key={remark.id} className="p-3 border rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Badge className={
+                              remark.type === 'urgent' ? 'bg-red-100 text-red-800' :
+                              remark.type === 'document_request' ? 'bg-blue-100 text-blue-800' :
+                              remark.type === 'status_change' ? 'bg-green-100 text-green-800' :
+                              'bg-gray-100 text-gray-800'
+                            }>
+                              {remark.type.replace('_', ' ')}
+                            </Badge>
+                            {remark.isInternal && (
+                              <Badge variant="outline" className="text-xs">Internal</Badge>
+                            )}
+                          </div>
+                          <span className="text-xs text-gray-500">{formatDate(remark.createdAt)}</span>
+                        </div>
+                        <p className="text-sm mb-2">{remark.message}</p>
+                        {remark.requestedDocuments && remark.requestedDocuments.length > 0 && (
+                          <div className="mt-2">
+                            <p className="text-xs font-medium text-blue-600 mb-1">Requested Documents:</p>
+                            <div className="flex flex-wrap gap-1">
+                              {remark.requestedDocuments.map((doc, index) => (
+                                <Badge key={index} variant="outline" className="text-xs">{doc}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <p className="text-xs text-gray-500 mt-2">By: {remark.adminName}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-center py-4">No remarks yet</p>
+                  )}
+                </div>
+
+                {/* Add New Remark */}
+                <div className="space-y-3 border-t pt-4">
+                  <h4 className="font-medium">Add New Remark</h4>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-sm font-medium">Type</label>
+                      <Select value={newRemark.type} onValueChange={(value) => setNewRemark({...newRemark, type: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="general">General</SelectItem>
+                          <SelectItem value="document_request">Document Request</SelectItem>
+                          <SelectItem value="status_change">Status Change</SelectItem>
+                          <SelectItem value="urgent">Urgent</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2 pt-6">
+                      <Checkbox
+                        id="internal-remark"
+                        checked={newRemark.isInternal}
+                        onCheckedChange={(checked) => setNewRemark({...newRemark, isInternal: checked as boolean})}
+                      />
+                      <label htmlFor="internal-remark" className="text-sm font-medium">Internal only</label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium">Message</label>
+                    <Textarea
+                      value={newRemark.message}
+                      onChange={(e) => setNewRemark({...newRemark, message: e.target.value})}
+                      placeholder="Enter your remark or message to the student..."
+                      rows={3}
+                    />
+                  </div>
+
+                  {newRemark.type === 'document_request' && (
+                    <div>
+                      <label className="text-sm font-medium">Requested Documents</label>
+                      <div className="space-y-2">
+                        {newRemark.requestedDocuments.map((doc, index) => (
+                          <div key={index} className="flex gap-2">
+                            <Input
+                              value={doc}
+                              onChange={(e) => {
+                                const updated = [...newRemark.requestedDocuments];
+                                updated[index] = e.target.value;
+                                setNewRemark({...newRemark, requestedDocuments: updated});
+                              }}
+                              placeholder="Document name"
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const updated = newRemark.requestedDocuments.filter((_, i) => i !== index);
+                                setNewRemark({...newRemark, requestedDocuments: updated});
+                              }}
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setNewRemark({...newRemark, requestedDocuments: [...newRemark.requestedDocuments, '']})}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Document
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="text-sm font-medium">Attachments</label>
+                    <Input
+                      type="file"
+                      multiple
+                      onChange={(e) => setNewRemark({...newRemark, attachments: Array.from(e.target.files || [])})}
+                      className="mt-1"
+                    />
+                    {newRemark.attachments.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {newRemark.attachments.map((file, index) => (
+                          <div key={index} className="flex items-center gap-2 text-sm">
+                            <FileText className="h-4 w-4" />
+                            <span>{file.name}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const updated = newRemark.attachments.filter((_, i) => i !== index);
+                                setNewRemark({...newRemark, attachments: updated});
+                              }}
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    onClick={() => setRemarkDialogOpen(false)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => handleAddRemark()}
+                    disabled={addRemarkMutation.isPending || !newRemark.message.trim()}
+                    className="flex-1"
+                  >
+                    {addRemarkMutation.isPending ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Adding...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Add Remark
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Application Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Edit3 className="h-5 w-5" />
+                Edit Application Details
+              </DialogTitle>
+            </DialogHeader>
+            
+            {editDialogApplication && (
+              <div className="space-y-6">
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="font-medium">{editDialogApplication.personalDetails?.firstName} {editDialogApplication.personalDetails?.lastName}</p>
+                  <p className="text-sm text-gray-600">{editDialogApplication.applicationNumber}</p>
+                </div>
+
+                <Tabs defaultValue="basic" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                    <TabsTrigger value="personal">Personal</TabsTrigger>
+                    <TabsTrigger value="academic">Academic</TabsTrigger>
+                    <TabsTrigger value="preferences">Preferences</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="basic" className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Priority</label>
+                        <Select value={editFormData.priority} onValueChange={(value) => setEditFormData({...editFormData, priority: value})}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="low">Low</SelectItem>
+                            <SelectItem value="normal">Normal</SelectItem>
+                            <SelectItem value="high">High</SelectItem>
+                            <SelectItem value="urgent">Urgent</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium">Status</label>
+                        <Select value={editFormData.status} onValueChange={(value) => setEditFormData({...editFormData, status: value})}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="draft">Draft</SelectItem>
+                            <SelectItem value="submitted">Submitted</SelectItem>
+                            <SelectItem value="under_review">Under Review</SelectItem>
+                            <SelectItem value="documents_requested">Documents Requested</SelectItem>
+                            <SelectItem value="approved">Approved</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
+                            <SelectItem value="on_hold">On Hold</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="personal" className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">First Name</label>
+                        <Input
+                          value={editFormData.personalDetails.firstName}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            personalDetails: {...editFormData.personalDetails, firstName: e.target.value}
+                          })}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Last Name</label>
+                        <Input
+                          value={editFormData.personalDetails.lastName}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            personalDetails: {...editFormData.personalDetails, lastName: e.target.value}
+                          })}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Email</label>
+                        <Input
+                          type="email"
+                          value={editFormData.personalDetails.email}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            personalDetails: {...editFormData.personalDetails, email: e.target.value}
+                          })}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Phone Number</label>
+                        <Input
+                          value={editFormData.personalDetails.phoneNumber || ''}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            personalDetails: {...editFormData.personalDetails, phoneNumber: e.target.value}
+                          })}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Nationality</label>
+                        <Input
+                          value={editFormData.personalDetails.nationality}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            personalDetails: {...editFormData.personalDetails, nationality: e.target.value}
+                          })}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Passport Number</label>
+                        <Input
+                          value={editFormData.personalDetails.passportNumber}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            personalDetails: {...editFormData.personalDetails, passportNumber: e.target.value}
+                          })}
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="academic" className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Highest Qualification</label>
+                        <Input
+                          value={editFormData.academicDetails.highestQualification || ''}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            academicDetails: {...editFormData.academicDetails, highestQualification: e.target.value}
+                          })}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Institution</label>
+                        <Input
+                          value={editFormData.academicDetails.institution || ''}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            academicDetails: {...editFormData.academicDetails, institution: e.target.value}
+                          })}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">GPA</label>
+                        <Input
+                          value={editFormData.academicDetails.gpa || ''}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            academicDetails: {...editFormData.academicDetails, gpa: e.target.value}
+                          })}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Graduation Year</label>
+                        <Input
+                          value={editFormData.academicDetails.graduationYear || ''}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            academicDetails: {...editFormData.academicDetails, graduationYear: e.target.value}
+                          })}
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="preferences" className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Target Country</label>
+                        <Input
+                          value={editFormData.targetCountry}
+                          onChange={(e) => setEditFormData({...editFormData, targetCountry: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Study Level</label>
+                        <Input
+                          value={editFormData.studyLevel}
+                          onChange={(e) => setEditFormData({...editFormData, studyLevel: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Field of Study</label>
+                        <Input
+                          value={editFormData.fieldOfStudy}
+                          onChange={(e) => setEditFormData({...editFormData, fieldOfStudy: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Preferred Intake</label>
+                        <Input
+                          value={editFormData.preferredIntake}
+                          onChange={(e) => setEditFormData({...editFormData, preferredIntake: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Budget Range</label>
+                        <Input
+                          value={editFormData.budgetRange}
+                          onChange={(e) => setEditFormData({...editFormData, budgetRange: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Funding Source</label>
+                        <Input
+                          value={editFormData.fundingSource}
+                          onChange={(e) => setEditFormData({...editFormData, fundingSource: e.target.value})}
+                        />
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+
+                <div className="flex gap-2 pt-4 border-t">
+                  <Button
+                    onClick={() => setEditDialogOpen(false)}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => handleEditApplication()}
+                    disabled={updateApplicationMutation.isPending}
+                    className="flex-1"
+                  >
+                    {updateApplicationMutation.isPending ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );
