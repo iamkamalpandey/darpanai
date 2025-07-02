@@ -65,16 +65,18 @@ export async function processEduCounselChatOptimized(request: EduCounselRequest)
     
     console.log('🤖 Processing optimized EduCounsel chat for user', userProfile.id);
     
-    // IMMEDIATE APPLICATION INTENT DETECTION
-    const studyKeywords = [
-      'want to study', 'study in', 'apply', 'application', 'university', 'college',
-      'admission', 'masters', 'bachelor', 'degree', 'course', 'program'
+    // EXPLICIT APPLICATION INTENT DETECTION - Only trigger when user clearly wants to apply
+    const explicitApplicationKeywords = [
+      'i want to apply', 'start application', 'apply now', 'begin application', 
+      'ready to apply', 'apply for', 'start my application', 'let me apply'
     ];
     
-    const hasStudyIntent = studyKeywords.some(keyword => messageLower.includes(keyword));
+    const hasExplicitApplicationIntent = explicitApplicationKeywords.some(keyword => 
+      messageLower.includes(keyword)
+    );
     
-    if (hasStudyIntent) {
-      console.log('🎯 Study intent detected - starting immediate application workflow');
+    if (hasExplicitApplicationIntent) {
+      console.log('🎯 Explicit application intent detected - starting application workflow');
       
       // Extract country and field mentions
       const countries = ['australia', 'canada', 'usa', 'uk', 'united kingdom', 'germany', 'netherlands'];
@@ -86,16 +88,12 @@ export async function processEduCounselChatOptimized(request: EduCounselRequest)
       return await startStructuredApplicationFlow(userProfile, mentionedCountry, mentionedField);
     }
     
-    // Handle simple greetings with short responses
+    // Handle simple greetings with helpful response
     const greetings = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'];
     if (greetings.some(greeting => messageLower.includes(greeting))) {
       return {
         response: `Hi ${userProfile.firstName || 'there'}! I'm here to help with your study abroad plans. What would you like to explore today?`,
-        actionButtons: [{
-          type: 'apply_now',
-          label: 'Start Application',
-          description: 'Begin your university application process'
-        }]
+        actionButtons: []
       };
     }
     
@@ -288,46 +286,77 @@ async function checkCountryWorkflowSupport(country: string, studyLevel: string, 
 }
 
 /**
- * Generate minimal AI response for other queries
+ * Generate helpful, conversational AI response for educational queries
  */
 async function generateMinimalAIResponse(message: string, userProfile: UserProfile): Promise<EduCounselResponse> {
   try {
-    // Try OpenAI for faster, more concise responses
+    // Enhanced system prompt for natural, helpful conversation
+    const systemPrompt = `You are Alex, a friendly study abroad counselor. Your role is to:
+
+1. Provide helpful, accurate information about studying abroad
+2. Answer questions about universities, courses, costs, visa processes, scholarships
+3. Be conversational and supportive, not pushy
+4. After providing helpful information, offer options like:
+   - "Would you like me to help you find specific universities?"
+   - "Do you need help with the application process?"
+   - "Would you prefer to speak with a human counselor?"
+
+Keep responses under 150 words. Focus on being helpful first, not pushing applications.
+If user asks about costs, provide realistic ranges and helpful context.
+If user asks about requirements, give practical advice.
+Always end with asking what else they'd like to know or offering next steps.`;
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      max_tokens: 200,
-      temperature: 0.3,
+      max_tokens: 250,
+      temperature: 0.4,
       messages: [
         {
           role: "system",
-          content: `You are a study abroad counselor. Provide concise, helpful answers about education. Keep responses under 100 words. If the user shows study intent, encourage them to start their application.`
+          content: systemPrompt
         },
         {
           role: "user",
-          content: message
+          content: `User profile: ${userProfile.firstName || 'Student'} from ${userProfile.nationality || 'international'}, interested in ${userProfile.fieldOfStudy || 'various fields'}, preferred countries: ${userProfile.preferredCountries?.join(', ') || 'exploring options'}.\n\nQuestion: ${message}`
         }
       ]
     });
     
-    const content = response.choices[0]?.message?.content || 'How can I help with your study abroad plans?';
+    const content = response.choices[0]?.message?.content || 'I can help you with study abroad planning. What specific information would you like to know?';
+    
+    // Determine appropriate action buttons based on message content
+    const actionButtons: ActionButton[] = [];
+    const messageLower = message.toLowerCase();
+    
+    // Only suggest application if user seems ready or asks about it
+    if (messageLower.includes('ready') || messageLower.includes('want to') || messageLower.includes('should i apply')) {
+      actionButtons.push({
+        type: 'apply_now',
+        label: 'Start Application',
+        description: 'Begin your university application process'
+      });
+    }
+    
+    // Always offer consultation as an option
+    actionButtons.push({
+      type: 'book_consultation',
+      label: 'Speak with Counselor',
+      description: 'Get personalized guidance from education expert'
+    });
     
     return {
       response: content,
-      actionButtons: [{
-        type: 'apply_now',
-        label: 'Start Application',
-        description: 'Begin your university application'
-      }]
+      actionButtons
     };
     
   } catch (error) {
-    console.error('Error in minimal AI response:', error);
+    console.error('Error in AI response generation:', error);
     return {
-      response: 'I can help you with university applications, test preparation, scholarships, and study abroad planning. What would you like to know?',
+      response: `I can help you with studying abroad! Whether you're looking for information about universities, application requirements, costs, or visa processes - just ask me anything.\n\nWhat would you like to know about studying internationally?`,
       actionButtons: [{
-        type: 'apply_now',
-        label: 'Start Application',
-        description: 'Begin your application process'
+        type: 'book_consultation',
+        label: 'Speak with Counselor',
+        description: 'Get expert guidance from our education team'
       }]
     };
   }
