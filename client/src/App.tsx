@@ -144,7 +144,7 @@ function Router() {
     
     return (
       <Suspense fallback={<LoadingFallback />}>
-        <EducationLanding />
+        <PublicLanding />
       </Suspense>
     );
   }

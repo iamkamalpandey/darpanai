@@ -1,225 +1,304 @@
-import { useState } from "react";
-import { Link } from "wouter";
+import { useState, useEffect, useRef } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { 
-  ArrowRight, 
-  CheckCircle, 
-  Shield, 
-  FileText, 
-  GraduationCap, 
-  Search,
-  Users,
-  Globe,
-  Award,
-  TrendingUp,
-  Star,
-  Play,
-  Brain,
-  Zap,
-  Clock,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+  Bot, User, Send, Upload, Sparkles, Globe, Users, Award, 
+  CheckCircle, ArrowRight, MessageCircle, Star, Shield,
+  GraduationCap, FileText, Calculator, Search, MapPin,
+  Clock, BookOpen, Zap, Heart
+} from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+
+interface ChatMessage {
+  id: string;
+  content: string;
+  isUser: boolean;
+  timestamp: Date;
+  formatted?: boolean;
+  actionButtons?: Array<{
+    type: string;
+    label: string;
+    description: string;
+  }>;
+}
+
+interface PublicChatResponse {
+  response: string;
+  actionButtons?: Array<{
+    type: string;
+    label: string;
+    description: string;
+  }>;
+}
 
 export default function PublicLanding() {
-  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const heroStats = [
-    { number: "27,000+", label: "Documents analyzed", icon: <FileText className="w-4 h-4" /> },
-    { number: "96%", label: "Success rate", icon: <Award className="w-4 h-4" /> },
-    { number: "50+", label: "Countries", icon: <Globe className="w-4 h-4" /> },
-    { number: "2-5 min", label: "Analysis time", icon: <Clock className="w-4 h-4" /> }
-  ];
+  // Auto-scroll to bottom of chat
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isTyping]);
 
-  const services = [
-    {
-      icon: <Shield className="w-8 h-8" />,
-      title: "Visa Analysis",
-      description: "Turn uncertainty into clarity with AI-powered visa document analysis",
-      features: ["Success probability assessment", "Risk identification", "Strategic recommendations", "Next steps guidance"],
-      gradient: "from-blue-500 to-blue-600",
-      bgColor: "bg-blue-50"
-    },
-    {
-      icon: <FileText className="w-8 h-8" />,
-      title: "COE Analysis",
-      description: "Navigate enrollment with confidence through comprehensive COE examination",
-      features: ["Course verification", "Financial breakdown", "Compliance checking", "Timeline planning"],
-      gradient: "from-emerald-500 to-emerald-600",
-      bgColor: "bg-emerald-50"
-    },
-    {
-      icon: <GraduationCap className="w-8 h-8" />,
-      title: "Offer Letter Analysis",
-      description: "Make informed decisions with deep admission offer analysis",
-      features: ["Scholarship matching", "Cost optimization", "Terms analysis", "Risk assessment"],
-      gradient: "from-purple-500 to-purple-600",
-      bgColor: "bg-purple-50"
-    },
-    {
-      icon: <Search className="w-8 h-8" />,
-      title: "Scholarship Research",
-      description: "Discover funding opportunities with intelligent matching",
-      features: ["5,000+ scholarships", "Smart matching", "Deadline tracking", "Success tips"],
-      gradient: "from-amber-500 to-amber-600",
-      bgColor: "bg-amber-50"
+  // Welcome message when chat opens
+  useEffect(() => {
+    if (isChatOpen && messages.length === 0) {
+      const welcomeMessage: ChatMessage = {
+        id: 'welcome',
+        content: `Hello! I'm Darpan Intelligence, your AI study abroad advisor. I can help you with:\n\n• University recommendations and program matching\n• Cost estimates and scholarship opportunities\n• Visa requirements and application processes\n• Academic pathway planning\n• Country comparisons and selection\n\nWhat would you like to explore today?`,
+        isUser: false,
+        timestamp: new Date(),
+        formatted: true,
+        actionButtons: [
+          {
+            type: 'explore_universities',
+            label: 'Explore Universities',
+            description: 'Find universities that match your interests'
+          },
+          {
+            type: 'cost_calculator',
+            label: 'Cost Calculator',
+            description: 'Estimate study abroad expenses'
+          },
+          {
+            type: 'scholarships',
+            label: 'Find Scholarships',
+            description: 'Discover funding opportunities'
+          }
+        ]
+      };
+      setMessages([welcomeMessage]);
     }
-  ];
+  }, [isChatOpen, messages.length]);
 
-  const testimonials = [
-    {
-      name: "Sarah Chen",
-      role: "Master's Student, University of Melbourne",
-      content: "Darpan Intelligence helped me understand my visa rejection and provided a clear path forward. I got approved on my second attempt.",
-      rating: 5,
-      country: "Singapore"
+  const sendMessageMutation = useMutation({
+    mutationFn: async (request: { message: string }) => {
+      const response = await apiRequest('POST', '/api/public/chat', request);
+      return response as PublicChatResponse;
     },
-    {
-      name: "Raj Patel",
-      role: "PhD Candidate, University of Toronto",
-      content: "The scholarship matching feature found funding opportunities I never knew existed. Saved me thousands in tuition fees.",
-      rating: 5,
-      country: "India"
+    onSuccess: (data) => {
+      const aiMessage: ChatMessage = {
+        id: Date.now().toString() + '_ai',
+        content: data.response,
+        isUser: false,
+        timestamp: new Date(),
+        formatted: true,
+        actionButtons: data.actionButtons
+      };
+      setMessages(prev => [...prev, aiMessage]);
+      setIsTyping(false);
     },
-    {
-      name: "Maria Rodriguez",
-      role: "Undergraduate, King's College London",
-      content: "The COE analysis caught important details I missed. Helped me avoid costly mistakes before enrollment.",
-      rating: 5,
-      country: "Mexico"
+    onError: () => {
+      const errorMessage: ChatMessage = {
+        id: Date.now().toString() + '_error',
+        content: 'Sorry, I encountered an issue. Please try again or contact our support team for assistance.',
+        isUser: false,
+        timestamp: new Date(),
+        formatted: true
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      setIsTyping(false);
     }
-  ];
+  });
 
-  const faqs = [
-    {
-      question: "How accurate is the AI analysis?",
-      answer: "Our AI maintains a 96% accuracy rate across all document types. We continuously train our models using verified outcomes and expert feedback to ensure reliable insights."
-    },
-    {
-      question: "Which document types do you support?",
-      answer: "We analyze visa documents (approvals/rejections), COE certificates, offer letters, and provide scholarship matching. Additional document types like SOPs and transcripts are coming soon."
-    },
-    {
-      question: "How long does analysis take?",
-      answer: "Most analyses complete within 2-5 minutes. Simple documents like COEs process faster, while comprehensive offer letter analysis with scholarship research takes slightly longer."
-    },
-    {
-      question: "Is my document data secure?",
-      answer: "Absolutely. We use enterprise-grade encryption, don't store personal information longer than necessary, and never share your documents with third parties."
-    },
-    {
-      question: "Do you provide consultation services?",
-      answer: "Yes, we offer personalized consultation sessions with education experts. Our AI analysis helps identify key issues, and our consultants provide strategic guidance."
-    }
-  ];
+  const handleSendMessage = () => {
+    if (!message.trim() || isTyping) return;
 
-  const benefits = [
-    {
-      title: "Save time",
-      description: "Get insights in minutes, not weeks of research",
-      icon: <Clock className="w-6 h-6" />
-    },
-    {
-      title: "Reduce risk",
-      description: "Identify issues before they become problems",
-      icon: <Shield className="w-6 h-6" />
-    },
-    {
-      title: "Make confident decisions",
-      description: "Data-driven recommendations you can trust",
-      icon: <Brain className="w-6 h-6" />
-    },
-    {
-      title: "Find opportunities",
-      description: "Discover scholarships and pathways you missed",
-      icon: <Search className="w-6 h-6" />
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      content: message,
+      isUser: true,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setMessage('');
+    setIsTyping(true);
+
+    sendMessageMutation.mutate({ message });
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
-  ];
+  };
+
+  const handleActionButtonClick = (button: { type: string; label: string; description: string }) => {
+    const buttonMessage: ChatMessage = {
+      id: Date.now().toString(),
+      content: button.label,
+      isUser: true,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, buttonMessage]);
+    setIsTyping(true);
+
+    sendMessageMutation.mutate({ message: button.description });
+  };
+
+  const formatMessageContent = (content: string) => {
+    if (!content || typeof content !== 'string') {
+      return <p className="text-sm text-gray-500">No content available</p>;
+    }
+
+    const paragraphs = content.split('\n\n');
+    
+    return paragraphs.map((paragraph, index) => {
+      // Handle bullet lists
+      if (paragraph.includes('•')) {
+        const lines = paragraph.split('\n').filter(line => line.trim());
+        return (
+          <ul key={index} className="ml-4 space-y-1 list-none">
+            {lines.map((line, lineIndex) => {
+              if (line.includes('•')) {
+                const cleanLine = line.replace('•', '').trim();
+                return (
+                  <li key={lineIndex} className="text-sm leading-relaxed flex items-start">
+                    <span className="text-blue-500 mr-2 text-xs">•</span>
+                    {cleanLine}
+                  </li>
+                );
+              }
+              return (
+                <li key={lineIndex} className="text-sm leading-relaxed">
+                  {line}
+                </li>
+              );
+            })}
+          </ul>
+        );
+      }
+
+      return (
+        <p key={index} className="text-sm leading-relaxed mb-2 last:mb-0">
+          {paragraph}
+        </p>
+      );
+    });
+  };
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header Navigation */}
-      <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-100 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Brain className="w-5 h-5 text-white" />
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-sm border-b border-gray-100 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">Darpan Intelligence</span>
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                Darpan Intelligence
+              </span>
             </div>
-            
-            <nav className="hidden md:flex items-center gap-8">
-              <a href="#services" className="text-gray-600 hover:text-gray-900 transition-colors">Services</a>
-              <a href="#how-it-works" className="text-gray-600 hover:text-gray-900 transition-colors">How it works</a>
-              <a href="#testimonials" className="text-gray-600 hover:text-gray-900 transition-colors">Success stories</a>
-              <a href="#faq" className="text-gray-600 hover:text-gray-900 transition-colors">FAQ</a>
-            </nav>
-
-            <div className="flex items-center gap-4">
-              <Link href="/login">
-                <Button variant="ghost" className="hidden sm:inline-flex">
-                  Sign in
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90">
-                  Get started
-                </Button>
-              </Link>
+            <div className="hidden md:flex items-center space-x-8">
+              <a href="#services" className="text-gray-600 hover:text-blue-600 transition-colors">Services</a>
+              <a href="#how-it-works" className="text-gray-600 hover:text-blue-600 transition-colors">How It Works</a>
+              <a href="#success-stories" className="text-gray-600 hover:text-blue-600 transition-colors">Success Stories</a>
+              <Button variant="outline" onClick={() => window.location.href = '/login'}>
+                Sign In
+              </Button>
+              <Button onClick={() => window.location.href = '/register'}>
+                Get Started
+              </Button>
             </div>
           </div>
         </div>
-      </header>
+      </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 bg-gradient-to-br from-blue-50 via-indigo-50/50 to-purple-50/30">
-        <div className="container mx-auto px-6">
-          <div className="text-center max-w-4xl mx-auto mb-16">
-            <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-full mb-8">
-              <Zap className="w-4 h-4 text-blue-600 mr-2" />
-              <span className="text-sm font-medium text-blue-700">AI-Powered Document Intelligence</span>
-            </div>
-            
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 tracking-tight leading-tight">
-              Your education journey,
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent block">
-                decoded
-              </span>
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-gray-600 mb-12 leading-relaxed max-w-3xl mx-auto">
-              Transform uncertainty into opportunity. Get AI-powered insights on visa documents, 
-              scholarships, and admissions in minutes, not months.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-              <Link href="/register">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 text-lg px-8 py-6 rounded-xl">
-                  Start free analysis
-                  <ArrowRight className="w-5 h-5 ml-2" />
+      <section className="pt-24 pb-16 bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
+                <Zap className="h-4 w-4" />
+                Instant AI-Powered Guidance
+              </div>
+              <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+                Your Study Abroad Journey{' '}
+                <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  Starts Here
+                </span>
+              </h1>
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                Get instant, personalized guidance on universities, costs, scholarships, and visa requirements. 
+                Our AI advisor helps you make informed decisions every step of the way.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                <Button 
+                  size="lg" 
+                  className="px-8 py-3 text-lg"
+                  onClick={() => setIsChatOpen(true)}
+                >
+                  <MessageCircle className="h-5 w-5 mr-2" />
+                  Start Chatting Now
                 </Button>
-              </Link>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6 rounded-xl border-2">
-                <Play className="w-5 h-5 mr-2" />
-                Watch demo
-              </Button>
-            </div>
-
-            {/* Trust indicators */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto">
-              {heroStats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <div className="text-blue-600">{stat.icon}</div>
-                    <div className="text-2xl md:text-3xl font-bold text-gray-900">{stat.number}</div>
-                  </div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="px-8 py-3 text-lg"
+                  onClick={() => window.location.href = '/register'}
+                >
+                  Create Free Account
+                  <ArrowRight className="h-5 w-5 ml-2" />
+                </Button>
+              </div>
+              <div className="flex items-center gap-8 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  100,000+ Students Guided
                 </div>
-              ))}
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4" />
+                  500+ Partner Universities
+                </div>
+                <div className="flex items-center gap-2">
+                  <Award className="h-4 w-4" />
+                  95% Success Rate
+                </div>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="bg-white rounded-2xl shadow-2xl p-6 border border-gray-100">
+                <div className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+                    <Bot className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Darpan Intelligence</h3>
+                    <p className="text-sm text-gray-500">Your AI Study Abroad Advisor</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="bg-gray-100 rounded-2xl p-4 max-w-[80%]">
+                    <p className="text-sm text-gray-800">
+                      Hello! I can help you find the perfect university and guide you through your study abroad journey. 
+                      What type of program are you interested in?
+                    </p>
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button variant="outline" size="sm" onClick={() => setIsChatOpen(true)}>
+                      Computer Science
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setIsChatOpen(true)}>
+                      Business
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setIsChatOpen(true)}>
+                      Engineering
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -227,155 +306,62 @@ export default function PublicLanding() {
 
       {/* Services Section */}
       <section id="services" className="py-20 bg-white">
-        <div className="container mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Intelligence for every document
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Everything You Need for Study Abroad Success
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Whether you're analyzing visa decisions, understanding enrollment requirements, 
-              or discovering funding opportunities—we've got you covered.
+              From university selection to visa approval, our comprehensive platform guides you through every step
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {services.map((service, index) => (
-              <Card key={index} className="group hover:shadow-xl transition-all duration-500 border-0 shadow-lg overflow-hidden">
-                <div className={`h-1 bg-gradient-to-r ${service.gradient}`} />
-                <CardContent className="p-8">
-                  <div className={`w-16 h-16 ${service.bgColor} rounded-2xl flex items-center justify-center mb-6 text-gray-700 group-hover:scale-110 transition-transform duration-300`}>
-                    {service.icon}
-                  </div>
-                  
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    {service.title}
-                  </h3>
-                  <p className="text-gray-600 mb-6 leading-relaxed">
-                    {service.description}
-                  </p>
-                  
-                  <ul className="space-y-3">
-                    {service.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center gap-3">
-                        <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                        <span className="text-gray-700">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section id="how-it-works" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Simple. Fast. Accurate.
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Get professional-grade document analysis in three easy steps
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                step: "01",
-                title: "Upload",
-                description: "Securely upload your document—visa letters, COEs, offer letters, or any education-related document.",
-                icon: <FileText className="w-8 h-8" />
+                icon: Search,
+                title: 'University Matching',
+                description: 'Find universities that perfectly match your academic profile, career goals, and budget',
+                color: 'blue'
               },
               {
-                step: "02", 
-                title: "Analyze",
-                description: "Our AI examines every detail, cross-references data, and identifies key insights you might miss.",
-                icon: <Brain className="w-8 h-8" />
+                icon: Calculator,
+                title: 'Cost Calculator',
+                description: 'Get accurate estimates for tuition, living expenses, and all study abroad costs',
+                color: 'green'
               },
               {
-                step: "03",
-                title: "Act",
-                description: "Get actionable recommendations, next steps, and strategic guidance to move forward confidently.",
-                icon: <TrendingUp className="w-8 h-8" />
+                icon: Award,
+                title: 'Scholarship Finder',
+                description: 'Discover scholarships and funding opportunities you qualify for',
+                color: 'purple'
+              },
+              {
+                icon: FileText,
+                title: 'Document Analysis',
+                description: 'AI-powered analysis of your academic documents and application materials',
+                color: 'orange'
+              },
+              {
+                icon: MapPin,
+                title: 'Visa Guidance',
+                description: 'Step-by-step visa application guidance with country-specific requirements',
+                color: 'indigo'
+              },
+              {
+                icon: BookOpen,
+                title: 'Application Support',
+                description: 'Complete application assistance from SOP writing to interview preparation',
+                color: 'pink'
               }
-            ].map((item, index) => (
-              <div key={index} className="text-center">
-                <div className="relative mb-8">
-                  <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-4">
-                    {item.icon}
-                  </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center text-sm font-bold text-gray-900 shadow-lg">
-                    {item.step}
-                  </div>
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">{item.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{item.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Why choose Darpan Intelligence?
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            {benefits.map((benefit, index) => (
-              <div key={index} className="text-center group">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl flex items-center justify-center text-blue-600 mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                  {benefit.icon}
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{benefit.title}</h3>
-                <p className="text-gray-600">{benefit.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section id="testimonials" className="py-20 bg-gray-50">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Success stories
-            </h2>
-            <p className="text-xl text-gray-600">
-              Real students. Real results. Real impact.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-0 shadow-lg">
+            ].map((service, index) => (
+              <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md">
                 <CardContent className="p-8">
-                  <div className="flex items-center gap-1 mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                    ))}
+                  <div className={`w-12 h-12 bg-${service.color}-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                    <service.icon className={`h-6 w-6 text-${service.color}-600`} />
                   </div>
-                  <p className="text-gray-700 mb-6 leading-relaxed">
-                    "{testimonial.content}"
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                      {testimonial.name.split(' ').map(n => n[0]).join('')}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                      <div className="text-sm text-gray-600">{testimonial.role}</div>
-                      <div className="text-xs text-gray-500">{testimonial.country}</div>
-                    </div>
-                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">{service.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{service.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -383,32 +369,50 @@ export default function PublicLanding() {
         </div>
       </section>
 
-      {/* FAQ */}
-      <section id="faq" className="py-20 bg-white">
-        <div className="container mx-auto px-6">
+      {/* How It Works */}
+      <section id="how-it-works" className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Frequently asked questions
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Simple Steps to Your Dream University
             </h2>
+            <p className="text-xl text-gray-600">
+              Our proven process has helped thousands of students achieve their study abroad goals
+            </p>
           </div>
 
-          <div className="max-w-3xl mx-auto space-y-4">
-            {faqs.map((faq, index) => (
-              <div key={index} className="border border-gray-200 rounded-xl overflow-hidden">
-                <button
-                  onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
-                  className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
-                >
-                  <span className="font-semibold text-gray-900">{faq.question}</span>
-                  {expandedFaq === index ? (
-                    <ChevronUp className="w-5 h-5 text-gray-500" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-500" />
-                  )}
-                </button>
-                {expandedFaq === index && (
-                  <div className="px-6 pb-4">
-                    <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: '01',
+                title: 'Start Conversation',
+                description: 'Chat with our AI advisor about your interests, goals, and preferences',
+                icon: MessageCircle
+              },
+              {
+                step: '02',
+                title: 'Get Recommendations',
+                description: 'Receive personalized university and program recommendations based on your profile',
+                icon: GraduationCap
+              },
+              {
+                step: '03',
+                title: 'Apply & Succeed',
+                description: 'Get guided support through applications, visa process, and preparation',
+                icon: CheckCircle
+              }
+            ].map((step, index) => (
+              <div key={index} className="text-center relative">
+                <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <step.icon className="h-8 w-8 text-white" />
+                </div>
+                <div className="text-sm font-bold text-blue-600 mb-2">STEP {step.step}</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">{step.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{step.description}</p>
+                
+                {index < 2 && (
+                  <div className="hidden md:block absolute top-8 left-full w-full">
+                    <ArrowRight className="h-6 w-6 text-gray-400 mx-auto" />
                   </div>
                 )}
               </div>
@@ -417,92 +421,325 @@ export default function PublicLanding() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Ready to decode your future?
-          </h2>
-          <p className="text-xl text-blue-100 mb-12 max-w-2xl mx-auto">
-            Join thousands of students who've transformed uncertainty into opportunity.
-            Start your free analysis today.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/register">
-              <Button size="lg" variant="secondary" className="text-lg px-8 py-6 rounded-xl bg-white text-gray-900 hover:bg-gray-100">
-                Start free analysis
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6 rounded-xl border-2 border-white text-white hover:bg-white hover:text-gray-900">
-                Already have an account?
-              </Button>
-            </Link>
+      {/* Success Stories */}
+      <section id="success-stories" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Success Stories from Around the World
+            </h2>
+            <p className="text-xl text-gray-600">
+              Real students, real results, real dreams achieved
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                name: 'Priya Sharma',
+                country: 'From India to Canada',
+                program: 'Master\'s in Computer Science',
+                university: 'University of Toronto',
+                quote: 'The AI guidance helped me find the perfect program and secure a scholarship worth $25,000.',
+                rating: 5
+              },
+              {
+                name: 'Ahmed Hassan',
+                country: 'From Egypt to Germany',
+                program: 'Bachelor\'s in Engineering',
+                university: 'Technical University of Munich',
+                quote: 'Amazing support throughout the entire process. The cost calculator was incredibly accurate.',
+                rating: 5
+              },
+              {
+                name: 'Maria Garcia',
+                country: 'From Mexico to Australia',
+                program: 'MBA',
+                university: 'University of Melbourne',
+                quote: 'The personalized recommendations saved me months of research. Highly recommend!',
+                rating: 5
+              }
+            ].map((story, index) => (
+              <Card key={index} className="border-0 shadow-lg">
+                <CardContent className="p-8">
+                  <div className="flex items-center gap-1 mb-4">
+                    {[...Array(story.rating)].map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <blockquote className="text-gray-700 italic mb-6 leading-relaxed">
+                    "{story.quote}"
+                  </blockquote>
+                  <div className="border-t pt-6">
+                    <div className="font-semibold text-gray-900">{story.name}</div>
+                    <div className="text-sm text-gray-600 mb-1">{story.country}</div>
+                    <div className="text-sm text-blue-600">{story.program}</div>
+                    <div className="text-sm text-gray-500">{story.university}</div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trust & Security */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Trusted by Students Worldwide
+            </h2>
+            <p className="text-xl text-gray-600">
+              Your data is secure, your privacy is protected, your success is our priority
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-4 gap-8 mb-16">
+            {[
+              { icon: Shield, title: 'Data Security', desc: 'Bank-level encryption' },
+              { icon: Clock, title: '24/7 Support', desc: 'Always here to help' },
+              { icon: CheckCircle, title: 'Verified Info', desc: 'Accurate, up-to-date data' },
+              { icon: Heart, title: 'Student First', desc: 'Your success matters' }
+            ].map((trust, index) => (
+              <div key={index} className="text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <trust.icon className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">{trust.title}</h3>
+                <p className="text-gray-600 text-sm">{trust.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <Button 
+              size="lg" 
+              onClick={() => setIsChatOpen(true)}
+              className="px-8 py-3 text-lg"
+            >
+              <MessageCircle className="h-5 w-5 mr-2" />
+              Start Your Journey Today
+            </Button>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 bg-gray-900 text-white">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+      <footer className="bg-gray-900 text-white py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Brain className="w-5 h-5 text-white" />
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
+                  <Sparkles className="h-5 w-5 text-white" />
                 </div>
                 <span className="text-xl font-bold">Darpan Intelligence</span>
               </div>
               <p className="text-gray-400 leading-relaxed">
-                Make informed education and career decisions with AI-powered document analysis.
+                Empowering students worldwide to achieve their international education dreams through AI-powered guidance.
               </p>
             </div>
-            
+
             <div>
               <h3 className="font-semibold mb-4">Services</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Visa Analysis</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">COE Analysis</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Offer Letter Analysis</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Scholarship Research</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">University Matching</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Scholarship Finder</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Visa Guidance</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Document Analysis</a></li>
               </ul>
             </div>
-            
+
+            <div>
+              <h3 className="font-semibold mb-4">Resources</h3>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">Study Guides</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Country Guides</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Success Stories</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
+              </ul>
+            </div>
+
             <div>
               <h3 className="font-semibold mb-4">Support</h3>
               <ul className="space-y-2 text-gray-400">
                 <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Book Consultation</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Security</a></li>
               </ul>
             </div>
           </div>
-          
-          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row items-center justify-between">
-            <p className="text-gray-400 text-sm mb-4 md:mb-0">
-              © 2025 Darpan Intelligence. All rights reserved. A product of Epitome Solutions ❤️
-            </p>
-            <div className="flex items-center gap-6 text-sm text-gray-400">
-              <a href="#" className="hover:text-white transition-colors">Privacy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms</a>
-              <a href="#" className="hover:text-white transition-colors">Security</a>
-            </div>
+
+          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
+            <p>&copy; 2025 Darpan Intelligence. All rights reserved. Empowering global education since 2025.</p>
           </div>
         </div>
       </footer>
+
+      {/* Chat Widget */}
+      {!isChatOpen && (
+        <Button
+          onClick={() => setIsChatOpen(true)}
+          className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 z-50"
+          size="lg"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </Button>
+      )}
+
+      {/* Chat Interface */}
+      {isChatOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:w-[480px] h-[80vh] sm:h-[600px] flex flex-col shadow-2xl">
+            {/* Chat Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+                  <Bot className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">Darpan Intelligence</h3>
+                  <p className="text-sm text-gray-500">AI Study Abroad Advisor</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsChatOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </Button>
+            </div>
+
+            {/* Chat Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`flex items-start gap-2 max-w-[85%] ${msg.isUser ? 'flex-row-reverse' : ''}`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      msg.isUser ? 'bg-blue-600' : 'bg-gradient-to-r from-indigo-500 to-purple-600'
+                    }`}>
+                      {msg.isUser ? (
+                        <User className="h-3 w-3 text-white" />
+                      ) : (
+                        <Bot className="h-3 w-3 text-white" />
+                      )}
+                    </div>
+                    
+                    <div className={`rounded-2xl px-3 py-2 ${
+                      msg.isUser ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'
+                    }`}>
+                      {msg.formatted && !msg.isUser ? (
+                        <div className="space-y-2">
+                          {formatMessageContent(msg.content)}
+                        </div>
+                      ) : (
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                          {msg.content}
+                        </p>
+                      )}
+                      
+                      {!msg.isUser && (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <span className="text-xs text-gray-500">
+                            Guided by Darpan Intelligence
+                          </span>
+                        </div>
+                      )}
+                      
+                      {msg.actionButtons && msg.actionButtons.length > 0 && !msg.isUser && (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <div className="space-y-1.5">
+                            {msg.actionButtons.map((button, index) => (
+                              <button
+                                key={index}
+                                onClick={() => handleActionButtonClick(button)}
+                                className="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors min-h-[40px]"
+                              >
+                                <div className="text-xs font-medium text-gray-700">{button.label}</div>
+                                <div className="text-xs text-gray-500 leading-tight">{button.description}</div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="flex items-start gap-2 max-w-[85%]">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
+                      <Bot className="h-3 w-3 text-white" />
+                    </div>
+                    <div className="bg-gray-100 rounded-2xl px-3 py-2">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </div>
+            
+            {/* Input Area */}
+            <div className="border-t bg-white p-3">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2 min-w-[36px] min-h-[36px]"
+                >
+                  <Upload className="h-4 w-4" />
+                </Button>
+                
+                <div className="flex-1 relative">
+                  <Input
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Ask about studying abroad..."
+                    className="pr-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500 h-10"
+                    disabled={isTyping}
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={!message.trim() || isTyping}
+                    size="sm"
+                    className="absolute right-1 top-1 h-8 w-8 p-0"
+                  >
+                    <Send className="h-3 w-3" />
+                  </Button>
+                </div>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf"
+                  className="hidden"
+                />
+              </div>
+              
+              <p className="text-xs text-gray-500 mt-1 text-center px-2">
+                Get instant guidance on universities, costs, and applications
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

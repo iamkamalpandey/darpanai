@@ -245,6 +245,11 @@ process.on('unhandledRejection', (reason, promise) => {
     app.use('/api/educounsel', eduCounselRoutes.default);
     logWithLevel('✓ EduCounsel AI routes registered successfully');
     
+    // Register public chat routes (no authentication required)
+    const { publicChatRoutes } = await import('./publicChatRoutes');
+    app.use('/api/public', publicChatRoutes);
+    logWithLevel('✓ Public chat routes registered successfully');
+    
     // Register communication center routes
     const communicationRoutes = await import('./communicationRoutes');
     app.use('/api/conversations', communicationRoutes.default);
