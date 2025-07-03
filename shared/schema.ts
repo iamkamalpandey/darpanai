@@ -9,6 +9,40 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
+// Communication Center Tables
+export const conversations = pgTable("conversations", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  priority: text("priority").default("medium").notNull(), // low, medium, high, urgent
+  status: text("status").default("active").notNull(), // active, closed, waiting_response
+  applicationId: integer("application_id").references(() => studentApplications.id),
+  createdBy: integer("created_by").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const conversationParticipants = pgTable("conversation_participants", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").references(() => conversations.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  userType: text("user_type").notNull(), // student, admin, expert
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+});
+
+export const messages = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  conversationId: integer("conversation_id").references(() => conversations.id).notNull(),
+  senderId: integer("sender_id").references(() => users.id).notNull(),
+  content: text("content").notNull(),
+  messageType: text("message_type").default("text").notNull(), // text, file, system
+  attachments: jsonb("attachments"), // Array of file attachments
+  isRead: boolean("is_read").default(false).notNull(),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Country Application Workflows
 export const countryWorkflows = pgTable("country_workflows", {
   id: serial("id").primaryKey(),
@@ -659,6 +693,42 @@ export const universityMatches = pgTable("university_matches", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Relations for Communication Center
+export const conversationRelations = relations(conversations, ({ one, many }) => ({
+  createdByUser: one(users, {
+    fields: [conversations.createdBy],
+    references: [users.id],
+  }),
+  application: one(studentApplications, {
+    fields: [conversations.applicationId],
+    references: [studentApplications.id],
+  }),
+  participants: many(conversationParticipants),
+  messages: many(messages),
+}));
+
+export const conversationParticipantRelations = relations(conversationParticipants, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [conversationParticipants.conversationId],
+    references: [conversations.id],
+  }),
+  user: one(users, {
+    fields: [conversationParticipants.userId],
+    references: [users.id],
+  }),
+}));
+
+export const messageRelations = relations(messages, ({ one }) => ({
+  conversation: one(conversations, {
+    fields: [messages.conversationId],
+    references: [conversations.id],
+  }),
+  sender: one(users, {
+    fields: [messages.senderId],
+    references: [users.id],
+  }),
+}));
+
 // Relations for Darpan AI System
 export const assessmentRelations = relations(assessments, ({ one, many }) => ({
   user: one(users, {
@@ -701,6 +771,33 @@ export const insertAssessmentSchema = createInsertSchema(assessments).omit({
 export const insertUniversitySchema = createInsertSchema(universities).omit({
   id: true,
   createdAt: true,
+});
+
+// Communication Center Types and Schemas
+export type Conversation = typeof conversations.$inferSelect;
+export type InsertConversation = typeof conversations.$inferInsert;
+export type ConversationParticipant = typeof conversationParticipants.$inferSelect;
+export type InsertConversationParticipant = typeof conversationParticipants.$inferInsert;
+export type Message = typeof messages.$inferSelect;
+export type InsertMessage = typeof messages.$inferInsert;
+
+export const insertConversationSchema = createInsertSchema(conversations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertParticipantSchema = createInsertSchema(conversationParticipants).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export const insertMessageSchema = createInsertSchema(messages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  isRead: true,
+  readAt: true,
 });
 
 // Advanced Assessments Database Table

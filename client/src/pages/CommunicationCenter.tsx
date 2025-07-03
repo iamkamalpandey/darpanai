@@ -66,6 +66,7 @@ export default function CommunicationCenter() {
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showNewConversation, setShowNewConversation] = useState(false);
 
   // Fetch conversations
   const { data: conversations = [], isLoading } = useQuery({
@@ -162,7 +163,11 @@ export default function CommunicationCenter() {
               <MessageSquare className="h-5 w-5 text-blue-600" />
               Messages
             </h2>
-            <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+            <Button 
+              size="sm" 
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={() => setShowNewConversation(true)}
+            >
               <Plus className="h-4 w-4 mr-1" />
               New
             </Button>
