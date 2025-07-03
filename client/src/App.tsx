@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { UserProtectedRoute } from "@/components/UserProtectedRoute";
 import { AdminProtectedRoute } from "@/components/AdminProtectedRoute";
+import { ExpertProtectedRoute } from "@/components/ExpertProtectedRoute";
 import { AdminRedirect } from "@/components/AdminRedirect";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
@@ -98,6 +99,7 @@ const StudyAbroadHub = lazy(() => import("@/pages/StudyAbroadHub"));
 const ScholarshipResearchHub = lazy(() => import("@/pages/ScholarshipResearchHub"));
 const UnifiedApplicationManagement = lazy(() => import("@/pages/UnifiedApplicationManagement"));
 const ApplicationManagementHub = lazy(() => import("@/pages/ApplicationManagementHub"));
+const ExpertDashboard = lazy(() => import("@/pages/ExpertDashboard"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -117,6 +119,14 @@ function Router() {
     
     if (user?.role === 'admin') {
       return <AdminRedirect />;
+    }
+    
+    if (user?.role === 'expert') {
+      return (
+        <Suspense fallback={<LoadingFallback />}>
+          <ExpertDashboard />
+        </Suspense>
+      );
     }
     
     if (user) {
@@ -686,6 +696,15 @@ function Router() {
             <AdminCoeDetails />
           </Suspense>
         )} />
+      </Route>
+      
+      {/* Expert Routes - Only accessible by education experts */}
+      <Route path="/expert-dashboard">
+        <ExpertProtectedRoute>
+          <Suspense fallback={<LoadingFallback />}>
+            <ExpertDashboard />
+          </Suspense>
+        </ExpertProtectedRoute>
       </Route>
       
       {/* 404 Route */}

@@ -235,7 +235,10 @@ export default function CommunicationCenter() {
                           {conversation.status.replace('_', ' ')}
                         </Badge>
                         <span className="text-xs text-gray-500">
-                          {formatDistanceToNow(new Date(conversation.lastMessage.timestamp), { addSuffix: true })}
+                          {conversation.lastMessage?.timestamp ? 
+                            formatDistanceToNow(new Date(conversation.lastMessage.timestamp), { addSuffix: true }) : 
+                            'No recent activity'
+                          }
                         </span>
                       </div>
                     </div>
@@ -336,7 +339,7 @@ export default function CommunicationCenter() {
                         message.senderId === user?.id ? 'justify-end' : 'justify-start'
                       }`}>
                         <Clock className="h-3 w-3" />
-                        <span>{formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })}</span>
+                        <span>{message.timestamp ? formatDistanceToNow(new Date(message.timestamp), { addSuffix: true }) : 'Just now'}</span>
                         {message.senderId === user?.id && (
                           <CheckCircle className={`h-3 w-3 ${message.isRead ? 'text-blue-600' : 'text-gray-400'}`} />
                         )}

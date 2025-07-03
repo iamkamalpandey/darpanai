@@ -227,7 +227,7 @@ process.on('unhandledRejection', (reason, promise) => {
     // Register scholarship routes
     const scholarshipRoutes = await import('./scholarshipRoutes');
     app.use('/api/scholarships', scholarshipRoutes.default);
-    app.use('/api', scholarshipRoutes.default); // Add direct API mount for admin routes
+    // Note: Removed broad /api mount to avoid conflicts with other routes
     logWithLevel('✓ Scholarship routes registered successfully');
     
     // Register AI-powered scholarship matching routes

@@ -30,7 +30,7 @@ router.get('/', async (req: Request, res: Response) => {
           id: messages.id,
           content: messages.content,
           senderId: messages.senderId,
-          senderName: sql<string>`sender.first_name || ' ' || sender.last_name`,
+          senderName: sql<string>`${users.firstName} || ' ' || ${users.lastName}`,
           createdAt: messages.createdAt,
         }
       })
