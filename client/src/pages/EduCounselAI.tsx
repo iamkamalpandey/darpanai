@@ -178,48 +178,33 @@ export default function EduCounselAI() {
   };
 
   const createPersonalizedWelcome = (name: string, profile: UserProfile, completionPercentage: number, profileName: string) => {
-    // Craft unique, contextual welcome based on profile data
+    // Optimized welcome message for cost efficiency while maintaining personalization
     const hasCountries = profile.preferredCountries && profile.preferredCountries.length > 0;
     const hasField = profile.fieldOfStudy;
-    const hasLevel = profile.studyLevel;
     
-    let welcomeText = `Hello ${name}! I'm your comprehensive international education advisor powered by Darpan Intelligence.`;
+    let welcomeText = `Hello ${name}! I'm Darpan Intelligence, your international education advisor.`;
     
-    // Add profile-specific context
+    // Concise profile context
     if (hasCountries && hasField) {
-      const countries = profile.preferredCountries!.slice(0, 2).join(' and ');
-      welcomeText += ` I can see you're exploring ${profile.fieldOfStudy} opportunities in ${countries}.`;
+      const country = profile.preferredCountries![0];
+      welcomeText += ` I see you're interested in ${profile.fieldOfStudy} in ${country}.`;
     } else if (hasField) {
-      welcomeText += ` I notice you're interested in ${profile.fieldOfStudy} studies.`;
-    } else if (hasLevel) {
-      welcomeText += ` I see you're planning for ${profile.studyLevel} education abroad.`;
+      welcomeText += ` I notice you're exploring ${profile.fieldOfStudy} studies.`;
     }
     
-    // Add completion context
-    if (completionPercentage < 30) {
-      welcomeText += ` Your profile is ${completionPercentage}% complete. While I can assist with general guidance, completing your profile will unlock personalized recommendations tailored specifically to your academic background and career goals.`;
-    } else if (completionPercentage < 70) {
-      welcomeText += ` With your profile ${completionPercentage}% complete, I can provide targeted advice. Additional profile details would enable even more precise guidance.`;
+    // Simplified completion messaging
+    if (completionPercentage < 50) {
+      welcomeText += ` Your profile is ${completionPercentage}% complete - finishing it unlocks personalized recommendations.`;
     } else {
-      welcomeText += ` Excellent! Your ${completionPercentage}% complete profile allows me to provide highly personalized recommendations.`;
+      welcomeText += ` With your ${completionPercentage}% complete profile, I can provide targeted guidance.`;
     }
     
-    // Add broad perspective capabilities
-    welcomeText += `\n\nI specialize in comprehensive international education guidance including:`;
-    welcomeText += `\n• Global university research and program matching`;
-    welcomeText += `\n• Scholarship identification and application strategies`;
-    welcomeText += `\n• Academic pathway planning and course selection`;
-    welcomeText += `\n• Visa requirements and documentation processes`;
-    welcomeText += `\n• Financial planning and funding options`;
-    welcomeText += `\n• Career prospects and post-graduation opportunities`;
-    welcomeText += `\n• Cultural adaptation and student life preparation`;
-    welcomeText += `\n• Application timeline management and deadline tracking`;
+    // Core services (concise)
+    welcomeText += `\n\nI help with: universities, scholarships, applications, visas, and career planning.`;
+    welcomeText += `\n\nWhat would you like to explore today?`;
     
-    welcomeText += `\n\nWhat specific aspect of your international education journey would you like to explore today?`;
-    
-    // Add generated profile identifier
-    welcomeText += `\n\n*Generated for ${profileName}*`;
-    welcomeText += `\n\nGuided by Darpan Intelligence`;
+    // Simplified identifier
+    welcomeText += `\n\n*${profileName}*`;
     
     return welcomeText;
   };

@@ -3,6 +3,8 @@ import OpenAI from 'openai';
 import { countryWorkflowStorage } from './countryWorkflowStorage';
 import { scholarshipStorage } from './scholarshipStorage';
 import { db } from './db';
+import { getCachedResponse, cacheResponse, isSimpleQuery, getSimpleResponse } from './responseCache';
+import { isRateLimited, getRemainingRequests, getRateLimitResponse } from './rateLimiter';
 
 // Initialize AI clients with triple fallback system
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -68,6 +70,53 @@ export async function processEduCounselChatOptimized(request: EduCounselRequest)
     const messageLower = message.toLowerCase();
     
     console.log('🤖 Processing optimized EduCounsel chat for user', userProfile.id);
+    
+    // Check rate limit for cost efficiency and standard practices
+    if (isRateLimited(userProfile.id)) {
+      const remaining = getRemainingRequests(userProfile.id);
+      return {
+        response: getRateLimitResponse() + ` You have ${remaining} requests remaining this hour.`,
+        specialist: 'Darpan Intelligence',
+        actionButtons: [{
+          type: 'book_consultation' as const,
+          label: 'Book Unlimited Consultation',
+          description: 'Get unlimited expert guidance'
+        }]
+      };
+    }
+    
+    // Check cache first for cost efficiency
+    const cachedResponse = getCachedResponse(message, userProfile);
+    if (cachedResponse) {
+      return {
+        response: cachedResponse.response,
+        specialist: cachedResponse.specialist,
+        actionButtons: [{
+          type: 'book_consultation' as const,
+          label: 'Speak with Counselor',
+          description: 'Get personalized guidance'
+        }]
+      };
+    }
+    
+    // Handle simple queries without AI processing to save costs
+    if (isSimpleQuery(message)) {
+      const simpleResponse = getSimpleResponse(message, userProfile);
+      if (simpleResponse) {
+        const response = {
+          response: simpleResponse,
+          specialist: 'Darpan Intelligence',
+          actionButtons: [{
+            type: 'book_consultation' as const,
+            label: 'Speak with Counselor',
+            description: 'Get personalized guidance'
+          }]
+        };
+        // Cache simple responses
+        cacheResponse(message, userProfile, simpleResponse, 'Darpan Intelligence');
+        return response;
+      }
+    }
     
     // Extract user profile context for personalization
     const profileContext = extractUserProfileContext(userProfile);
@@ -271,49 +320,56 @@ async function generateContextualAIResponse(message: string, userProfile: UserPr
   try {
     console.log('🔍 Generating contextualized AI response for:', message);
     
-    // Get relevant data from database
-    const [scholarships, relevantCountries] = await Promise.all([
-      getRelevantScholarships(message, userProfile),
-      getRelevantCountries(message, userProfile)
-    ]);
-
-    // Enhanced system prompt with real data context
-    // Prepare conversation context with memory
-    let conversationContext = '';
-    if (conversationHistory && conversationHistory.length > 0) {
-      // Use last 6 messages for better context
-      const recentMessages = conversationHistory.slice(-6);
-      conversationContext = `\nCONVERSATION HISTORY:\n${recentMessages.map(msg => 
-        `${msg.role}: ${msg.content}`
-      ).join('\n')}\n\nCONTINUE the conversation naturally, referencing previous topics when relevant.\n`;
+    // Smart database query optimization - only fetch data when needed
+    let scholarships: any[] = [];
+    let relevantCountries: string[] = [];
+    
+    // Only query scholarships for funding/scholarship related questions
+    const isScholarshipQuery = message.toLowerCase().includes('scholarship') || 
+                              message.toLowerCase().includes('funding') || 
+                              message.toLowerCase().includes('financial aid') ||
+                              message.toLowerCase().includes('cost');
+    
+    // Only query countries for specific geographic questions
+    const isCountryQuery = message.toLowerCase().includes('country') || 
+                          message.toLowerCase().includes('where') ||
+                          message.toLowerCase().includes('destination');
+    
+    // Fetch only relevant data to reduce API costs
+    if (isScholarshipQuery) {
+      scholarships = await getRelevantScholarships(message, userProfile);
+    }
+    if (isCountryQuery) {
+      relevantCountries = await getRelevantCountries(message, userProfile);
     }
 
-    const systemPrompt = `You are a comprehensive international education advisor powered by Darpan Intelligence, providing personalized guidance following international counseling standards with broader perspective beyond study abroad.
+    // Enhanced system prompt with real data context
+    // Optimized conversation context - use only last 3 messages for cost efficiency
+    let conversationContext = '';
+    if (conversationHistory && conversationHistory.length > 0) {
+      // Limit to last 3 messages to reduce token usage
+      const recentMessages = conversationHistory.slice(-3);
+      conversationContext = `\nRECENT CONTEXT:\n${recentMessages.map(msg => 
+        `${msg.role}: ${msg.content.substring(0, 100)}...` // Truncate long messages
+      ).join('\n')}\n`;
+    }
 
-APPROACH: Deliver unique, non-templated responses with professional warmth and evidence-based recommendations.
+    // Optimized system prompt for cost efficiency while maintaining quality
+    const systemPrompt = `You are Darpan Intelligence, an international education advisor. Provide concise, personalized guidance.
+
 ${conversationContext}
-EDUCATIONAL RESOURCES:
-${scholarships.length > 0 ? `Available Scholarships: ${scholarships.map(s => `${s.name} (${s.targetCountries?.join(', ')}) - ${s.fundingType}`).join('; ')}` : ''}
-${relevantCountries.length > 0 ? `Country Information: ${relevantCountries.join(', ')}` : ''}
+STUDENT: ${userProfile.firstName || 'Student'} | ${userProfile.fieldOfStudy || 'exploring options'} | ${userProfile.preferredCountries?.join(', ') || 'global'}
+${scholarships.length > 0 ? `SCHOLARSHIPS: ${scholarships.slice(0, 2).map(s => `${s.name} (${s.targetCountries?.[0]})`).join(', ')}` : ''}
 
-STUDENT PROFILE: 
-- Name: ${userProfile.firstName || 'Student'}
-- Background: ${userProfile.nationality || 'international student'}
-- Academic Focus: ${userProfile.fieldOfStudy || 'exploring academic pathways'}
-- Destination Interest: ${userProfile.preferredCountries?.join(', ') || 'open to global opportunities'}
-- Profile Context: ${profileContext}
+GUIDELINES:
+- Be concise yet comprehensive (max 100 words)
+- Personalize using student profile
+- Cover: academics, costs, career prospects, cultural fit
+- Reference available scholarships when relevant
+- Suggest actionable next steps
+- Maintain professional counseling standards
 
-INTERNATIONAL STANDARDS:
-1. Provide comprehensive educational guidance covering academic pathways, career planning, financial strategies, and cultural adaptation
-2. Generate personalized recommendations based on individual student profiles without using templates
-3. Address diverse educational systems and international qualification frameworks
-4. Maintain professional counseling boundaries while being supportive
-5. Reference specific institutional data and scholarship opportunities when relevant
-6. Focus on long-term educational success and career development
-7. Offer broader perspective including university selection, program matching, visa guidance, and cultural preparation
-8. Continue conversations naturally while delivering comprehensive educational insights
-
-Provide personalized, international standard guidance prioritizing educational value and student empowerment.`;
+Respond naturally and helpfully.`;
 
     console.log('🔍 Generating AI response with context for message:', message);
     console.log('📊 Database context:', { scholarshipsFound: scholarships.length, countriesFound: relevantCountries.length });
@@ -328,8 +384,8 @@ Provide personalized, international standard guidance prioritizing educational v
       console.log('🎯 Attempting DeepSeek...');
       const deepseekResponse = await deepseek.chat.completions.create({
         model: "deepseek-chat",
-        max_tokens: 300,
-        temperature: 0.3,
+        max_tokens: 150, // Reduced from 300 for cost efficiency
+        temperature: 0.2, // Slightly lower for more consistent responses
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: message }
@@ -344,8 +400,8 @@ Provide personalized, international standard guidance prioritizing educational v
         // Fallback to OpenAI GPT (secondary AI)
         const openaiResponse = await openai.chat.completions.create({
           model: "gpt-4o-mini",
-          max_tokens: 300,
-          temperature: 0.3,
+          max_tokens: 150, // Reduced from 300 for cost efficiency
+          temperature: 0.2,
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: message }
@@ -360,7 +416,7 @@ Provide personalized, international standard guidance prioritizing educational v
           // Final fallback to Anthropic Claude (tertiary AI)
           const anthropicResponse = await anthropic.messages.create({
             model: DEFAULT_MODEL_STR,
-            max_tokens: 300,
+            max_tokens: 150, // Reduced from 300 for cost efficiency
             messages: [{
               role: 'user',
               content: `${systemPrompt}\n\nUser question: ${message}`
@@ -407,14 +463,19 @@ Provide personalized, international standard guidance prioritizing educational v
       description: 'Get personalized guidance from education expert'
     });
     
-    // Add profile extraction feedback
+    // Simplified profile feedback for cost efficiency
     let profileFeedback = '';
     if (profileContext && profileContext !== 'basic profile information') {
-      profileFeedback = `\n\n💡 **Personalized Response:** I'm using your profile information (${profileContext}) to provide targeted recommendations. Want different guidance? [Update your profile](/profile) or let me know what you'd prefer to focus on.`;
+      profileFeedback = `\n\n💡 Based on your ${userProfile.fieldOfStudy || 'academic'} profile. [Update profile](/profile) for different guidance.`;
     }
 
+    const finalResponse = content + profileFeedback;
+    
+    // Cache the AI response for future use
+    cacheResponse(message, userProfile, finalResponse, 'Darpan Intelligence');
+    
     return {
-      response: content + profileFeedback,
+      response: finalResponse,
       specialist: 'Darpan Intelligence',
       actionButtons
     };
