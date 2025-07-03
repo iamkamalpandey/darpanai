@@ -255,6 +255,11 @@ process.on('unhandledRejection', (reason, promise) => {
     app.use('/api/expert', expertRoutes.default);
     logWithLevel('✓ Study Abroad Expert routes registered successfully');
     
+    // Register Cultural Adaptation Challenges routes
+    const culturalAdaptationRoutes = await import('./culturalAdaptationRoutes');
+    app.use('/api/cultural-adaptation', culturalAdaptationRoutes.default);
+    logWithLevel('✓ Cultural Adaptation Challenges routes registered successfully');
+    
     // Register Country Workflow Management routes
     const countryWorkflowRoutes = await import('./countryWorkflowRoutes');
     app.use('/api/country-workflow', countryWorkflowRoutes.default);

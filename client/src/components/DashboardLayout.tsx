@@ -92,6 +92,7 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
     { icon: <MessageSquare size={20} />, label: 'Communication Center', href: '/communication-center' },
     { icon: <FileSearch size={20} />, label: 'Document Intelligence Hub', href: '/document-intelligence-hub' },
     { icon: <Award size={20} />, label: 'Scholarship Research Hub', href: '/scholarship-research-hub' },
+    { icon: <Globe size={20} />, label: 'Cultural Adaptation Challenges', href: '/cultural-adaptation-challenges' },
     
     // Resources
     { 

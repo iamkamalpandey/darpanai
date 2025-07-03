@@ -1969,4 +1969,81 @@ export type InsertStudyAbroadExpert = z.infer<typeof insertStudyAbroadExpertSche
 export type StudentExpertAssignment = typeof studentExpertAssignments.$inferSelect;
 export type InsertStudentExpertAssignment = z.infer<typeof insertStudentExpertAssignmentSchema>;
 
+// Cultural Adaptation Challenges - Micro-learning system for cultural adaptation
+export const culturalChallenges = pgTable("cultural_challenges", {
+  id: serial("id").primaryKey(),
+  category: text("category").notNull(), // 'communication', 'social', 'academic', 'daily_life', 'professional'
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  difficulty: text("difficulty").notNull(), // 'beginner', 'intermediate', 'advanced'
+  timeEstimate: text("time_estimate").notNull(), // e.g., "2-3 minutes"
+  points: integer("points").notNull().default(10),
+  country: text("country").notNull(), // Target country for cultural context
+  scenario: text("scenario").notNull(), // Cultural scenario description
+  options: text("options").array().notNull(), // Multiple choice options
+  correctAnswer: integer("correct_answer").notNull(), // Index of correct answer
+  explanation: text("explanation").notNull(), // Why the answer is correct
+  culturalTip: text("cultural_tip").notNull(), // Additional cultural insight
+  isActive: boolean("is_active").default(true),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User progress tracking for cultural challenges
+export const culturalProgress = pgTable("cultural_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  totalPoints: integer("total_points").default(0),
+  challengesCompleted: integer("challenges_completed").default(0),
+  streakDays: integer("streak_days").default(0),
+  lastCompletedDate: timestamp("last_completed_date"),
+  categoryProgress: jsonb("category_progress").default({
+    communication: 0,
+    social: 0,
+    academic: 0,
+    daily_life: 0,
+    professional: 0
+  }),
+  achievements: text("achievements").array().default([]),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Individual challenge completions
+export const challengeCompletions = pgTable("challenge_completions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  challengeId: integer("challenge_id").references(() => culturalChallenges.id).notNull(),
+  userAnswer: integer("user_answer").notNull(),
+  isCorrect: boolean("is_correct").notNull(),
+  pointsEarned: integer("points_earned").notNull(),
+  completedAt: timestamp("completed_at").defaultNow(),
+});
+
+// Cultural challenge schemas
+export const insertCulturalChallengeSchema = createInsertSchema(culturalChallenges).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCulturalProgressSchema = createInsertSchema(culturalProgress).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertChallengeCompletionSchema = createInsertSchema(challengeCompletions).omit({
+  id: true,
+  completedAt: true,
+});
+
+export type CulturalChallenge = typeof culturalChallenges.$inferSelect;
+export type InsertCulturalChallenge = z.infer<typeof insertCulturalChallengeSchema>;
+export type CulturalProgress = typeof culturalProgress.$inferSelect;
+export type InsertCulturalProgress = z.infer<typeof insertCulturalProgressSchema>;
+export type ChallengeCompletion = typeof challengeCompletions.$inferSelect;
+export type InsertChallengeCompletion = z.infer<typeof insertChallengeCompletionSchema>;
+
 
