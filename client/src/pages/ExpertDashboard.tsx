@@ -1,477 +1,622 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { useAuth } from '@/hooks/use-auth';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Link, useLocation } from 'wouter';
 import { 
-  MessageSquare, 
   Users, 
+  MessageSquare, 
+  FileText, 
+  TrendingUp, 
   Clock, 
   CheckCircle, 
-  AlertCircle, 
-  TrendingUp,
-  GraduationCap,
-  Globe,
-  FileText,
+  AlertCircle,
   Calendar,
-  Award,
-  BarChart3,
-  UserCheck,
-  MessageCircle,
+  Download,
+  Plus,
+  Search,
+  Filter,
+  MoreVertical,
+  UserPlus,
+  Edit,
+  Eye,
+  User,
+  GraduationCap,
+  MapPin,
   Phone,
-  Video
+  Mail,
+  BookOpen,
+  Award,
+  Target,
+  BarChart3,
+  Activity,
+  Star,
+  Brain,
+  Shield
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 interface ExpertStats {
   totalStudents: number;
-  activeConversations: number;
-  completedConsultations: number;
+  activeStudents: number;
+  completedCases: number;
   successRate: number;
-  responseTime: string;
-  studentsThisMonth: number;
+  averageRating: number;
+  thisMonth: {
+    newStudents: number;
+    completedCases: number;
+    consultations: number;
+  };
 }
 
-interface StudentConsultation {
+interface Student {
+  id: number;
+  name: string;
+  email: string;
+  assignmentType: string;
+  priority: string;
+  assignedAt: string;
+  status: string;
+  studyLevel?: string;
+  fieldOfStudy?: string;
+  preferredCountries?: string[];
+  lastActivity?: string;
+}
+
+interface Consultation {
   id: number;
   studentName: string;
-  studentEmail: string;
-  consultationType: string;
-  status: 'pending' | 'in_progress' | 'completed';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  lastActivity: string;
-  studyDestination: string;
+  preferredDate: string;
+  preferredTime: string;
+  status: string;
+  requestedCountry: string;
   studyLevel: string;
-  unreadMessages: number;
+  fieldOfStudy: string;
+  message: string;
 }
 
 export default function ExpertDashboard() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedTab, setSelectedTab] = useState('overview');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   // Fetch expert statistics
-  const { data: stats, isLoading: statsLoading } = useQuery<ExpertStats>({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['/api/expert/stats'],
-    retry: false,
-  });
+    refetchInterval: 30000, // Refresh every 30 seconds
+  }) as { data: ExpertStats; isLoading: boolean };
 
-  // Fetch active consultations
-  const { data: consultations = [], isLoading: consultationsLoading } = useQuery<StudentConsultation[]>({
+  // Fetch assigned students
+  const { data: students, isLoading: studentsLoading } = useQuery({
+    queryKey: ['/api/expert/my-students'],
+    refetchInterval: 60000, // Refresh every minute
+  }) as { data: Student[]; isLoading: boolean };
+
+  // Fetch consultations
+  const { data: consultations, isLoading: consultationsLoading } = useQuery({
     queryKey: ['/api/expert/consultations'],
-    retry: false,
-  });
+    refetchInterval: 60000,
+  }) as { data: Consultation[]; isLoading: boolean };
 
-  // Fetch conversations for expert
-  const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
-    queryKey: ['/api/conversations'],
-    retry: false,
-  });
+  // Filter students based on search and status
+  const filteredStudents = students?.filter(student => {
+    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         student.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || student.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  }) || [];
 
-  const updateConsultationStatus = useMutation({
-    mutationFn: async ({ consultationId, status }: { consultationId: number; status: string }) => {
-      return apiRequest('PATCH', `/api/expert/consultations/${consultationId}`, { status });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/expert/consultations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/expert/stats'] });
-    },
-  });
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'in_progress': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      active: { color: 'bg-green-100 text-green-800', label: 'Active' },
+      pending: { color: 'bg-yellow-100 text-yellow-800', label: 'Pending' },
+      completed: { color: 'bg-blue-100 text-blue-800', label: 'Completed' },
+      inactive: { color: 'bg-gray-100 text-gray-800', label: 'Inactive' }
+    };
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    return <Badge className={config.color}>{config.label}</Badge>;
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'bg-red-100 text-red-800 border-red-200';
-      case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'medium': return 'bg-blue-100 text-blue-800 border-blue-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+  const getPriorityBadge = (priority: string) => {
+    const priorityConfig = {
+      urgent: { color: 'bg-red-100 text-red-800', label: 'Urgent' },
+      high: { color: 'bg-orange-100 text-orange-800', label: 'High' },
+      normal: { color: 'bg-blue-100 text-blue-800', label: 'Normal' },
+      low: { color: 'bg-gray-100 text-gray-800', label: 'Low' }
+    };
+    const config = priorityConfig[priority as keyof typeof priorityConfig] || priorityConfig.normal;
+    return <Badge className={config.color}>{config.label}</Badge>;
   };
-
-  if (statsLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <GraduationCap className="h-8 w-8 text-blue-600" />
-              Education Expert Dashboard
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Welcome back, {user?.firstName} {user?.lastName} - Help students achieve their education goals
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Badge variant="secondary" className="bg-green-100 text-green-800">
-              <UserCheck className="h-4 w-4 mr-1" />
-              Expert Status: Active
-            </Badge>
+      <div className="bg-white border-b border-gray-200">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-600 rounded-lg">
+                  <GraduationCap className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Expert Dashboard</h1>
+                  <p className="text-sm text-gray-500">Study Abroad Counselor Portal</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Badge className="bg-green-100 text-green-800">
+                <Shield className="h-3 w-3 mr-1" />
+                Expert Verified
+              </Badge>
+              <div className="text-right">
+                <p className="text-sm font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
+                <p className="text-xs text-gray-500">Education Expert</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
-        <Card className="border-l-4 border-l-blue-500">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total Students</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.totalStudents || 0}</p>
-              </div>
-              <Users className="h-8 w-8 text-blue-500" />
+      {/* Main Content */}
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
+        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="students">My Students</TabsTrigger>
+            <TabsTrigger value="consultations">Consultations</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats?.totalStudents || 0}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {stats?.thisMonth?.newStudents || 0} new this month
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Active Cases</CardTitle>
+                  <Activity className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats?.activeStudents || 0}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Currently managing
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats?.successRate || 0}%</div>
+                  <p className="text-xs text-muted-foreground">
+                    Application success
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Rating</CardTitle>
+                  <Star className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats?.averageRating || 0}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Average student rating
+                  </p>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card className="border-l-4 border-l-green-500">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Active Chats</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.activeConversations || 3}</p>
-              </div>
-              <MessageCircle className="h-8 w-8 text-green-500" />
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <UserPlus className="h-5 w-5" />
+                    <span>New Student Registration</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Register a new student for counseling services
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add New Student
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <MessageSquare className="h-5 w-5" />
+                    <span>Student Communications</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Access chat interface with assigned students
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Link href="/communication-center">
+                    <Button variant="outline" className="w-full">
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Open Chat
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <FileText className="h-5 w-5" />
+                    <span>Document Management</span>
+                  </CardTitle>
+                  <CardDescription>
+                    View and manage student documents
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button variant="outline" className="w-full">
+                    <FileText className="h-4 w-4 mr-2" />
+                    View Documents
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card className="border-l-4 border-l-purple-500">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Consultations</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.completedConsultations || 47}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-orange-500">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Success Rate</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.successRate || 94}%</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-orange-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-indigo-500">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Avg Response</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.responseTime || '2h'}</p>
-              </div>
-              <Clock className="h-8 w-8 text-indigo-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-l-4 border-l-pink-500">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">This Month</p>
-                <p className="text-2xl font-bold text-gray-900">{stats?.studentsThisMonth || 12}</p>
-              </div>
-              <Calendar className="h-8 w-8 text-pink-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Dashboard Tabs */}
-      <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="consultations">Student Consultations</TabsTrigger>
-          <TabsTrigger value="messages">Messages</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
-
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Recent Activity */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-blue-600" />
-                  Recent Activity
-                </CardTitle>
+                <CardTitle>Recent Activity</CardTitle>
+                <CardDescription>Latest updates and student interactions</CardDescription>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-64">
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>KP</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-900">New message from Kamal Pandey</p>
-                        <p className="text-xs text-gray-600">About study visa application</p>
-                        <p className="text-xs text-blue-600">2 minutes ago</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>AM</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-900">Consultation completed with Aisha Malik</p>
-                        <p className="text-xs text-gray-600">PhD in Engineering consultation</p>
-                        <p className="text-xs text-green-600">1 hour ago</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3 p-3 bg-yellow-50 rounded-lg">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>JS</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-900">Document review requested by John Smith</p>
-                        <p className="text-xs text-gray-600">Masters in Computer Science</p>
-                        <p className="text-xs text-yellow-600">3 hours ago</p>
-                      </div>
-                    </div>
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="h-5 w-5 text-purple-600" />
-                  Quick Actions
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button className="w-full justify-start" variant="outline">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Start New Consultation
-                </Button>
-                
-                <Button className="w-full justify-start" variant="outline">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Review Documents
-                </Button>
-                
-                <Button className="w-full justify-start" variant="outline">
-                  <Globe className="h-4 w-4 mr-2" />
-                  Update Country Information
-                </Button>
-                
-                <Button className="w-full justify-start" variant="outline">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Generate Report
-                </Button>
-
-                <Button className="w-full justify-start" variant="outline">
-                  <Phone className="h-4 w-4 mr-2" />
-                  Schedule Call
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* Student Consultations Tab */}
-        <TabsContent value="consultations" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-blue-600" />
-                  Active Student Consultations
-                </span>
-                <Badge variant="secondary">{consultations.length} Active</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* Sample consultation data since API doesn't exist yet */}
-                {[
-                  {
-                    id: 1,
-                    studentName: 'Kamal Pandey',
-                    studyDestination: 'Australia',
-                    studyLevel: 'Masters',
-                    consultationType: 'Study Visa Application',
-                    status: 'in_progress',
-                    priority: 'high',
-                    unreadMessages: 2,
-                    lastActivity: '2 minutes ago'
-                  },
-                  {
-                    id: 2,
-                    studentName: 'Aisha Malik',
-                    studyDestination: 'Canada',
-                    studyLevel: 'PhD',
-                    consultationType: 'Scholarship Guidance',
-                    status: 'pending',
-                    priority: 'medium',
-                    unreadMessages: 0,
-                    lastActivity: '1 hour ago'
-                  },
-                  {
-                    id: 3,
-                    studentName: 'John Smith',
-                    studyDestination: 'UK',
-                    studyLevel: 'Masters',
-                    consultationType: 'Document Review',
-                    status: 'completed',
-                    priority: 'urgent',
-                    unreadMessages: 0,
-                    lastActivity: '3 hours ago'
-                  }
-                ].map((consultation) => (
-                  <div key={consultation.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback>
-                            {consultation.studentName.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{consultation.studentName}</h3>
-                          <p className="text-sm text-gray-600">
-                            {consultation.consultationType} • {consultation.studyLevel} in {consultation.studyDestination}
-                          </p>
+                <div className="space-y-4">
+                  {filteredStudents.slice(0, 5).map((student) => (
+                    <div key={student.id} className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <User className="h-4 w-4 text-blue-600" />
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge className={getPriorityColor(consultation.priority)}>
-                          {consultation.priority}
-                        </Badge>
-                        <Badge className={getStatusColor(consultation.status)}>
-                          {consultation.status.replace('_', ' ')}
-                        </Badge>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {student.name}
+                        </p>
+                        <p className="text-sm text-gray-500 truncate">
+                          {student.fieldOfStudy} • {student.preferredCountries?.join(', ')}
+                        </p>
+                      </div>
+                      <div className="flex-shrink-0">
+                        {getStatusBadge(student.status)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Students Tab */}
+          <TabsContent value="students" className="space-y-6">
+            {/* Search and Filter */}
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+              <div className="flex-1 max-w-sm">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Search students..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Add Student
+                </Button>
+              </div>
+            </div>
+
+            {/* Students Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredStudents.map((student) => (
+                <Card key={student.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <span className="text-white font-semibold text-sm">
+                            {student.name.charAt(0)}
+                          </span>
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{student.name}</CardTitle>
+                          <CardDescription className="text-sm">{student.email}</CardDescription>
+                        </div>
+                      </div>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Student Actions</DialogTitle>
+                            <DialogDescription>
+                              Choose an action for {student.name}
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="grid grid-cols-2 gap-3 mt-4">
+                            <Button variant="outline">
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Profile
+                            </Button>
+                            <Button variant="outline">
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit Details
+                            </Button>
+                            <Button variant="outline">
+                              <MessageSquare className="h-4 w-4 mr-2" />
+                              Start Chat
+                            </Button>
+                            <Button variant="outline">
+                              <FileText className="h-4 w-4 mr-2" />
+                              Documents
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      {getStatusBadge(student.status)}
+                      {getPriorityBadge(student.priority)}
+                    </div>
+                    
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <div className="flex items-center space-x-2">
+                        <GraduationCap className="h-4 w-4" />
+                        <span>{student.studyLevel}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <BookOpen className="h-4 w-4" />
+                        <span>{student.fieldOfStudy}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="h-4 w-4" />
+                        <span>{student.preferredCountries?.join(', ')}</span>
                       </div>
                     </div>
                     
+                    <div className="pt-2 border-t">
+                      <p className="text-xs text-gray-500">
+                        Assigned: {new Date(student.assignedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {filteredStudents.length === 0 && (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No students found</h3>
+                  <p className="text-gray-500 mb-4">
+                    {searchTerm || statusFilter !== 'all' 
+                      ? 'Try adjusting your search or filters'
+                      : 'You don\'t have any assigned students yet'}
+                  </p>
+                  <Button>
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Add New Student
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Consultations Tab */}
+          <TabsContent value="consultations" className="space-y-6">
+            <div className="grid grid-cols-1 gap-6">
+              {consultations?.map((consultation) => (
+                <Card key={consultation.id}>
+                  <CardHeader>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <span className="text-sm text-gray-600">
-                          Last activity: {consultation.lastActivity}
-                        </span>
-                        {consultation.unreadMessages > 0 && (
-                          <Badge variant="destructive">
-                            {consultation.unreadMessages} new messages
-                          </Badge>
-                        )}
+                      <div>
+                        <CardTitle className="flex items-center space-x-2">
+                          <Calendar className="h-5 w-5" />
+                          <span>{consultation.studentName}</span>
+                        </CardTitle>
+                        <CardDescription>
+                          {consultation.studyLevel} in {consultation.fieldOfStudy}
+                        </CardDescription>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline">
-                          <MessageSquare className="h-4 w-4 mr-1" />
-                          Message
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Video className="h-4 w-4 mr-1" />
-                          Call
-                        </Button>
-                        <Button size="sm">
-                          View Details
-                        </Button>
+                      <Badge className={
+                        consultation.status === 'confirmed' 
+                          ? 'bg-green-100 text-green-800'
+                          : consultation.status === 'pending'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }>
+                        {consultation.status}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm">{consultation.preferredDate}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Clock className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm">{consultation.preferredTime}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm">{consultation.requestedCountry}</span>
                       </div>
                     </div>
+                    
+                    {consultation.message && (
+                      <div className="p-3 bg-gray-50 rounded-lg">
+                        <p className="text-sm text-gray-700">{consultation.message}</p>
+                      </div>
+                    )}
+                    
+                    <div className="flex space-x-2">
+                      <Button size="sm">
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Confirm
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Message
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-4 w-4 mr-2" />
+                        Reschedule
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {(!consultations || consultations.length === 0) && (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No consultations scheduled</h3>
+                  <p className="text-gray-500">
+                    Consultation requests will appear here when students book appointments
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Monthly Performance</CardTitle>
+                  <CardDescription>Your performance metrics this month</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">New Students</span>
+                    <span className="text-2xl font-bold">{stats?.thisMonth?.newStudents || 0}</span>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Completed Cases</span>
+                    <span className="text-2xl font-bold">{stats?.thisMonth?.completedCases || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Consultations</span>
+                    <span className="text-2xl font-bold">{stats?.thisMonth?.consultations || 0}</span>
+                  </div>
+                </CardContent>
+              </Card>
 
-        {/* Messages Tab */}
-        <TabsContent value="messages" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-blue-600" />
-                Recent Messages
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">Communication Center integration available</p>
-                <Button className="mt-4" onClick={() => window.location.href = '/communication-center'}>
-                  Open Communication Center
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Student Progress</CardTitle>
+                  <CardDescription>Overall student success metrics</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Success Rate</span>
+                    <span className="text-2xl font-bold text-green-600">{stats?.successRate || 0}%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Average Rating</span>
+                    <span className="text-2xl font-bold text-blue-600">{stats?.averageRating || 0}/5</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Active Cases</span>
+                    <span className="text-2xl font-bold">{stats?.activeStudents || 0}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-green-600" />
-                  Consultation Success Rate
-                </CardTitle>
+                <CardTitle>Export Data</CardTitle>
+                <CardDescription>Download your student data and reports</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <div className="text-4xl font-bold text-green-600 mb-2">94%</div>
-                  <p className="text-gray-600">Students successfully guided</p>
-                  <div className="mt-4 w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-green-600 h-2 rounded-full" style={{ width: '94%' }}></div>
-                  </div>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Button variant="outline" className="flex items-center justify-center">
+                    <Download className="h-4 w-4 mr-2" />
+                    Student List
+                  </Button>
+                  <Button variant="outline" className="flex items-center justify-center">
+                    <Download className="h-4 w-4 mr-2" />
+                    Analytics Report
+                  </Button>
+                  <Button variant="outline" className="flex items-center justify-center">
+                    <Download className="h-4 w-4 mr-2" />
+                    Progress Report
+                  </Button>
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-blue-600" />
-                  Monthly Growth
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <div className="text-4xl font-bold text-blue-600 mb-2">+23%</div>
-                  <p className="text-gray-600">More students this month</p>
-                  <p className="text-sm text-green-600 mt-2">↗️ Trending upward</p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }

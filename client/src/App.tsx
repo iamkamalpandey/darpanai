@@ -715,11 +715,11 @@ function Router() {
       
       {/* Expert Routes - Only accessible by education experts */}
       <Route path="/expert-dashboard">
-        <ExpertProtectedRoute>
+        <ExpertProtectedRoute path="/expert-dashboard" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <ExpertDashboard />
           </Suspense>
-        </ExpertProtectedRoute>
+        )} />
       </Route>
       
       {/* 404 Route */}
