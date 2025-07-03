@@ -78,10 +78,10 @@ export default function AdminStudentManagement() {
   const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
   const [filters, setFilters] = useState({
     search: '',
-    leadCategory: '',
-    studentStage: '',
-    assignedExpert: '',
-    priority: '',
+    leadCategory: 'all',
+    studentStage: 'all',
+    assignedExpert: 'all',
+    priority: 'all',
     source: ''
   });
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
@@ -379,7 +379,7 @@ export default function AdminStudentManagement() {
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
                   <SelectItem value="hot">Hot</SelectItem>
                   <SelectItem value="warm">Warm</SelectItem>
                   <SelectItem value="cold">Cold</SelectItem>
@@ -391,7 +391,7 @@ export default function AdminStudentManagement() {
                   <SelectValue placeholder="Stage" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Stages</SelectItem>
+                  <SelectItem value="all">All Stages</SelectItem>
                   <SelectItem value="potential">Potential</SelectItem>
                   <SelectItem value="joined_classes">Joined Classes</SelectItem>
                   <SelectItem value="applied">Applied</SelectItem>
@@ -406,7 +406,7 @@ export default function AdminStudentManagement() {
                   <SelectValue placeholder="Priority" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Priorities</SelectItem>
+                  <SelectItem value="all">All Priorities</SelectItem>
                   <SelectItem value="urgent">Urgent</SelectItem>
                   <SelectItem value="high">High</SelectItem>
                   <SelectItem value="normal">Normal</SelectItem>
@@ -419,7 +419,7 @@ export default function AdminStudentManagement() {
                   <SelectValue placeholder="Expert" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Experts</SelectItem>
+                  <SelectItem value="all">All Experts</SelectItem>
                   {experts.map((expert) => (
                     <SelectItem key={expert.id} value={expert.id.toString()}>
                       {expert.firstName} {expert.lastName}
@@ -429,7 +429,7 @@ export default function AdminStudentManagement() {
               </Select>
 
               <Button variant="outline" onClick={() => setFilters({
-                search: '', leadCategory: '', studentStage: '', assignedExpert: '', priority: '', source: ''
+                search: '', leadCategory: 'all', studentStage: 'all', assignedExpert: 'all', priority: 'all', source: ''
               })}>
                 Clear Filters
               </Button>
