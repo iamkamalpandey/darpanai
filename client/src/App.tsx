@@ -103,6 +103,7 @@ const UnifiedApplicationManagement = lazy(() => import("@/pages/UnifiedApplicati
 const ApplicationManagementHub = lazy(() => import("@/pages/ApplicationManagementHub"));
 const ExpertDashboard = lazy(() => import("@/pages/ExpertDashboard"));
 const AdminExpertManagement = lazy(() => import("@/pages/AdminExpertManagement"));
+const AdminStudentManagement = lazy(() => import("@/pages/AdminStudentManagement"));
 const StudentManagement = lazy(() => import("@/pages/expert/StudentManagement"));
 
 // Loading fallback component
@@ -558,6 +559,13 @@ function Router() {
         <AdminProtectedRoute path="/admin/expert-management" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <AdminExpertManagement />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/student-management">
+        <AdminProtectedRoute path="/admin/student-management" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminStudentManagement />
           </Suspense>
         )} />
       </Route>

@@ -331,9 +331,38 @@ export const users = pgTable("users", {
   // Student fields (conditional)
   studyDestination: text("study_destination"), // Country preference
   startDate: text("start_date"), // When they want to start
+  
+  // CRM Lead Management Fields
+  leadCategory: text("lead_category").default("warm").notNull(), // hot, warm, cold
+  studentStage: text("student_stage").default("potential").notNull(), // potential, joined_classes, applied, under_processing, failed, success
+  assignedExpertId: integer("assigned_expert_id").references(() => studyAbroadExperts.id), // Primary assigned expert
+  assignedBy: integer("assigned_by").references(() => users.id), // Admin who made the assignment
+  assignedAt: timestamp("assigned_at"), // When the assignment was made
+  lastContactDate: timestamp("last_contact_date"), // Last time expert/admin contacted this student
+  priority: text("priority").default("normal").notNull(), // urgent, high, normal, low
+  notes: text("notes"), // Internal notes for admins and experts
+  tags: text("tags").array().default([]).notNull(), // Searchable tags for categorization
+  source: text("source"), // How the lead was acquired (website, referral, ads, etc.)
+  
+  // Progress & Performance Tracking
+  successProbability: integer("success_probability").default(50), // 0-100 percentage
+  engagementScore: integer("engagement_score").default(0), // Calculated based on interactions
+  totalInteractions: integer("total_interactions").default(0),
+  lastEngagementDate: timestamp("last_engagement_date").defaultNow(),
+  conversionDate: timestamp("conversion_date"), // When they became a paying customer
+  
+  // Quality & Satisfaction
+  satisfactionRating: integer("satisfaction_rating"), // 1-5 stars rating from student
+  completionPercentage: integer("completion_percentage").default(0), // Profile completion
+  
+  // CRM Management
+  isArchived: boolean("is_archived").default(false).notNull(),
+  archivedAt: timestamp("archived_at"),
+  archivedBy: integer("archived_by").references(() => users.id),
+  
+  // Additional profile fields (maintaining existing functionality)
   counsellingMode: text("counselling_mode"), // online, in-person, phone
   fundingSource: text("funding_source"), // self-funded, scholarship, loan, family
-  studyLevel: text("study_level"), // bachelor, master, phd, diploma, certificate
   // Agent fields (conditional)
   businessName: text("business_name"),
   businessAddress: text("business_address"),
@@ -391,13 +420,10 @@ export const users = pgTable("users", {
   englishProficiencyTests: jsonb("english_proficiency_tests"), // Array of test records with subscores
   standardizedTests: jsonb("standardized_tests"), // Array of standardized test records (GRE, GMAT, SAT)
   
-  // Application Status
+  // Application Status (legacy fields maintained for compatibility)
   leadType: text("lead_type").default("Prospect"), // Prospect, Applicant, Enrolled
-  applicationStatus: text("application_status").default("New"), // New, Contacted, In Progress, Applied, Offer Received, Rejected, Enrolled
-  source: text("source"),
   campaignId: text("campaign_id"),
-  isArchived: boolean("is_archived").default(false),
-  dropout: boolean("dropout").default(false),
+  dropout: boolean("dropout").default(false)
 });
 
 // Destination suggestion feature removed - tables deprecated

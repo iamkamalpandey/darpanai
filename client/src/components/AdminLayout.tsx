@@ -19,7 +19,8 @@ import {
   FolderOpen,
   MessageSquare,
   Brain,
-  UserCheck
+  UserCheck,
+  Target
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/Footer';
@@ -75,6 +76,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const adminSidebarItems = [
     { icon: <BarChart3 size={20} />, label: 'Dashboard', href: '/admin' },
     { icon: <Users size={20} />, label: 'User Management', href: '/admin/users' },
+    { icon: <Target size={20} />, label: 'Student Management', href: '/admin/student-management' },
     { icon: <UserCheck size={20} />, label: 'Expert Management', href: '/admin/expert-management' },
     { icon: <FileText size={20} />, label: 'Analysis Reports', href: '/admin/analyses' },
     { icon: <FileCheck size={20} />, label: 'Information Reports', href: '/admin/information-reports' },
