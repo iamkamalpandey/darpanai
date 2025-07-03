@@ -148,6 +148,7 @@ function ExpertSidebar({ currentView, onViewChange }: { currentView: string; onV
         { id: 'document-templates', label: 'Document Templates', icon: FileText },
         { id: 'country-guides', label: 'Country Guides', icon: MapPin },
         { id: 'university-database', label: 'University Database', icon: GraduationCap },
+        { id: 'cultural-adaptation', label: 'Cultural Adaptation Challenges', icon: Users },
       ]
     },
     {
@@ -731,6 +732,235 @@ export default function ExpertDashboard() {
                       <CheckCircle className="h-3 w-3 mr-1" />
                       High Success Rate
                     </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        );
+
+      case 'cultural-adaptation':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Cultural Adaptation Challenges</h1>
+                <p className="text-gray-600 mt-1">Educational tools to help students prepare for cultural adaptation</p>
+              </div>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Create New Challenge
+              </Button>
+            </div>
+
+            {/* Feature Overview Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card className="border-l-4 border-l-blue-500">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Users className="h-5 w-5 text-blue-600" />
+                    <span>Student Progress Tracking</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Monitor how your students are progressing through cultural adaptation challenges
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span>Active Students:</span>
+                      <span className="font-medium">12</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Completed Challenges:</span>
+                      <span className="font-medium">156</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Average Score:</span>
+                      <span className="font-medium">87%</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-l-4 border-l-green-500">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Brain className="h-5 w-5 text-green-600" />
+                    <span>Challenge Categories</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Different categories to help students adapt to various cultural aspects
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Badge className="bg-blue-100 text-blue-800">Communication</Badge>
+                      <span className="text-sm">23 challenges</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Badge className="bg-purple-100 text-purple-800">Social</Badge>
+                      <span className="text-sm">18 challenges</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Badge className="bg-green-100 text-green-800">Academic</Badge>
+                      <span className="text-sm">15 challenges</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Badge className="bg-orange-100 text-orange-800">Daily Life</Badge>
+                      <span className="text-sm">20 challenges</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-l-4 border-l-purple-500">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <Target className="h-5 w-5 text-purple-600" />
+                    <span>Expert Tools</span>
+                  </CardTitle>
+                  <CardDescription>
+                    Tools to help you guide students through cultural preparation
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <Button variant="outline" className="w-full justify-start" size="sm">
+                      <FileText className="h-4 w-4 mr-2" />
+                      View Challenge Library
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start" size="sm">
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      Student Analytics
+                    </Button>
+                    <Button variant="outline" className="w-full justify-start" size="sm">
+                      <Award className="h-4 w-4 mr-2" />
+                      Progress Reports
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Recent Student Activity */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Student Activity</CardTitle>
+                <CardDescription>
+                  Latest cultural adaptation challenge completions by your students
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[
+                    { student: "Sarah Johnson", challenge: "Academic Email Etiquette", country: "Canada", score: 92, time: "2 hours ago" },
+                    { student: "Michael Chen", challenge: "Classroom Participation", country: "Australia", score: 85, time: "4 hours ago" },
+                    { student: "Emily Davis", challenge: "Banking Procedures", country: "UK", score: 78, time: "6 hours ago" },
+                    { student: "David Wilson", challenge: "Social Introductions", country: "USA", score: 90, time: "1 day ago" }
+                  ].map((activity, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <Users className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{activity.student}</p>
+                          <p className="text-sm text-gray-500">
+                            Completed "{activity.challenge}" for {activity.country}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center space-x-2">
+                          <Badge className={activity.score >= 90 ? "bg-green-100 text-green-800" : 
+                                          activity.score >= 80 ? "bg-blue-100 text-blue-800" : "bg-yellow-100 text-yellow-800"}>
+                            {activity.score}%
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 text-center">
+                  <Button variant="outline">
+                    View All Activity
+                    <ChevronRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Challenge Management */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Challenge Performance</CardTitle>
+                  <CardDescription>
+                    Overview of how students are performing across different challenge types
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {[
+                      { category: "Communication", average: 88, students: 12, color: "blue" },
+                      { category: "Social", average: 82, students: 10, color: "purple" },
+                      { category: "Academic", average: 91, students: 15, color: "green" },
+                      { category: "Daily Life", average: 79, students: 8, color: "orange" }
+                    ].map((category, index) => (
+                      <div key={index} className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">{category.category}</span>
+                          <span className="text-sm text-gray-500">{category.students} students</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full bg-${category.color}-500`}
+                            style={{ width: `${category.average}%` }}
+                          ></div>
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>Average Score</span>
+                          <span>{category.average}%</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recommended Actions</CardTitle>
+                  <CardDescription>
+                    Suggested next steps based on student performance
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg">
+                      <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-yellow-800">Daily Life Challenges</p>
+                        <p className="text-xs text-yellow-700">Students scoring below 80% need additional support</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                      <Brain className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-blue-800">New Challenge Ideas</p>
+                        <p className="text-xs text-blue-700">Consider adding workplace etiquette challenges</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
+                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-green-800">Academic Success</p>
+                        <p className="text-xs text-green-700">Academic challenges show excellent results</p>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
