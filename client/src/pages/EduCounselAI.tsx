@@ -164,16 +164,15 @@ export default function EduCounselAI() {
 
   const generateProfileName = (profile: UserProfile) => {
     const field = profile.fieldOfStudy || 'Academic';
-    const level = profile.studyLevel || 'Student';
     const year = new Date().getFullYear();
     
-    // Generate contextual profile names based on user data
-    if (profile.nationality) {
-      return `${profile.nationality} ${field} Aspirant ${year}`;
+    // Generate concise profile names for cost efficiency
+    if (profile.nationality && field !== 'Academic') {
+      return `${profile.nationality} ${field} ${year}`;
     } else if (field !== 'Academic') {
-      return `${field} ${level} Profile ${year}`;
+      return `${field} Student ${year}`;
     } else {
-      return `International Education Profile ${year}`;
+      return `Student Profile ${year}`;
     }
   };
 
@@ -419,48 +418,48 @@ export default function EduCounselAI() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <div className="max-w-4xl mx-auto p-4 h-screen flex flex-col">
+      <div className="max-w-4xl mx-auto px-2 sm:px-4 h-screen flex flex-col">
         
-        {/* Header */}
-        <div className="text-center py-6 mb-4">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-              <Sparkles className="h-6 w-6 text-white" />
+        {/* Header - Optimized for mobile */}
+        <div className="text-center py-3 sm:py-6 mb-2 sm:mb-4">
+          <div className="flex items-center justify-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+              <Sparkles className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
             </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               Darpan Intelligence
             </h1>
           </div>
-          <p className="text-gray-600 text-sm">
+          <p className="text-gray-600 text-xs sm:text-sm">
             Your comprehensive international education advisor
           </p>
         </div>
 
-        {/* Chat Messages */}
-        <Card className="flex-1 mb-4 border-0 shadow-lg">
+        {/* Chat Messages - Optimized for mobile coverage */}
+        <Card className="flex-1 mb-2 sm:mb-4 border-0 shadow-lg">
           <CardContent className="p-0 h-full flex flex-col">
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
                   className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`flex items-start gap-3 max-w-[80%] ${msg.isUser ? 'flex-row-reverse' : ''}`}>
+                  <div className={`flex items-start gap-2 sm:gap-3 max-w-[90%] sm:max-w-[80%] ${msg.isUser ? 'flex-row-reverse' : ''}`}>
                     {/* Avatar */}
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                       msg.isUser 
                         ? 'bg-blue-600' 
                         : 'bg-gradient-to-r from-indigo-500 to-purple-600'
                     }`}>
                       {msg.isUser ? (
-                        <User className="h-4 w-4 text-white" />
+                        <User className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                       ) : (
-                        <Bot className="h-4 w-4 text-white" />
+                        <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                       )}
                     </div>
                     
-                    {/* Message Bubble */}
-                    <div className={`rounded-2xl px-4 py-3 ${
+                    {/* Message Bubble - Optimized for mobile */}
+                    <div className={`rounded-2xl px-3 py-2 sm:px-4 sm:py-3 ${
                       msg.isUser
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 text-gray-900'
@@ -484,15 +483,15 @@ export default function EduCounselAI() {
                         </div>
                       )}
                       
-                      {/* Action Buttons */}
+                      {/* Action Buttons - Mobile optimized */}
                       {msg.actionButtons && msg.actionButtons.length > 0 && !msg.isUser && (
-                        <div className="mt-3 pt-3 border-t border-gray-200">
-                          <div className="space-y-2">
+                        <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-200">
+                          <div className="space-y-1.5 sm:space-y-2">
                             {msg.actionButtons.map((button, index) => (
                               <div key={index}>
                                 <button
                                   onClick={() => handleActionButtonClick(button)}
-                                  className={`w-full text-left px-4 py-2 rounded-lg border transition-all duration-200 hover:shadow-md ${
+                                  className={`w-full text-left px-3 py-2.5 sm:px-4 sm:py-2 rounded-lg border transition-all duration-200 hover:shadow-md min-h-[44px] touch-manipulation ${
                                     button.type === 'book_consultation' 
                                       ? 'bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700'
                                       : button.type === 'apply_now'
@@ -503,11 +502,11 @@ export default function EduCounselAI() {
                                   }`}
                                 >
                                   <div className="flex items-center justify-between">
-                                    <div>
-                                      <div className="font-medium text-sm">{button.label}</div>
-                                      <div className="text-xs opacity-80">{button.description}</div>
+                                    <div className="flex-1 pr-2">
+                                      <div className="font-medium text-xs sm:text-sm">{button.label}</div>
+                                      <div className="text-xs opacity-80 leading-tight">{button.description}</div>
                                     </div>
-                                    <div className="ml-2">
+                                    <div className="ml-2 flex-shrink-0">
                                       {button.type === 'book_consultation' && <Calendar className="w-4 h-4" />}
                                       {button.type === 'apply_now' && <FileText className="w-4 h-4" />}
                                       {button.type === 'explore_scholarships' && <Search className="w-4 h-4" />}
@@ -546,14 +545,14 @@ export default function EduCounselAI() {
                 </div>
               ))}
               
-              {/* Typing indicator */}
+              {/* Typing indicator - Mobile optimized */}
               {isTyping && (
                 <div className="flex justify-start">
-                  <div className="flex items-start gap-3 max-w-[80%]">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
-                      <Bot className="h-4 w-4 text-white" />
+                  <div className="flex items-start gap-2 sm:gap-3 max-w-[90%] sm:max-w-[80%]">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center">
+                      <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                     </div>
-                    <div className="bg-gray-100 rounded-2xl px-4 py-3">
+                    <div className="bg-gray-100 rounded-2xl px-3 py-2 sm:px-4 sm:py-3">
                       <div className="flex space-x-1">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -567,14 +566,14 @@ export default function EduCounselAI() {
               <div ref={messagesEndRef} />
             </div>
             
-            {/* Input Area */}
-            <div className="border-t bg-white p-4">
-              <div className="flex items-center gap-3">
+            {/* Input Area - Mobile optimized */}
+            <div className="border-t bg-white p-2 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-2"
+                  className="p-1.5 sm:p-2 min-w-[36px] min-h-[36px] sm:min-w-[40px] sm:min-h-[40px]"
                 >
                   <Upload className="h-4 w-4" />
                 </Button>
@@ -584,17 +583,17 @@ export default function EduCounselAI() {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Ask me anything about studying abroad..."
-                    className="pr-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="Ask about studying abroad..."
+                    className="pr-10 sm:pr-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500 h-10 sm:h-11 text-sm sm:text-base"
                     disabled={isTyping}
                   />
                   <Button
                     onClick={handleSendMessage}
                     disabled={!message.trim() || isTyping}
                     size="sm"
-                    className="absolute right-1 top-1 h-8 w-8 p-0"
+                    className="absolute right-1 top-1 h-8 w-8 sm:h-9 sm:w-9 p-0"
                   >
-                    <Send className="h-4 w-4" />
+                    <Send className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </div>
                 
@@ -607,8 +606,8 @@ export default function EduCounselAI() {
                 />
               </div>
               
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                Ask questions naturally - I understand context and provide personalized guidance
+              <p className="text-xs text-gray-500 mt-1 sm:mt-2 text-center px-2">
+                Ask questions naturally - I provide personalized guidance
               </p>
             </div>
           </CardContent>

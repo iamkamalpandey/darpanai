@@ -463,10 +463,10 @@ Respond naturally and helpfully.`;
       description: 'Get personalized guidance from education expert'
     });
     
-    // Simplified profile feedback for cost efficiency
+    // Concise profile feedback for cost efficiency
     let profileFeedback = '';
     if (profileContext && profileContext !== 'basic profile information') {
-      profileFeedback = `\n\n💡 Based on your ${userProfile.fieldOfStudy || 'academic'} profile. [Update profile](/profile) for different guidance.`;
+      profileFeedback = `\n\n💡 Personalized for your ${userProfile.fieldOfStudy || 'academic'} background. [Edit profile](/profile) to adjust.`;
     }
 
     const finalResponse = content + profileFeedback;
