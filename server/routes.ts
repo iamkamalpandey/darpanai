@@ -1943,6 +1943,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Destination suggestion routes removed - feature discontinued
 
+  // Profile Image Upload endpoint
+  app.post('/api/user/upload-profile-image', requireAuth, multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5 MB limit for profile images
+    },
+    fileFilter: (_req, file, cb) => {
+      const allowedTypes = [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp'
+      ];
+      
+      const fileExtension = path.extname(file.originalname).toLowerCase();
+      const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+      
+      if (allowedTypes.includes(file.mimetype) && validExtensions.includes(fileExtension)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only JPG, PNG, GIF, and WebP images are allowed.'));
+      }
+    }
+  }).single('profileImage'), async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ error: 'No image file provided' });
+      }
+
+      // For now, we'll store the image as base64 in the database
+      // In a production environment, you'd want to upload to a cloud storage service
+      const base64Image = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+      
+      // Update user profile with new image URL
+      const updatedUser = await storage.updateUserProfile(userId, {
+        profileImageUrl: base64Image
+      });
+
+      console.log(`Profile image updated for user ${userId}`);
+      
+      // Invalidate user cache
+      invalidateCache(`user-${userId}`);
+      
+      return res.status(200).json({
+        message: 'Profile image updated successfully',
+        profileImageUrl: base64Image,
+        user: updatedUser
+      });
+
+    } catch (error) {
+      console.error('Error uploading profile image:', error);
+      return res.status(500).json({ 
+        error: 'Failed to upload profile image',
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
+      });
+    }
+  });
+
   // Updates/Notifications API Routes
 
   // Get updates for current user (only show updates created after user signup)

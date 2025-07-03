@@ -254,7 +254,10 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
                         <p className="text-sm font-medium text-gray-900 truncate">
                           {user?.firstName} {user?.lastName}
                         </p>
-                        <p className="text-xs text-gray-500 truncate">Profile: {Math.round(completionPercentage)}%</p>
+                        <p className="text-xs text-gray-500 truncate flex items-center gap-1">
+                          <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+                          Student • Profile: {Math.round(completionPercentage)}%
+                        </p>
                       </div>
                     </Link>
                     <button
@@ -353,7 +356,10 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
                   <p className="text-sm font-medium text-gray-900 truncate">
                     {user?.firstName} {user?.lastName}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">Profile: {Math.round(completionPercentage)}%</p>
+                  <p className="text-xs text-gray-500 truncate flex items-center gap-1">
+                    <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+                    Student • Profile: {Math.round(completionPercentage)}%
+                  </p>
                 </div>
               </Link>
               <button

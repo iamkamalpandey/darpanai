@@ -161,7 +161,7 @@ export function ExpertLayout({ children }: ExpertLayoutProps) {
           <div className="flex h-16 items-center justify-between px-4 border-b border-gray-200">
             <div className="flex items-center">
               <GraduationCap className="h-6 w-6 text-blue-600 mr-2" />
-              <span className="text-lg font-semibold text-gray-900">Expert Portal</span>
+              <span className="text-lg font-semibold text-gray-900">Darpan Intelligence Expert</span>
             </div>
             <button
               className="p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
@@ -218,16 +218,24 @@ export function ExpertLayout({ children }: ExpertLayoutProps) {
           {/* Mobile User Profile */}
           <div className="border-t border-gray-200 p-4">
             <div className="flex items-center gap-3 mb-3">
-              <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                <span className="text-xs font-semibold text-white">
-                  {(user?.firstName?.[0] || '') + (user?.lastName?.[0] || '')}
-                </span>
+              <div className="relative">
+                <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+                  <span className="text-xs font-semibold text-white">
+                    {(user?.firstName?.[0] || '') + (user?.lastName?.[0] || '')}
+                  </span>
+                </div>
+                <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-purple-600 rounded-full flex items-center justify-center border-2 border-white">
+                  <UserCheck className="h-2 w-2 text-white" />
+                </div>
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-900 truncate">
                   {user?.firstName} {user?.lastName}
                 </p>
-                <p className="text-xs text-gray-500 truncate">Study Abroad Expert</p>
+                <p className="text-xs text-gray-500 truncate flex items-center gap-1">
+                  <span className="inline-block w-2 h-2 bg-purple-500 rounded-full"></span>
+                  Study Abroad Expert
+                </p>
               </div>
             </div>
             <Button 
@@ -255,7 +263,7 @@ export function ExpertLayout({ children }: ExpertLayoutProps) {
           {/* Sidebar Header */}
           <div className="flex h-16 items-center px-4 border-b border-gray-200">
             <GraduationCap className="h-8 w-8 text-blue-600 mr-3" />
-            <span className="text-xl font-semibold text-gray-900">Darpan Expert Portal</span>
+            <span className="text-xl font-semibold text-gray-900">Darpan Intelligence Expert</span>
           </div>
           
           {/* Navigation */}
@@ -306,16 +314,24 @@ export function ExpertLayout({ children }: ExpertLayoutProps) {
           {/* Desktop User Profile */}
           <div className="border-t border-gray-200 p-4">
             <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
-                <span className="text-sm font-semibold text-white">
-                  {(user?.firstName?.[0] || '') + (user?.lastName?.[0] || '')}
-                </span>
+              <div className="relative">
+                <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
+                  <span className="text-sm font-semibold text-white">
+                    {(user?.firstName?.[0] || '') + (user?.lastName?.[0] || '')}
+                  </span>
+                </div>
+                <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-purple-600 rounded-full flex items-center justify-center border-2 border-white">
+                  <UserCheck className="h-3 w-3 text-white" />
+                </div>
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-900 truncate">
                   {user?.firstName} {user?.lastName}
                 </p>
-                <p className="text-xs text-gray-500 truncate">Study Abroad Expert</p>
+                <p className="text-xs text-gray-500 truncate flex items-center gap-1">
+                  <span className="inline-block w-2 h-2 bg-purple-500 rounded-full"></span>
+                  Study Abroad Expert
+                </p>
               </div>
             </div>
             <Button 

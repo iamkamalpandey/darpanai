@@ -131,11 +131,25 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 <span className="text-lg font-semibold text-gray-900">Darpan Intelligence Admin</span>
               </div>
             </div>
-            <div className="flex items-center">
-              <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                <span className="text-xs font-semibold text-white">
-                  {user?.firstName?.[0]}{user?.lastName?.[0]}
-                </span>
+            <div className="flex items-center gap-2">
+              <div className="text-right hidden sm:block">
+                <p className="text-sm font-medium text-gray-900">
+                  {user?.firstName} {user?.lastName}
+                </p>
+                <p className="text-xs text-gray-500 flex items-center justify-end gap-1">
+                  <span className="inline-block w-2 h-2 bg-red-500 rounded-full"></span>
+                  Administrator
+                </p>
+              </div>
+              <div className="relative">
+                <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+                  <span className="text-xs font-semibold text-white">
+                    {user?.firstName?.[0]}{user?.lastName?.[0]}
+                  </span>
+                </div>
+                <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-red-600 rounded-full flex items-center justify-center border-2 border-white">
+                  <Shield className="h-2 w-2 text-white" />
+                </div>
               </div>
             </div>
           </div>

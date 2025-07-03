@@ -315,6 +315,7 @@ export const users = pgTable("users", {
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   phoneNumber: text("phone_number").notNull(),
+  profileImageUrl: text("profile_image_url"), // User profile image (base64 or URL)
   role: text("role").default("user").notNull(),
   status: text("status").default("pending").notNull(), // pending until email verified
   analysisCount: integer("analysis_count").default(0).notNull(),

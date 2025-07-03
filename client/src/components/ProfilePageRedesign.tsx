@@ -19,6 +19,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import DashboardLayout from '@/components/DashboardLayout';
+import { ProfileImageUpload } from '@/components/ProfileImageUpload';
 
 // Enhanced validation schemas with comprehensive data validity checks
 const personalInfoSchema = z.object({
@@ -865,6 +866,36 @@ const ProfilePageRedesign: React.FC = () => {
         </Card>
 
         <div className="space-y-6">
+          {/* Profile Header with Image Upload */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="w-5 h-5 text-blue-600" />
+                Profile Photo
+              </CardTitle>
+              <CardDescription>
+                Upload a professional profile photo to personalize your account
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-center">
+                <ProfileImageUpload
+                  currentImageUrl={user?.profileImageUrl}
+                  userName={`${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'User'}
+                  userRole={user?.role || 'user'}
+                  size="lg"
+                  onImageUpdate={(newImageUrl) => {
+                    // Update user data locally to reflect changes immediately
+                    queryClient.setQueryData(['/api/user'], (oldData: any) => ({
+                      ...oldData,
+                      profileImageUrl: newImageUrl
+                    }));
+                  }}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Personal Information */}
           <ProfileSectionCard
             title="Personal Information"
