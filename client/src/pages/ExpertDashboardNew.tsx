@@ -42,7 +42,8 @@ import {
   UserCheck,
   ClipboardList,
   PieChart,
-  Bookmark
+  Bookmark,
+  Layout
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -153,6 +154,12 @@ function ExpertSidebar({ currentView, onViewChange }: { currentView: string; onV
       id: 'profile-settings',
       label: 'Profile & Settings',
       icon: Settings,
+    },
+    {
+      id: 'dashboard-demo',
+      label: 'All Dashboards',
+      icon: Layout,
+      path: '/dashboard-demo',
     }
   ];
 

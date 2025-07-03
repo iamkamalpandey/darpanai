@@ -20,6 +20,7 @@ const NewHome = lazy(() => import("@/pages/NewHome"));
 const StudentAIDashboard = lazy(() => import("@/pages/StudentAIDashboard"));
 const PublicLanding = lazy(() => import("@/pages/PublicLanding"));
 const EducationLanding = lazy(() => import("@/pages/EducationLanding"));
+const DashboardDemo = lazy(() => import("@/pages/DashboardDemo"));
 
 // Lazy load heavy components for better initial performance
 const VisaAnalyzer = lazy(() => import("@/pages/VisaAnalyzer"));
@@ -153,6 +154,13 @@ function Router() {
       
       {/* Home Route - Shows Landing for guests, Dashboard for authenticated users */}
       <Route path="/" component={HomePage} />
+      
+      {/* Dashboard Demo Route */}
+      <Route path="/dashboard-demo">
+        <Suspense fallback={<LoadingFallback />}>
+          <DashboardDemo />
+        </Suspense>
+      </Route>
       
       {/* User Routes - Only accessible by regular users */}
       <Route path="/my-analysis">
