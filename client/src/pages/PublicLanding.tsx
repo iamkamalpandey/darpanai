@@ -6,7 +6,7 @@ import {
   Bot, User, Send, Upload, Sparkles, Globe, Users, Award, 
   CheckCircle, ArrowRight, MessageCircle, Star, Shield,
   GraduationCap, FileText, Calculator, Search, MapPin,
-  Clock, BookOpen, Zap, Heart
+  Clock, BookOpen, Zap, Heart, X, Minimize2
 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -648,49 +648,63 @@ export default function PublicLanding() {
 
       {/* Chat Interface */}
       {isChatOpen && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center sm:p-4">
-          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:w-[480px] h-[80vh] sm:h-[600px] flex flex-col shadow-2xl">
-            {/* Chat Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
-                  <Bot className="h-6 w-6 text-white" />
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-0 sm:p-4">
+          <div className="bg-white w-full h-full sm:rounded-3xl sm:w-[90vw] sm:max-w-5xl sm:h-[95vh] flex flex-col shadow-2xl">
+            {/* Chat Header - Enhanced */}
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 sm:rounded-t-3xl">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                  <Bot className="h-7 w-7 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Darpan Intelligence</h3>
-                  <p className="text-sm text-gray-500">AI Study Abroad Advisor</p>
+                  <h3 className="font-bold text-xl text-gray-900">Darpan Intelligence</h3>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <p className="text-sm text-gray-600">AI Study Abroad Advisor • Online</p>
+                  </div>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsChatOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-500 hover:text-gray-700 h-10 w-10 p-0 rounded-full hover:bg-gray-100"
+                >
+                  <Minimize2 className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsChatOpen(false)}
+                  className="text-gray-500 hover:text-gray-700 h-10 w-10 p-0 rounded-full hover:bg-gray-100"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
 
-            {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* Chat Messages - Enhanced Full Screen */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-gradient-to-b from-gray-50 to-white">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
                   className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`flex items-start gap-2 max-w-[85%] ${msg.isUser ? 'flex-row-reverse' : ''}`}>
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  <div className={`flex items-start gap-3 max-w-[80%] sm:max-w-[70%] ${msg.isUser ? 'flex-row-reverse' : ''}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 shadow-md ${
                       msg.isUser ? 'bg-blue-600' : 'bg-gradient-to-r from-indigo-500 to-purple-600'
                     }`}>
                       {msg.isUser ? (
-                        <User className="h-3 w-3 text-white" />
+                        <User className="h-4 w-4 text-white" />
                       ) : (
-                        <Bot className="h-3 w-3 text-white" />
+                        <Bot className="h-4 w-4 text-white" />
                       )}
                     </div>
                     
-                    <div className={`rounded-2xl px-3 py-2 ${
-                      msg.isUser ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-900'
+                    <div className={`rounded-2xl px-4 py-3 shadow-sm ${
+                      msg.isUser 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-white text-gray-900 border border-gray-200'
                     }`}>
                       {msg.formatted && !msg.isUser ? (
                         <div className="space-y-2">
@@ -711,16 +725,21 @@ export default function PublicLanding() {
                       )}
                       
                       {msg.actionButtons && msg.actionButtons.length > 0 && !msg.isUser && (
-                        <div className="mt-2 pt-2 border-t border-gray-200">
-                          <div className="space-y-1.5">
+                        <div className="mt-3 pt-3 border-t border-gray-100">
+                          <div className="grid gap-2">
                             {msg.actionButtons.map((button, index) => (
                               <button
                                 key={index}
                                 onClick={() => handleActionButtonClick(button)}
-                                className="w-full text-left px-3 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors min-h-[40px]"
+                                className="w-full text-left px-4 py-3 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 hover:border-blue-300 transition-all duration-200 hover:shadow-md hover:scale-[1.02] min-h-[44px] group"
                               >
-                                <div className="text-xs font-medium text-gray-700">{button.label}</div>
-                                <div className="text-xs text-gray-500 leading-tight">{button.description}</div>
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <div className="text-sm font-medium text-blue-700 group-hover:text-blue-800">{button.label}</div>
+                                    <div className="text-xs text-blue-600 leading-tight mt-1">{button.description}</div>
+                                  </div>
+                                  <ArrowRight className="h-4 w-4 text-blue-500 group-hover:text-blue-600 group-hover:translate-x-1 transition-all duration-200" />
+                                </div>
                               </button>
                             ))}
                           </div>

@@ -1,10 +1,17 @@
-// Public chat service for non-authenticated users
+// Public chat service for non-authenticated users - Enhanced with EduCounsel AI functionality
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+import { countryWorkflowStorage } from './countryWorkflowStorage';
+import { scholarshipStorage } from './scholarshipStorage';
+import { getCachedResponse, cacheResponse, isSimpleQuery, getSimpleResponse } from './responseCache';
 
-// Initialize AI clients
+// Initialize AI clients with triple fallback (same as EduCounsel AI)
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const deepseek = new OpenAI({
+  apiKey: process.env.DEEPSEEK_API_KEY,
+  baseURL: 'https://api.deepseek.com/v1'
+});
 
 // The newest Anthropic model is "claude-sonnet-4-20250514", not "claude-3-7-sonnet-20250219", "claude-3-5-sonnet-20241022" nor "claude-3-sonnet-20240229". 
 // If the user doesn't specify a model, always prefer using "claude-sonnet-4-20250514" as it is the latest model.
@@ -68,13 +75,33 @@ export async function handlePublicChat(request: PublicChatRequest): Promise<Publ
     // Check if we should collect user details (after 2-3 interactions)
     const shouldCollectDetails = userContext.messageCount >= 2 && !userContext.detailsCollected;
 
+    // Check for cached response first (same as EduCounsel AI optimization)
+    const cacheKey = `public_${message.toLowerCase().trim()}`;
+    const cachedResponse = getCachedResponse(cacheKey);
+    
+    if (cachedResponse) {
+      console.log('💾 Using cached response');
+      const actionButtons = generateContextualActionButtons(message, cachedResponse, userContext);
+      return { response: cachedResponse, actionButtons };
+    }
+
+    // Handle simple queries without AI processing
+    if (isSimpleQuery(message)) {
+      const simpleResponse = getSimpleResponse(message);
+      const actionButtons = generateContextualActionButtons(message, simpleResponse, userContext);
+      return { response: simpleResponse, actionButtons };
+    }
+
     // Extract user details from conversation if not collected yet
     if (shouldCollectDetails) {
       extractUserDetails(message, userContext);
     }
 
-    // Create dynamic system prompt based on context
-    const systemPrompt = createContextualSystemPrompt(userContext, shouldCollectDetails);
+    // Get database context for better AI responses (same as EduCounsel AI)
+    const dbContext = await getDatabaseContextForAI(message, userContext);
+
+    // Create enhanced system prompt with database context
+    const systemPrompt = createEnhancedSystemPrompt(userContext, shouldCollectDetails, dbContext);
 
     let aiResponse = '';
 
@@ -213,18 +240,26 @@ function extractUserDetails(message: string, userContext: UserContext): void {
 function createContextualSystemPrompt(userContext: UserContext, shouldCollectDetails: boolean): string {
   let basePrompt = `You are Darpan Intelligence, an AI study abroad advisor helping students explore international education opportunities.
 
+STRICT COMPLIANCE GUIDELINES:
+- NEVER recommend specific education consultancies, agencies, or service providers
+- NEVER compare or rank consultancies as "best" or "worst"
+- ONLY provide general study abroad guidance and educational information
+- NEVER share business confidential information, technical details, or company strategies
+- Focus exclusively on educational guidance, requirements, and processes
+
 Provide helpful, accurate information about:
-- University recommendations and program matching
+- University admission requirements and processes
 - Cost estimates and budgeting guidance  
-- Scholarship opportunities and funding
-- Visa requirements and application processes
-- Academic pathway planning
-- Country comparisons for study abroad
+- Scholarship opportunities and funding options
+- Visa requirements and application timelines
+- Academic pathway planning and course selection
+- Country-specific education systems and requirements
 
 Guidelines:
 - Be encouraging and supportive
-- Provide specific, actionable advice
+- Provide specific, actionable educational advice
 - Keep responses concise but informative (max 120 tokens)
+- For consultancy questions, redirect to general guidance: "I focus on educational guidance rather than recommending specific service providers"
 - Always suggest next steps or offer additional help`;
 
   // Add personalization if we have user context
@@ -248,6 +283,97 @@ Guidelines:
   }
 
   return basePrompt;
+}
+
+// Enhanced system prompt with database context (same as EduCounsel AI)
+function createEnhancedSystemPrompt(userContext: UserContext, shouldCollectDetails: boolean, dbContext: any): string {
+  let basePrompt = `You are Darpan Intelligence, an AI study abroad advisor helping students explore international education opportunities.
+
+STRICT COMPLIANCE GUIDELINES:
+- NEVER recommend specific education consultancies, agencies, or service providers
+- NEVER compare or rank consultancies as "best" or "worst"
+- ONLY provide general study abroad guidance and educational information
+- NEVER share business confidential information, technical details, or company strategies
+- Focus exclusively on educational guidance, requirements, and processes
+
+Provide helpful, accurate information about:
+- University admission requirements and processes
+- Cost estimates and budgeting guidance  
+- Scholarship opportunities and funding options
+- Visa requirements and application timelines
+- Academic pathway planning and course selection
+- Country-specific education systems and requirements
+
+Guidelines:
+- Be encouraging and supportive
+- Provide specific, actionable educational advice
+- Keep responses concise but informative (max 100 tokens)
+- For consultancy questions, redirect to general guidance: "I focus on educational guidance rather than recommending specific service providers"
+- Always suggest next steps or offer additional help`;
+
+  // Add database context for more informed responses
+  if (dbContext.scholarshipsFound > 0) {
+    basePrompt += `\n\nAvailable scholarships in database: ${dbContext.scholarshipsFound} relevant opportunities found.`;
+  }
+
+  if (dbContext.countriesFound > 0) {
+    basePrompt += `\n\nCountry information available for ${dbContext.countriesFound} destinations.`;
+  }
+
+  // Add personalization if we have user context
+  if (userContext.userInfo.field || userContext.userInfo.level || userContext.userInfo.country) {
+    basePrompt += `\n\nUser Context:`;
+    if (userContext.userInfo.field) basePrompt += `\n- Field of Interest: ${userContext.userInfo.field}`;
+    if (userContext.userInfo.level) basePrompt += `\n- Study Level: ${userContext.userInfo.level}`;
+    if (userContext.userInfo.country) basePrompt += `\n- Preferred Country: ${userContext.userInfo.country}`;
+    if (userContext.userInfo.budget) basePrompt += `\n- Budget Range: ${userContext.userInfo.budget}`;
+    basePrompt += `\n\nUse this context to provide more targeted advice.`;
+  }
+
+  // Add detail collection guidance
+  if (shouldCollectDetails && userContext.messageCount >= 2) {
+    basePrompt += `\n\nAfter answering their question, gently ask for their field of study and study level to provide better recommendations. Keep it natural and helpful.`;
+  }
+
+  // Encourage account creation for personalization
+  if (userContext.messageCount >= 3) {
+    basePrompt += `\n\nFor detailed personalized guidance, suggest creating a free account.`;
+  }
+
+  return basePrompt;
+}
+
+// Get database context for AI responses (same as EduCounsel AI)
+async function getDatabaseContextForAI(message: string, userContext: UserContext): Promise<any> {
+  const lowerMessage = message.toLowerCase();
+  let scholarshipsFound = 0;
+  let countriesFound = 0;
+
+  // Check for scholarship-related queries
+  if (lowerMessage.includes('scholarship') || lowerMessage.includes('funding') || lowerMessage.includes('financial aid')) {
+    try {
+      const scholarships = await scholarshipStorage.getAllScholarships();
+      scholarshipsFound = scholarships.length;
+    } catch (error) {
+      console.error('Error fetching scholarships for context:', error);
+    }
+  }
+
+  // Check for country-related queries
+  if (lowerMessage.includes('country') || lowerMessage.includes('usa') || lowerMessage.includes('canada') || 
+      lowerMessage.includes('uk') || lowerMessage.includes('australia') || lowerMessage.includes('germany')) {
+    try {
+      const countries = await countryWorkflowStorage.getAllCountries();
+      countriesFound = countries.length;
+    } catch (error) {
+      console.error('Error fetching countries for context:', error);
+    }
+  }
+
+  return {
+    scholarshipsFound,
+    countriesFound
+  };
 }
 
 // Enhanced action button generation based on context

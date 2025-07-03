@@ -64,6 +64,33 @@ export default function SimplifiedAuth() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { loginMutation, registerMutation, user, isLoading } = useAuth();
 
+  // Login Form - Initialize hooks before any conditional returns
+  const loginForm = useForm<LoginData>({
+    resolver: zodResolver(loginUserSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  });
+
+  // Registration Form - Initialize hooks before any conditional returns
+  const registerForm = useForm<RegistrationData>({
+    resolver: zodResolver(registrationSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phoneNumber: "",
+      username: "",
+      password: "",
+      confirmPassword: "",
+      country: "",
+      agreeToTerms: false,
+      allowContact: false,
+      receiveUpdates: false,
+    },
+  });
+
   // Redirect authenticated users to their dashboard
   if (isLoading) {
     return (
@@ -82,33 +109,6 @@ export default function SimplifiedAuth() {
       return null;
     }
   }
-
-  // Login Form
-  const loginForm = useForm<LoginData>({
-    resolver: zodResolver(loginUserSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-    },
-  });
-
-  // Registration Form
-  const registerForm = useForm<RegistrationData>({
-    resolver: zodResolver(registrationSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      phoneNumber: "",
-      username: "",
-      password: "",
-      confirmPassword: "",
-      country: "",
-      agreeToTerms: false,
-      allowContact: false,
-      receiveUpdates: false,
-    },
-  });
 
   const onLoginSubmit = async (data: LoginData) => {
     try {
