@@ -138,6 +138,21 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**July 3, 2025 - Enhanced EduCounsel AI Chatbot with Comprehensive International Education Guidance:**
+- ✓ Successfully transformed EduCounsel AI into "Darpan Intelligence" branded comprehensive international education advisor
+- ✓ Implemented accurate profile completion percentage calculation and display from real database queries
+- ✓ Enhanced AI system prompts to follow international counseling standards with broader perspective beyond study abroad
+- ✓ Created personalized, non-templated welcome messages based on user profile data and completion status
+- ✓ Added generated profile name feature for users with contextual identifiers (e.g., "Nepalese Computer Science Aspirant 2025")
+- ✓ Updated chatbot interface to reflect "Darpan Intelligence" branding throughout all components and responses
+- ✓ Enhanced system prompts to provide comprehensive educational guidance covering academic pathways, career planning, financial strategies, and cultural adaptation
+- ✓ Implemented broader perspective including university selection, program matching, visa guidance, and cultural preparation
+- ✓ Fixed TypeScript compilation errors and interface mismatches across eduCounselRoutes.ts and related components
+- ✓ Successfully integrated profile completion API data to display accurate completion percentages in welcome messages
+- ✓ Applied international standards for educational counseling with evidence-based recommendations and culturally sensitive approaches
+- ✓ Enhanced conversation continuity with personalized context based on individual student profiles and goals
+- ✓ Created comprehensive welcome message generation system providing unique, contextual greetings without templates
+
 **July 3, 2025 - Complete CRM Database Integration and Student Management System Implementation:**
 - ✓ Successfully resolved all database schema mismatches by manually adding missing CRM columns to users table
 - ✓ Added comprehensive CRM fields: lead_category, student_stage, assigned_expert_id, priority, notes, tags, success_probability, engagement_score, total_interactions, last_engagement_date, satisfaction_rating, conversion_date

@@ -74,6 +74,11 @@ export default function EduCounselAI() {
     queryKey: ['/api/user'],
   });
 
+  // Fetch profile completion data
+  const { data: profileCompletion } = useQuery({
+    queryKey: ['/api/user/profile-completion'],
+  });
+
   // Fetch existing conversation history
   const { data: conversationHistory } = useQuery({
     queryKey: ['/api/educounsel/conversation'],
@@ -131,42 +136,92 @@ export default function EduCounselAI() {
 
   // Welcome message based on user profile
   useEffect(() => {
-    if (userProfile && messages.length === 0) {
+    if (userProfile && profileCompletion && messages.length === 0) {
       const welcomeMessage: ChatMessage = {
         id: 'welcome',
-        content: generateWelcomeMessage(userProfile),
+        content: generateWelcomeMessage(userProfile, profileCompletion),
         isUser: false,
         timestamp: new Date(),
-        specialist: 'Alex',
+        specialist: 'Darpan Intelligence',
         formatted: true
       };
       setMessages([welcomeMessage]);
     }
-  }, [userProfile, messages.length]);
+  }, [userProfile, profileCompletion, messages.length]);
 
-  const generateWelcomeMessage = (profile: UserProfile) => {
-    const name = profile.firstName || profile.username;
-    const completionStatus = profile.completionPercentage || 0;
+  const generateWelcomeMessage = (profile: UserProfile, completion: any) => {
+    const name = profile.firstName || profile.username || 'Student';
+    const completionPercentage = completion?.completionPercentage || 0;
     
-    if (completionStatus < 50) {
-      return `Hello ${name}! 👋 I'm your personal education counselor. I notice your profile is ${completionStatus}% complete. I can help you with study abroad planning, but having more profile information will allow me to provide more personalized guidance. 
+    // Generate profile-based name for personalization
+    const profileName = generateProfileName(profile);
+    
+    // Create personalized, non-templated welcome message
+    const welcomeContent = createPersonalizedWelcome(name, profile, completionPercentage, profileName);
+    
+    return welcomeContent;
+  };
 
-What would you like to explore today? You can ask me about:
-• Study destinations and universities
-• Application requirements and deadlines  
-• Scholarships and funding options
-• Visa processes and documentation
-• Career prospects in different countries
-
-Just type your question naturally - I'll understand and help!`;
+  const generateProfileName = (profile: UserProfile) => {
+    const field = profile.fieldOfStudy || 'Academic';
+    const level = profile.studyLevel || 'Student';
+    const year = new Date().getFullYear();
+    
+    // Generate contextual profile names based on user data
+    if (profile.nationality) {
+      return `${profile.nationality} ${field} Aspirant ${year}`;
+    } else if (field !== 'Academic') {
+      return `${field} ${level} Profile ${year}`;
+    } else {
+      return `International Education Profile ${year}`;
     }
+  };
 
-    const countries = profile.preferredCountries?.join(', ') || 'various countries';
-    const field = profile.fieldOfStudy || 'your chosen field';
+  const createPersonalizedWelcome = (name: string, profile: UserProfile, completionPercentage: number, profileName: string) => {
+    // Craft unique, contextual welcome based on profile data
+    const hasCountries = profile.preferredCountries && profile.preferredCountries.length > 0;
+    const hasField = profile.fieldOfStudy;
+    const hasLevel = profile.studyLevel;
     
-    return `Welcome back, ${name}! 🎓 I see you're interested in studying ${field} in ${countries}. I'm here to provide personalized guidance based on your profile and help you navigate your study abroad journey.
-
-What specific aspect would you like to discuss today?`;
+    let welcomeText = `Hello ${name}! I'm your comprehensive international education advisor powered by Darpan Intelligence.`;
+    
+    // Add profile-specific context
+    if (hasCountries && hasField) {
+      const countries = profile.preferredCountries!.slice(0, 2).join(' and ');
+      welcomeText += ` I can see you're exploring ${profile.fieldOfStudy} opportunities in ${countries}.`;
+    } else if (hasField) {
+      welcomeText += ` I notice you're interested in ${profile.fieldOfStudy} studies.`;
+    } else if (hasLevel) {
+      welcomeText += ` I see you're planning for ${profile.studyLevel} education abroad.`;
+    }
+    
+    // Add completion context
+    if (completionPercentage < 30) {
+      welcomeText += ` Your profile is ${completionPercentage}% complete. While I can assist with general guidance, completing your profile will unlock personalized recommendations tailored specifically to your academic background and career goals.`;
+    } else if (completionPercentage < 70) {
+      welcomeText += ` With your profile ${completionPercentage}% complete, I can provide targeted advice. Additional profile details would enable even more precise guidance.`;
+    } else {
+      welcomeText += ` Excellent! Your ${completionPercentage}% complete profile allows me to provide highly personalized recommendations.`;
+    }
+    
+    // Add broad perspective capabilities
+    welcomeText += `\n\nI specialize in comprehensive international education guidance including:`;
+    welcomeText += `\n• Global university research and program matching`;
+    welcomeText += `\n• Scholarship identification and application strategies`;
+    welcomeText += `\n• Academic pathway planning and course selection`;
+    welcomeText += `\n• Visa requirements and documentation processes`;
+    welcomeText += `\n• Financial planning and funding options`;
+    welcomeText += `\n• Career prospects and post-graduation opportunities`;
+    welcomeText += `\n• Cultural adaptation and student life preparation`;
+    welcomeText += `\n• Application timeline management and deadline tracking`;
+    
+    welcomeText += `\n\nWhat specific aspect of your international education journey would you like to explore today?`;
+    
+    // Add generated profile identifier
+    welcomeText += `\n\n*Generated for ${profileName}*`;
+    welcomeText += `\n\nGuided by Darpan Intelligence`;
+    
+    return welcomeText;
   };
 
   const handleSendMessage = () => {
@@ -388,11 +443,11 @@ What specific aspect would you like to discuss today?`;
               <Sparkles className="h-6 w-6 text-white" />
             </div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              EduCounsel AI
+              Darpan Intelligence
             </h1>
           </div>
           <p className="text-gray-600 text-sm">
-            Your intelligent study abroad counselor
+            Your comprehensive international education advisor
           </p>
         </div>
 
@@ -436,10 +491,10 @@ What specific aspect would you like to discuss today?`;
                       )}
                       
                       {/* Specialist indicator */}
-                      {msg.specialist && !msg.isUser && (
+                      {!msg.isUser && (
                         <div className="mt-2 pt-2 border-t border-gray-200">
                           <span className="text-xs text-gray-500">
-                            Guided by {msg.specialist}
+                            Guided by Darpan Intelligence
                           </span>
                         </div>
                       )}

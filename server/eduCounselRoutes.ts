@@ -1,5 +1,19 @@
 import { Router, Request, Response } from 'express';
 import { processEduCounselChatOptimized } from './eduCounselServiceOptimized';
+
+interface UserProfile {
+  id: number;
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+  phoneNumber?: string | null;
+  dateOfBirth?: string | null;
+  nationality?: string | null;
+  studyLevel?: string | null;
+  fieldOfStudy?: string | null;
+  preferredCountries?: string[] | null;
+  budgetRange?: string | null;
+}
 import { getConversationHistory, saveConversationHistory } from './eduCounselService';
 
 // Local auth middleware
@@ -25,7 +39,7 @@ router.post('/chat', requireAuth, async (req: Request, res: Response) => {
     console.log(`🤖 Processing EduCounsel chat for user ${userId}`);
     
     // Get user profile for context
-    const userProfile = req.user;
+    const userProfile = req.user as UserProfile;
     
     // Process chat with optimized AI service
     const response = await processEduCounselChatOptimized({
@@ -35,12 +49,15 @@ router.post('/chat', requireAuth, async (req: Request, res: Response) => {
     });
 
     // Save conversation to database
-    await saveConversationHistory(userId, message, response);
+    await saveConversationHistory(userId, message, {
+      ...response,
+      specialist: 'Darpan Intelligence'
+    });
 
     // Format response for frontend compatibility
     const formattedResponse = {
       response: response.response,
-      specialist: 'Alex', // Default specialist
+      specialist: 'Darpan Intelligence', // Default specialist
       actionButtons: response.actionButtons || [],
       requiresSelection: response.requiresSelection
     };

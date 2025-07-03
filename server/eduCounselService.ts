@@ -60,7 +60,7 @@ interface EduCounselRequest {
 
 interface EduCounselResponse {
   response: string;
-  specialist: string;
+  specialist?: string;
   followUpQuestions?: string[];
   nextSteps?: string[];
   requiresMoreInfo?: boolean;

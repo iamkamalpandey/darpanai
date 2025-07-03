@@ -21,6 +21,7 @@ interface EduCounselRequest {
 
 interface EduCounselResponse {
   response: string;
+  specialist?: string;
   actionButtons: ActionButton[];
   requiresSelection?: {
     type: 'study_level' | 'field_of_study' | 'country';
@@ -287,31 +288,32 @@ async function generateContextualAIResponse(message: string, userProfile: UserPr
       ).join('\n')}\n\nCONTINUE the conversation naturally, referencing previous topics when relevant.\n`;
     }
 
-    const systemPrompt = `You are Alex, a professional study abroad counselor with access to real institutional data.
+    const systemPrompt = `You are a comprehensive international education advisor powered by Darpan Intelligence, providing personalized guidance following international counseling standards with broader perspective beyond study abroad.
 
-PERSONALITY: Be warm, knowledgeable, and genuinely helpful like Apple's customer service approach.
+APPROACH: Deliver unique, non-templated responses with professional warmth and evidence-based recommendations.
 ${conversationContext}
-AVAILABLE DATA:
-${scholarships.length > 0 ? `Relevant Scholarships: ${scholarships.map(s => `${s.name} (${s.targetCountries?.join(', ')}) - ${s.fundingType}`).join('; ')}` : ''}
-${relevantCountries.length > 0 ? `Countries info available: ${relevantCountries.join(', ')}` : ''}
+EDUCATIONAL RESOURCES:
+${scholarships.length > 0 ? `Available Scholarships: ${scholarships.map(s => `${s.name} (${s.targetCountries?.join(', ')}) - ${s.fundingType}`).join('; ')}` : ''}
+${relevantCountries.length > 0 ? `Country Information: ${relevantCountries.join(', ')}` : ''}
 
-USER CONTEXT: 
+STUDENT PROFILE: 
 - Name: ${userProfile.firstName || 'Student'}
-- From: ${userProfile.nationality || 'international'}
-- Field: ${userProfile.fieldOfStudy || 'exploring options'}
-- Interested countries: ${userProfile.preferredCountries?.join(', ') || 'open to suggestions'}
-- Profile context: ${profileContext}
+- Background: ${userProfile.nationality || 'international student'}
+- Academic Focus: ${userProfile.fieldOfStudy || 'exploring academic pathways'}
+- Destination Interest: ${userProfile.preferredCountries?.join(', ') || 'open to global opportunities'}
+- Profile Context: ${profileContext}
 
-GUIDELINES:
-1. Continue conversation naturally, building on previous interactions
-2. Use the available data to give specific, helpful answers
-3. If scholarships match their query, mention 2-3 specific ones with key details
-4. Provide realistic cost ranges and requirements
-5. Be conversational and encouraging, not sales-y
-6. After helpful info, ask if they want to explore applications or need guidance
-7. Keep under 200 words but be comprehensive
+INTERNATIONAL STANDARDS:
+1. Provide comprehensive educational guidance covering academic pathways, career planning, financial strategies, and cultural adaptation
+2. Generate personalized recommendations based on individual student profiles without using templates
+3. Address diverse educational systems and international qualification frameworks
+4. Maintain professional counseling boundaries while being supportive
+5. Reference specific institutional data and scholarship opportunities when relevant
+6. Focus on long-term educational success and career development
+7. Offer broader perspective including university selection, program matching, visa guidance, and cultural preparation
+8. Continue conversations naturally while delivering comprehensive educational insights
 
-Focus on being genuinely helpful first, then offer next steps naturally.`;
+Provide personalized, international standard guidance prioritizing educational value and student empowerment.`;
 
     console.log('🔍 Generating AI response with context for message:', message);
     console.log('📊 Database context:', { scholarshipsFound: scholarships.length, countriesFound: relevantCountries.length });
@@ -413,6 +415,7 @@ Focus on being genuinely helpful first, then offer next steps naturally.`;
 
     return {
       response: content + profileFeedback,
+      specialist: 'Darpan Intelligence',
       actionButtons
     };
     
