@@ -51,25 +51,30 @@ export default function PublicLanding() {
     if (isChatOpen && messages.length === 0) {
       const welcomeMessage: ChatMessage = {
         id: 'welcome',
-        content: `Hello! I'm Darpan Intelligence, your AI study abroad advisor. I can help you with:\n\n• University recommendations and program matching\n• Cost estimates and scholarship opportunities\n• Visa requirements and application processes\n• Academic pathway planning\n• Country comparisons and selection\n\nWhat would you like to explore today?`,
+        content: `Hello! I'm Darpan Intelligence, your AI study abroad advisor. I help students like you navigate their international education journey.\n\nI can assist you with:\n• Finding the right universities and programs\n• Understanding costs and budgeting\n• Discovering scholarships and funding\n• Visa requirements and timelines\n• Application guidance and deadlines\n\nTo give you the best recommendations, I'd love to know more about you. What are you interested in studying?`,
         isUser: false,
         timestamp: new Date(),
         formatted: true,
         actionButtons: [
           {
-            type: 'explore_universities',
-            label: 'Explore Universities',
-            description: 'Find universities that match your interests'
+            type: 'field_computer_science',
+            label: 'Computer Science',
+            description: 'I am interested in Computer Science and related technology fields'
           },
           {
-            type: 'cost_calculator',
-            label: 'Cost Calculator',
-            description: 'Estimate study abroad expenses'
+            type: 'field_business',
+            label: 'Business',
+            description: 'I want to study Business, Management, or MBA programs'
           },
           {
-            type: 'scholarships',
-            label: 'Find Scholarships',
-            description: 'Discover funding opportunities'
+            type: 'field_engineering',
+            label: 'Engineering',
+            description: 'I am interested in Engineering programs'
+          },
+          {
+            type: 'field_other',
+            label: 'Other Field',
+            description: 'I want to explore other fields of study'
           }
         ]
       };
@@ -78,9 +83,31 @@ export default function PublicLanding() {
   }, [isChatOpen, messages.length]);
 
   const sendMessageMutation = useMutation({
-    mutationFn: async (request: { message: string }) => {
-      const response = await apiRequest('POST', '/api/public/chat', request);
-      return response as PublicChatResponse;
+    mutationFn: async (request: { message: string; sessionId?: string }) => {
+      // Generate session ID for tracking conversation
+      const sessionId = sessionStorage.getItem('publicChatSession') || 
+        `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      if (!sessionStorage.getItem('publicChatSession')) {
+        sessionStorage.setItem('publicChatSession', sessionId);
+      }
+
+      const response = await fetch('/api/public/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: request.message,
+          sessionId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      return response.json() as Promise<PublicChatResponse>;
     },
     onSuccess: (data) => {
       const aiMessage: ChatMessage = {
@@ -94,13 +121,26 @@ export default function PublicLanding() {
       setMessages(prev => [...prev, aiMessage]);
       setIsTyping(false);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Chat error:', error);
       const errorMessage: ChatMessage = {
         id: Date.now().toString() + '_error',
-        content: 'Sorry, I encountered an issue. Please try again or contact our support team for assistance.',
+        content: 'Sorry, I encountered an issue. Please try again or create an account for full access to our platform.',
         isUser: false,
         timestamp: new Date(),
-        formatted: true
+        formatted: true,
+        actionButtons: [
+          {
+            type: 'create_account',
+            label: 'Create Free Account',
+            description: 'Get unlimited access to personalized guidance'
+          },
+          {
+            type: 'retry',
+            label: 'Try Again',
+            description: 'Retry your message'
+          }
+        ]
       };
       setMessages(prev => [...prev, errorMessage]);
       setIsTyping(false);
@@ -132,6 +172,23 @@ export default function PublicLanding() {
   };
 
   const handleActionButtonClick = (button: { type: string; label: string; description: string }) => {
+    // Handle special action types
+    if (button.type === 'create_account') {
+      window.location.href = '/register';
+      return;
+    }
+
+    if (button.type === 'retry') {
+      // Retry the last user message
+      const lastUserMessage = messages.findLast(msg => msg.isUser);
+      if (lastUserMessage) {
+        setIsTyping(true);
+        sendMessageMutation.mutate({ message: lastUserMessage.content });
+      }
+      return;
+    }
+
+    // For other buttons, send as chat message
     const buttonMessage: ChatMessage = {
       id: Date.now().toString(),
       content: button.label,
@@ -695,47 +752,41 @@ export default function PublicLanding() {
             </div>
             
             {/* Input Area */}
-            <div className="border-t bg-white p-3">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="p-2 min-w-[36px] min-h-[36px]"
-                >
-                  <Upload className="h-4 w-4" />
-                </Button>
-                
+            <div className="border-t bg-white p-4">
+              <div className="flex items-end gap-3">
                 <div className="flex-1 relative">
                   <Input
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Ask about studying abroad..."
-                    className="pr-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500 h-10"
+                    className="pr-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 h-12 text-base rounded-xl"
                     disabled={isTyping}
+                    maxLength={500}
                   />
                   <Button
                     onClick={handleSendMessage}
                     disabled={!message.trim() || isTyping}
                     size="sm"
-                    className="absolute right-1 top-1 h-8 w-8 p-0"
+                    className="absolute right-2 top-2 h-8 w-8 p-0 rounded-lg"
                   >
-                    <Send className="h-3 w-3" />
+                    <Send className="h-4 w-4" />
                   </Button>
                 </div>
-                
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf"
-                  className="hidden"
-                />
               </div>
               
-              <p className="text-xs text-gray-500 mt-1 text-center px-2">
-                Get instant guidance on universities, costs, and applications
-              </p>
+              <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+                <span>Get instant guidance on universities, costs, and applications</span>
+                <span className={`${message.length > 450 ? 'text-orange-500' : ''}`}>
+                  {message.length}/500
+                </span>
+              </div>
+              
+              {sendMessageMutation.error && (
+                <div className="mt-2 text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg">
+                  Connection issue. Please check your internet and try again.
+                </div>
+              )}
             </div>
           </div>
         </div>
