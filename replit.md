@@ -1,8 +1,8 @@
-# Darpan Intelligence - Replit Configuration
+# Darpan Education - Replit Configuration
 
 ## Overview
 
-Darpan Intelligence is a comprehensive AI-powered document analysis platform that helps users make informed education and career decisions. The platform analyzes visa documents (both rejected and successful), COE certificates, offer letters, and other critical academic documents. Features complete role-based access control with separate user and admin interfaces.
+Darpan Education is a comprehensive AI-powered educational platform designed to help students, experts, and administrators navigate international education opportunities. The unified platform features three distinct role-based dashboards: Admin Dashboard for system management, Student Dashboard for educational tools and services, and Study Abroad Expert Dashboard for counseling and consultation services. The platform includes document analysis, scholarship matching, application management, and expert consultation services.
 
 ## System Architecture
 
@@ -24,10 +24,18 @@ Darpan Intelligence is a comprehensive AI-powered document analysis platform tha
   - Multer for file upload handling
 - **AI Integration**: OpenAI API for document analysis
 
+### Unified Platform Architecture
+- **Single Application**: Darpan Education platform with role-based dashboard routing
+- **Admin Dashboard**: System administration, user management, expert assignment, analytics, content management
+- **Student Dashboard**: Document analysis tools, application management, scholarship research, consultation booking
+- **Study Abroad Expert Dashboard**: Student management, consultation services, analytics, resources, professional tools
+
 ### Database Design
 - **ORM**: Drizzle ORM with PostgreSQL dialect
 - **Schema**: 
-  - Users table with extended profile fields for educational consultation
+  - Users table with extended profile fields supporting admin/expert/user roles
+  - Study abroad experts table for expert profiles and specializations
+  - Student expert assignments table for expert-student relationships
   - Analyses table for storing document analysis results
   - Appointments table for consultation bookings
   - Sessions table for authentication (auto-created)
@@ -35,10 +43,10 @@ Darpan Intelligence is a comprehensive AI-powered document analysis platform tha
 ## Key Components
 
 ### Authentication System
-- **Role-based Access Control**: Strict separation between 'user' and 'admin' roles
+- **Role-based Access Control**: Three-tier system supporting 'admin', 'expert', and 'user' roles within unified platform
 - **Session Management**: Server-side sessions with PostgreSQL storage
 - **Multi-step Registration**: Educational profile collection during signup
-- **Protected Routes**: Separate route protection for users and admins
+- **Protected Routes**: Role-based route protection for admin, expert, and student dashboards
 
 ### Document Processing Pipeline
 1. **File Upload**: Accepts PDF, JPG, PNG files up to 10MB
@@ -130,19 +138,19 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
-**July 3, 2025 - Professional Sidebar Navigation Expert Dashboard Implementation:**
-- ✓ Created comprehensive sidebar-based Expert Dashboard replacing tab navigation with professional sidebar structure
-- ✓ Implemented organized navigation sections: Dashboard Overview, Student Management, Consultation Services, Analytics & Reports, Resources & Tools, Profile & Settings
+**July 3, 2025 - Darpan Education Unified Platform with Study Abroad Expert Dashboard Implementation:**
+- ✓ Established Darpan Education as unified platform with three distinct role-based dashboards within single application
+- ✓ Implemented comprehensive Study Abroad Expert Dashboard with professional sidebar navigation structure
+- ✓ Created organized expert navigation sections: Dashboard Overview, Student Management, Consultation Services, Analytics & Reports, Resources & Tools, Profile & Settings
 - ✓ Built collapsible sidebar with expandable menu sections including Student Management (My Students, New Assignments, Progress Tracking) and Consultation Services (My Consultations, New Requests, History)
 - ✓ Enhanced Expert Portal header with profile information, verification badge, notification system, and professional branding
-- ✓ Created comprehensive main content areas for each navigation section with Overview stats grid, student management cards, consultation management interface, and analytics reporting
-- ✓ Added interactive features: student detail dialogs, consultation detail dialogs, quick action cards, and status management system
-- ✓ Implemented notification badges for new assignments (2) and consultation requests (3) providing real-time awareness
-- ✓ Applied consistent design language matching admin and user dashboards with professional card layouts and proper spacing
-- ✓ Enhanced expert profile management with working hours, timezone, availability status, and comprehensive statistics display
-- ✓ Successfully registered expert profile for current user (ID: 4) enabling full dashboard functionality testing
-- ✓ Integrated sidebar footer with Help & Support and Sign Out actions for complete navigation experience
-- ✓ Built responsive design ensuring proper display across desktop and mobile devices with professional sidebar width optimization
+- ✓ Maintained Admin Dashboard for system administration, user management, and expert assignment functionality
+- ✓ Preserved Student Dashboard for educational tools, document analysis, and consultation booking services
+- ✓ Applied consistent design language across all three role dashboards with professional card layouts and proper spacing
+- ✓ Successfully integrated three-tier role-based authentication: admin, expert, and user roles within unified platform
+- ✓ Created comprehensive database schema supporting expert profiles, student assignments, and role-based access control
+- ✓ Verified all role dashboards function independently while sharing unified authentication and database systems
+- ✓ Built responsive design ensuring proper display across desktop and mobile devices for all dashboard types
 
 **July 3, 2025 - Study Abroad Expert Management System Implementation:**
 - ✓ Successfully implemented comprehensive Study Abroad Expert management system with three specializations (counselor, documentation expert, visa expert)
