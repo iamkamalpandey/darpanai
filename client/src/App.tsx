@@ -100,6 +100,7 @@ const ScholarshipResearchHub = lazy(() => import("@/pages/ScholarshipResearchHub
 const UnifiedApplicationManagement = lazy(() => import("@/pages/UnifiedApplicationManagement"));
 const ApplicationManagementHub = lazy(() => import("@/pages/ApplicationManagementHub"));
 const ExpertDashboard = lazy(() => import("@/pages/ExpertDashboard"));
+const AdminExpertManagement = lazy(() => import("@/pages/AdminExpertManagement"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -536,6 +537,13 @@ function Router() {
           </Suspense>
         )} />
       </Route>
+      <Route path="/admin/expert-management">
+        <AdminProtectedRoute path="/admin/expert-management" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminExpertManagement />
+          </Suspense>
+        )} />
+      </Route>
       <Route path="/admin/analyses">
         <AdminProtectedRoute path="/admin/analyses" component={() => (
           <Suspense fallback={<LoadingFallback />}>
@@ -694,6 +702,13 @@ function Router() {
         <AdminProtectedRoute path="/admin/coe-details/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <AdminCoeDetails />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/experts">
+        <AdminProtectedRoute path="/admin/experts" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdminExpertManagement />
           </Suspense>
         )} />
       </Route>

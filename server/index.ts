@@ -250,6 +250,11 @@ process.on('unhandledRejection', (reason, promise) => {
     app.use('/api/conversations', communicationRoutes.default);
     logWithLevel('✓ Communication center routes registered successfully');
     
+    // Register Study Abroad Expert management routes
+    const expertRoutes = await import('./expertRoutes');
+    app.use('/api/expert', expertRoutes.default);
+    logWithLevel('✓ Study Abroad Expert routes registered successfully');
+    
     // Register Country Workflow Management routes
     const countryWorkflowRoutes = await import('./countryWorkflowRoutes');
     app.use('/api/country-workflow', countryWorkflowRoutes.default);

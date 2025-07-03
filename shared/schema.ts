@@ -43,6 +43,87 @@ export const messages = pgTable("messages", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Study Abroad Expert Profiles - Complete expert management system
+export const studyAbroadExperts = pgTable("study_abroad_experts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id), // Links to users table
+  expertType: text("expert_type").notNull(), // 'counselor', 'documentation_expert', 'visa_expert'
+  
+  // Professional Information
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull().unique(),
+  phoneNumber: text("phone_number"),
+  profileImage: text("profile_image"),
+  
+  // Expertise & Specialization
+  specializations: text("specializations").array(), // ['USA', 'Canada', 'Australia'] or ['MBA', 'Engineering']
+  expertiseAreas: text("expertise_areas").array(), // ['visa_processing', 'document_review', 'interview_prep']
+  languages: text("languages").array().default(['English']).notNull(),
+  yearsOfExperience: integer("years_of_experience").default(0).notNull(),
+  
+  // Professional Details
+  qualifications: text("qualifications").array(), // Educational qualifications
+  certifications: text("certifications").array(), // Professional certifications
+  bio: text("bio"), // Professional biography
+  linkedinProfile: text("linkedin_profile"),
+  
+  // Work Schedule & Availability
+  workingHours: jsonb("working_hours").default({}).notNull(), // {"monday": "9:00-17:00", ...}
+  timezone: text("timezone").default("UTC").notNull(),
+  isAvailable: boolean("is_available").default(true).notNull(),
+  maxStudentsAllowed: integer("max_students_allowed").default(20).notNull(),
+  currentStudentCount: integer("current_student_count").default(0).notNull(),
+  
+  // Performance & Analytics
+  totalStudentsHelped: integer("total_students_helped").default(0).notNull(),
+  successRate: decimal("success_rate", { precision: 5, scale: 2 }).default("0.00").notNull(), // Percentage
+  averageRating: decimal("average_rating", { precision: 3, scale: 2 }).default("0.00").notNull(), // 1-5 stars
+  totalReviews: integer("total_reviews").default(0).notNull(),
+  
+  // Status Management
+  status: text("status").default("active").notNull(), // active, inactive, suspended, on_leave
+  isVerified: boolean("is_verified").default(false).notNull(),
+  verificationDate: timestamp("verification_date"),
+  
+  // Assignment & Management
+  assignedBy: text("assigned_by").references(() => users.id), // Admin who created this expert
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  lastActiveAt: timestamp("last_active_at").defaultNow().notNull(),
+});
+
+// Student-Expert Assignments - Track which experts are assigned to which students
+export const studentExpertAssignments = pgTable("student_expert_assignments", {
+  id: serial("id").primaryKey(),
+  studentId: integer("student_id").notNull().references(() => users.id),
+  expertId: integer("expert_id").notNull().references(() => studyAbroadExperts.id),
+  assignedBy: integer("assigned_by").notNull().references(() => users.id), // Admin who made the assignment
+  
+  // Assignment Details
+  assignmentType: text("assignment_type").notNull(), // 'primary', 'secondary', 'consultation'
+  assignmentReason: text("assignment_reason"), // Why this expert was assigned
+  priority: text("priority").default("normal").notNull(), // urgent, high, normal, low
+  
+  // Status & Progress
+  status: text("status").default("active").notNull(), // active, completed, transferred, cancelled
+  progressNotes: text("progress_notes"),
+  expectedCompletionDate: timestamp("expected_completion_date"),
+  
+  // Communication Tracking
+  lastContactDate: timestamp("last_contact_date"),
+  totalInteractions: integer("total_interactions").default(0).notNull(),
+  studentSatisfactionRating: integer("student_satisfaction_rating"), // 1-5 stars
+  studentFeedback: text("student_feedback"),
+  
+  // Assignment Management
+  isActive: boolean("is_active").default(true).notNull(),
+  assignedAt: timestamp("assigned_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Country Application Workflows
 export const countryWorkflows = pgTable("country_workflows", {
   id: serial("id").primaryKey(),
@@ -1821,5 +1902,71 @@ export const countrySelectionSchema = z.object({
   hasWorkflowSupport: z.boolean(),
   workflowId: z.number().optional(),
 });
+
+// Study Abroad Expert schemas and types
+export const insertStudyAbroadExpertSchema = createInsertSchema(studyAbroadExperts, {
+  userId: z.number().positive("User ID is required"),
+  expertType: z.enum(["counselor", "documentation_expert", "visa_expert"]),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Valid email is required"),
+  phoneNumber: z.string().optional(),
+  profileImage: z.string().optional(),
+  specializations: z.array(z.string()).default([]),
+  expertiseAreas: z.array(z.string()).default([]),
+  languages: z.array(z.string()).default(["English"]),
+  yearsOfExperience: z.number().min(0).default(0),
+  qualifications: z.array(z.string()).default([]),
+  certifications: z.array(z.string()).default([]),
+  bio: z.string().optional(),
+  linkedinProfile: z.string().optional(),
+  workingHours: z.record(z.string()).default({}),
+  timezone: z.string().default("UTC"),
+  isAvailable: z.boolean().default(true),
+  maxStudentsAllowed: z.number().min(1).default(20),
+  status: z.enum(["active", "inactive", "suspended", "on_leave"]).default("active"),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastActiveAt: true,
+  currentStudentCount: true,
+  totalStudentsHelped: true,
+  successRate: true,
+  averageRating: true,
+  totalReviews: true,
+  isVerified: true,
+  verificationDate: true,
+});
+
+export const insertStudentExpertAssignmentSchema = createInsertSchema(studentExpertAssignments, {
+  studentId: z.number().positive("Student ID is required"),
+  expertId: z.number().positive("Expert ID is required"),
+  assignedBy: z.number().positive("Assigned by admin ID is required"),
+  assignmentType: z.enum(["primary", "secondary", "consultation"]),
+  assignmentReason: z.string().optional(),
+  priority: z.enum(["urgent", "high", "normal", "low"]).default("normal"),
+  progressNotes: z.string().optional(),
+  expectedCompletionDate: z.string().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  assignedAt: true,
+  completedAt: true,
+  status: true,
+  lastContactDate: true,
+  totalInteractions: true,
+  studentSatisfactionRating: true,
+  studentFeedback: true,
+  isActive: true,
+});
+
+// Type exports for Study Abroad Expert system
+export type StudyAbroadExpert = typeof studyAbroadExperts.$inferSelect;
+export type InsertStudyAbroadExpert = z.infer<typeof insertStudyAbroadExpertSchema>;
+
+export type StudentExpertAssignment = typeof studentExpertAssignments.$inferSelect;
+export type InsertStudentExpertAssignment = z.infer<typeof insertStudentExpertAssignmentSchema>;
 
 
