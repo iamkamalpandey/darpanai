@@ -138,6 +138,22 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**July 3, 2025 - Enhanced Public Chatbot with International Standards and Lead Generation Implementation:**
+- ✓ Created comprehensive publicChatServiceEnhanced.ts following international standards for public chatbot resource protection and lead generation
+- ✓ Implemented progressive information collection requiring user details (name, field, study level, country) before providing detailed guidance
+- ✓ Added strict rate limiting: 10 daily interactions for guests, 5 AI queries maximum, protecting against resource drain
+- ✓ Built lead capture system automatically extracting user information during conversation flow for CRM integration
+- ✓ Enhanced public chat routes with lead data logging and proper error handling following international compliance standards
+- ✓ Implemented resource usage tracking (AI queries, database queries, detailed responses) with automatic registration prompting
+- ✓ Added progressive guidance stages: greeting → info collection → limited guidance → registration required
+- ✓ Created guest-optimized AI prompts (max 80 tokens) encouraging account creation for detailed recommendations
+- ✓ Integrated triple AI fallback system (DeepSeek → Anthropic → OpenAI) with cost-effective resource management
+- ✓ Applied international best practices: information first, limited free value, clear upgrade paths, compliance with business confidentiality
+- ✓ Enhanced action buttons with contextual registration prompts and specific feature access descriptions
+- ✓ Implemented conversation context tracking with automatic lead scoring and CRM-ready data structure
+- ✓ Added fallback public chat route maintaining backward compatibility while prioritizing enhanced version
+- ✓ Successfully deployed lead generation chatbot following international standards for educational technology platforms
+
 **July 3, 2025 - Cost-Optimized EduCounsel AI with Standard Practices and Enhanced International Education Guidance:**
 - ✓ Successfully transformed EduCounsel AI into "Darpan Intelligence" branded comprehensive international education advisor following industry standards
 - ✓ Implemented comprehensive cost optimization reducing AI API consumption by 60% through intelligent caching, rate limiting, and query optimization

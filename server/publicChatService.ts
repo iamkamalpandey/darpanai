@@ -31,17 +31,24 @@ interface PublicChatResponse {
   }>;
 }
 
-// Enhanced conversation store with user context tracking
+// Enhanced conversation store with user context tracking and resource protection
 interface UserContext {
   messageCount: number;
   detailsCollected: boolean;
+  informationProvided: boolean;
+  registrationPrompted: boolean;
+  lastInteractionTime: number;
+  dailyQueryCount: number;
   userInfo: {
     name?: string;
+    email?: string;
     field?: string;
     level?: string;
     country?: string;
     budget?: string;
+    phone?: string;
   };
+  restrictedQueriesAsked: number; // Track resource-heavy queries
 }
 
 const publicConversations = new Map<string, Array<{ role: string; content: string }>>();
