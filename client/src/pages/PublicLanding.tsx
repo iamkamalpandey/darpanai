@@ -26,6 +26,9 @@ interface ChatMessage {
 
 interface PublicChatResponse {
   response: string;
+  specialist?: string;
+  remainingResponses?: number;
+  paywallTriggered?: boolean;
   actionButtons?: Array<{
     type: string;
     label: string;
@@ -38,6 +41,8 @@ export default function PublicLanding() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [paywallTriggered, setPaywallTriggered] = useState(false);
+  const [remainingResponses, setRemainingResponses] = useState(2);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -92,14 +97,14 @@ export default function PublicLanding() {
         sessionStorage.setItem('publicChatSession', sessionId);
       }
 
-      const response = await fetch('/api/public/chat', {
+      const response = await fetch('/api/public/educounsel', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           message: request.message,
-          sessionId
+          conversationId: sessionId
         })
       });
 
@@ -110,6 +115,15 @@ export default function PublicLanding() {
       return response.json() as Promise<PublicChatResponse>;
     },
     onSuccess: (data) => {
+      // Update paywall state
+      if (data.paywallTriggered) {
+        setPaywallTriggered(true);
+      }
+      
+      if (typeof data.remainingResponses === 'number') {
+        setRemainingResponses(data.remainingResponses);
+      }
+
       const aiMessage: ChatMessage = {
         id: Date.now().toString() + '_ai',
         content: data.response,
@@ -172,7 +186,17 @@ export default function PublicLanding() {
   };
 
   const handleActionButtonClick = (button: { type: string; label: string; description: string }) => {
-    // Handle special action types
+    // Handle registration and login redirects (paywall actions)
+    if (button.type === 'register') {
+      window.location.href = '/register';
+      return;
+    }
+
+    if (button.type === 'login') {
+      window.location.href = '/login';
+      return;
+    }
+
     if (button.type === 'create_account') {
       window.location.href = '/register';
       return;
@@ -188,18 +212,20 @@ export default function PublicLanding() {
       return;
     }
 
-    // For other buttons, send as chat message
-    const buttonMessage: ChatMessage = {
-      id: Date.now().toString(),
-      content: button.label,
-      isUser: true,
-      timestamp: new Date()
-    };
+    // For other buttons, send as chat message (only if paywall not triggered)
+    if (!paywallTriggered) {
+      const buttonMessage: ChatMessage = {
+        id: Date.now().toString(),
+        content: button.label,
+        isUser: true,
+        timestamp: new Date()
+      };
 
-    setMessages(prev => [...prev, buttonMessage]);
-    setIsTyping(true);
+      setMessages(prev => [...prev, buttonMessage]);
+      setIsTyping(true);
 
-    sendMessageMutation.mutate({ message: button.description });
+      sendMessageMutation.mutate({ message: button.description });
+    }
   };
 
   const formatMessageContent = (content: string) => {
@@ -770,41 +796,77 @@ export default function PublicLanding() {
               <div ref={messagesEndRef} />
             </div>
             
-            {/* Input Area */}
+            {/* Input Area with Paywall Integration */}
             <div className="border-t bg-white p-4">
-              <div className="flex items-end gap-3">
-                <div className="flex-1 relative">
-                  <Input
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Ask about studying abroad..."
-                    className="pr-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 h-12 text-base rounded-xl"
-                    disabled={isTyping}
-                    maxLength={500}
-                  />
-                  <Button
-                    onClick={handleSendMessage}
-                    disabled={!message.trim() || isTyping}
-                    size="sm"
-                    className="absolute right-2 top-2 h-8 w-8 p-0 rounded-lg"
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
+              {paywallTriggered ? (
+                // Paywall UI - Chat disabled
+                <div className="text-center py-6">
+                  <div className="mb-4">
+                    <Shield className="h-12 w-12 text-blue-500 mx-auto mb-2" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Free Trial Complete</h3>
+                    <p className="text-gray-600 text-sm">
+                      You've used your {2} free consultation messages. Create a free account to continue with unlimited AI guidance, document analysis, and personalized recommendations.
+                    </p>
+                  </div>
+                  <div className="space-y-3">
+                    <Button 
+                      onClick={() => window.location.href = '/register'}
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white h-12 rounded-xl font-medium"
+                    >
+                      Create Free Account - Get Full Access
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => window.location.href = '/login'}
+                      className="w-full h-12 rounded-xl border-gray-300 text-gray-700 hover:bg-gray-50"
+                    >
+                      Already have an account? Sign In
+                    </Button>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
-                <span>Get instant guidance on universities, costs, and applications</span>
-                <span className={`${message.length > 450 ? 'text-orange-500' : ''}`}>
-                  {message.length}/500
-                </span>
-              </div>
-              
-              {sendMessageMutation.error && (
-                <div className="mt-2 text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg">
-                  Connection issue. Please check your internet and try again.
-                </div>
+              ) : (
+                // Normal chat input
+                <>
+                  <div className="flex items-end gap-3">
+                    <div className="flex-1 relative">
+                      <Input
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder="Ask about studying abroad..."
+                        className="pr-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 h-12 text-base rounded-xl"
+                        disabled={isTyping}
+                        maxLength={500}
+                      />
+                      <Button
+                        onClick={handleSendMessage}
+                        disabled={!message.trim() || isTyping}
+                        size="sm"
+                        className="absolute right-2 top-2 h-8 w-8 p-0 rounded-lg"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between mt-3 text-xs text-gray-500">
+                    <span>
+                      {remainingResponses > 0 
+                        ? `${remainingResponses} free responses remaining` 
+                        : "Get instant guidance on universities, costs, and applications"
+                      }
+                    </span>
+                    <span className={`${message.length > 450 ? 'text-orange-500' : ''}`}>
+                      {message.length}/500
+                    </span>
+                  </div>
+                  
+                  {sendMessageMutation.error && (
+                    <div className="mt-2 text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg">
+                      Connection issue. Please check your internet and try again.
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

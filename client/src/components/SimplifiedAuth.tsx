@@ -37,6 +37,11 @@ const registrationSchema = z.object({
     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "Password must contain at least one lowercase letter, one uppercase letter, and one number"),
   confirmPassword: z.string(),
   country: z.string().min(1, "Please select your country"),
+  city: z.string().optional().default(""),
+  studyDestination: z.string().optional().default(""),
+  studyLevel: z.string().optional().default(""),
+  startDate: z.string().optional().default(""),
+  counsellingMode: z.string().optional().default(""),
   agreeToTerms: z.boolean().refine((val) => val === true, "You must agree to the terms and conditions"),
   allowContact: z.boolean().optional(),
   receiveUpdates: z.boolean().optional(),
@@ -126,7 +131,7 @@ export default function SimplifiedAuth() {
 
   const onRegisterSubmit = async (data: RegistrationData) => {
     try {
-      // Prepare registration data to match backend simplified schema
+      // Prepare registration data to match backend database schema
       const registrationData = {
         username: data.username,
         password: data.password,
@@ -136,6 +141,12 @@ export default function SimplifiedAuth() {
         lastName: data.lastName,
         phoneNumber: data.phoneNumber,
         country: data.country,
+        city: data.city || "Not specified",
+        studyDestination: data.studyDestination || "Not specified",
+        studyLevel: data.studyLevel || "Not specified", 
+        startDate: data.startDate || "Not specified",
+        counsellingMode: data.counsellingMode || "Not specified",
+        fundingSource: "Not specified", // Default value for optional field
         agreeToTerms: data.agreeToTerms,
         allowContact: data.allowContact || false,
         receiveUpdates: data.receiveUpdates || false
@@ -397,28 +408,94 @@ export default function SimplifiedAuth() {
                 />
               </div>
 
-              <FormField
-                control={registerForm.control}
-                name="country"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Country *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={registerForm.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select your country" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {countries.map((country) => (
+                            <SelectItem key={country} value={country}>{country}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>City *</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your country" />
-                        </SelectTrigger>
+                        <Input placeholder="Enter your city" {...field} />
                       </FormControl>
-                      <SelectContent>
-                        {countries.map((country) => (
-                          <SelectItem key={country} value={country}>{country}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Study Preferences - Optional */}
+              <div className="space-y-3 pt-4 border-t">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Study Preferences (Optional - can be completed later)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={registerForm.control}
+                    name="studyDestination"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Preferred Study Destination</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select destination (optional)" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {["USA", "Canada", "UK", "Australia", "Germany", "France", "Netherlands", "Other"].map((destination) => (
+                              <SelectItem key={destination} value={destination}>{destination}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={registerForm.control}
+                    name="studyLevel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Study Level</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select study level (optional)" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {["Diploma", "Bachelor's", "Master's", "PhD", "Other"].map((level) => (
+                              <SelectItem key={level} value={level}>{level}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
 
               {/* Terms and Preferences */}
               <div className="space-y-3 pt-4 border-t">

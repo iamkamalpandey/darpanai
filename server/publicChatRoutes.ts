@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { handlePublicChat } from './publicChatService';
 import { handleEnhancedPublicChat } from './publicChatServiceEnhanced';
+import { handlePublicEduCounsel } from './publicEduCounselService';
 
 const router = Router();
 
@@ -85,6 +86,51 @@ router.post('/chat-legacy', async (req, res) => {
           type: 'create_account',
           label: 'Create Free Account',
           description: 'Get personalized guidance and full platform access'
+        }
+      ]
+    });
+  }
+});
+
+// Public EduCounsel AI endpoint with paywall (newspaper-style implementation)
+router.post('/educounsel', async (req, res) => {
+  try {
+    const { message, conversationId } = req.body;
+
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
+      return res.status(400).json({
+        error: 'Message is required and must be a non-empty string'
+      });
+    }
+
+    if (message.length > 1000) {
+      return res.status(400).json({
+        error: 'Message too long. Please keep messages under 1000 characters.'
+      });
+    }
+
+    console.log('🌐 Public EduCounsel request:', message.substring(0, 50) + '...');
+
+    // Use EduCounsel service for public users with paywall
+    const chatResponse = await handlePublicEduCounsel({
+      message: message.trim(),
+      conversationId: conversationId || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    });
+
+    res.json(chatResponse);
+
+  } catch (error) {
+    console.error('💥 Public EduCounsel API error:', error);
+    res.status(500).json({
+      response: 'I am experiencing technical difficulties. Create a free account for access to our reliable study abroad guidance platform.',
+      specialist: 'Darpan Intelligence',
+      remainingResponses: 0,
+      paywallTriggered: true,
+      actionButtons: [
+        {
+          type: 'register',
+          label: 'Create Free Account',
+          description: 'Get reliable AI guidance'
         }
       ]
     });
