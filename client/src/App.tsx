@@ -101,7 +101,7 @@ const ScholarshipResearchHub = lazy(() => import("@/pages/ScholarshipResearchHub
 const CulturalAdaptationChallenges = lazy(() => import("@/pages/CulturalAdaptationChallenges"));
 const UnifiedApplicationManagement = lazy(() => import("@/pages/UnifiedApplicationManagement"));
 const ApplicationManagementHub = lazy(() => import("@/pages/ApplicationManagementHub"));
-const ExpertDashboard = lazy(() => import("@/pages/ExpertDashboardNew"));
+const ExpertDashboard = lazy(() => import("@/pages/ExpertDashboard"));
 const AdminExpertManagement = lazy(() => import("@/pages/AdminExpertManagement"));
 
 // Loading fallback component
@@ -730,6 +730,14 @@ function Router() {
       </Route>
       
       {/* Expert Routes - Only accessible by education experts */}
+      <Route path="/expert">
+        <ExpertProtectedRoute path="/expert" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <ExpertDashboard />
+          </Suspense>
+        )} />
+      </Route>
+      
       <Route path="/expert-dashboard">
         <ExpertProtectedRoute path="/expert-dashboard" component={() => (
           <Suspense fallback={<LoadingFallback />}>

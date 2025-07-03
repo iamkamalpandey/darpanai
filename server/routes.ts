@@ -3576,6 +3576,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   console.log("[INFO] [express] ✓ Academic Document analysis routes registered successfully");
 
+  // Import and register expert routes
+  const expertRoutes = await import('./expertRoutes');
+  app.use('/api/expert', expertRoutes.default);
+
+  console.log("[INFO] [express] ✓ Expert routes registered successfully");
+
   const httpServer = createServer(app);
 
   return httpServer;

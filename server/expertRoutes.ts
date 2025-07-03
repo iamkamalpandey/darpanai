@@ -236,26 +236,53 @@ router.get('/my-students', requireAuth, async (req: Request, res: Response) => {
   try {
     const expertUserId = (req.user as any).id;
     
-    // Find the expert profile
-    const [expert] = await db
-      .select()
-      .from(studyAbroadExperts)
-      .where(eq(studyAbroadExperts.userId, expertUserId));
-
-    if (!expert) {
-      return res.status(404).json({ error: 'Expert profile not found' });
-    }
-
-    // Return mock students for demonstration
+    // For demonstration purposes, return comprehensive mock students data
+    // This will be replaced with actual database queries once expert-student assignment system is fully implemented
     const mockStudents = [
       {
         id: 4,
         name: 'Kamal Pandey',
         email: 'iamkamalpandey@gmail.com',
         assignmentType: 'primary',
+        priority: 'high',
+        assignedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'active',
+        studyLevel: 'Masters Degree',
+        fieldOfStudy: 'Computer Science',
+        preferredCountries: ['Canada', 'Australia'],
+        lastActivity: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        phoneNumber: '+977-9841234567',
+        profileCompletion: 85
+      },
+      {
+        id: 5,
+        name: 'Sarah Johnson',
+        email: 'sarah.johnson@example.com',
+        assignmentType: 'secondary',
         priority: 'normal',
-        assignedAt: new Date().toISOString(),
-        status: 'active'
+        assignedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'pending',
+        studyLevel: 'Bachelors Degree',
+        fieldOfStudy: 'Business Administration',
+        preferredCountries: ['United Kingdom', 'Ireland'],
+        lastActivity: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        phoneNumber: '+1-555-0123',
+        profileCompletion: 92
+      },
+      {
+        id: 6,
+        name: 'Rajesh Sharma',
+        email: 'rajesh.sharma@gmail.com',
+        assignmentType: 'primary',
+        priority: 'urgent',
+        assignedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        status: 'active',
+        studyLevel: 'PhD',
+        fieldOfStudy: 'Artificial Intelligence',
+        preferredCountries: ['Germany', 'Netherlands'],
+        lastActivity: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        phoneNumber: '+91-9876543210',
+        profileCompletion: 78
       }
     ];
 
@@ -271,27 +298,18 @@ router.get('/stats', requireAuth, async (req: Request, res: Response) => {
   try {
     const expertUserId = (req.user as any).id;
 
-    // Find the expert profile
-    const [expert] = await db
-      .select()
-      .from(studyAbroadExperts)
-      .where(eq(studyAbroadExperts.userId, expertUserId));
-
-    if (!expert) {
-      return res.status(404).json({ error: 'Expert profile not found' });
-    }
-
-    // Return mock stats for demonstration
+    // For demonstration purposes, return mock stats directly
+    // This will be replaced with actual database queries once expert profiles are properly set up
     const mockStats = {
-      totalStudents: 1,
-      activeStudents: 1,
-      completedCases: 0,
+      totalStudents: 12,
+      activeStudents: 8,
+      completedCases: 15,
       successRate: 95.5,
       averageRating: 4.8,
       thisMonth: {
-        newStudents: 1,
-        completedCases: 0,
-        consultations: 3
+        newStudents: 3,
+        completedCases: 2,
+        consultations: 8
       }
     };
 
