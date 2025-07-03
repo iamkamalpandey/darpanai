@@ -328,6 +328,143 @@ export default function EducationLanding() {
         </div>
       </section>
 
+      {/* Dashboard Access Section */}
+      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+              Access Your Dashboard
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Darpan Education provides specialized dashboards for students, education experts, and administrators. 
+              Choose your role to access tailored tools and features.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Student Dashboard */}
+            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden group">
+              <div className="h-2 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+              <CardContent className="p-8">
+                <div className="text-center">
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white inline-flex mb-6">
+                    <GraduationCap className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Student Dashboard</h3>
+                  <p className="text-gray-600 mb-6">
+                    Access document analysis tools, scholarship research, application management, and consultation booking.
+                  </p>
+                  <div className="space-y-2 mb-6 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>AI Document Analysis</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>Scholarship Research</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>Expert Consultations</span>
+                    </div>
+                  </div>
+                  <Link href="/login">
+                    <Button className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700">
+                      Student Login
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Expert Dashboard */}
+            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden group border-2 border-purple-200">
+              <div className="h-2 bg-gradient-to-r from-purple-500 to-pink-600"></div>
+              <CardContent className="p-8">
+                <div className="text-center">
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 text-white inline-flex mb-6">
+                    <Users className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Study Abroad Expert</h3>
+                  <p className="text-gray-600 mb-6">
+                    Professional dashboard for counselors, documentation experts, and visa specialists to manage students.
+                  </p>
+                  <div className="space-y-2 mb-6 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>Student Management</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>Consultation Services</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>Analytics & Reports</span>
+                    </div>
+                  </div>
+                  <Link href="/login">
+                    <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700">
+                      Expert Login
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Admin Dashboard */}
+            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden group">
+              <div className="h-2 bg-gradient-to-r from-emerald-500 to-teal-600"></div>
+              <CardContent className="p-8">
+                <div className="text-center">
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white inline-flex mb-6">
+                    <Shield className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Administrator</h3>
+                  <p className="text-gray-600 mb-6">
+                    System administration dashboard for user management, expert assignments, and platform oversight.
+                  </p>
+                  <div className="space-y-2 mb-6 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>User Management</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>Expert Assignment</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span>System Analytics</span>
+                    </div>
+                  </div>
+                  <Link href="/login">
+                    <Button className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700">
+                      Admin Login
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="text-center mt-12">
+            <p className="text-gray-600 mb-4">
+              Don't have an account? 
+            </p>
+            <Link href="/register">
+              <Button variant="outline" size="lg">
+                Create New Account
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

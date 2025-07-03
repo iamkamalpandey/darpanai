@@ -252,7 +252,21 @@ function ExpertSidebar({ currentView, onViewChange }: { currentView: string; onV
             <HelpCircle className="h-4 w-4 mr-2" />
             Help & Support
           </Button>
-          <Button variant="outline" size="sm" className="w-full justify-start text-red-600 hover:text-red-700">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full justify-start text-red-600 hover:text-red-700"
+            onClick={() => {
+              // Logout functionality
+              fetch('/api/auth/logout', { method: 'POST' })
+                .then(() => {
+                  window.location.href = '/';
+                })
+                .catch(() => {
+                  window.location.href = '/';
+                });
+            }}
+          >
             <LogOut className="h-4 w-4 mr-2" />
             Sign Out
           </Button>
