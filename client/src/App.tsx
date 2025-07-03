@@ -99,7 +99,7 @@ const StudyAbroadHub = lazy(() => import("@/pages/StudyAbroadHub"));
 const ScholarshipResearchHub = lazy(() => import("@/pages/ScholarshipResearchHub"));
 const UnifiedApplicationManagement = lazy(() => import("@/pages/UnifiedApplicationManagement"));
 const ApplicationManagementHub = lazy(() => import("@/pages/ApplicationManagementHub"));
-const ExpertDashboard = lazy(() => import("@/pages/ExpertDashboard"));
+const ExpertDashboard = lazy(() => import("@/pages/ExpertDashboardNew"));
 const AdminExpertManagement = lazy(() => import("@/pages/AdminExpertManagement"));
 
 // Loading fallback component

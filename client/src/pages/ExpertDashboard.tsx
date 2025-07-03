@@ -30,7 +30,19 @@ import {
   Activity,
   Star,
   Brain,
-  Shield
+  Shield,
+  Home,
+  Settings,
+  LogOut,
+  ChevronRight,
+  ChevronDown,
+  Briefcase,
+  HelpCircle,
+  Bell,
+  UserCheck,
+  ClipboardList,
+  PieChart,
+  Bookmark
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
