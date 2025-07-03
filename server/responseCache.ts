@@ -38,7 +38,9 @@ export function cacheResponse(message: string, userProfile: any, response: strin
   // Clear old entries if cache is too large
   if (responseCache.size >= MAX_CACHE_SIZE) {
     const oldestKey = responseCache.keys().next().value;
-    responseCache.delete(oldestKey);
+    if (oldestKey) {
+      responseCache.delete(oldestKey);
+    }
   }
   
   responseCache.set(key, {
