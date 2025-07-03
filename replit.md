@@ -138,6 +138,15 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**July 3, 2025 - Critical Security Vulnerability Fix - Multer DoS Protection:**
+- ✓ Fixed critical security vulnerability CVE-2025-48997 in Multer file upload library
+- ✓ Upgraded Multer from vulnerable version 1.4.5-lts.2 to secure version 2.0.1
+- ✓ Resolved Denial of Service vulnerability that could be exploited via empty string field names in file uploads
+- ✓ Protected 16+ file upload endpoints across document analysis, application management, and admin functions
+- ✓ Verified application stability and functionality after security upgrade with successful server restart
+- ✓ Maintained all existing file upload functionality while eliminating DoS attack vector
+- ✓ Applied enterprise-grade security practices ensuring production-ready vulnerability management
+
 **July 3, 2025 - Enhanced Public Chatbot with International Standards and Lead Generation Implementation:**
 - ✓ Created comprehensive publicChatServiceEnhanced.ts following international standards for public chatbot resource protection and lead generation
 - ✓ Implemented progressive information collection requiring user details (name, field, study level, country) before providing detailed guidance
