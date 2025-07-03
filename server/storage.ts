@@ -344,6 +344,15 @@ export class DatabaseStorage implements IStorage {
     return updatedUser || undefined;
   }
 
+  async updateUserProfileImage(userId: number, imageUrl: string): Promise<User | undefined> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ profileImageUrl: imageUrl })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser || undefined;
+  }
+
   async updateUserProfile(userId: number, profileData: any): Promise<User | undefined> {
     // Build update object dynamically to include all provided fields
     const updateData: any = {};

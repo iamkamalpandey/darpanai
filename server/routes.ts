@@ -1624,6 +1624,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile Image Upload Route
+  app.post('/api/user/profile-image', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const user = req.user!;
+      const { imageData } = req.body;
+      
+      if (!imageData) {
+        return res.status(400).json({ error: 'No image data provided' });
+      }
+      
+      // Validate base64 image data
+      if (!imageData.startsWith('data:image/')) {
+        return res.status(400).json({ error: 'Invalid image format' });
+      }
+      
+      // Update user's profile image
+      await storage.updateUserProfileImage(user.id, imageData);
+      
+      res.json({ 
+        success: true, 
+        message: 'Profile image updated successfully',
+        imageUrl: imageData 
+      });
+    } catch (error) {
+      console.error('Error updating profile image:', error);
+      res.status(500).json({ error: 'Failed to update profile image' });
+    }
+  });
+
   // Get profile completion status
   app.get('/api/user/profile-completion', requireAuth, async (req: Request, res: Response) => {
     try {
