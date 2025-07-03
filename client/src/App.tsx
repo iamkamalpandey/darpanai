@@ -94,6 +94,8 @@ const ProfileBasedApplication = lazy(() => import("@/pages/ProfileBasedApplicati
 const SmartApplicationTracker = lazy(() => import("@/pages/SmartApplicationTracker"));
 const CommunicationCenter = lazy(() => import("@/pages/CommunicationCenter"));
 const DocumentIntelligenceHub = lazy(() => import("@/pages/DocumentIntelligenceHub"));
+const StudyAbroadHub = lazy(() => import("@/pages/StudyAbroadHub"));
+const ScholarshipResearchHub = lazy(() => import("@/pages/ScholarshipResearchHub"));
 const UnifiedApplicationManagement = lazy(() => import("@/pages/UnifiedApplicationManagement"));
 const ApplicationManagementHub = lazy(() => import("@/pages/ApplicationManagementHub"));
 
@@ -211,6 +213,29 @@ function Router() {
         <UserProtectedRoute path="/educounsel-ai" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <EduCounselAI />
+          </Suspense>
+        )} />
+      </Route>
+      
+      {/* Unified Hub Routes */}
+      <Route path="/study-abroad-hub">
+        <UserProtectedRoute path="/study-abroad-hub" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <StudyAbroadHub />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/document-intelligence-hub">
+        <UserProtectedRoute path="/document-intelligence-hub" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <DocumentIntelligenceHub />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/scholarship-research-hub">
+        <UserProtectedRoute path="/scholarship-research-hub" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <ScholarshipResearchHub />
           </Suspense>
         )} />
       </Route>

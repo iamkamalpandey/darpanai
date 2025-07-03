@@ -88,46 +88,11 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
     { icon: <Home size={20} />, label: 'Dashboard', href: '/' },
     { icon: <Brain size={20} />, label: 'EduCounsel AI', href: '/educounsel-ai' },
     { icon: <Calendar size={20} />, label: 'Consultation Booking', href: '/consultations' },
-    { icon: <FileText size={20} />, label: 'Study Abroad Applications', href: '/student-applications' },
-    { icon: <CheckCircle size={20} />, label: 'Profile-Based Application', href: '/profile-based-application' },
-    { icon: <Activity size={20} />, label: 'Smart Application Tracker', href: '/smart-application-tracker' },
+    { icon: <FileText size={20} />, label: 'Study Abroad Hub', href: '/study-abroad-hub' },
     { icon: <MessageSquare size={20} />, label: 'Communication Center', href: '/communication-center' },
-    { icon: <FileSearch size={20} />, label: 'Document Intelligence', href: '/document-intelligence' },
+    { icon: <FileSearch size={20} />, label: 'Document Intelligence Hub', href: '/document-intelligence-hub' },
+    { icon: <Award size={20} />, label: 'Scholarship Research Hub', href: '/scholarship-research-hub' },
     
-    // Priority 2: Analysis tools (most used features)
-    { 
-      icon: <BarChart3 size={20} />, 
-      label: 'AI Analysis Tools', 
-      isSubmenu: true,
-      submenuItems: [
-        { icon: <Shield size={18} />, label: 'Visa Document Analysis', href: '/visa-analysis' },
-        { icon: <FileText size={18} />, label: 'COE Certificate Analysis', href: '/coe-analysis' },
-        { icon: <FileCheck size={18} />, label: 'Offer Letter Analysis', href: '/offer-letter-analysis' },
-        { icon: <User size={18} />, label: 'CV Analysis & Auto-Fill', href: '/cv-analysis' },
-        { icon: <GraduationCap size={18} />, label: 'Academic Document Analysis', href: '/academic-document-analysis' },
-      ]
-    },
-
-    // Priority 3: User data and results
-    { icon: <FileText size={20} />, label: 'My Analysis', href: '/my-analysis' },
-    
-    // Priority 4: Research and planning tools
-    { icon: <MapPin size={20} />, label: 'AI Study Destination', href: '/personalized-destination-analysis' },
-    { icon: <GraduationCap size={20} />, label: 'University Recommendations', href: '/assessment' },
-    { icon: <Award size={20} />, label: 'Scholarship Research', href: '/scholarship-research' },
-    { icon: <Award size={20} />, label: 'Scholarship Matching', href: '/scholarship-matching' },
-
-    // Priority 5: Document information
-    { 
-      icon: <FolderOpen size={20} />, 
-      label: 'Document Information', 
-      isSubmenu: true,
-      submenuItems: [
-        { icon: <GraduationCap size={18} />, label: 'Offer Letter Details', href: '/offer-letter-info' },
-        { icon: <FileCheck size={18} />, label: 'COE Information', href: '/coe-info' },
-      ]
-    },
-
     // Resources
     { 
       icon: <FolderOpen size={20} />, 
