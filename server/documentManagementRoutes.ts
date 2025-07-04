@@ -207,7 +207,7 @@ router.delete('/documents/:id', async (req, res) => {
     }
 
     // Delete file from disk
-    if (fs.existsSync(document.filePath)) {
+    if (document.filePath && typeof document.filePath === 'string' && fs.existsSync(document.filePath)) {
       fs.unlinkSync(document.filePath);
     }
 
