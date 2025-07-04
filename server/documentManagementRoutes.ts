@@ -77,6 +77,8 @@ router.post('/upload', upload.single('document'), async (req, res) => {
     };
 
     const storedDocument = await documentAnalysisService.storeUserDocument(documentData);
+    
+    console.log('Document stored successfully:', storedDocument?.id);
 
     res.json({
       success: true,

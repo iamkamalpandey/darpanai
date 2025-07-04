@@ -111,6 +111,8 @@ export default function MyDocuments() {
   // Upload mutation
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
+      console.log('Starting upload mutation...');
+      
       // Check 15-document upload limit
       if (documents && documents.length >= 15) {
         throw new Error('Document limit reached. You can upload a maximum of 15 documents. Please delete some documents to upload new ones.');
@@ -120,13 +122,21 @@ export default function MyDocuments() {
         method: 'POST',
         body: formData
       });
+      
+      console.log('Upload response status:', response.status);
+      
       if (!response.ok) {
         const errorData = await response.json();
+        console.log('Upload error data:', errorData);
         throw new Error(errorData.error || 'Upload failed');
       }
-      return response.json();
+      
+      const result = await response.json();
+      console.log('Upload success result:', result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Upload mutation success:', data);
       toast({ title: 'Success', description: 'Document uploaded successfully' });
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
       setIsUploadDialogOpen(false);
@@ -134,7 +144,22 @@ export default function MyDocuments() {
       setIsUploading(false);
     },
     onError: (error: any) => {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      console.log('Upload mutation error:', error);
+      console.log('Error type:', typeof error);
+      console.log('Error stack:', error.stack);
+      
+      let errorMessage = 'Upload failed';
+      if (error && typeof error === 'object') {
+        errorMessage = error.message || error.error || errorMessage;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      toast({ title: 'Error', description: errorMessage, variant: 'destructive' });
+      setIsUploading(false);
+    },
+    onSettled: () => {
+      console.log('Upload mutation settled');
       setIsUploading(false);
     }
   });
