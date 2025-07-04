@@ -325,26 +325,44 @@ router.get('/documents/:id/download', async (req, res) => {
     }
 
     const documentId = parseInt(req.params.id);
+    console.log('Download request for document ID:', documentId, 'by user:', userId);
+    
     const documents = await documentAnalysisService.getUserDocuments(userId);
     const document = documents.find(doc => doc.id === documentId);
 
     if (!document) {
+      console.log('Document not found for ID:', documentId);
       return res.status(404).json({ error: 'Document not found' });
     }
 
+    console.log('Document found:', document.file_name, 'Path:', document.file_path);
+
     const filePath = document.file_path || document.filePath;
-    if (!filePath || !fs.existsSync(filePath)) {
+    if (!filePath) {
+      console.log('No file path found for document:', documentId);
+      return res.status(404).json({ error: 'File path not found' });
+    }
+
+    if (!fs.existsSync(filePath)) {
+      console.log('File does not exist at path:', filePath);
       return res.status(404).json({ error: 'File not found on server' });
     }
 
+    // Get file stats
+    const fileStats = fs.statSync(filePath);
+    console.log('File stats:', { size: fileStats.size, path: filePath });
+
     // Get the correct MIME type
     const mimeType = document.file_type || document.fileType || 'application/octet-stream';
-    const filename = document.original_name || document.originalName || document.file_name || document.fileName;
+    const filename = document.original_name || document.originalName || document.file_name || document.fileName || 'document';
+    
+    console.log('Download headers:', { mimeType, filename, size: fileStats.size });
     
     // Set appropriate headers for file download
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-Type', mimeType);
-    res.setHeader('Content-Length', fs.statSync(filePath).size.toString());
+    res.setHeader('Content-Length', fileStats.size.toString());
+    res.setHeader('Cache-Control', 'no-cache');
     
     // Stream the file
     const fileStream = fs.createReadStream(filePath);
@@ -353,6 +371,9 @@ router.get('/documents/:id/download', async (req, res) => {
       if (!res.headersSent) {
         res.status(500).json({ error: 'Error streaming file' });
       }
+    });
+    fileStream.on('end', () => {
+      console.log('File stream completed for:', filename);
     });
     fileStream.pipe(res);
 

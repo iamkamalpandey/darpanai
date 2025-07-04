@@ -167,22 +167,42 @@ export default function MyDocuments() {
   // Download function
   const handleDownload = async (doc: UserDocument) => {
     try {
+      console.log('Starting download for document:', doc.id);
+      
       const response = await fetch(`/api/document-management/documents/${doc.id}/download`);
-      if (!response.ok) throw new Error('Download failed');
+      console.log('Download response status:', response.status);
+      console.log('Download response headers:', Object.fromEntries(response.headers.entries()));
+      
+      if (!response.ok) {
+        console.log('Download response not ok:', response.status, response.statusText);
+        throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+      }
       
       const blob = await response.blob();
+      console.log('Downloaded blob size:', blob.size, 'type:', blob.type);
+      
+      if (blob.size === 0) {
+        throw new Error('Downloaded file is empty');
+      }
+      
       const url = window.URL.createObjectURL(blob);
       const a = window.document.createElement('a');
       a.href = url;
-      a.download = doc.original_name || doc.file_name;
+      a.download = doc.original_name || doc.file_name || 'document';
       window.document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       window.document.body.removeChild(a);
       
+      console.log('Download completed successfully');
       toast({ title: 'Success', description: 'Document downloaded successfully' });
-    } catch (error) {
-      toast({ title: 'Error', description: 'Failed to download document', variant: 'destructive' });
+    } catch (error: any) {
+      console.error('Download error:', error);
+      toast({ 
+        title: 'Error', 
+        description: error.message || 'Failed to download document', 
+        variant: 'destructive' 
+      });
     }
   };
 
