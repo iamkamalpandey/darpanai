@@ -73,7 +73,7 @@ export default function MyDocuments() {
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   
@@ -133,6 +133,28 @@ export default function MyDocuments() {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
   });
+
+  // Download function
+  const handleDownload = async (doc: UserDocument) => {
+    try {
+      const response = await fetch(`/api/document-management/documents/${doc.id}/download`);
+      if (!response.ok) throw new Error('Download failed');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = window.document.createElement('a');
+      a.href = url;
+      a.download = doc.original_name || doc.file_name;
+      window.document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      window.document.body.removeChild(a);
+      
+      toast({ title: 'Success', description: 'Document downloaded successfully' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to download document', variant: 'destructive' });
+    }
+  };
 
   // Analysis mutation
   const analysisMutation = useMutation({
@@ -245,13 +267,45 @@ export default function MyDocuments() {
     }
   };
 
+  // Replace document state
+  const [isReplaceDialogOpen, setIsReplaceDialogOpen] = useState(false);
+  const [replaceDocumentId, setReplaceDocumentId] = useState<number | null>(null);
+  const [replaceFile, setReplaceFile] = useState<File | null>(null);
+
+  // Replace document mutation
+  const replaceMutation = useMutation({
+    mutationFn: async ({ id, file }: { id: number; file: File }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch(`/api/document-management/documents/${id}/replace`, {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) throw new Error('Replace failed');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'Success', description: 'Document replaced successfully' });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      setIsReplaceDialogOpen(false);
+      setReplaceFile(null);
+      setReplaceDocumentId(null);
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  });
+
   const replaceDocument = (documentId: number) => {
-    // TODO: Implement document replacement functionality
-    toast({ 
-      title: 'Coming Soon', 
-      description: 'Document replacement feature will be available soon.',
-      variant: 'default' 
-    });
+    setReplaceDocumentId(documentId);
+    setIsReplaceDialogOpen(true);
+  };
+
+  const handleReplaceSubmit = () => {
+    if (replaceDocumentId && replaceFile) {
+      replaceMutation.mutate({ id: replaceDocumentId, file: replaceFile });
+    }
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -337,9 +391,7 @@ export default function MyDocuments() {
     analysisMutation.mutate(documentId);
   };
 
-  const handleDownload = (document: UserDocument) => {
-    window.open(`/api/document-management/documents/${document.id}/download`, '_blank');
-  };
+
 
   const handleDelete = (documentId: number) => {
     if (window.confirm('Are you sure you want to delete this document?')) {
@@ -431,7 +483,7 @@ export default function MyDocuments() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    {uniqueCategories.map((category: string) => (
+                    {uniqueCategories.map((category) => (
                       <SelectItem key={category} value={category}>{category}</SelectItem>
                     ))}
                   </SelectContent>
@@ -859,6 +911,54 @@ export default function MyDocuments() {
                     <>
                       <Save className="w-4 h-4 mr-2" />
                       Save Changes
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Replace Document Dialog */}
+        <Dialog open={isReplaceDialogOpen} onOpenChange={setIsReplaceDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Replace Document</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="replace-file">Choose new file</Label>
+                <Input
+                  id="replace-file"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={(e) => setReplaceFile(e.target.files?.[0] || null)}
+                  className="mt-1"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Select a PDF, JPG, or PNG file to replace the current document (max 10MB)
+                </p>
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setIsReplaceDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleReplaceSubmit}
+                  disabled={!replaceFile || replaceMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {replaceMutation.isPending ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Replacing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Replace
                     </>
                   )}
                 </Button>

@@ -250,6 +250,70 @@ router.delete('/documents/:id', async (req, res) => {
   }
 });
 
+// Replace document file
+router.post('/documents/:id/replace', upload.single('file'), async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const documentId = parseInt(req.params.id);
+
+    // Verify document belongs to user
+    const documents = await documentAnalysisService.getUserDocuments(userId);
+    const document = documents.find(doc => doc.id === documentId);
+
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    // Delete old file
+    if (document.filePath && fs.existsSync(document.filePath)) {
+      fs.unlinkSync(document.filePath);
+    }
+
+    // Update document with new file info and reset analysis
+    await db.update(userDocuments)
+      .set({
+        fileName: req.file.filename,
+        originalName: req.file.originalname,
+        filePath: req.file.path,
+        fileSize: req.file.size,
+        fileType: req.file.mimetype,
+        isAnalyzed: false,
+        analysisAttempts: 0,
+        firstAnalysisDate: null,
+        lastAnalysisAttempt: null,
+        updatedAt: new Date()
+      })
+      .where(eq(userDocuments.id, documentId));
+
+    res.json({ 
+      message: 'Document replaced successfully',
+      document: {
+        id: documentId,
+        fileName: req.file.filename,
+        originalName: req.file.originalname,
+        filePath: req.file.path,
+        fileSize: req.file.size,
+        fileType: req.file.mimetype
+      }
+    });
+
+  } catch (error: any) {
+    console.error('Error replacing document:', error);
+    res.status(500).json({ 
+      error: 'Failed to replace document',
+      details: error.message 
+    });
+  }
+});
+
 // Download document
 router.get('/documents/:id/download', async (req, res) => {
   try {
