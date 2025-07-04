@@ -266,12 +266,22 @@ Extract general document information:
   async getUserDocuments(userId: number, category?: string) {
     try {
       const result = await db.execute(sql`
-        SELECT id, user_id, file_name, file_path, file_size, file_type, 
-               category, upload_date, analysis_status, verification_status,
-               extracted_data, analysis_result, created_at, updated_at
+        SELECT id, user_id, file_name, original_name, file_path, file_size, file_type, 
+               document_category, is_analyzed, analysis_data, extracted_fields,
+               validation_status, validation_issues, tags, description, 
+               is_active, created_at, updated_at,
+               -- Legacy column compatibility mapping
+               document_category as category,
+               validation_status as analysis_status,
+               'pending' as verification_status,
+               created_at as uploaded_at,
+               created_at as upload_date,
+               analysis_data as extracted_data,
+               analysis_data as analysis_result
         FROM user_documents 
-        WHERE user_id = ${userId}
-        ${category && category !== 'all' ? sql`AND category = ${category}` : sql``}
+        WHERE user_id = ${userId} 
+        AND is_active = true
+        ${category && category !== 'all' ? sql`AND document_category = ${category}` : sql``}
         ORDER BY created_at DESC
       `);
       return result.rows || [];

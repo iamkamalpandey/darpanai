@@ -93,7 +93,32 @@ router.post('/upload', upload.single('document'), async (req, res) => {
   }
 });
 
-// Get user documents (My Documents page)
+// Get user documents (My Documents page) - Root route for /api/documents
+router.get('/', async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const { category } = req.query;
+    const documents = await documentAnalysisService.getUserDocuments(
+      userId, 
+      category as string
+    );
+
+    res.json(documents);
+
+  } catch (error: any) {
+    console.error('Error fetching user documents:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch documents',
+      details: error.message 
+    });
+  }
+});
+
+// Legacy route for backward compatibility
 router.get('/my-documents', async (req, res) => {
   try {
     const userId = req.user?.id;
