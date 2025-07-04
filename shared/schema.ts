@@ -2306,4 +2306,325 @@ export type InsertCulturalProgress = z.infer<typeof insertCulturalProgressSchema
 export type ChallengeCompletion = typeof challengeCompletions.$inferSelect;
 export type InsertChallengeCompletion = z.infer<typeof insertChallengeCompletionSchema>;
 
+// ============================================================================
+// ENHANCED CRM USER PROFILE SYSTEM
+// ============================================================================
+
+// Enhanced User Profile with comprehensive CRM functionality
+export const userProfiles = pgTable('user_profiles', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull().unique(),
+  
+  // Personal Information
+  firstName: text('first_name'),
+  lastName: text('last_name'),
+  dateOfBirth: text('date_of_birth'), // Store as text to handle various formats
+  gender: text('gender'), // male, female, other, prefer_not_to_say
+  phoneNumber: text('phone_number'),
+  alternatePhone: text('alternate_phone'),
+  address: text('address'),
+  city: text('city'),
+  state: text('state'),
+  country: text('country'),
+  postalCode: text('postal_code'),
+  nationality: text('nationality'),
+  profilePicture: text('profile_picture'),
+  
+  // Academic Information - SLC/High School
+  slcInstitutionName: text('slc_institution_name'),
+  slcGrade: text('slc_grade'),
+  slcYear: integer('slc_year'),
+  slcBoard: text('slc_board'), // SEE, SLC, etc.
+  
+  // Higher Secondary/12th Grade
+  highschoolInstitutionName: text('highschool_institution_name'),
+  highschoolGrade: text('highschool_grade'),
+  highschoolYear: integer('highschool_year'),
+  highschoolStream: text('highschool_stream'), // Science, Management, Arts, etc.
+  
+  // Bachelor's Degree
+  bachelorsInstitutionName: text('bachelors_institution_name'),
+  bachelorsGrade: text('bachelors_grade'),
+  bachelorsYear: integer('bachelors_year'),
+  bachelorsProgram: text('bachelors_program'),
+  bachelorsDuration: text('bachelors_duration'), // 3 years, 4 years, etc.
+  
+  // Master's Degree
+  mastersInstitutionName: text('masters_institution_name'),
+  mastersGrade: text('masters_grade'),
+  mastersYear: integer('masters_year'),
+  mastersProgram: text('masters_program'),
+  mastersDuration: text('masters_duration'),
+  
+  // Current Education
+  currentEducationLevel: text('current_education_level'), // bachelor, master, phd, completed
+  fieldOfStudy: text('field_of_study'),
+  
+  // Study Abroad Preferences
+  interestedCourse: text('interested_course'),
+  preferredCountries: text('preferred_countries').array(),
+  preferredPrograms: text('preferred_programs').array(),
+  studyLevel: text('study_level'), // bachelor, master, phd, diploma
+  budgetRange: text('budget_range'),
+  intakePreference: text('intake_preference'), // fall, spring, summer
+  
+  // English Test Scores - IELTS
+  ieltsOverallScore: text('ielts_overall_score'),
+  ieltsListeningScore: text('ielts_listening_score'),
+  ieltsSpeakingScore: text('ielts_speaking_score'),
+  ieltsReadingScore: text('ielts_reading_score'),
+  ieltsWritingScore: text('ielts_writing_score'),
+  ieltsDate: text('ielts_date'),
+  
+  // PTE Scores
+  pteOverallScore: text('pte_overall_score'),
+  pteListeningScore: text('pte_listening_score'),
+  pteSpeakingScore: text('pte_speaking_score'),
+  pteReadingScore: text('pte_reading_score'),
+  pteWritingScore: text('pte_writing_score'),
+  pteDate: text('pte_date'),
+  
+  // TOEFL Scores
+  toeflOverallScore: text('toefl_overall_score'),
+  toeflListeningScore: text('toefl_listening_score'),
+  toeflSpeakingScore: text('toefl_speaking_score'),
+  toeflReadingScore: text('toefl_reading_score'),
+  toeflWritingScore: text('toefl_writing_score'),
+  toeflDate: text('toefl_date'),
+  
+  // Standardized Test Scores
+  satOverallScore: text('sat_overall_score'),
+  satMathScore: text('sat_math_score'),
+  satReadingScore: text('sat_reading_score'),
+  satWritingAndLanguageScore: text('sat_writing_and_language_score'),
+  satDate: text('sat_date'),
+  
+  greOverallScore: text('gre_overall_score'),
+  greQuantitativeScore: text('gre_quantitative_score'),
+  greVerbalScore: text('gre_verbal_score'),
+  greAnalyticalScore: text('gre_analytical_score'),
+  greDate: text('gre_date'),
+  
+  gmatOverallScore: text('gmat_overall_score'),
+  gmatQuantitativeScore: text('gmat_quantitative_score'),
+  gmatVerbalScore: text('gmat_verbal_score'),
+  gmatAnalyticalScore: text('gmat_analytical_score'),
+  gmatIntegratedScore: text('gmat_integrated_score'),
+  gmatDate: text('gmat_date'),
+  
+  // Work Experience
+  workExperienceYears: integer('work_experience_years'),
+  currentJobTitle: text('current_job_title'),
+  currentCompany: text('current_company'),
+  workExperienceDescription: text('work_experience_description'),
+  employmentStatus: text('employment_status'), // employed, unemployed, student, self_employed
+  
+  // Financial Information
+  financialCapacity: text('financial_capacity'),
+  sponsorshipDetails: text('sponsorship_details'),
+  bankBalance: text('bank_balance'),
+  
+  // Emergency Contact
+  emergencyContactName: text('emergency_contact_name'),
+  emergencyContactPhone: text('emergency_contact_phone'),
+  emergencyContactRelationship: text('emergency_contact_relationship'),
+  emergencyContactAddress: text('emergency_contact_address'),
+  
+  // CRM and Lead Management Fields
+  leadSource: text('lead_source'), // website, referral, social_media, advertisement, etc.
+  leadStatus: text('lead_status').default('new'), // new, contacted, qualified, interested, enrolled, closed
+  leadScore: integer('lead_score').default(0), // 0-100 scoring system
+  leadPriority: text('lead_priority').default('medium'), // high, medium, low
+  assignedCounselor: integer('assigned_counselor').references(() => users.id),
+  lastContactDate: timestamp('last_contact_date'),
+  nextFollowUpDate: timestamp('next_follow_up_date'),
+  communicationPreference: text('communication_preference'), // phone, email, whatsapp, video_call
+  
+  // Consultation and Interaction History
+  totalConsultations: integer('total_consultations').default(0),
+  lastConsultationDate: timestamp('last_consultation_date'),
+  satisfactionRating: integer('satisfaction_rating'), // 1-5 rating
+  conversionProbability: integer('conversion_probability').default(0), // 0-100%
+  
+  // Notes and Tags
+  notes: text('notes'),
+  internalNotes: text('internal_notes'), // For counselor use only
+  tags: text('tags').array(), // Custom tags for categorization
+  
+  // Profile Completion and Engagement
+  profileCompletionPercentage: integer('profile_completion_percentage').default(0),
+  lastProfileUpdate: timestamp('last_profile_update'),
+  engagementScore: integer('engagement_score').default(0), // Platform activity score
+  documentUploads: integer('document_uploads').default(0),
+  consultationBookings: integer('consultation_bookings').default(0),
+  
+  // Marketing and Communication Consent
+  marketingConsent: boolean('marketing_consent').default(false),
+  smsConsent: boolean('sms_consent').default(false),
+  emailConsent: boolean('email_consent').default(true),
+  whatsappConsent: boolean('whatsapp_consent').default(false),
+  
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+});
+
+// Lead Activities and Interaction History
+export const leadActivities = pgTable('lead_activities', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  activityType: text('activity_type').notNull(), // call, email, meeting, document_upload, analysis, etc.
+  activityDescription: text('activity_description'),
+  activityDetails: jsonb('activity_details'), // Additional metadata
+  performedBy: integer('performed_by').references(() => users.id), // Staff member who performed activity
+  activityDate: timestamp('activity_date').defaultNow(),
+  duration: integer('duration'), // In minutes for calls/meetings
+  outcome: text('outcome'), // successful, no_answer, follow_up_required, etc.
+  nextAction: text('next_action'),
+  nextActionDate: timestamp('next_action_date'),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+// Lead Notes and Communication Log
+export const leadNotes = pgTable('lead_notes', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  noteType: text('note_type'), // general, consultation, follow_up, internal
+  noteTitle: text('note_title'),
+  noteContent: text('note_content').notNull(),
+  isInternal: boolean('is_internal').default(false), // Only visible to staff
+  priority: text('priority').default('normal'), // high, normal, low
+  addedBy: integer('added_by').references(() => users.id).notNull(),
+  visibleTo: text('visible_to').array(), // User roles that can see this note
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+});
+
+// Lead Assignments and Territory Management
+export const leadAssignments = pgTable('lead_assignments', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  assignedTo: integer('assigned_to').references(() => users.id).notNull(),
+  assignedBy: integer('assigned_by').references(() => users.id).notNull(),
+  assignmentType: text('assignment_type'), // primary, secondary, team
+  assignmentReason: text('assignment_reason'),
+  assignmentDate: timestamp('assignment_date').defaultNow(),
+  status: text('status').default('active'), // active, transferred, completed
+  priority: text('priority').default('medium'),
+  expectedCloseDate: timestamp('expected_close_date'),
+  actualCloseDate: timestamp('actual_close_date'),
+  transferReason: text('transfer_reason'),
+  createdAt: timestamp('created_at').defaultNow()
+});
+
+// User Profile Relations
+export const userProfilesRelations = relations(userProfiles, ({ one, many }) => ({
+  user: one(users, {
+    fields: [userProfiles.userId],
+    references: [users.id],
+  }),
+  assignedCounselorUser: one(users, {
+    fields: [userProfiles.assignedCounselor],
+    references: [users.id],
+  }),
+  activities: many(leadActivities),
+  notes: many(leadNotes),
+  assignments: many(leadAssignments),
+}));
+
+export const leadActivitiesRelations = relations(leadActivities, ({ one }) => ({
+  user: one(users, {
+    fields: [leadActivities.userId],
+    references: [users.id],
+  }),
+  performedByUser: one(users, {
+    fields: [leadActivities.performedBy],
+    references: [users.id],
+  }),
+}));
+
+export const leadNotesRelations = relations(leadNotes, ({ one }) => ({
+  user: one(users, {
+    fields: [leadNotes.userId],
+    references: [users.id],
+  }),
+  addedByUser: one(users, {
+    fields: [leadNotes.addedBy],
+    references: [users.id],
+  }),
+}));
+
+export const leadAssignmentsRelations = relations(leadAssignments, ({ one }) => ({
+  user: one(users, {
+    fields: [leadAssignments.userId],
+    references: [users.id],
+  }),
+  assignedToUser: one(users, {
+    fields: [leadAssignments.assignedTo],
+    references: [users.id],
+  }),
+  assignedByUser: one(users, {
+    fields: [leadAssignments.assignedBy],
+    references: [users.id],
+  }),
+}));
+
+// Enhanced User Profile Schema Validation
+export const insertUserProfileSchema = createInsertSchema(userProfiles, {
+  userId: z.number().positive("User ID is required"),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  phoneNumber: z.string().regex(/^[\+]?[\d\s\-\(\)]{7,15}$/, "Invalid phone number format").optional(),
+  dateOfBirth: z.string().optional(),
+  gender: z.enum(["male", "female", "other", "prefer_not_to_say"]).optional(),
+  leadStatus: z.enum(["new", "contacted", "qualified", "interested", "enrolled", "closed"]).default("new"),
+  leadPriority: z.enum(["high", "medium", "low"]).default("medium"),
+  leadScore: z.number().min(0).max(100).default(0),
+  communicationPreference: z.enum(["phone", "email", "whatsapp", "video_call"]).optional(),
+  preferredCountries: z.array(z.string()).default([]),
+  tags: z.array(z.string()).default([]),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertLeadActivitySchema = createInsertSchema(leadActivities, {
+  userId: z.number().positive("User ID is required"),
+  activityType: z.string().min(1, "Activity type is required"),
+  activityDescription: z.string().optional(),
+  performedBy: z.number().positive().optional(),
+  duration: z.number().min(0).optional(),
+  outcome: z.string().optional(),
+  nextAction: z.string().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  activityDate: true,
+});
+
+export const insertLeadNoteSchema = createInsertSchema(leadNotes, {
+  userId: z.number().positive("User ID is required"),
+  noteContent: z.string().min(1, "Note content is required"),
+  addedBy: z.number().positive("Added by user ID is required"),
+  noteType: z.enum(["general", "consultation", "follow_up", "internal"]).optional(),
+  priority: z.enum(["high", "normal", "low"]).default("normal"),
+  isInternal: z.boolean().default(false),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Type exports for CRM system
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
+
+export type LeadActivity = typeof leadActivities.$inferSelect;
+export type InsertLeadActivity = z.infer<typeof insertLeadActivitySchema>;
+
+export type LeadNote = typeof leadNotes.$inferSelect;
+export type InsertLeadNote = z.infer<typeof insertLeadNoteSchema>;
+
+export type LeadAssignment = typeof leadAssignments.$inferSelect;
+
 

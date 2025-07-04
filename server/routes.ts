@@ -4045,6 +4045,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   console.log("[INFO] [express] ✓ Document management routes registered successfully");
 
+  // User Profile and Leads Management Routes
+  const { userProfileRoutes } = await import('./userProfileRoutes');
+  app.use('/api/user-profile', userProfileRoutes);
+  
+  console.log("[INFO] [express] ✓ User profile and leads management routes registered successfully");
+
   const httpServer = createServer(app);
 
   return httpServer;
