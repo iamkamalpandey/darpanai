@@ -49,11 +49,29 @@ export function ProfileImageUpload({
   // Upload mutation
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
+      console.log('=== PROFILE IMAGE UPLOAD STARTED ===');
+      console.log('File details:', {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified
+      });
+      
       const formData = new FormData();
       formData.append('profileImage', file);
       
-      const response = await apiRequest('POST', '/api/user/upload-profile-image', formData);
-      return response;
+      console.log('FormData prepared with file:', file.name);
+      
+      console.log('Sending request to:', '/api/user/upload-profile-image');
+      
+      try {
+        const response = await apiRequest('POST', '/api/user/upload-profile-image', formData);
+        console.log('Upload response:', response);
+        return response;
+      } catch (error) {
+        console.error('Upload error:', error);
+        throw error;
+      }
     },
     onSuccess: (data: any) => {
       toast({

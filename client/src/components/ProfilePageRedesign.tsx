@@ -709,80 +709,35 @@ const ProfilePageRedesign: React.FC = () => {
     console.log('=== PERSONAL INFO SAVE TEST ===');
     console.log('Data being saved:', JSON.stringify(data, null, 2));
     console.log('Field count:', Object.keys(data).length);
-    updateProfileMutation.mutate(data, {
-      onSuccess: (response) => {
-        console.log('✓ Personal info saved successfully:', response);
-        console.log('✓ Save verification: Personal section complete');
-        setEditingSection(null);
-      },
-      onError: (error) => {
-        console.error('✗ Personal info save failed:', error);
-      }
-    });
+    updateProfileMutation.mutate(data);
   };
 
   const submitAcademicInfo = (data: any) => {
     console.log('=== ACADEMIC INFO SAVE TEST ===');
     console.log('Data being saved:', JSON.stringify(data, null, 2));
     console.log('Field count:', Object.keys(data).length);
-    updateProfileMutation.mutate(data, {
-      onSuccess: (response) => {
-        console.log('✓ Academic info saved successfully:', response);
-        console.log('✓ Save verification: Academic section complete');
-        setEditingSection(null);
-      },
-      onError: (error) => {
-        console.error('✗ Academic info save failed:', error);
-      }
-    });
+    updateProfileMutation.mutate(data);
   };
 
   const submitStudyPreferences = (data: any) => {
     console.log('=== STUDY PREFERENCES SAVE TEST ===');
     console.log('Data being saved:', JSON.stringify(data, null, 2));
     console.log('Field count:', Object.keys(data).length);
-    updateProfileMutation.mutate(data, {
-      onSuccess: (response) => {
-        console.log('✓ Study preferences saved successfully:', response);
-        console.log('✓ Save verification: Study section complete');
-        setEditingSection(null);
-      },
-      onError: (error) => {
-        console.error('✗ Study preferences save failed:', error);
-      }
-    });
+    updateProfileMutation.mutate(data);
   };
 
   const submitFinancialInfo = (data: any) => {
     console.log('=== FINANCIAL INFO SAVE TEST ===');
     console.log('Data being saved:', JSON.stringify(data, null, 2));
     console.log('Field count:', Object.keys(data).length);
-    updateProfileMutation.mutate(data, {
-      onSuccess: (response) => {
-        console.log('✓ Financial info saved successfully:', response);
-        console.log('✓ Save verification: Financial section complete');
-        setEditingSection(null);
-      },
-      onError: (error) => {
-        console.error('✗ Financial info save failed:', error);
-      }
-    });
+    updateProfileMutation.mutate(data);
   };
 
   const submitEmploymentInfo = (data: any) => {
     console.log('=== EMPLOYMENT INFO SAVE TEST ===');
     console.log('Data being saved:', JSON.stringify(data, null, 2));
     console.log('Field count:', Object.keys(data).length);
-    updateProfileMutation.mutate(data, {
-      onSuccess: (response) => {
-        console.log('✓ Employment info saved successfully:', response);
-        console.log('✓ Save verification: Employment section complete');
-        setEditingSection(null);
-      },
-      onError: (error) => {
-        console.error('✗ Employment info save failed:', error);
-      }
-    });
+    updateProfileMutation.mutate(data);
   };
 
 
