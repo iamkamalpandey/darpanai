@@ -6,7 +6,7 @@ import {
   type UserDocument,
   type InsertUserDocument
 } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import fs from 'fs';
 import path from 'path';
 import pdf from 'pdf-parse';
@@ -227,14 +227,16 @@ Extract general document information:
   // Get user documents
   async getUserDocuments(userId: number, category?: string) {
     try {
-      let query = db.select().from(userDocuments)
-        .where(eq(userDocuments.userId, userId));
-      
-      if (category) {
-        query = query.where(eq(userDocuments.documentCategory, category));
-      }
-      
-      return await query.orderBy(userDocuments.createdAt);
+      const result = await db.execute(sql`
+        SELECT id, user_id, file_name, file_path, file_size, file_type, 
+               category, upload_date, analysis_status, verification_status,
+               extracted_data, analysis_result, created_at, updated_at
+        FROM user_documents 
+        WHERE user_id = ${userId}
+        ${category && category !== 'all' ? sql`AND category = ${category}` : sql``}
+        ORDER BY created_at DESC
+      `);
+      return result.rows || [];
     } catch (error) {
       console.error('Error fetching user documents:', error);
       throw new Error('Failed to fetch user documents');
