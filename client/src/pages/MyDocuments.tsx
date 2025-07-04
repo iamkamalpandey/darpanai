@@ -31,24 +31,35 @@ import {
   User,
   ExternalLink,
   Grid3X3,
-  List
+  List,
+  Download,
+  RotateCcw
 } from 'lucide-react';
 
 interface UserDocument {
   id: number;
   file_name: string;
-  category: string;
-  document_type: string;
+  original_name: string;
+  file_path: string;
   file_size: number;
-  analysis_status: 'pending' | 'completed' | 'failed';
-  extracted_data: any;
-  verification_status: 'pending' | 'verified' | 'flagged';
-  discrepancies: string[];
-  uploaded_at: string;
-  last_analyzed_at?: string;
-  profile_match_accuracy?: number;
+  file_type: string;
+  document_category: string;
+  is_analyzed: boolean;
+  analysis_data: any;
+  extracted_fields: any;
+  validation_status: 'pending' | 'valid' | 'invalid' | 'needs_review';
+  validation_issues: any[];
+  tags: string[];
   description?: string;
-  custom_name?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  // Legacy compatibility fields
+  category: string;
+  analysis_status: 'pending' | 'completed' | 'failed';
+  verification_status: 'pending' | 'verified' | 'flagged';
+  uploaded_at: string;
+  extracted_data: any;
 }
 
 interface Application {
@@ -184,6 +195,25 @@ export default function MyDocuments() {
     }
   });
 
+  // Replace document mutation
+  const replaceMutation = useMutation({
+    mutationFn: async ({ id, formData }: { id: number; formData: FormData }) => {
+      const response = await fetch(`/api/documents/${id}/replace`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) throw new Error('Failed to replace document');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      toast({ title: 'Document replaced successfully' });
+    },
+    onError: () => {
+      toast({ title: 'Failed to replace document', variant: 'destructive' });
+    }
+  });
+
   // Apply to profile mutation
   const addToProfileMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -231,12 +261,11 @@ export default function MyDocuments() {
     setSelectedCategoryUpload('');
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed': return <CheckCircle className="h-5 w-5 text-green-500" />;
-      case 'failed': return <AlertTriangle className="h-5 w-5 text-red-500" />;
-      default: return <Clock className="h-5 w-5 text-yellow-500" />;
+  const getStatusIcon = (isAnalyzed: boolean) => {
+    if (isAnalyzed) {
+      return <CheckCircle className="h-5 w-5 text-green-500" />;
     }
+    return <Clock className="h-5 w-5 text-yellow-500" />;
   };
 
   const getVerificationBadge = (status: string) => {
@@ -270,20 +299,50 @@ export default function MyDocuments() {
 
   const handleEditDocument = (document: UserDocument) => {
     setEditingDocument(document.id);
-    setCustomName(document.custom_name || document.file_name || '');
-    setDocumentType(document.document_type || '');
+    setCustomName(document.original_name || document.file_name || '');
+    setDocumentType(document.document_category || '');
     setDescription(document.description || '');
     setSelectedCategoryUpload(document.category || '');
+  };
+
+  const handleDownloadDocument = (doc: UserDocument) => {
+    const link = document.createElement('a');
+    link.href = `/api/documents/${doc.id}/download`;
+    link.download = doc.original_name || doc.file_name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleReplaceDocument = (document: UserDocument) => {
+    if (fileInputRef.current) {
+      fileInputRef.current.onchange = (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (file) {
+          const formData = new FormData();
+          formData.append('document', file);
+          formData.append('documentCategory', document.document_category);
+          formData.append('description', document.description || '');
+          
+          replaceMutation.mutate({ id: document.id, formData });
+        }
+      };
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleAddToProfile = (document: UserDocument) => {
+    addToProfileMutation.mutate(document.id);
   };
 
   const handleSaveDocument = (id: number) => {
     updateMutation.mutate({
       id,
       data: {
-        custom_name: customName,
-        document_type: documentType,
+        original_name: customName,
+        document_category: documentType,
         description,
-        category: selectedCategoryUpload,
+        tags: selectedCategoryUpload ? [selectedCategoryUpload] : [],
       }
     });
   };
@@ -294,10 +353,6 @@ export default function MyDocuments() {
     setDocumentType('');
     setDescription('');
     setSelectedCategoryUpload('');
-  };
-
-  const handleAddToProfile = (document: UserDocument) => {
-    addToProfileMutation.mutate(document.id);
   };
 
   return (
@@ -544,7 +599,7 @@ export default function MyDocuments() {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
-                      {getStatusIcon(document.analysis_status)}
+                      {getStatusIcon(document.is_analyzed)}
                       <div className="flex-1 min-w-0">
                         {editingDocument === document.id ? (
                           <div className="space-y-2">
@@ -583,13 +638,13 @@ export default function MyDocuments() {
                         ) : (
                           <>
                             <h3 className="font-semibold text-lg truncate">
-                              {document.custom_name || document.file_name}
+                              {document.original_name || document.file_name}
                             </h3>
                             <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                              <span>{document.document_type}</span>
+                              <span>{document.document_category}</span>
                               <Badge variant="secondary">{document.category}</Badge>
-                              {getVerificationBadge(document.verification_status)}
-                              <span>Uploaded: {new Date(document.uploaded_at).toLocaleDateString()}</span>
+                              {getVerificationBadge(document.validation_status)}
+                              <span>Uploaded: {new Date(document.created_at).toLocaleDateString()}</span>
                               <span>{(document.file_size / 1024).toFixed(1)} KB</span>
                             </div>
                             {document.description && (
@@ -622,13 +677,19 @@ export default function MyDocuments() {
                           <Button size="sm" variant="ghost" onClick={() => handleEditDocument(document)}>
                             <Edit3 className="h-4 w-4" />
                           </Button>
+                          <Button size="sm" variant="ghost" onClick={() => handleDownloadDocument(document)}>
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => handleReplaceDocument(document)}>
+                            <RotateCcw className="h-4 w-4" />
+                          </Button>
                           <Button size="sm" variant="ghost" onClick={() => handleViewAnalysis(document)}>
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Button size="sm" variant="ghost" onClick={() => handleAssignToApplication(document)}>
                             <ExternalLink className="h-4 w-4" />
                           </Button>
-                          {document.analysis_status === 'pending' && (
+                          {!document.is_analyzed && (
                             <Button
                               size="sm"
                               variant="outline"
@@ -638,7 +699,7 @@ export default function MyDocuments() {
                               {analyzing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Brain className="h-4 w-4" />}
                             </Button>
                           )}
-                          {document.analysis_status === 'completed' && document.extracted_data && (
+                          {document.is_analyzed && document.extracted_fields && (
                             <Button
                               size="sm"
                               variant="outline"
@@ -647,6 +708,9 @@ export default function MyDocuments() {
                               <User className="h-4 w-4" />
                             </Button>
                           )}
+                          <Button size="sm" variant="ghost" onClick={() => deleteMutation.mutate(document.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </>
                       )}
                     </div>
@@ -786,6 +850,14 @@ export default function MyDocuments() {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Hidden file input for document replacement */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,.jpg,.jpeg,.png"
+          style={{ display: 'none' }}
+        />
       </div>
     </DashboardLayout>
   );

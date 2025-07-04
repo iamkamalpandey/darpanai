@@ -250,6 +250,106 @@ router.delete('/documents/:id', async (req, res) => {
   }
 });
 
+// Download document
+router.get('/documents/:id/download', async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const documentId = parseInt(req.params.id);
+    const documents = await documentAnalysisService.getUserDocuments(userId);
+    const document = documents.find(doc => doc.id === documentId);
+
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    const filePath = document.filePath;
+    if (!filePath || !fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'File not found on server' });
+    }
+
+    // Set appropriate headers for file download
+    res.setHeader('Content-Disposition', `attachment; filename="${document.originalName || document.fileName}"`);
+    res.setHeader('Content-Type', 'application/octet-stream');
+    
+    // Stream the file
+    const fileStream = fs.createReadStream(filePath);
+    fileStream.pipe(res);
+
+  } catch (error: any) {
+    console.error('Error downloading document:', error);
+    res.status(500).json({ 
+      error: 'Failed to download document',
+      details: error.message 
+    });
+  }
+});
+
+// Replace document
+router.post('/documents/:id/replace', upload.single('document'), async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const documentId = parseInt(req.params.id);
+    const documents = await documentAnalysisService.getUserDocuments(userId);
+    const document = documents.find(doc => doc.id === documentId);
+
+    if (!document) {
+      return res.status(404).json({ error: 'Document not found' });
+    }
+
+    // Delete old file
+    if (document.filePath && fs.existsSync(document.filePath)) {
+      fs.unlinkSync(document.filePath);
+    }
+
+    // Update document record with new file
+    const { documentCategory, description } = req.body;
+    const updateData: any = {
+      fileName: req.file.filename,
+      originalName: req.file.originalname,
+      filePath: req.file.path,
+      fileSize: req.file.size,
+      fileType: req.file.mimetype,
+      isAnalyzed: false, // Reset analysis status
+      analysisData: null,
+      extractedFields: null,
+      validationStatus: 'pending',
+      updatedAt: new Date().toISOString()
+    };
+
+    if (documentCategory) updateData.documentCategory = documentCategory;
+    if (description) updateData.description = description;
+
+    await db.update(userDocuments)
+      .set(updateData)
+      .where(eq(userDocuments.id, documentId));
+
+    res.json({ 
+      success: true, 
+      message: 'Document replaced successfully',
+      document: { ...document, ...updateData }
+    });
+
+  } catch (error: any) {
+    console.error('Error replacing document:', error);
+    res.status(500).json({ 
+      error: 'Failed to replace document',
+      details: error.message 
+    });
+  }
+});
+
 // Get country-specific document requirements
 router.get('/requirements/:countryCode', async (req, res) => {
   try {
