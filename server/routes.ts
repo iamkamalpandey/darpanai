@@ -4045,9 +4045,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   console.log("[INFO] [express] ✓ Document management routes registered successfully");
 
-  // User Profile and Leads Management Routes
-  const { userProfileRoutes } = await import('./userProfileRoutes');
-  app.use('/api/user-profile', userProfileRoutes);
+  // User Profile Routes - Simple version without CRM
+  const simpleUserProfileRoutes = (await import('./simpleUserProfileRoutes')).default;
+  app.use('/api/user-profile', simpleUserProfileRoutes);
   
   console.log("[INFO] [express] ✓ User profile and leads management routes registered successfully");
 

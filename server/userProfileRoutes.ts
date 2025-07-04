@@ -1,6 +1,6 @@
 // User Profile and Leads Management API Routes
 import express from 'express';
-import { userProfileService } from './userProfileService';
+import { simpleUserProfileService } from './simpleUserProfileService';
 import { insertUserProfileSchema, insertLeadActivitySchema, insertLeadNoteSchema } from '@shared/schema';
 import { z } from 'zod';
 
@@ -22,7 +22,7 @@ const requireAuth = (req: any, res: any, next: any) => {
 router.get('/profile', requireAuth, async (req, res) => {
   try {
     const userId = req.user!.id;
-    const profile = await userProfileService.getUserProfile(userId);
+    const profile = await simpleUserProfileService.getUserProfile(userId);
     
     if (!profile) {
       return res.status(404).json({ error: 'Profile not found' });
