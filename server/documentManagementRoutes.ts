@@ -60,19 +60,19 @@ router.post('/upload', upload.single('document'), async (req, res) => {
 
     // Store document directly without AI analysis
     const documentData = {
-      userId,
+      userId: userId,
       fileName: req.file.filename,
       originalName: req.file.originalname,
       filePath: req.file.path,
       fileType: req.file.mimetype,
       fileSize: req.file.size,
-      documentCategory,
+      documentCategory: documentCategory,
       isAnalyzed: false,
       analysisData: null,
       extractedFields: null,
-      validationStatus: 'pending',
+      validationStatus: 'pending' as const,
       validationIssues: [],
-      description,
+      description: description || null,
       tags: [documentCategory]
     };
 
