@@ -427,22 +427,42 @@ const ProfilePageRedesign: React.FC = () => {
   // Profile update mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch('/api/user/complete-profile', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      console.log('=== PROFILE UPDATE MUTATION STARTED ===');
+      console.log('Data to send:', JSON.stringify(data, null, 2));
+      console.log('Data keys:', Object.keys(data));
+      console.log('Data values count:', Object.keys(data).length);
       
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to update profile');
+      try {
+        const response = await fetch('/api/user/complete-profile', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+        
+        console.log('Response status:', response.status);
+        console.log('Response status text:', response.statusText);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+        
+        if (!response.ok) {
+          const error = await response.json();
+          console.error('Response not ok:', error);
+          throw new Error(error.message || 'Failed to update profile');
+        }
+        
+        const responseData = await response.json();
+        console.log('Success response data:', responseData);
+        return responseData;
+      } catch (fetchError) {
+        console.error('Fetch error occurred:', fetchError);
+        throw fetchError;
       }
-      
-      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('=== PROFILE UPDATE SUCCESS ===');
+      console.log('Success data:', data);
+      
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/fresh'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile-completion'] });
@@ -454,7 +474,11 @@ const ProfilePageRedesign: React.FC = () => {
       });
     },
     onError: (error: any) => {
-      console.error('Profile update error:', error);
+      console.error('=== PROFILE UPDATE ERROR ===');
+      console.error('Error details:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      
       toast({
         title: "Update Failed",
         description: error.message || "Failed to update profile. Please try again.",
