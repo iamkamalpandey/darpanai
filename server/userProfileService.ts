@@ -339,11 +339,13 @@ export class UserProfileService {
   
   async getUserNotes(userId: number, includeInternal: boolean = false): Promise<LeadNote[]> {
     try {
-      let whereClause = eq(leadNotes.userId, userId);
+      const conditions = [eq(leadNotes.userId, userId)];
       
       if (!includeInternal) {
-        whereClause = and(whereClause, eq(leadNotes.isInternal, false));
+        conditions.push(eq(leadNotes.isInternal, false));
       }
+      
+      const whereClause = conditions.length > 1 ? and(...conditions) : conditions[0];
       
       const notes = await db
         .select()

@@ -1,6 +1,11 @@
 // User Profile and Leads Management API Routes
 import express from 'express';
 import { userProfileService } from './userProfileService';
+import { insertUserProfileSchema, insertLeadActivitySchema, insertLeadNoteSchema } from '@shared/schema';
+import { z } from 'zod';
+
+const router = express.Router();
+
 // Authentication middleware
 const requireAuth = (req: any, res: any, next: any) => {
   if (!req.isAuthenticated() || !req.user) {
@@ -8,10 +13,6 @@ const requireAuth = (req: any, res: any, next: any) => {
   }
   next();
 };
-import { insertUserProfileSchema, insertLeadActivitySchema, insertLeadNoteSchema } from '@shared/schema';
-import { z } from 'zod';
-
-const router = express.Router();
 
 // ============================================================================
 // USER PROFILE ENDPOINTS
