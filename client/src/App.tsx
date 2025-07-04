@@ -65,6 +65,8 @@ const AdminUsers = lazy(() => import("@/pages/admin-users"));
 const AdminProfessionalApplications = lazy(() => import("@/pages/admin-professional-applications"));
 const AdminApplicationManagement = lazy(() => import("@/pages/AdminApplicationManagement"));
 const SmartApplicationManagement = lazy(() => import("@/pages/SmartApplicationManagement"));
+const ModernApplicationHub = lazy(() => import("@/pages/ModernApplicationHub"));
+const ModernAdminApplicationManagement = lazy(() => import("@/pages/admin/ModernAdminApplicationManagement"));
 const AdminUpdates = lazy(() => import("@/pages/admin-updates"));
 const AdminSettings = lazy(() => import("@/pages/admin-settings"));
 const AdminDocumentTemplates = lazy(() => import("@/pages/admin-document-templates"));
@@ -251,6 +253,13 @@ function Router() {
         <UserProtectedRoute path="/document-intelligence-hub" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <DocumentIntelligenceHub />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/application-hub">
+        <UserProtectedRoute path="/application-hub" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <ModernApplicationHub />
           </Suspense>
         )} />
       </Route>
@@ -615,6 +624,13 @@ function Router() {
         <AdminProtectedRoute path="/admin/smart-applications" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <SmartApplicationManagement />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/admin/modern-applications">
+        <AdminProtectedRoute path="/admin/modern-applications" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <ModernAdminApplicationManagement />
           </Suspense>
         )} />
       </Route>
