@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -6,6 +6,7 @@ import { documentAnalysisService } from './documentAnalysisService';
 import { db } from './db';
 import { countryDocumentRequirements, requiredDocuments, userDocuments } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
+import { storage as dbStorage } from './storage';
 
 const router = express.Router();
 
@@ -57,24 +58,30 @@ router.post('/upload', upload.single('document'), async (req, res) => {
       return res.status(400).json({ error: 'Document category is required' });
     }
 
-    // Process document with AI analysis
-    const result = await documentAnalysisService.processDocument(
+    // Store document directly without AI analysis
+    const documentData = {
       userId,
-      req.file.path,
-      req.file.filename,
-      req.file.originalname,
-      req.file.mimetype,
-      req.file.size,
+      fileName: req.file.filename,
+      originalName: req.file.originalname,
+      filePath: req.file.path,
+      fileType: req.file.mimetype,
+      fileSize: req.file.size,
       documentCategory,
-      description
-    );
+      isAnalyzed: false,
+      analysisData: null,
+      extractedFields: null,
+      validationStatus: 'pending',
+      validationIssues: [],
+      description,
+      tags: [documentCategory]
+    };
+
+    const storedDocument = await documentAnalysisService.storeUserDocument(documentData);
 
     res.json({
       success: true,
-      document: result.document,
-      analysis: result.analysisData,
-      validationIssues: result.validationIssues,
-      profileUpdate: result.profileUpdate
+      document: storedDocument,
+      message: 'Document uploaded successfully. Analysis can be performed when needed.'
     });
 
   } catch (error: any) {

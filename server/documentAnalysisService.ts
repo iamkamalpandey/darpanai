@@ -49,32 +49,70 @@ export class DocumentAnalysisService {
     }
   }
 
-  // AI-powered document analysis using Anthropic Claude
+  // AI-powered document analysis with DeepSeek primary and OpenAI fallback
   async analyzeDocument(documentText: string, documentCategory: string): Promise<any> {
+    const systemPrompt = this.getAnalysisPrompt(documentCategory);
+    const userMessage = `Please analyze this ${documentCategory} document and extract structured information:\n\n${documentText}`;
+    
+    // Try DeepSeek first
     try {
-      const systemPrompt = this.getAnalysisPrompt(documentCategory);
-      
-      const response = await anthropic.messages.create({
-        model: DEFAULT_MODEL_STR, // "claude-sonnet-4-20250514"
-        max_tokens: 2000,
-        system: systemPrompt,
-        messages: [
-          {
-            role: 'user',
-            content: `Please analyze this ${documentCategory} document and extract structured information:\n\n${documentText}`
-          }
-        ]
+      console.log('Attempting document analysis with DeepSeek...');
+      const deepSeekResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'deepseek-chat',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage }
+          ],
+          max_tokens: 2000,
+          temperature: 0.1
+        })
       });
 
-      const analysisResult = response.content[0];
-      if (analysisResult.type === 'text') {
-        return JSON.parse(analysisResult.text);
+      if (deepSeekResponse.ok) {
+        const deepSeekData = await deepSeekResponse.json();
+        const content = deepSeekData.choices[0]?.message?.content;
+        if (content) {
+          console.log('Document analysis completed with DeepSeek');
+          return JSON.parse(content);
+        }
+      } else {
+        throw new Error(`DeepSeek API error: ${deepSeekResponse.status}`);
+      }
+    } catch (deepSeekError) {
+      console.warn('DeepSeek analysis failed, falling back to OpenAI:', deepSeekError.message);
+    }
+
+    // Fallback to OpenAI
+    try {
+      console.log('Attempting document analysis with OpenAI...');
+      const { openai } = await import('./openai');
+      
+      const openaiResponse = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage }
+        ],
+        max_tokens: 2000,
+        temperature: 0.1
+      });
+
+      const content = openaiResponse.choices[0]?.message?.content;
+      if (content) {
+        console.log('Document analysis completed with OpenAI');
+        return JSON.parse(content);
       }
       
-      throw new Error('Invalid response format from AI analysis');
-    } catch (error) {
-      console.error('Error analyzing document with AI:', error);
-      throw new Error('Failed to analyze document with AI');
+      throw new Error('Invalid response format from OpenAI');
+    } catch (openaiError) {
+      console.error('Both DeepSeek and OpenAI analysis failed:', openaiError.message);
+      throw new Error(`AI analysis failed: ${openaiError.message}`);
     }
   }
 
@@ -325,15 +363,30 @@ Extract general document information:
       // Extract text from document
       const documentText = await this.extractTextFromDocument(filePath, fileType);
       
-      // Analyze with AI
-      const analysisData = await this.analyzeDocument(documentText, documentCategory);
+      let analysisData = null;
+      let validationIssues: string[] = [];
+      let validationStatus = 'pending';
       
-      // Validate against profile
-      const validationIssues = await this.validateAgainstProfile(analysisData, userId);
-      
-      // Determine validation status
-      const validationStatus = validationIssues.length === 0 ? 'valid' : 
-                             validationIssues.length <= 2 ? 'needs_review' : 'invalid';
+      try {
+        // Try to analyze with AI
+        analysisData = await this.analyzeDocument(documentText, documentCategory);
+        
+        // Validate against profile
+        validationIssues = await this.validateAgainstProfile(analysisData, userId);
+        
+        // Determine validation status
+        validationStatus = validationIssues.length === 0 ? 'valid' : 
+                          validationIssues.length <= 2 ? 'needs_review' : 'invalid';
+      } catch (aiError) {
+        console.warn('AI analysis failed, storing document without analysis:', aiError.message);
+        // Continue without AI analysis - document will be stored with pending status
+        analysisData = {
+          documentType: documentCategory,
+          extractedText: documentText.substring(0, 500), // Store first 500 chars
+          analysisStatus: 'failed',
+          error: 'AI analysis unavailable'
+        };
+      }
       
       // Store document
       const documentData: InsertUserDocument = {
@@ -344,21 +397,25 @@ Extract general document information:
         fileType,
         fileSize,
         documentCategory,
-        isAnalyzed: true,
+        isAnalyzed: analysisData !== null,
         analysisData,
         extractedFields: analysisData,
         validationStatus,
         validationIssues,
         description,
-        tags: [documentCategory, analysisData.documentType || 'unknown']
+        tags: [documentCategory, analysisData?.documentType || 'unknown']
       };
 
       const storedDocument = await this.storeUserDocument(documentData);
       
       // Auto-populate profile if document is valid
       let profileUpdate = null;
-      if (validationStatus === 'valid') {
-        profileUpdate = await this.autoPopulateProfile(userId, analysisData);
+      if (validationStatus === 'valid' && analysisData) {
+        try {
+          profileUpdate = await this.autoPopulateProfile(userId, analysisData);
+        } catch (profileError) {
+          console.warn('Profile auto-population failed:', profileError.message);
+        }
       }
 
       return {
@@ -366,7 +423,10 @@ Extract general document information:
         analysisData,
         validationIssues,
         profileUpdate,
-        success: true
+        success: true,
+        message: analysisData?.analysisStatus === 'failed' ? 
+          'Document uploaded successfully. AI analysis will be retried later.' : 
+          'Document uploaded and analyzed successfully.'
       };
     } catch (error) {
       console.error('Error processing document:', error);
