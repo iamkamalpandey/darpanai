@@ -9,13 +9,147 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
+// Unified Professional Application System
+export const institutions = pgTable("institutions", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  country: text("country").notNull(),
+  city: text("city").notNull(),
+  type: text("type").notNull(), // university, college, institute
+  ranking: integer("ranking"),
+  website: text("website"),
+  logo: text("logo"),
+  description: text("description"),
+  accreditation: text("accreditation"),
+  establishedYear: integer("established_year"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const courses = pgTable("courses", {
+  id: serial("id").primaryKey(),
+  institutionId: integer("institution_id").references(() => institutions.id).notNull(),
+  name: text("name").notNull(),
+  code: text("code").notNull(),
+  level: text("level").notNull(), // diploma, bachelor, master, phd
+  field: text("field").notNull(),
+  duration: text("duration").notNull(),
+  tuitionFee: decimal("tuition_fee", { precision: 10, scale: 2 }).notNull(),
+  applicationFee: decimal("application_fee", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").notNull(),
+  intakeMonths: text("intake_months").array().notNull(), // ["January", "September"]
+  requirements: jsonb("requirements").notNull(), // Academic requirements
+  description: text("description"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const requiredDocuments = pgTable("required_documents", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  category: text("category").notNull(), // academic, personal, financial, visa
+  isRequired: boolean("is_required").default(true).notNull(),
+  fileTypes: text("file_types").array().notNull(), // ["pdf", "jpg", "png"]
+  maxSize: integer("max_size").notNull(), // in MB
+  instructions: text("instructions"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Country-specific document requirements
+export const countryDocumentRequirements = pgTable("country_document_requirements", {
+  id: serial("id").primaryKey(),
+  countryCode: text("country_code").notNull(), // ISO country code
+  countryName: text("country_name").notNull(),
+  documentId: integer("document_id").references(() => requiredDocuments.id).notNull(),
+  isRequired: boolean("is_required").default(true).notNull(),
+  specificInstructions: text("specific_instructions"), // Country-specific instructions
+  order: integer("order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// User document library - where users store their analyzed documents
+export const userDocuments = pgTable("user_documents", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  fileName: text("file_name").notNull(),
+  originalName: text("original_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileType: text("file_type").notNull(),
+  fileSize: integer("file_size").notNull(),
+  documentCategory: text("document_category").notNull(), // academic, personal, financial, visa
+  isAnalyzed: boolean("is_analyzed").default(false).notNull(),
+  analysisData: jsonb("analysis_data"), // AI extracted data
+  extractedFields: jsonb("extracted_fields"), // Structured extracted information
+  validationStatus: text("validation_status").default("pending").notNull(), // pending, valid, invalid, needs_review
+  validationIssues: jsonb("validation_issues"), // Array of validation issues found
+  tags: text("tags").array().default([]), // User-defined tags for organization
+  description: text("description"), // User description
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const courseDocuments = pgTable("course_documents", {
+  id: serial("id").primaryKey(),
+  courseId: integer("course_id").references(() => courses.id).notNull(),
+  documentId: integer("document_id").references(() => requiredDocuments.id).notNull(),
+  isRequired: boolean("is_required").default(true).notNull(),
+  order: integer("order").default(0).notNull(),
+});
+
+export const applications = pgTable("applications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  institutionId: integer("institution_id").references(() => institutions.id).notNull(),
+  courseId: integer("course_id").references(() => courses.id).notNull(),
+  applicationNumber: text("application_number").notNull().unique(),
+  status: text("status").default("draft").notNull(), // draft, submitted, under_review, approved, rejected, withdrawn
+  personalInfo: jsonb("personal_info").notNull(),
+  academicInfo: jsonb("academic_info").notNull(),
+  contactInfo: jsonb("contact_info").notNull(),
+  emergencyContact: jsonb("emergency_contact").notNull(),
+  statementOfPurpose: text("statement_of_purpose"),
+  scholarshipApplications: jsonb("scholarship_applications"), // Array of applied scholarships
+  totalFees: decimal("total_fees", { precision: 10, scale: 2 }).notNull(),
+  scholarshipAmount: decimal("scholarship_amount", { precision: 10, scale: 2 }).default("0"),
+  netAmount: decimal("net_amount", { precision: 10, scale: 2 }).notNull(),
+  intakeMonth: text("intake_month").notNull(),
+  intakeYear: integer("intake_year").notNull(),
+  submittedAt: timestamp("submitted_at"),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: integer("reviewed_by").references(() => users.id),
+  reviewComments: text("review_comments"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const applicationDocuments = pgTable("application_documents", {
+  id: serial("id").primaryKey(),
+  applicationId: integer("application_id").references(() => applications.id).notNull(),
+  documentId: integer("document_id").references(() => requiredDocuments.id).notNull(),
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileSize: integer("file_size").notNull(),
+  fileType: text("file_type").notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+  verifiedAt: timestamp("verified_at"),
+  verifiedBy: integer("verified_by").references(() => users.id),
+  verificationStatus: text("verification_status").default("pending").notNull(), // pending, verified, rejected
+  verificationComments: text("verification_comments"),
+});
+
 // Communication Center Tables
 export const conversations = pgTable("conversations", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   priority: text("priority").default("medium").notNull(), // low, medium, high, urgent
   status: text("status").default("active").notNull(), // active, closed, waiting_response
-  applicationId: integer("application_id").references(() => studentApplications.id),
+  applicationId: integer("application_id").references(() => applications.id),
   createdBy: integer("created_by").references(() => users.id).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -141,106 +275,24 @@ export const countryWorkflows = pgTable("country_workflows", {
   currency: text("currency").default("USD"),
 });
 
-// Country Document Requirements
-export const countryDocumentRequirements = pgTable("country_document_requirements", {
-  id: serial("id").primaryKey(),
-  countryCode: text("country_code").notNull(), // AU, US, UK, CA, etc.
-  studyLevel: text("study_level").notNull(), // bachelor, master, phd, diploma
-  documentType: text("document_type").notNull(), // passport, transcript, sop, financial_proof, etc.
-  documentName: text("document_name").notNull(), // "Valid Passport", "Academic Transcripts"
-  description: text("description").notNull(),
-  isRequired: boolean("is_required").default(true).notNull(),
-  acceptedFormats: text("accepted_formats").array(), // ["pdf", "jpg", "png"]
-  maxFileSize: integer("max_file_size").default(10485760), // 10MB in bytes
-  notes: text("notes"),
-  sortOrder: integer("sort_order").default(0).notNull(),
-  isActive: boolean("is_active").default(true).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+// Cleaned up schema - removed syntax errors
 
-// Application Documents Uploaded
-export const applicationDocuments = pgTable("application_documents", {
-  id: serial("id").primaryKey(),
-  applicationId: integer("application_id").references(() => studentApplications.id).notNull(),
-  documentType: text("document_type").notNull(),
-  fileName: text("file_name").notNull(),
-  filePath: text("file_path").notNull(),
-  fileSize: integer("file_size").notNull(),
-  mimeType: text("mime_type").notNull(),
-  uploadStatus: text("upload_status").default("uploaded").notNull(), // uploaded, verified, rejected
-  verificationNotes: text("verification_notes"),
-  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
-});
-
-// Enhanced Student Applications for Study Abroad
+// Legacy student applications table - keeping for backward compatibility
 export const studentApplications = pgTable("student_applications", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id).notNull(),
-  
-  // Application Basic Information
-  applicationNumber: text("application_number").notNull().unique(), // Auto-generated unique ID
-  status: text("status").default("draft").notNull(), // draft, submitted, under_review, documents_requested, approved, rejected, on_hold
-  priority: text("priority").default("normal").notNull(), // urgent, high, normal, low
-  
-  // Study Destination & Program
+  applicationNumber: text("application_number").notNull().unique(),
+  status: text("status").default("draft").notNull(),
   targetCountry: text("target_country").notNull(),
-  studyLevel: text("study_level").notNull(), // bachelor, master, phd, diploma, certificate
+  studyLevel: text("study_level").notNull(),
   fieldOfStudy: text("field_of_study").notNull(),
-  preferredIntake: text("preferred_intake").notNull(), // Fall 2024, Spring 2025, etc.
-  specificInstitutions: jsonb("specific_institutions"), // Array of preferred universities
-  
-  // Personal Information (from user profile + additional)
-  personalDetails: jsonb("personal_details").notNull(), // Full personal info snapshot
-  emergencyContact: jsonb("emergency_contact"), // Emergency contact details
-  
-  // Academic Background
-  academicDetails: jsonb("academic_details").notNull(), // Education history, GPA, etc.
-  highestQualificationDocument: text("highest_qualification_document"), // File path for highest academic document
-  
-  // Financial Information
+  preferredIntake: text("preferred_intake").notNull(),
+  personalDetails: jsonb("personal_details").notNull(),
+  academicDetails: jsonb("academic_details").notNull(),
   budgetRange: text("budget_range").notNull(),
-  fundingSource: text("funding_source").notNull(), // self-funded, scholarship, loan, family, sponsor
-  financialDocuments: jsonb("financial_documents"), // Array of financial document references
-  sponsorInformation: jsonb("sponsor_information"), // If sponsored
-  
-  // Language Proficiency
-  englishProficiency: jsonb("english_proficiency"), // IELTS, TOEFL, PTE scores
-  languageCertificates: jsonb("language_certificates"), // Document references
-  
-  // Additional Documents
-  requiredDocuments: jsonb("required_documents").default([]).notNull(), // List of required docs
-  uploadedDocuments: jsonb("uploaded_documents").default([]).notNull(), // Array of uploaded file references
-  documentStatus: jsonb("document_status").default({}).notNull(), // Document verification status
-  
-  // Application Progress
-  currentStep: text("current_step").default("personal_info"), // personal_info, academic_info, documents, review, submit
-  completedSteps: jsonb("completed_steps").default([]).notNull(), // Array of completed step names
-  progressPercentage: integer("progress_percentage").default(0).notNull(),
-  
-  // Admin Management
-  assignedCounselor: text("assigned_counselor"), // Admin user handling the application
-  internalNotes: text("internal_notes"), // Admin notes (not visible to student)
-  publicNotes: text("public_notes"), // Notes visible to student
-  followUpDate: timestamp("follow_up_date"), // When admin should follow up
-  
-  // Communication & Updates
-  lastContactDate: timestamp("last_contact_date"),
-  communicationLog: jsonb("communication_log").default([]).notNull(), // Array of communication records
-  studentQueries: jsonb("student_queries").default([]).notNull(), // Student questions/concerns
-  
-  // Timeline
-  submittedAt: timestamp("submitted_at"),
-  reviewStartedAt: timestamp("review_started_at"),
-  documentRequestedAt: timestamp("document_requested_at"),
-  completedAt: timestamp("completed_at"),
-  estimatedDecisionDate: timestamp("estimated_decision_date"),
-  
-  // Metadata
+  fundingSource: text("funding_source").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-  termsAccepted: boolean("terms_accepted").default(false).notNull(),
-  dataProcessingConsent: boolean("data_processing_consent").default(false).notNull(),
 });
 
 // Application Status History for tracking changes
@@ -1928,6 +1980,180 @@ export const countrySelectionSchema = z.object({
   fieldOfStudy: z.string().optional(),
   hasWorkflowSupport: z.boolean(),
   workflowId: z.number().optional(),
+});
+
+// Unified Application System Type Definitions
+export const insertInstitutionSchema = createInsertSchema(institutions, {
+  name: z.string().min(1, "Institution name is required"),
+  country: z.string().min(1, "Country is required"),
+  city: z.string().min(1, "City is required"),
+  type: z.enum(["university", "college", "institute"]),
+  ranking: z.number().optional(),
+  website: z.string().url().optional(),
+  logo: z.string().optional(),
+  description: z.string().optional(),
+  accreditation: z.string().optional(),
+  establishedYear: z.number().optional(),
+  isActive: z.boolean().default(true),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCourseSchema = createInsertSchema(courses, {
+  institutionId: z.number().positive("Institution ID is required"),
+  name: z.string().min(1, "Course name is required"),
+  code: z.string().min(1, "Course code is required"),
+  level: z.enum(["diploma", "bachelor", "master", "phd"]),
+  field: z.string().min(1, "Field of study is required"),
+  duration: z.string().min(1, "Duration is required"),
+  tuitionFee: z.string().min(1, "Tuition fee is required"),
+  applicationFee: z.string().min(1, "Application fee is required"),
+  currency: z.string().min(1, "Currency is required"),
+  intakeMonths: z.array(z.string()).min(1, "At least one intake month is required"),
+  requirements: z.record(z.any()).default({}),
+  description: z.string().optional(),
+  isActive: z.boolean().default(true),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertRequiredDocumentSchema = createInsertSchema(requiredDocuments, {
+  name: z.string().min(1, "Document name is required"),
+  description: z.string().optional(),
+  category: z.enum(["academic", "personal", "financial", "visa"]),
+  isRequired: z.boolean().default(true),
+  fileTypes: z.array(z.string()).min(1, "At least one file type is required"),
+  maxSize: z.number().positive("Maximum file size is required"),
+  instructions: z.string().optional(),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertApplicationSchema = createInsertSchema(applications, {
+  userId: z.number().positive("User ID is required"),
+  institutionId: z.number().positive("Institution ID is required"),
+  courseId: z.number().positive("Course ID is required"),
+  applicationNumber: z.string().min(1, "Application number is required"),
+  status: z.enum(["draft", "submitted", "under_review", "approved", "rejected", "withdrawn"]).default("draft"),
+  personalInfo: z.record(z.any()).default({}),
+  academicInfo: z.record(z.any()).default({}),
+  contactInfo: z.record(z.any()).default({}),
+  emergencyContact: z.record(z.any()).default({}),
+  statementOfPurpose: z.string().optional(),
+  scholarshipApplications: z.array(z.any()).default([]),
+  totalFees: z.string().min(1, "Total fees is required"),
+  scholarshipAmount: z.string().default("0"),
+  netAmount: z.string().min(1, "Net amount is required"),
+  intakeMonth: z.string().min(1, "Intake month is required"),
+  intakeYear: z.number().positive("Intake year is required"),
+}).omit({
+  id: true,
+  submittedAt: true,
+  reviewedAt: true,
+  reviewedBy: true,
+  reviewComments: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertApplicationDocumentSchema = createInsertSchema(applicationDocuments, {
+  applicationId: z.number().positive("Application ID is required"),
+  documentId: z.number().positive("Document ID is required"),
+  fileName: z.string().min(1, "File name is required"),
+  filePath: z.string().min(1, "File path is required"),
+  fileSize: z.number().positive("File size is required"),
+  fileType: z.string().min(1, "File type is required"),
+  verificationStatus: z.enum(["pending", "verified", "rejected"]).default("pending"),
+  verificationComments: z.string().optional(),
+}).omit({
+  id: true,
+  uploadedAt: true,
+  verifiedAt: true,
+  verifiedBy: true,
+});
+
+// Database relations for unified application system
+export const institutionRelations = relations(institutions, ({ many }) => ({
+  courses: many(courses),
+  applications: many(applications),
+}));
+
+export const courseRelations = relations(courses, ({ one, many }) => ({
+  institution: one(institutions, {
+    fields: [courses.institutionId],
+    references: [institutions.id],
+  }),
+  applications: many(applications),
+  requiredDocuments: many(courseDocuments),
+}));
+
+export const applicationRelations = relations(applications, ({ one, many }) => ({
+  user: one(users, {
+    fields: [applications.userId],
+    references: [users.id],
+  }),
+  institution: one(institutions, {
+    fields: [applications.institutionId],
+    references: [institutions.id],
+  }),
+  course: one(courses, {
+    fields: [applications.courseId],
+    references: [courses.id],
+  }),
+  documents: many(applicationDocuments),
+  conversations: many(conversations),
+}));
+
+export const applicationDocumentRelations = relations(applicationDocuments, ({ one }) => ({
+  application: one(applications, {
+    fields: [applicationDocuments.applicationId],
+    references: [applications.id],
+  }),
+  requiredDocument: one(requiredDocuments, {
+    fields: [applicationDocuments.documentId],
+    references: [requiredDocuments.id],
+  }),
+  verifiedByUser: one(users, {
+    fields: [applicationDocuments.verifiedBy],
+    references: [users.id],
+  }),
+}));
+
+// Type exports for unified application system
+export type Institution = typeof institutions.$inferSelect;
+export type InsertInstitution = z.infer<typeof insertInstitutionSchema>;
+export type Course = typeof courses.$inferSelect;
+export type InsertCourse = z.infer<typeof insertCourseSchema>;
+export type RequiredDocument = typeof requiredDocuments.$inferSelect;
+export type InsertRequiredDocument = z.infer<typeof insertRequiredDocumentSchema>;
+export type Application = typeof applications.$inferSelect;
+export type InsertApplication = z.infer<typeof insertApplicationSchema>;
+export type ApplicationDocument = typeof applicationDocuments.$inferSelect;
+export type InsertApplicationDocument = z.infer<typeof insertApplicationDocumentSchema>;
+
+// Document management type definitions
+export type UserDocument = typeof userDocuments.$inferSelect;
+export type InsertUserDocument = typeof userDocuments.$inferInsert;
+
+export const insertUserDocumentSchema = createInsertSchema(userDocuments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type CountryDocumentRequirement = typeof countryDocumentRequirements.$inferSelect;
+export type InsertCountryDocumentRequirement = typeof countryDocumentRequirements.$inferInsert;
+
+export const insertCountryDocumentRequirementSchema = createInsertSchema(countryDocumentRequirements).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 // Study Abroad Expert schemas and types

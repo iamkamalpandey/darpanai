@@ -103,6 +103,7 @@ const ScholarshipResearchHub = lazy(() => import("@/pages/ScholarshipResearchHub
 const CulturalAdaptationChallenges = lazy(() => import("@/pages/CulturalAdaptationChallenges"));
 const UnifiedApplicationManagement = lazy(() => import("@/pages/UnifiedApplicationManagement"));
 const ApplicationManagementHub = lazy(() => import("@/pages/ApplicationManagementHub"));
+const MyDocuments = lazy(() => import("@/pages/MyDocuments"));
 const ExpertDashboard = lazy(() => import("@/pages/ExpertDashboard"));
 const AdminExpertManagement = lazy(() => import("@/pages/AdminExpertManagement"));
 const AdminStudentManagement = lazy(() => import("@/pages/AdminStudentManagement"));
@@ -489,6 +490,13 @@ function Router() {
         <UserProtectedRoute path="/updates" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <UpdatesPage />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/my-documents">
+        <UserProtectedRoute path="/my-documents" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <MyDocuments />
           </Suspense>
         )} />
       </Route>

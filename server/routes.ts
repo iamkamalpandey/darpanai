@@ -3909,6 +3909,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   console.log("[INFO] [express] ✓ Comprehensive Student Management CRM routes registered successfully");
 
+  // Document Management Routes - Import from document management module
+  app.use('/api/documents', (await import('./documentManagementRoutes')).default);
+  console.log("[INFO] [express] ✓ Document management routes registered successfully");
+
   const httpServer = createServer(app);
 
   return httpServer;

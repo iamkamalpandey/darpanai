@@ -89,6 +89,7 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
     { icon: <Brain size={20} />, label: 'EduCounsel AI', href: '/educounsel-ai' },
     { icon: <Calendar size={20} />, label: 'Consultation Booking', href: '/consultations' },
     { icon: <FileText size={20} />, label: 'Study Abroad Hub', href: '/study-abroad-hub' },
+    { icon: <FolderOpen size={20} />, label: 'My Documents', href: '/my-documents' },
     { icon: <MessageSquare size={20} />, label: 'Communication Center', href: '/communication-center' },
     { icon: <FileSearch size={20} />, label: 'Document Intelligence Hub', href: '/document-intelligence-hub' },
     { icon: <Award size={20} />, label: 'Scholarship Research Hub', href: '/scholarship-research-hub' },
