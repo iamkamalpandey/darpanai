@@ -89,6 +89,13 @@ export const userDocuments = pgTable("user_documents", {
   validationIssues: jsonb("validation_issues"), // Array of validation issues found
   tags: text("tags").array().default([]), // User-defined tags for organization
   description: text("description"), // User description
+  
+  // Resource optimization fields - prevent wasteful re-analysis
+  analysisAttempts: integer("analysis_attempts").default(0).notNull(), // Track analysis attempts
+  firstAnalysisDate: timestamp("first_analysis_date"), // When first analyzed
+  lastAnalysisAttempt: timestamp("last_analysis_attempt"), // Last attempt timestamp
+  canReanalyze: boolean("can_reanalyze").default(true).notNull(), // Admin override for reanalysis
+  
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

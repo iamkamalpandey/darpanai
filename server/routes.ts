@@ -3931,6 +3931,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Document Management Routes - Import from document management module
   app.use('/api/documents', (await import('./documentManagementRoutes')).default);
+  // Document Analysis Route with Resource Optimization
+  app.post('/api/documents/:id/analyze', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const documentId = parseInt(req.params.id);
+      
+      if (isNaN(documentId)) {
+        return res.status(400).json({ error: 'Invalid document ID' });
+      }
+
+      // Import required database modules
+      const { db } = await import('./db');
+      const { userDocuments } = await import('@shared/schema');
+      const { and, eq } = await import('drizzle-orm');
+
+      // Get document and check ownership
+      const document = await db.select()
+        .from(userDocuments)
+        .where(and(eq(userDocuments.id, documentId), eq(userDocuments.userId, userId)))
+        .limit(1);
+
+      if (document.length === 0) {
+        return res.status(404).json({ error: 'Document not found' });
+      }
+
+      const doc = document[0];
+
+      // Resource optimization: Check if already analyzed
+      if (doc.isAnalyzed && doc.analysisAttempts > 0) {
+        return res.status(400).json({ 
+          error: 'Document already analyzed',
+          message: 'This document has already been analyzed. Each document can only be analyzed once to optimize resources.',
+          analysisDate: doc.firstAnalysisDate,
+          attempts: doc.analysisAttempts
+        });
+      }
+
+      // Check if analysis is allowed (admin override)
+      if (!doc.canReanalyze && doc.analysisAttempts > 0) {
+        return res.status(403).json({ 
+          error: 'Re-analysis not permitted',
+          message: 'This document cannot be re-analyzed. Contact support if you need assistance.',
+          attempts: doc.analysisAttempts
+        });
+      }
+
+      // Update analysis attempt tracking
+      const now = new Date();
+      await db.update(userDocuments)
+        .set({
+          analysisAttempts: (doc.analysisAttempts || 0) + 1,
+          lastAnalysisAttempt: now,
+          firstAnalysisDate: doc.firstAnalysisDate || now
+        })
+        .where(eq(userDocuments.id, documentId));
+
+      try {
+        // Perform analysis using document analysis service
+        const documentAnalysisService = await import('./documentAnalysisService');
+        const analysisResult = await documentAnalysisService.documentAnalysisService.analyzeDocument(
+          doc.filePath, 
+          doc.documentCategory
+        );
+
+        // Update document with analysis results
+        await db.update(userDocuments)
+          .set({
+            isAnalyzed: true,
+            analysisData: analysisResult,
+            extractedFields: analysisResult,
+            validationStatus: 'valid',
+            updatedAt: now
+          })
+          .where(eq(userDocuments.id, documentId));
+
+        res.json({
+          success: true,
+          message: 'Document analyzed successfully',
+          analysisResult,
+          documentId,
+          analysisAttempts: (doc.analysisAttempts || 0) + 1
+        });
+
+      } catch (analysisError: any) {
+        console.error('Document analysis failed:', analysisError);
+        
+        // Update status even if analysis failed to prevent retry abuse
+        await db.update(userDocuments)
+          .set({
+            validationStatus: 'invalid',
+            validationIssues: [analysisError.message || 'Analysis failed'],
+            updatedAt: now
+          })
+          .where(eq(userDocuments.id, documentId));
+
+        res.status(500).json({
+          error: 'Analysis failed',
+          message: analysisError.message || 'Document analysis could not be completed',
+          documentId,
+          analysisAttempts: doc.analysisAttempts + 1
+        });
+      }
+
+    } catch (error: any) {
+      console.error('Error in document analysis:', error);
+      res.status(500).json({ 
+        error: 'Failed to analyze document',
+        details: error.message 
+      });
+    }
+  });
+
   console.log("[INFO] [express] ✓ Document management routes registered successfully");
 
   const httpServer = createServer(app);

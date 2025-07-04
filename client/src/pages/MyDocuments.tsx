@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
@@ -15,8 +15,6 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { 
   FileText, 
   Upload, 
-  Search, 
-  Filter, 
   Eye, 
   Edit3, 
   Trash2, 
@@ -27,14 +25,18 @@ import {
   Save, 
   Plus, 
   Brain,
-  RefreshCw,
-  User,
-  ExternalLink,
+  Download,
+  RotateCcw,
   Grid3X3,
   List,
-  Download,
-  RotateCcw
+  Filter,
+  Search,
+  MoreVertical,
+  RefreshCw
 } from 'lucide-react';
+
+// Constants
+const DOCUMENT_LIMIT = 15;
 
 interface UserDocument {
   id: number;
@@ -48,46 +50,46 @@ interface UserDocument {
   analysis_data: any;
   extracted_fields: any;
   validation_status: 'pending' | 'valid' | 'invalid' | 'needs_review';
-  validation_issues: any[];
-  tags: string[];
   description?: string;
-  is_active: boolean;
+  tags?: string[];
   created_at: string;
   updated_at: string;
-  // Legacy compatibility fields
-  category: string;
-  analysis_status: 'pending' | 'completed' | 'failed';
-  verification_status: 'pending' | 'verified' | 'flagged';
-  uploaded_at: string;
-  extracted_data: any;
 }
 
-interface Application {
+interface DocumentCategory {
   id: number;
-  institutionName: string;
-  courseName: string;
-  targetCountry: string;
-  status: string;
-  requiredDocuments: string[];
+  name: string;
+  description: string;
 }
 
 export default function MyDocuments() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [editingDocument, setEditingDocument] = useState<number | null>(null);
-  const [customName, setCustomName] = useState('');
-  const [documentType, setDocumentType] = useState('');
-  const [description, setDescription] = useState('');
-  const [selectedCategoryUpload, setSelectedCategoryUpload] = useState('');
-  const [analyzing, setAnalyzing] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [selectedDocument, setSelectedDocument] = useState<UserDocument | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
+  
+  // Upload form state
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadCategory, setUploadCategory] = useState('');
+  const [uploadDescription, setUploadDescription] = useState('');
+  
+  // Edit form state
+  const [editName, setEditName] = useState('');
+  const [editCategory, setEditCategory] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editTags, setEditTags] = useState('');
 
-  // Fetch user documents
-  const { data: documents = [], isLoading: documentsLoading } = useQuery({
+  // Fetch documents
+  const { data: documents = [], isLoading, refetch } = useQuery({
     queryKey: ['/api/documents'],
     queryFn: async () => {
       const response = await fetch('/api/documents');
@@ -97,7 +99,7 @@ export default function MyDocuments() {
   });
 
   // Fetch document categories
-  const { data: documentCategories = [] } = useQuery({
+  const { data: categories = [] } = useQuery({
     queryKey: ['/api/document-categories'],
     queryFn: async () => {
       const response = await fetch('/api/document-categories');
@@ -106,701 +108,526 @@ export default function MyDocuments() {
     }
   });
 
-  // Fetch applications for assignment
-  const { data: applications = [] } = useQuery({
-    queryKey: ['/api/applications'],
-    queryFn: async () => {
-      const response = await fetch('/api/applications');
-      if (!response.ok) throw new Error('Failed to fetch applications');
-      return response.json();
-    }
-  });
-
-  // Upload document mutation
+  // Upload mutation
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await fetch('/api/documents/upload', {
+      // Check 15-document upload limit
+      if (documents && documents.length >= 15) {
+        throw new Error('Document limit reached. You can upload a maximum of 15 documents. Please delete some documents to upload new ones.');
+      }
+      
+      const response = await fetch('/api/document-management/upload', {
         method: 'POST',
-        body: formData,
+        body: formData
       });
-      if (!response.ok) throw new Error('Failed to upload document');
+      if (!response.ok) throw new Error('Upload failed');
       return response.json();
     },
     onSuccess: () => {
+      toast({ title: 'Success', description: 'Document uploaded successfully' });
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-      setUploadDialogOpen(false);
-      toast({ title: 'Document uploaded successfully' });
+      setIsUploadDialogOpen(false);
+      resetUploadForm();
     },
-    onError: () => {
-      toast({ title: 'Failed to upload document', variant: 'destructive' });
+    onError: (error: any) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
   });
 
-  // Update document mutation
-  const updateMutation = useMutation({
+  // Analysis mutation
+  const analysisMutation = useMutation({
+    mutationFn: async (documentId: number) => {
+      const response = await fetch(`/api/documents/${documentId}/analyze`, {
+        method: 'POST'
+      });
+      if (!response.ok) throw new Error('Analysis failed');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: 'Success', description: 'Document analyzed successfully' });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      setIsViewDialogOpen(false);
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  // Edit mutation
+  const editMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      const response = await fetch(`/api/documents/${id}`, {
+      const response = await fetch(`/api/document-management/documents/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(data)
       });
-      if (!response.ok) throw new Error('Failed to update document');
+      if (!response.ok) throw new Error('Update failed');
       return response.json();
     },
     onSuccess: () => {
+      toast({ title: 'Success', description: 'Document updated successfully' });
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-      setEditingDocument(null);
-      toast({ title: 'Document updated successfully' });
+      setIsEditDialogOpen(false);
     },
-    onError: () => {
-      toast({ title: 'Failed to update document', variant: 'destructive' });
+    onError: (error: any) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
   });
 
-  // Delete document mutation
+  // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`/api/documents/${id}`, {
-        method: 'DELETE',
+      const response = await fetch(`/api/document-management/documents/${id}`, {
+        method: 'DELETE'
       });
-      if (!response.ok) throw new Error('Failed to delete document');
+      if (!response.ok) throw new Error('Delete failed');
       return response.json();
     },
     onSuccess: () => {
+      toast({ title: 'Success', description: 'Document deleted successfully' });
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-      toast({ title: 'Document deleted successfully' });
+      setIsViewDialogOpen(false);
     },
-    onError: () => {
-      toast({ title: 'Failed to delete document', variant: 'destructive' });
+    onError: (error: any) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
   });
 
   // Analyze document mutation
   const analyzeMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const response = await fetch(`/api/documents/${id}/analyze`, {
+    mutationFn: async (documentId: number) => {
+      const response = await fetch(`/api/documents/${documentId}/analyze`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
       });
-      if (!response.ok) throw new Error('Failed to analyze document');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Analysis failed');
+      }
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      toast({ 
+        title: 'Analysis Complete', 
+        description: 'Your document has been successfully analyzed with AI.' 
+      });
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-      setAnalyzing(false);
-      toast({ title: 'Document analysis completed' });
     },
-    onError: () => {
-      setAnalyzing(false);
-      toast({ title: 'Failed to analyze document', variant: 'destructive' });
-    }
-  });
-
-  // Replace document mutation
-  const replaceMutation = useMutation({
-    mutationFn: async ({ id, formData }: { id: number; formData: FormData }) => {
-      const response = await fetch(`/api/documents/${id}/replace`, {
-        method: 'POST',
-        body: formData,
+    onError: (error: any) => {
+      toast({ 
+        title: 'Analysis Failed', 
+        description: error.message || 'Unable to analyze document. Please try again.',
+        variant: 'destructive' 
       });
-      if (!response.ok) throw new Error('Failed to replace document');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-      toast({ title: 'Document replaced successfully' });
-    },
-    onError: () => {
-      toast({ title: 'Failed to replace document', variant: 'destructive' });
     }
   });
 
-  // Apply to profile mutation
-  const addToProfileMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const response = await fetch(`/api/documents/${id}/apply-to-profile`, {
-        method: 'POST',
+  // Helper functions
+  const resetUploadForm = () => {
+    setUploadFile(null);
+    setUploadCategory('');
+    setUploadDescription('');
+    setUploadProgress(0);
+    setIsUploading(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Document action functions
+  const analyzeDocument = (documentId: number) => {
+    analyzeMutation.mutate(documentId);
+  };
+
+  const deleteDocument = (documentId: number) => {
+    if (confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
+      deleteMutation.mutate(documentId);
+    }
+  };
+
+  const replaceDocument = (documentId: number) => {
+    // TODO: Implement document replacement functionality
+    toast({ 
+      title: 'Coming Soon', 
+      description: 'Document replacement feature will be available soon.',
+      variant: 'default' 
+    });
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Check file type
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({ 
+          title: 'Invalid file type', 
+          description: 'Only PDF, JPG, and PNG files are allowed',
+          variant: 'destructive' 
+        });
+        return;
+      }
+      
+      // Check file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({ 
+          title: 'File too large', 
+          description: 'Maximum file size is 10MB',
+          variant: 'destructive' 
+        });
+        return;
+      }
+      
+      setUploadFile(file);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!uploadFile || !uploadCategory) {
+      toast({ title: 'Error', description: 'Please select a file and category', variant: 'destructive' });
+      return;
+    }
+
+    // Check document limit
+    if (documents.length >= DOCUMENT_LIMIT) {
+      toast({ 
+        title: 'Upload limit reached', 
+        description: `You can only upload up to ${DOCUMENT_LIMIT} documents. Please delete some documents to upload new ones.`,
+        variant: 'destructive' 
       });
-      if (!response.ok) throw new Error('Failed to apply to profile');
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({ title: 'Document data applied to profile successfully' });
-    },
-    onError: () => {
-      toast({ title: 'Failed to apply document data to profile', variant: 'destructive' });
+      return;
     }
-  });
 
-  // Filter documents
-  const filteredDocuments = (documents as any[]).filter((document: any) => {
-    const matchesSearch = document.file_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         document.custom_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         document.document_type?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || document.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const handleFileUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const form = e.target as HTMLFormElement;
-    const formData = new FormData(form);
-    
-    // Add additional fields
-    if (customName) formData.append('customName', customName);
-    if (documentType) formData.append('documentType', documentType);
-    if (description) formData.append('description', description);
-    if (selectedCategoryUpload) formData.append('documentCategory', selectedCategoryUpload);
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('document', uploadFile);
+    formData.append('documentCategory', uploadCategory);
+    formData.append('description', uploadDescription);
 
     uploadMutation.mutate(formData);
-    
-    // Reset form
-    form.reset();
-    setCustomName('');
-    setDocumentType('');
-    setDescription('');
-    setSelectedCategoryUpload('');
   };
 
-  const getStatusIcon = (isAnalyzed: boolean) => {
-    if (isAnalyzed) {
-      return <CheckCircle className="h-5 w-5 text-green-500" />;
-    }
-    return <Clock className="h-5 w-5 text-yellow-500" />;
-  };
-
-  const getVerificationBadge = (status: string) => {
-    const variants = {
-      verified: 'default',
-      flagged: 'destructive',
-      pending: 'secondary'
-    } as const;
-    
-    return (
-      <Badge variant={variants[status as keyof typeof variants] || 'secondary'}>
-        {status}
-      </Badge>
-    );
-  };
-
-  const handleAnalyzeDocument = (document: UserDocument) => {
-    setAnalyzing(true);
-    analyzeMutation.mutate(document.id);
-  };
-
-  const handleViewAnalysis = (document: UserDocument) => {
-    // Navigate to analysis details page
-    window.location.href = `/analysis/${document.id}`;
-  };
-
-  const handleAssignToApplication = (document: UserDocument) => {
-    // Navigate to application assignment page
-    window.location.href = `/assign-document/${document.id}`;
+  const handleViewDocument = (document: UserDocument) => {
+    setSelectedDocument(document);
+    setIsViewDialogOpen(true);
   };
 
   const handleEditDocument = (document: UserDocument) => {
-    setEditingDocument(document.id);
-    setCustomName(document.original_name || document.file_name || '');
-    setDocumentType(document.document_category || '');
-    setDescription(document.description || '');
-    setSelectedCategoryUpload(document.category || '');
+    setSelectedDocument(document);
+    setEditName(document.original_name);
+    setEditCategory(document.document_category);
+    setEditDescription(document.description || '');
+    setEditTags(document.tags?.join(', ') || '');
+    setIsEditDialogOpen(true);
   };
 
-  const handleDownloadDocument = (doc: UserDocument) => {
-    const link = document.createElement('a');
-    link.href = `/api/documents/${doc.id}/download`;
-    link.download = doc.original_name || doc.file_name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const handleReplaceDocument = (document: UserDocument) => {
-    if (fileInputRef.current) {
-      fileInputRef.current.onchange = (e) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-        if (file) {
-          const formData = new FormData();
-          formData.append('document', file);
-          formData.append('documentCategory', document.document_category);
-          formData.append('description', document.description || '');
-          
-          replaceMutation.mutate({ id: document.id, formData });
-        }
-      };
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleAddToProfile = (document: UserDocument) => {
-    addToProfileMutation.mutate(document.id);
-  };
-
-  const handleSaveDocument = (id: number) => {
-    updateMutation.mutate({
-      id,
+  const handleSaveEdit = () => {
+    if (!selectedDocument) return;
+    
+    editMutation.mutate({
+      id: selectedDocument.id,
       data: {
-        original_name: customName,
-        document_category: documentType,
-        description,
-        tags: selectedCategoryUpload ? [selectedCategoryUpload] : [],
+        description: editDescription,
+        tags: editTags.split(',').map(tag => tag.trim()).filter(tag => tag)
       }
     });
   };
 
-  const handleCancelEdit = () => {
-    setEditingDocument(null);
-    setCustomName('');
-    setDocumentType('');
-    setDescription('');
-    setSelectedCategoryUpload('');
+  const handleAnalyze = (documentId: number) => {
+    analysisMutation.mutate(documentId);
   };
+
+  const handleDownload = (document: UserDocument) => {
+    window.open(`/api/document-management/documents/${document.id}/download`, '_blank');
+  };
+
+  const handleDelete = (documentId: number) => {
+    if (window.confirm('Are you sure you want to delete this document?')) {
+      deleteMutation.mutate(documentId);
+    }
+  };
+
+  const getStatusBadge = (status: string, isAnalyzed: boolean) => {
+    if (isAnalyzed) {
+      return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">Analyzed</Badge>;
+    }
+    
+    switch (status) {
+      case 'valid':
+        return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">Valid</Badge>;
+      case 'invalid':
+        return <Badge variant="destructive">Invalid</Badge>;
+      case 'needs_review':
+        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">Needs Review</Badge>;
+      default:
+        return <Badge variant="outline" className="bg-gray-100 text-gray-600">Pending</Badge>;
+    }
+  };
+
+  const getFileIcon = (fileType: string) => {
+    if (fileType.includes('pdf')) return <FileText className="w-5 h-5 text-red-500" />;
+    if (fileType.includes('image')) return <FileText className="w-5 h-5 text-blue-500" />;
+    return <FileText className="w-5 h-5 text-gray-500" />;
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Filter documents
+  const filteredDocuments = documents.filter((doc: UserDocument) => {
+    const matchesSearch = doc.original_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         doc.document_category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = filterCategory === 'all' || doc.document_category === filterCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  // Get unique categories for filter
+  const uniqueCategories = Array.from(new Set(documents.map((doc: UserDocument) => doc.document_category)));
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">My Documents</h1>
-            <p className="text-gray-600 mt-2">
-              Manage and analyze your academic documents with AI-powered insights
-            </p>
-          </div>
-          <Button onClick={() => setUploadDialogOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Upload Document
-          </Button>
-        </div>
-
-        {/* Filters and Search */}
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <div className="flex gap-4 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-80">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Search documents..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center space-x-4">
+                <h1 className="text-xl font-semibold text-gray-900">My Documents</h1>
+                <Badge 
+                  variant="outline" 
+                  className={`${
+                    documents.length >= 15 
+                      ? 'bg-red-50 text-red-700 border-red-200' 
+                      : documents.length >= 13
+                      ? 'bg-orange-50 text-orange-700 border-orange-200'
+                      : 'bg-blue-50 text-blue-700 border-blue-200'
+                  }`}
+                >
+                  {documents.length} of {DOCUMENT_LIMIT}
+                  {documents.length >= 15 && ' (Limit Reached)'}
+                  {documents.length >= 13 && documents.length < 15 && ' (Near Limit)'}
+                </Badge>
+              </div>
+              
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search documents..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 w-64"
+                  />
+                </div>
+                
+                <Select value={filterCategory} onValueChange={setFilterCategory}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Filter by category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {uniqueCategories.map((category: string) => (
+                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                    className="p-2"
+                  >
+                    <Grid3X3 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                    className="p-2"
+                  >
+                    <List className="w-4 h-4" />
+                  </Button>
+                </div>
+                
+                <Button
+                  onClick={() => setIsUploadDialogOpen(true)}
+                  disabled={documents.length >= DOCUMENT_LIMIT}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Upload Document
+                </Button>
+              </div>
             </div>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-48">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {(documentCategories as any[]).map((category) => (
-                  <SelectItem key={category.id} value={category.name}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* View Toggle */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-            >
-              <Grid3X3 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-            >
-              <List className="h-4 w-4" />
-            </Button>
           </div>
         </div>
 
-        {/* Documents Display */}
-        {documentsLoading ? (
-          <div className="text-center py-12">
-            <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-600">Loading your documents...</p>
-          </div>
-        ) : viewMode === 'grid' ? (
-          // Grid View
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredDocuments.map((document: any) => (
-              <Card key={document.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      {getStatusIcon(document.analysis_status)}
-                      {editingDocument === document.id ? (
-                        <Input
-                          value={customName}
-                          onChange={(e) => setCustomName(e.target.value)}
-                          className="text-lg font-semibold"
-                          placeholder="Document name"
-                        />
-                      ) : (
-                        <CardTitle className="text-lg truncate">
-                          {document.custom_name || document.file_name}
-                        </CardTitle>
-                      )}
-                    </div>
-                    <div className="flex gap-1">
-                      {editingDocument === document.id ? (
-                        <>
-                          <Button size="sm" variant="ghost" onClick={() => handleSaveDocument(document.id)}>
-                            <Save className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button size="sm" variant="ghost" onClick={() => handleEditDocument(document)}>
-                            <Edit3 className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => handleViewAnalysis(document)}>
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => handleAssignToApplication(document)}>
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {editingDocument === document.id ? (
-                    <div className="space-y-3">
-                      <div>
-                        <Label className="text-sm">Document Type</Label>
-                        <Input
-                          value={documentType}
-                          onChange={(e) => setDocumentType(e.target.value)}
-                          placeholder="e.g., Transcript, Passport, etc."
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-sm">Category</Label>
-                        <Select value={selectedCategoryUpload} onValueChange={setSelectedCategoryUpload}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {(documentCategories as any[]).map((category) => (
-                              <SelectItem key={category.id} value={category.name}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label className="text-sm">Description</Label>
-                        <Textarea
-                          value={description}
-                          onChange={(e) => setDescription(e.target.value)}
-                          placeholder="Brief description of the document"
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Type:</span>
-                        <Badge variant="outline">{document.document_type}</Badge>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Category:</span>
-                        <Badge variant="secondary">{document.category}</Badge>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Status:</span>
-                        {getVerificationBadge(document.verification_status)}
-                      </div>
-                    </>
-                  )}
-
-                  {document.description && (
-                    <div className="text-sm text-gray-600 p-2 bg-gray-50 rounded">
-                      <span className="font-medium">Description: </span>
-                      {document.description}
-                    </div>
-                  )}
-
-                  {document.analysis_status === 'completed' && document.profile_match_accuracy && (
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Profile Match:</span>
-                        <span className="font-medium">{document.profile_match_accuracy}%</span>
-                      </div>
-                      <Progress value={document.profile_match_accuracy} className="h-2" />
-                    </div>
-                  )}
-
-                  {document.discrepancies && document.discrepancies.length > 0 && (
-                    <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
-                      <div className="flex items-center gap-2 text-orange-800 text-sm font-medium mb-1">
-                        <AlertTriangle className="h-4 w-4" />
-                        Discrepancies Found
-                      </div>
-                      <p className="text-sm text-orange-700">
-                        {document.discrepancies.length} issue(s) detected
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="flex gap-2 pt-2">
-                    {document.analysis_status === 'pending' && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleAnalyzeDocument(document)}
-                        disabled={analyzing}
-                        className="flex-1"
-                      >
-                        {analyzing ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : <Brain className="h-4 w-4 mr-2" />}
-                        Analyze
-                      </Button>
-                    )}
-                    {document.analysis_status === 'completed' && document.extracted_data && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleAddToProfile(document)}
-                        className="flex-1"
-                      >
-                        <User className="h-4 w-4 mr-2" />
-                        Apply to Profile
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="text-xs text-gray-500 pt-2 border-t">
-                    <div className="flex justify-between">
-                      <span>Uploaded: {new Date(document.uploaded_at).toLocaleDateString()}</span>
-                      <span>{(document.file_size / 1024).toFixed(1)} KB</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          // List View
-          <div className="space-y-4">
-            {filteredDocuments.map((document: any) => (
-              <Card key={document.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      {getStatusIcon(document.is_analyzed)}
-                      <div className="flex-1 min-w-0">
-                        {editingDocument === document.id ? (
-                          <div className="space-y-2">
-                            <Input
-                              value={customName}
-                              onChange={(e) => setCustomName(e.target.value)}
-                              className="font-semibold"
-                              placeholder="Document name"
-                            />
-                            <div className="grid grid-cols-2 gap-2">
-                              <Input
-                                value={documentType}
-                                onChange={(e) => setDocumentType(e.target.value)}
-                                placeholder="Document type"
-                              />
-                              <Select value={selectedCategoryUpload} onValueChange={setSelectedCategoryUpload}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {(documentCategories as any[]).map((category) => (
-                                    <SelectItem key={category.id} value={category.name}>
-                                      {category.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <Textarea
-                              value={description}
-                              onChange={(e) => setDescription(e.target.value)}
-                              placeholder="Description"
-                              rows={2}
-                            />
-                          </div>
-                        ) : (
-                          <>
-                            <h3 className="font-semibold text-lg truncate">
-                              {document.original_name || document.file_name}
-                            </h3>
-                            <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                              <span>{document.document_category}</span>
-                              <Badge variant="secondary">{document.category}</Badge>
-                              {getVerificationBadge(document.validation_status)}
-                              <span>Uploaded: {new Date(document.created_at).toLocaleDateString()}</span>
-                              <span>{(document.file_size / 1024).toFixed(1)} KB</span>
-                            </div>
-                            {document.description && (
-                              <p className="text-sm text-gray-600 mt-2">{document.description}</p>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 ml-4">
-                      {document.analysis_status === 'completed' && document.profile_match_accuracy && (
-                        <div className="text-center">
-                          <div className="text-sm font-medium">{document.profile_match_accuracy}%</div>
-                          <div className="text-xs text-gray-500">Match</div>
-                        </div>
-                      )}
-                      
-                      {editingDocument === document.id ? (
-                        <>
-                          <Button size="sm" variant="ghost" onClick={() => handleSaveDocument(document.id)}>
-                            <Save className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button size="sm" variant="ghost" onClick={() => handleEditDocument(document)}>
-                            <Edit3 className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => handleDownloadDocument(document)}>
-                            <Download className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => handleReplaceDocument(document)}>
-                            <RotateCcw className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => handleViewAnalysis(document)}>
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => handleAssignToApplication(document)}>
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
-                          {!document.is_analyzed && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleAnalyzeDocument(document)}
-                              disabled={analyzing}
-                            >
-                              {analyzing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Brain className="h-4 w-4" />}
-                            </Button>
-                          )}
-                          {document.is_analyzed && document.extracted_fields && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleAddToProfile(document)}
-                            >
-                              <User className="h-4 w-4" />
-                            </Button>
-                          )}
-                          <Button size="sm" variant="ghost" onClick={() => deleteMutation.mutate(document.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {document.discrepancies && document.discrepancies.length > 0 && (
-                    <div className="mt-3 p-2 bg-orange-50 rounded border border-orange-200">
-                      <div className="flex items-center gap-2 text-orange-800 text-sm">
-                        <AlertTriangle className="h-4 w-4" />
-                        {document.discrepancies.length} discrepancy(ies) detected
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {filteredDocuments.length === 0 && !documentsLoading && (
-          <Card className="py-12">
-            <CardContent className="text-center">
-              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        {/* Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : filteredDocuments.length === 0 ? (
+            <div className="text-center py-12">
+              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
-              <p className="text-gray-600 mb-4">
-                {searchTerm || selectedCategory !== 'all' 
-                  ? 'Try adjusting your search or filter criteria.' 
-                  : 'Upload your first document to get started with AI analysis.'}
+              <p className="text-gray-500 mb-6">
+                {searchTerm || filterCategory !== 'all' 
+                  ? 'Try adjusting your search or filter criteria' 
+                  : 'Upload your first document to get started'}
               </p>
-              {!searchTerm && selectedCategory === 'all' && (
-                <Button onClick={() => setUploadDialogOpen(true)} className="gap-2">
-                  <Plus className="h-4 w-4" />
+              {documents.length < DOCUMENT_LIMIT && (
+                <Button 
+                  onClick={() => setIsUploadDialogOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
                   Upload Document
                 </Button>
               )}
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          ) : (
+            <div className={viewMode === 'grid' 
+              ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' 
+              : 'space-y-4'
+            }>
+              {filteredDocuments.map((document) => (
+                <Card key={document.id} className="group hover:shadow-lg transition-all duration-200 border-0 shadow-sm bg-white">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        {getFileIcon(document.file_type)}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium text-gray-900 truncate">
+                            {document.original_name}
+                          </h3>
+                          <p className="text-sm text-gray-500">
+                            {document.document_category}
+                          </p>
+                        </div>
+                      </div>
+                      {getStatusBadge(document.validation_status, document.is_analyzed)}
+                    </div>
+                    
+                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                      <span>{formatFileSize(document.file_size)}</span>
+                      <span>{new Date(document.created_at).toLocaleDateString()}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewDocument(document)}
+                        className="flex-1 mr-2 bg-white border-gray-200 hover:bg-gray-50 text-gray-700"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        View
+                      </Button>
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          {!document.is_analyzed && (
+                            <DropdownMenuItem onClick={() => analyzeDocument(document.id)}>
+                              <Brain className="w-4 h-4 mr-2" />
+                              Analyze Document
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem onClick={() => handleEditDocument(document)}>
+                            <Edit3 className="w-4 h-4 mr-2" />
+                            Edit Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownload(document)}>
+                            <Download className="w-4 h-4 mr-2" />
+                            Download
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => replaceDocument(document.id)}
+                            className="text-orange-600"
+                          >
+                            <RotateCcw className="w-4 h-4 mr-2" />
+                            Replace File
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => deleteDocument(document.id)}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Upload Dialog */}
-        <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
-          <DialogContent className="max-w-md">
+        <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Upload Document</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleFileUpload} className="space-y-4">
+            <div className="space-y-4">
               <div>
-                <Label htmlFor="document">Document File</Label>
+                <Label htmlFor="file-upload">Select File</Label>
                 <Input
-                  id="document"
-                  name="document"
+                  id="file-upload"
                   type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  required
                   ref={fileInputRef}
+                  onChange={handleFileSelect}
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  className="mt-1"
                 />
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-gray-500 mt-1">
                   Supported formats: PDF, JPG, PNG (max 10MB)
                 </p>
               </div>
               
-              <div>
-                <Label htmlFor="customName">Document Name (Optional)</Label>
-                <Input
-                  id="customName"
-                  value={customName}
-                  onChange={(e) => setCustomName(e.target.value)}
-                  placeholder="Give your document a custom name"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="documentType">Document Type</Label>
-                <Input
-                  id="documentType"
-                  value={documentType}
-                  onChange={(e) => setDocumentType(e.target.value)}
-                  placeholder="e.g., Transcript, Passport, Certificate"
-                  required
-                />
-              </div>
-
+              {uploadFile && (
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    {getFileIcon(uploadFile.type)}
+                    <span className="text-sm font-medium">{uploadFile.name}</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {formatFileSize(uploadFile.size)}
+                  </p>
+                </div>
+              )}
+              
               <div>
                 <Label htmlFor="category">Category</Label>
-                <Select value={selectedCategoryUpload} onValueChange={setSelectedCategoryUpload} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
+                <Select value={uploadCategory} onValueChange={setUploadCategory}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(documentCategories as any[]).map((category) => (
+                    {categories.map((category: DocumentCategory) => (
                       <SelectItem key={category.id} value={category.name}>
                         {category.name}
                       </SelectItem>
@@ -808,56 +635,237 @@ export default function MyDocuments() {
                   </SelectContent>
                 </Select>
               </div>
-
+              
               <div>
                 <Label htmlFor="description">Description (Optional)</Label>
                 <Textarea
                   id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Brief description of the document"
+                  value={uploadDescription}
+                  onChange={(e) => setUploadDescription(e.target.value)}
+                  placeholder="Add a description..."
+                  className="mt-1"
                   rows={3}
                 />
               </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setUploadDialogOpen(false)}
-                  className="flex-1"
-                >
+              
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setIsUploadDialogOpen(false)}>
                   Cancel
                 </Button>
                 <Button
-                  type="submit"
-                  disabled={uploadMutation.isPending}
-                  className="flex-1"
+                  onClick={handleUpload}
+                  disabled={!uploadFile || !uploadCategory || isUploading}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  {uploadMutation.isPending ? (
+                  {isUploading ? (
                     <>
-                      <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
                       Uploading...
                     </>
                   ) : (
                     <>
-                      <Upload className="h-4 w-4 mr-2" />
+                      <Upload className="w-4 h-4 mr-2" />
                       Upload
                     </>
                   )}
                 </Button>
               </div>
-            </form>
+            </div>
           </DialogContent>
         </Dialog>
 
-        {/* Hidden file input for document replacement */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".pdf,.jpg,.jpeg,.png"
-          style={{ display: 'none' }}
-        />
+        {/* View Document Dialog */}
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+          <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center space-x-2">
+                {selectedDocument && getFileIcon(selectedDocument.file_type)}
+                <span>{selectedDocument?.original_name}</span>
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedDocument && (
+              <div className="space-y-6">
+                {/* Document Info */}
+                <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Category</p>
+                    <p className="text-sm text-gray-900">{selectedDocument.document_category}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Size</p>
+                    <p className="text-sm text-gray-900">{formatFileSize(selectedDocument.file_size)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Status</p>
+                    <div className="mt-1">
+                      {getStatusBadge(selectedDocument.validation_status, selectedDocument.is_analyzed)}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Uploaded</p>
+                    <p className="text-sm text-gray-900">{new Date(selectedDocument.created_at).toLocaleDateString()}</p>
+                  </div>
+                </div>
+
+                {/* Analysis Section */}
+                {!selectedDocument.is_analyzed ? (
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-blue-900">AI Analysis Available</h4>
+                        <p className="text-sm text-blue-700 mt-1">
+                          Extract information from this document using AI analysis
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => handleAnalyze(selectedDocument.id)}
+                        disabled={analysisMutation.isPending}
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        {analysisMutation.isPending ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                            Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <Brain className="w-4 h-4 mr-2" />
+                            Analyze Document
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                      <h4 className="font-medium text-green-900">Document Analyzed</h4>
+                    </div>
+                    <p className="text-sm text-green-700 mt-1">
+                      Information has been extracted and is ready for use
+                    </p>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex justify-between pt-4 border-t">
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleEditDocument(selectedDocument)}
+                      className="border-gray-200 hover:bg-gray-50"
+                    >
+                      <Edit3 className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleDownload(selectedDocument)}
+                      className="border-gray-200 hover:bg-gray-50"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </Button>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    onClick={() => handleDelete(selectedDocument.id)}
+                    disabled={deleteMutation.isPending}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Document Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Document</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="edit-name">Document Name</Label>
+                <Input
+                  id="edit-name"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="mt-1"
+                  disabled
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Document name cannot be changed
+                </p>
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-category">Category</Label>
+                <Input
+                  id="edit-category"
+                  value={editCategory}
+                  onChange={(e) => setEditCategory(e.target.value)}
+                  className="mt-1"
+                  disabled
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Category cannot be changed
+                </p>
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea
+                  id="edit-description"
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  placeholder="Add a description..."
+                  className="mt-1"
+                  rows={3}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-tags">Tags (comma-separated)</Label>
+                <Input
+                  id="edit-tags"
+                  value={editTags}
+                  onChange={(e) => setEditTags(e.target.value)}
+                  placeholder="tag1, tag2, tag3"
+                  className="mt-1"
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveEdit}
+                  disabled={editMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {editMutation.isPending ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
