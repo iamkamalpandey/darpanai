@@ -215,10 +215,11 @@ export default function MyDocuments() {
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
     
+    // Add additional fields
     if (customName) formData.append('customName', customName);
     if (documentType) formData.append('documentType', documentType);
     if (description) formData.append('description', description);
-    if (selectedCategoryUpload) formData.append('category', selectedCategoryUpload);
+    if (selectedCategoryUpload) formData.append('documentCategory', selectedCategoryUpload);
 
     uploadMutation.mutate(formData);
     
@@ -693,10 +694,10 @@ export default function MyDocuments() {
             </DialogHeader>
             <form onSubmit={handleFileUpload} className="space-y-4">
               <div>
-                <Label htmlFor="file">Document File</Label>
+                <Label htmlFor="document">Document File</Label>
                 <Input
-                  id="file"
-                  name="file"
+                  id="document"
+                  name="document"
                   type="file"
                   accept=".pdf,.jpg,.jpeg,.png"
                   required
