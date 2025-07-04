@@ -82,9 +82,6 @@ const PersonalizedDestinationAnalysis = lazy(() => import("@/pages/PersonalizedD
 const EnhancedUserProfile = lazy(() => import("@/pages/EnhancedUserProfile"));
 const ProfileEdit = lazy(() => import("@/pages/ProfileEdit"));
 const ProfilePageRedesign = lazy(() => import("@/components/ProfilePageRedesign"));
-const UserProfile = lazy(() => import("@/pages/UserProfile"));
-const LeadsManagement = lazy(() => import("@/pages/LeadsManagement"));
-
 const OfferLetterInfo = lazy(() => import("@/pages/OfferLetterInfo"));
 const OfferLetterDetails = lazy(() => import("@/pages/OfferLetterDetails"));
 const CoeInformation = lazy(() => import("@/pages/CoeInformation"));
@@ -408,18 +405,10 @@ function Router() {
       <Route path="/profile">
         <UserProtectedRoute path="/profile" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <UserProfile />
+            <ProfilePageRedesign />
           </Suspense>
         )} />
       </Route>
-      <Route path="/leads-management">
-        <UserProtectedRoute path="/leads-management" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <LeadsManagement />
-          </Suspense>
-        )} />
-      </Route>
-
       <Route path="/offer-letter-info">
         <UserProtectedRoute path="/offer-letter-info" component={() => (
           <Suspense fallback={<LoadingFallback />}>
