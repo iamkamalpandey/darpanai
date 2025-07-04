@@ -1030,6 +1030,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get document categories for public use (no authentication required)
+  app.get('/api/document-categories', async (req: Request, res: Response) => {
+    try {
+      const cacheKey = 'public:document-categories';
+      const cached = getCachedData(cacheKey);
+      
+      if (cached) {
+        return res.status(200).json(cached);
+      }
+      
+      // Get active document categories only
+      const categories = await storage.getActiveDocumentCategories();
+      setCacheData(cacheKey, categories, 30); // Cache for 30 minutes
+      return res.status(200).json(categories);
+    } catch (error) {
+      console.error('Error fetching document categories:', error);
+      return res.status(500).json({ error: 'Failed to fetch document categories' });
+    }
+  });
+
   // Get all professional applications (admin only)
   app.get('/api/admin/professional-applications', requireAuth, requireAdmin, async (req: Request, res: Response) => {
     try {
