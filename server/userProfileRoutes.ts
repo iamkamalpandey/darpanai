@@ -213,13 +213,27 @@ router.put('/leads/:userId/assign', requireAuth, async (req, res) => {
 // ACTIVITIES MANAGEMENT
 // ============================================================================
 
-// Get user activities
-router.get('/activities/:userId?', requireAuth, async (req, res) => {
+// Get current user's activities (default route)
+router.get('/activities', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+    
+    const activities = await userProfileService.getUserActivities(userId, limit);
+    res.json(activities);
+  } catch (error: any) {
+    console.error('Error fetching activities:', error);
+    res.status(500).json({ error: 'Failed to fetch user activities' });
+  }
+});
+
+// Get user activities by ID (admin/expert only)
+router.get('/activities/:userId', requireAuth, async (req, res) => {
   try {
     const userId = req.params.userId ? parseInt(req.params.userId) : req.user!.id;
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
     
-    // Non-admin users can only view their own activities
+    // Users can view their own activities, admin/expert can view any activities
     if (req.user!.role !== 'admin' && req.user!.role !== 'expert' && userId !== req.user!.id) {
       return res.status(403).json({ error: 'Insufficient permissions' });
     }
@@ -235,12 +249,16 @@ router.get('/activities/:userId?', requireAuth, async (req, res) => {
 // Add activity
 router.post('/activities', requireAuth, async (req, res) => {
   try {
-    if (req.user!.role !== 'admin' && req.user!.role !== 'expert') {
+    // Users can create activities for themselves, admin/expert can create for anyone
+    const targetUserId = req.body.userId || req.user!.id;
+    
+    if (req.user!.role !== 'admin' && req.user!.role !== 'expert' && targetUserId !== req.user!.id) {
       return res.status(403).json({ error: 'Insufficient permissions' });
     }
     
     const validatedData = insertLeadActivitySchema.parse({
       ...req.body,
+      userId: targetUserId,
       performedBy: req.user!.id
     });
     
@@ -256,8 +274,22 @@ router.post('/activities', requireAuth, async (req, res) => {
 // NOTES MANAGEMENT
 // ============================================================================
 
-// Get user notes
-router.get('/notes/:userId?', requireAuth, async (req, res) => {
+// Get current user's notes (default route)
+router.get('/notes', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const includeInternal = false; // Regular users cannot see internal notes
+    
+    const notes = await userProfileService.getUserNotes(userId, includeInternal);
+    res.json(notes);
+  } catch (error: any) {
+    console.error('Error fetching notes:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch notes' });
+  }
+});
+
+// Get user notes by ID (admin/expert only)
+router.get('/notes/:userId', requireAuth, async (req, res) => {
   try {
     const userId = req.params.userId ? parseInt(req.params.userId) : req.user!.id;
     const includeInternal = req.query.includeInternal === 'true' && 
