@@ -120,7 +120,10 @@ export default function MyDocuments() {
         method: 'POST',
         body: formData
       });
-      if (!response.ok) throw new Error('Upload failed');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -128,9 +131,11 @@ export default function MyDocuments() {
       queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
       setIsUploadDialogOpen(false);
       resetUploadForm();
+      setIsUploading(false);
     },
     onError: (error: any) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      setIsUploading(false);
     }
   });
 
@@ -483,7 +488,7 @@ export default function MyDocuments() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    {uniqueCategories.map((category) => (
+                    {uniqueCategories.map((category: string) => (
                       <SelectItem key={category} value={category}>{category}</SelectItem>
                     ))}
                   </SelectContent>
@@ -559,7 +564,7 @@ export default function MyDocuments() {
               ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' 
               : 'space-y-4'
             }>
-              {filteredDocuments.map((document) => (
+              {filteredDocuments.map((document: UserDocument) => (
                 <Card key={document.id} className="group hover:shadow-lg transition-all duration-200 border-0 shadow-sm bg-white">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-4">

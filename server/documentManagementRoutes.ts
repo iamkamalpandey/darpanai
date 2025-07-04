@@ -40,7 +40,7 @@ const upload = multer({
   }
 });
 
-// Upload and analyze document
+// Upload document
 router.post('/upload', upload.single('document'), async (req, res) => {
   try {
     if (!req.file) {
@@ -330,17 +330,28 @@ router.get('/documents/:id/download', async (req, res) => {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    const filePath = document.filePath;
+    const filePath = document.file_path || document.filePath;
     if (!filePath || !fs.existsSync(filePath)) {
       return res.status(404).json({ error: 'File not found on server' });
     }
 
+    // Get the correct MIME type
+    const mimeType = document.file_type || document.fileType || 'application/octet-stream';
+    const filename = document.original_name || document.originalName || document.file_name || document.fileName;
+    
     // Set appropriate headers for file download
-    res.setHeader('Content-Disposition', `attachment; filename="${document.originalName || document.fileName}"`);
-    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Length', fs.statSync(filePath).size.toString());
     
     // Stream the file
     const fileStream = fs.createReadStream(filePath);
+    fileStream.on('error', (err) => {
+      console.error('File stream error:', err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Error streaming file' });
+      }
+    });
     fileStream.pipe(res);
 
   } catch (error: any) {
