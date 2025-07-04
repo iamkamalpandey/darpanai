@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -212,10 +213,11 @@ export default function MyDocuments() {
     setAssignDocumentDialogOpen(true);
   };
 
-  const filteredDocuments = documents.filter((doc: UserDocument) => {
+  const filteredDocuments = documents.filter((doc: any) => {
     const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory;
-    const matchesSearch = doc.fileName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.documentType.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = doc.file_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         doc.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         doc.file_type?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -244,7 +246,8 @@ export default function MyDocuments() {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <DashboardLayout>
+      <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -279,7 +282,7 @@ export default function MyDocuments() {
               <div>
                 <p className="text-sm text-gray-600">AI Analyzed</p>
                 <p className="text-2xl font-bold">
-                  {documents.filter((d: UserDocument) => d.analysisStatus === 'completed').length}
+                  {documents.filter((d: any) => d.analysis_status === 'completed').length}
                 </p>
               </div>
             </div>
@@ -292,7 +295,7 @@ export default function MyDocuments() {
               <div>
                 <p className="text-sm text-gray-600">Verified</p>
                 <p className="text-2xl font-bold">
-                  {documents.filter((d: UserDocument) => d.verificationStatus === 'verified').length}
+                  {documents.filter((d: any) => d.verification_status === 'verified').length}
                 </p>
               </div>
             </div>
@@ -305,7 +308,7 @@ export default function MyDocuments() {
               <div>
                 <p className="text-sm text-gray-600">Flagged</p>
                 <p className="text-2xl font-bold">
-                  {documents.filter((d: UserDocument) => d.verificationStatus === 'flagged').length}
+                  {documents.filter((d: any) => d.verification_status === 'flagged').length}
                 </p>
               </div>
             </div>
@@ -357,13 +360,13 @@ export default function MyDocuments() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDocuments.map((document: UserDocument) => (
+          {filteredDocuments.map((document: any) => (
             <Card key={document.id} className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
-                    {getStatusIcon(document.analysisStatus)}
-                    <CardTitle className="text-lg truncate">{document.fileName}</CardTitle>
+                    {getStatusIcon(document.analysis_status)}
+                    <CardTitle className="text-lg truncate">{document.file_name}</CardTitle>
                   </div>
                   <div className="flex gap-1">
                     <Button size="sm" variant="ghost" onClick={() => handleViewAnalysis(document)}>
@@ -378,7 +381,7 @@ export default function MyDocuments() {
               <CardContent className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Type:</span>
-                  <Badge variant="outline">{document.documentType}</Badge>
+                  <Badge variant="outline">{document.file_type}</Badge>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Category:</span>
@@ -386,16 +389,16 @@ export default function MyDocuments() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Status:</span>
-                  {getVerificationBadge(document.verificationStatus)}
+                  {getVerificationBadge(document.verification_status)}
                 </div>
                 
-                {document.analysisStatus === 'completed' && document.profileMatchAccuracy && (
+                {document.analysis_status === 'completed' && document.profile_match_accuracy && (
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Profile Match:</span>
-                      <span className="font-medium">{document.profileMatchAccuracy}%</span>
+                      <span className="font-medium">{document.profile_match_accuracy}%</span>
                     </div>
-                    <Progress value={document.profileMatchAccuracy} className="h-2" />
+                    <Progress value={document.profile_match_accuracy} className="h-2" />
                   </div>
                 )}
 
@@ -412,7 +415,7 @@ export default function MyDocuments() {
                 )}
 
                 <div className="flex gap-2 pt-2">
-                  {document.analysisStatus === 'pending' && (
+                  {document.analysis_status === 'pending' && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -424,7 +427,7 @@ export default function MyDocuments() {
                       Analyze
                     </Button>
                   )}
-                  {document.analysisStatus === 'completed' && document.extractedData && (
+                  {document.analysis_status === 'completed' && document.extracted_data && (
                     <Button
                       size="sm"
                       variant="outline"
@@ -439,8 +442,8 @@ export default function MyDocuments() {
 
                 <div className="text-xs text-gray-500 pt-2 border-t">
                   <div className="flex justify-between">
-                    <span>Uploaded: {new Date(document.uploadedAt).toLocaleDateString()}</span>
-                    <span>{(document.fileSize / 1024).toFixed(1)} KB</span>
+                    <span>Uploaded: {new Date(document.uploaded_at).toLocaleDateString()}</span>
+                    <span>{(document.file_size / 1024).toFixed(1)} KB</span>
                   </div>
                 </div>
               </CardContent>
@@ -720,6 +723,7 @@ export default function MyDocuments() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
