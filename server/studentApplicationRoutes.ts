@@ -66,10 +66,50 @@ export function registerStudentApplicationRoutes(
     }
   });
 
+  // Get application statistics
+  app.get('/api/applications/stats', requireAuth, async (req: Request, res: Response) => {
+    try {
+      const userId = (req.user as any).id;
+      const userRole = (req.user as any).role;
+      
+      // Get applications based on user role
+      const applications = userRole === 'admin' ? 
+        await studentApplicationService.getAllApplications() : 
+        await studentApplicationService.getUserApplications(userId);
+      
+      const stats = {
+        total: applications.length,
+        draft: applications.filter(app => app.status === 'draft').length,
+        submitted: applications.filter(app => app.status === 'submitted').length,
+        under_review: applications.filter(app => app.status === 'under_review').length,
+        approved: applications.filter(app => app.status === 'approved').length,
+        rejected: applications.filter(app => app.status === 'rejected').length,
+        completion_rate: applications.length > 0 ? 
+          Math.round((applications.filter(app => app.status === 'approved').length / applications.length) * 100) : 0,
+        avg_processing_time: "2-4 weeks"
+      };
+      
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching application stats:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to fetch application statistics' 
+      });
+    }
+  });
+
   // Get specific application
   app.get('/api/applications/:id', requireAuth, async (req: Request, res: Response) => {
     try {
       const applicationId = parseInt(req.params.id);
+      if (isNaN(applicationId)) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Invalid application ID' 
+        });
+      }
+      
       const userId = (req.user as any).id;
       const userRole = (req.user as any).role;
       
