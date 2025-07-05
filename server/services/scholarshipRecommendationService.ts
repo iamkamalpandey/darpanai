@@ -50,14 +50,13 @@ export class ScholarshipRecommendationService {
       
       for (const scholarship of scholarshipList) {
         const matchResult = this.calculateMatchScore(user, scholarship);
-        if (matchResult.matchScore > 0) {
-          matches.push({
-            scholarship,
-            matchScore: matchResult.matchScore,
-            matchReasons: matchResult.matchReasons,
-            isSaved: false // Will be updated later
-          });
-        }
+        // Always include scholarships with any score (including fallback score)
+        matches.push({
+          scholarship,
+          matchScore: matchResult.matchScore,
+          matchReasons: matchResult.matchReasons,
+          isSaved: false // Will be updated later
+        });
       }
 
       // Sort by match score (highest first) and limit to top 10
@@ -106,27 +105,56 @@ export class ScholarshipRecommendationService {
       userField: user.field_of_study,
       userCountries: user.preferred_countries,
       userLevel: user.highest_qualification,
-      scholarshipFields: scholarship.specificFields,
+      scholarshipFieldCategories: scholarship.fieldCategories,
+      scholarshipSpecificFields: scholarship.specificFields,
       scholarshipCountries: scholarship.hostCountries,
       scholarshipLevels: scholarship.studyLevels
     });
 
     // 1. Field of Study Match (40 points)
+    let fieldMatch = false;
+    
+    // Check specific fields first
     if (user.field_of_study && scholarship.specificFields) {
       const userField = user.field_of_study.toLowerCase();
       const scholarshipFields = Array.isArray(scholarship.specificFields) 
         ? scholarship.specificFields 
         : [];
       
-      const fieldMatch = scholarshipFields.some((field: string) => 
+      fieldMatch = scholarshipFields.some((field: string) => 
         field.toLowerCase().includes(userField) || 
         userField.includes(field.toLowerCase())
       );
+    }
+    
+    // If no specific field match, check field categories
+    if (!fieldMatch && user.field_of_study && scholarship.fieldCategories) {
+      const userField = user.field_of_study.toLowerCase();
+      const scholarshipCategories = Array.isArray(scholarship.fieldCategories) 
+        ? scholarship.fieldCategories 
+        : [];
       
-      if (fieldMatch) {
-        score += 40;
-        reasons.push(`Matches your field: ${user.field_of_study}`);
-      }
+      // Map common fields to categories
+      const fieldToCategoryMap: Record<string, string[]> = {
+        'information technology': ['STEM', 'Technology'],
+        'computer science': ['STEM', 'Technology'],
+        'engineering': ['STEM'],
+        'business': ['Business'],
+        'medicine': ['Medicine', 'STEM'],
+        'law': ['Law'],
+        'arts': ['Arts'],
+        'social sciences': ['Social Sciences']
+      };
+      
+      const userCategories = fieldToCategoryMap[userField] || ['STEM']; // Default to STEM for tech fields
+      fieldMatch = scholarshipCategories.some((category: string) => 
+        userCategories.some(userCat => category.toLowerCase().includes(userCat.toLowerCase()))
+      );
+    }
+    
+    if (fieldMatch) {
+      score += 40;
+      reasons.push(`Matches your field: ${user.field_of_study}`);
     }
 
     // 2. Country Match (30 points) 
@@ -138,12 +166,42 @@ export class ScholarshipRecommendationService {
         ? scholarship.hostCountries 
         : [];
       
-      const countryMatch = userCountries.some((country: string) => 
-        scholarshipCountries.some((sCountry: string) => 
-          sCountry.toLowerCase().includes(country.toLowerCase()) ||
-          country.toLowerCase().includes(sCountry.toLowerCase())
-        )
-      );
+      // Country name to code mapping
+      const countryToCodeMap: Record<string, string[]> = {
+        'united states': ['US', 'USA'],
+        'usa': ['US', 'USA'],
+        'america': ['US', 'USA'],
+        'united kingdom': ['GB', 'UK'],
+        'uk': ['GB', 'UK'],
+        'britain': ['GB', 'UK'],
+        'england': ['GB', 'UK'],
+        'australia': ['AU', 'AUS'],
+        'canada': ['CA', 'CAN'],
+        'germany': ['DE', 'DEU'],
+        'france': ['FR', 'FRA'],
+        'india': ['IN', 'IND'],
+        'china': ['CN', 'CHN'],
+        'japan': ['JP', 'JPN'],
+        'south korea': ['KR', 'KOR'],
+        'netherlands': ['NL', 'NLD'],
+        'sweden': ['SE', 'SWE'],
+        'norway': ['NO', 'NOR'],
+        'denmark': ['DK', 'DNK'],
+        'singapore': ['SG', 'SGP'],
+        'new zealand': ['NZ', 'NZL']
+      };
+      
+      const countryMatch = userCountries.some((country: string) => {
+        const userCountryLower = country.toLowerCase();
+        const userCodes = countryToCodeMap[userCountryLower] || [userCountryLower.substring(0, 2).toUpperCase()];
+        
+        return scholarshipCountries.some((sCountry: string) => {
+          const sCountryUpper = sCountry.toUpperCase();
+          return userCodes.some(code => sCountryUpper.includes(code)) ||
+                 sCountry.toLowerCase().includes(userCountryLower) ||
+                 userCountryLower.includes(sCountry.toLowerCase());
+        });
+      });
       
       if (countryMatch) {
         score += 30;
@@ -175,6 +233,10 @@ export class ScholarshipRecommendationService {
     if (score > 0) {
       score += 10;
       reasons.push('Eligible based on profile');
+    } else {
+      // Give a minimum score to international scholarships for general visibility
+      score = 15;
+      reasons.push('International scholarship opportunity');
     }
 
     console.log(`[Match Scoring] Final score: ${score} for scholarship: ${scholarship.name}`);

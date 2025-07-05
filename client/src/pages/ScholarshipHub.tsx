@@ -81,6 +81,12 @@ const ScholarshipHub: React.FC = () => {
     queryFn: () => apiRequest('GET', '/api/scholarship-recommendations/recommendations'),
   });
 
+  // Debug logging
+  console.log('Recommendations Data:', recommendationsData);
+  console.log('Is Loading:', isLoadingRecommendations);
+  console.log('Recommendations Array:', recommendationsData?.recommendations);
+  console.log('Recommendations Length:', recommendationsData?.recommendations?.length);
+
   // Fetch saved scholarships
   const { data: savedScholarshipsData, isLoading: isLoadingSaved } = useQuery({
     queryKey: ['saved-scholarships'],
