@@ -488,7 +488,6 @@ export default function ScholarshipHubNew() {
           </div>
         </div>
       )}
-      </div>
     </DashboardLayout>
   );
 }
