@@ -65,7 +65,7 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
   const { unreadCount, hasUnread } = useUnreadUpdates();
   
   const { data: user } = useQuery({
-    queryKey: ['/api/user'],
+    queryKey: ['/api/user/fresh'],
   }) as { data: any };
 
   const { data: completionStatus } = useQuery({

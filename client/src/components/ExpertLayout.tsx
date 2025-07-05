@@ -63,7 +63,7 @@ export function ExpertLayout({ children }: ExpertLayoutProps) {
   const [location] = useLocation();
   
   const { data: user } = useQuery({
-    queryKey: ['/api/user'],
+    queryKey: ['/api/user/fresh'],
   }) as { data: any };
 
   const handleLogout = async () => {

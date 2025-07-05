@@ -61,7 +61,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const [location] = useLocation();
   
   const { data: user } = useQuery({
-    queryKey: ['/api/user'],
+    queryKey: ['/api/user/fresh'],
   }) as { data: any };
 
   const handleLogout = async () => {
