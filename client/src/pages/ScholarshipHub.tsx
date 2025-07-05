@@ -78,13 +78,13 @@ const ScholarshipHub: React.FC = () => {
   // Fetch personalized recommendations
   const { data: recommendationsData, isLoading: isLoadingRecommendations } = useQuery({
     queryKey: ['scholarship-recommendations'],
-    queryFn: () => apiRequest('GET', '/api/scholarships/recommendations'),
+    queryFn: () => apiRequest('GET', '/api/scholarship-recommendations/recommendations'),
   });
 
   // Fetch saved scholarships
   const { data: savedScholarshipsData, isLoading: isLoadingSaved } = useQuery({
     queryKey: ['saved-scholarships'],
-    queryFn: () => apiRequest('GET', '/api/scholarships/user/saved'),
+    queryFn: () => apiRequest('GET', '/api/scholarship-recommendations/user/saved'),
   });
 
   // Fetch user preferences
@@ -96,7 +96,7 @@ const ScholarshipHub: React.FC = () => {
   // Save scholarship mutation
   const saveScholarshipMutation = useMutation({
     mutationFn: (scholarshipId: number) => 
-      apiRequest('POST', `/api/scholarships/${scholarshipId}/save`, { status: 'saved' }),
+      apiRequest('POST', `/api/scholarship-recommendations/save`, { scholarshipId }),
     onSuccess: () => {
       toast({ title: 'Scholarship saved successfully!' });
       queryClient.invalidateQueries({ queryKey: ['saved-scholarships'] });
@@ -113,7 +113,7 @@ const ScholarshipHub: React.FC = () => {
   // Remove scholarship mutation
   const removeScholarshipMutation = useMutation({
     mutationFn: (scholarshipId: number) => 
-      apiRequest('DELETE', `/api/scholarships/${scholarshipId}/save`),
+      apiRequest('DELETE', `/api/scholarship-recommendations/save/${scholarshipId}`),
     onSuccess: () => {
       toast({ title: 'Scholarship removed successfully!' });
       queryClient.invalidateQueries({ queryKey: ['saved-scholarships'] });

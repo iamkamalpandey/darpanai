@@ -319,13 +319,7 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      <Route path="/progress-tracker">
-        <UserProtectedRoute path="/progress-tracker" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <GamifiedProgress />
-          </Suspense>
-        )} />
-      </Route>
+
       <Route path="/my-watchlist">
         <UserProtectedRoute path="/my-watchlist" component={() => (
           <Suspense fallback={<LoadingFallback />}>
