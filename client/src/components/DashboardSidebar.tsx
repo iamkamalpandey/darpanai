@@ -87,8 +87,16 @@ export function DashboardSidebar() {
       {user && (
         <div className="mb-8 mt-2 px-2">
           <div className="flex items-center gap-2 overflow-hidden">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <User className="h-5 w-5" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary overflow-hidden">
+              {user.profileImageUrl ? (
+                <img 
+                  src={user.profileImageUrl} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="h-5 w-5" />
+              )}
             </div>
             <div className="flex flex-1 flex-col overflow-hidden">
               <span className="text-sm font-medium text-foreground truncate">{user.firstName ? `${user.firstName} ${user.lastName}` : user.username}</span>

@@ -158,10 +158,18 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <Link href="/profile" className="relative h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-colors">
-                <span className="text-xs font-medium text-white">
-                  {user?.firstName?.[0]}{user?.lastName?.[0]}
-                </span>
+              <Link href="/profile" className="relative h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center hover:bg-blue-700 transition-colors overflow-hidden">
+                {user?.profileImageUrl ? (
+                  <img 
+                    src={user.profileImageUrl} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-xs font-medium text-white">
+                    {user?.firstName?.[0]}{user?.lastName?.[0]}
+                  </span>
+                )}
                 <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-white rounded-full flex items-center justify-center shadow-sm">
                   <div className={`h-3 w-3 rounded-full flex items-center justify-center ${
                     completionPercentage >= 80 ? 'bg-green-500' : 
