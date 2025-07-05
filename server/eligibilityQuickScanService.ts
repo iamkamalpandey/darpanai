@@ -1,6 +1,18 @@
 import { db } from "./db";
 import { users, scholarshipPrograms } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import OpenAI from "openai";
+
+// DeepSeek AI configuration (primary)
+const deepSeek = new OpenAI({
+  apiKey: process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY,
+  baseURL: 'https://api.deepseek.com/v1',
+});
+
+// OpenAI fallback configuration
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || '',
+});
 
 export interface EligibilityResult {
   scholarshipId: number;
@@ -29,6 +41,8 @@ export interface QuickScanResult {
 export class EligibilityQuickScanService {
   
   async performQuickScan(userId: number): Promise<QuickScanResult> {
+    console.log(`[Eligibility Quick Scan] Starting AI-enhanced scan for user ${userId}`);
+    
     // Get user profile
     const [user] = await db.select().from(users).where(eq(users.id, userId));
     if (!user) {
@@ -38,31 +52,48 @@ export class EligibilityQuickScanService {
     // Get all active scholarships
     const scholarships = await db.select().from(scholarshipPrograms).where(eq(scholarshipPrograms.isActive, true));
     
-    const results: EligibilityResult[] = [];
+    // Perform basic rule-based analysis first
+    const basicResults: EligibilityResult[] = [];
     let totalPotentialFunding = 0;
     
-    // Analyze each scholarship
     for (const scholarship of scholarships) {
       const eligibilityAnalysis = this.analyzeEligibility(user, scholarship);
-      results.push(eligibilityAnalysis);
+      basicResults.push(eligibilityAnalysis);
       
       if (eligibilityAnalysis.eligibilityStatus !== 'not-eligible') {
         totalPotentialFunding += scholarship.amountMax || scholarship.amountMin || 0;
       }
     }
 
+    // Enhanced AI analysis for top eligible scholarships (resource optimization)
+    const topCandidates = basicResults
+      .filter(r => r.eligibilityScore >= 40) // Only analyze promising candidates
+      .slice(0, 5); // Limit to top 5 to conserve resources
+
+    const enhancedResults = topCandidates.length > 0 
+      ? await this.performAIEnhancedAnalysis(user, topCandidates, scholarships)
+      : basicResults;
+
+    // Merge enhanced results with basic results
+    const finalResults = basicResults.map(basicResult => {
+      const enhanced = enhancedResults.find(e => e.scholarshipId === basicResult.scholarshipId);
+      return enhanced || basicResult;
+    });
+
     // Calculate summary statistics
-    const eligibleScholarships = results.filter(r => r.eligibilityStatus !== 'not-eligible').length;
-    const highlyEligibleScholarships = results.filter(r => r.eligibilityStatus === 'highly-eligible').length;
+    const eligibleScholarships = finalResults.filter(r => r.eligibilityStatus !== 'not-eligible').length;
+    const highlyEligibleScholarships = finalResults.filter(r => r.eligibilityStatus === 'highly-eligible').length;
     
     // Calculate profile completeness
     const profileCompleteness = this.calculateProfileCompleteness(user);
     
-    // Generate improvement suggestions
-    const improvementSuggestions = this.generateImprovementSuggestions(user, results);
+    // Generate AI-enhanced improvement suggestions
+    const improvementSuggestions = await this.generateAIImprovementSuggestions(user, finalResults);
     
     // Sort results by eligibility score
-    results.sort((a, b) => b.eligibilityScore - a.eligibilityScore);
+    finalResults.sort((a, b) => b.eligibilityScore - a.eligibilityScore);
+
+    console.log(`[Eligibility Quick Scan] Completed scan for user ${userId}: ${eligibleScholarships}/${finalResults.length} eligible scholarships`);
 
     return {
       totalScholarships: scholarships.length,
@@ -71,7 +102,7 @@ export class EligibilityQuickScanService {
       totalPotentialFunding: this.formatCurrency(totalPotentialFunding),
       scanCompletedAt: new Date().toISOString(),
       profileCompleteness,
-      results,
+      results: finalResults,
       improvementSuggestions,
     };
   }

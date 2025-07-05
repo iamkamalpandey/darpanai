@@ -47,6 +47,7 @@ interface ScholarshipProgram {
     id: number;
     name: string;
     website: string;
+    country?: string;
   };
 }
 
@@ -257,14 +258,19 @@ export default function ScholarshipHubNew() {
   // Transform database scholarships to match interface
   const transformScholarship = (dbScholarship: any, savedIds: number[] = []): ScholarshipMatch => {
     const scholarshipId = dbScholarship.id || Math.random();
+    
+    // Handle both API response structure and direct database structure
+    const providerName = dbScholarship.provider?.name || dbScholarship.provider_name || 'Unknown Provider';
+    const providerWebsite = dbScholarship.provider?.website || dbScholarship.application_url || '';
+    
     return {
       scholarship: {
         id: scholarshipId,
         name: dbScholarship.name,
         provider: {
-          name: dbScholarship.provider_name || 'Unknown Provider',
+          name: providerName,
           country: Array.isArray(dbScholarship.target_countries) ? dbScholarship.target_countries[0] : 'Unknown',
-          website: dbScholarship.application_url || '',
+          website: providerWebsite,
         },
         amountDisplay: dbScholarship.amount_display || 'Amount not specified',
         deadline: dbScholarship.deadline || '2025-12-31',
@@ -332,7 +338,11 @@ export default function ScholarshipHubNew() {
   // Handle different API response formats
   let rawScholarships = [];
   if (scholarshipsData?.scholarships && Array.isArray(scholarshipsData.scholarships)) {
-    rawScholarships = scholarshipsData.scholarships;
+    // Extract scholarship data from API response structure: {scholarships: [{scholarship: {...}}]}
+    rawScholarships = scholarshipsData.scholarships.map(item => {
+      // If item has a 'scholarship' property, use that; otherwise use the item directly
+      return item.scholarship || item;
+    });
   } else if (Array.isArray(scholarshipsData)) {
     rawScholarships = scholarshipsData;
   }
