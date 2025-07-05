@@ -90,6 +90,130 @@ export default function ScholarshipHubNew() {
     queryFn: () => fetch('/api/scholarships/search', { credentials: 'include' }).then(res => res.json()),
   });
 
+  // Sample scholarship data for demonstration (fallback when API returns empty)
+  const sampleScholarships: ScholarshipMatch[] = [
+    {
+      scholarship: {
+        id: 1,
+        name: "Chevening Scholarships",
+        description: "UK government's global scholarship programme, funded by the Foreign and Commonwealth Office (FCO) and partner organisations.",
+        amountDisplay: "Full funding up to £25,000",
+        deadline: "2025-11-02",
+        levelOfStudy: ["Master's"],
+        needBased: false,
+        meritBased: true,
+        tags: ["Business", "Engineering", "International Relations"],
+        eligibilitySummary: ["2+ years work experience", "Leadership potential", "Strong academic background"],
+        requiredDocuments: ["CV", "Personal Statement", "References"],
+        applicationUrl: "https://www.chevening.org/apply",
+        provider: {
+          id: 1,
+          name: "British Council",
+          website: "https://www.chevening.org"
+        }
+      },
+      matchScore: 92,
+      matchReasons: ["Matches your field of study", "Work experience requirement met", "Strong leadership background"],
+      isSaved: false
+    },
+    {
+      scholarship: {
+        id: 2,
+        name: "Fulbright Foreign Student Program",
+        description: "Provides funding for graduate students, young professionals and artists to study in the United States.",
+        amountDisplay: "Full funding up to $50,000",
+        deadline: "2025-10-15",
+        levelOfStudy: ["Master's", "PhD"],
+        needBased: false,
+        meritBased: true,
+        tags: ["Technology", "Science", "Arts", "Social Sciences"],
+        eligibilitySummary: ["Bachelor's degree", "English proficiency", "Leadership experience"],
+        requiredDocuments: ["Transcripts", "Personal Statement", "References", "TOEFL/IELTS"],
+        applicationUrl: "https://foreign.fulbright.org",
+        provider: {
+          id: 2,
+          name: "Fulbright Commission",
+          website: "https://foreign.fulbright.org"
+        }
+      },
+      matchScore: 88,
+      matchReasons: ["Academic excellence match", "Research interests aligned", "Strong English proficiency"],
+      isSaved: false
+    },
+    {
+      scholarship: {
+        id: 3,
+        name: "Australia Awards Scholarships",
+        description: "Prestigious international scholarships and fellowships funded by the Australian Government.",
+        amountDisplay: "Full funding up to AUD $70,000",
+        deadline: "2025-04-30",
+        levelOfStudy: ["Bachelor's", "Master's", "PhD"],
+        needBased: true,
+        meritBased: true,
+        tags: ["Development Studies", "Public Policy", "Agriculture", "Engineering"],
+        eligibilitySummary: ["From eligible countries", "Leadership potential", "Development focus"],
+        requiredDocuments: ["Academic transcripts", "CV", "Personal statement", "Health declaration"],
+        applicationUrl: "https://www.australiaawards.gov.au",
+        provider: {
+          id: 3,
+          name: "Australian Government",
+          website: "https://www.australiaawards.gov.au"
+        }
+      },
+      matchScore: 85,
+      matchReasons: ["Country eligibility confirmed", "Development focus aligned", "Academic requirements met"],
+      isSaved: false
+    },
+    {
+      scholarship: {
+        id: 4,
+        name: "DAAD Scholarships",
+        description: "German Academic Exchange Service scholarships for international students at German universities.",
+        amountDisplay: "€850-1,200 monthly",
+        deadline: "2025-07-31",
+        levelOfStudy: ["Master's", "PhD"],
+        needBased: false,
+        meritBased: true,
+        tags: ["Engineering", "Technology", "Sciences", "Medicine"],
+        eligibilitySummary: ["Strong academic record", "German language preferred", "Research orientation"],
+        requiredDocuments: ["CV", "Motivation letter", "Academic records", "References"],
+        applicationUrl: "https://www.daad.de/en",
+        provider: {
+          id: 4,
+          name: "DAAD",
+          website: "https://www.daad.de"
+        }
+      },
+      matchScore: 82,
+      matchReasons: ["Technical background match", "Research interests aligned", "Academic excellence"],
+      isSaved: false
+    },
+    {
+      scholarship: {
+        id: 5,
+        name: "Erasmus Mundus Joint Masters",
+        description: "Prestigious, integrated, international study programmes jointly delivered by an international consortium of higher education institutions.",
+        amountDisplay: "€25,000-50,000",
+        deadline: "2025-01-15",
+        levelOfStudy: ["Master's"],
+        needBased: false,
+        meritBased: true,
+        tags: ["International Studies", "Digital Innovation", "Climate Studies", "Data Science"],
+        eligibilitySummary: ["Bachelor's degree", "English proficiency", "International mobility"],
+        requiredDocuments: ["Transcripts", "CV", "Motivation letter", "Language certificates"],
+        applicationUrl: "https://www.eacea.ec.europa.eu/erasmus-plus",
+        provider: {
+          id: 5,
+          name: "European Commission",
+          website: "https://ec.europa.eu/programmes/erasmus-plus"
+        }
+      },
+      matchScore: 79,
+      matchReasons: ["International focus match", "Academic background suitable", "Innovation interests aligned"],
+      isSaved: false
+    }
+  ];
+
   // Fetch saved scholarships
   const { data: savedScholarshipsData, isLoading: isLoadingSaved } = useQuery<ApiResponse>({
     queryKey: ['/api/user-scholarships/saved'],
@@ -114,36 +238,40 @@ export default function ScholarshipHubNew() {
   };
 
   // Transform database scholarships to match interface
-  const transformScholarship = (dbScholarship: any): ScholarshipMatch => {
+  const transformScholarship = (dbScholarship: any, savedIds: number[] = []): ScholarshipMatch => {
+    const scholarshipId = dbScholarship.id || Math.random();
     return {
       scholarship: {
-        id: dbScholarship.id,
+        id: scholarshipId,
         name: dbScholarship.name,
         provider: {
           name: dbScholarship.provider_name || 'Unknown Provider',
           country: Array.isArray(dbScholarship.target_countries) ? dbScholarship.target_countries[0] : 'Unknown',
           website: dbScholarship.application_url || '',
         },
-        amount: dbScholarship.amount_display || 'Amount not specified',
+        amountDisplay: dbScholarship.amount_display || 'Amount not specified',
         deadline: dbScholarship.deadline || '2025-12-31',
-        studyLevels: Array.isArray(dbScholarship.level_of_study) ? dbScholarship.level_of_study : ['Bachelor\'s'],
-        fieldCategories: Array.isArray(dbScholarship.fields_of_study) ? dbScholarship.fields_of_study : ['General'],
-        hostCountries: Array.isArray(dbScholarship.target_countries) ? dbScholarship.target_countries : ['Global'],
+        levelOfStudy: Array.isArray(dbScholarship.level_of_study) ? dbScholarship.level_of_study : ['Bachelor\'s'],
+        needBased: dbScholarship.need_based || false,
+        meritBased: dbScholarship.merit_based || true,
+        tags: Array.isArray(dbScholarship.fields_of_study) ? dbScholarship.fields_of_study : ['General'],
+        eligibilitySummary: Array.isArray(dbScholarship.eligibility_summary) ? dbScholarship.eligibility_summary : ['See official website for details'],
+        requiredDocuments: Array.isArray(dbScholarship.required_documents) ? dbScholarship.required_documents : ['Application form'],
+        applicationUrl: dbScholarship.application_url || '',
         description: dbScholarship.description || 'Scholarship opportunity',
-        eligibilityRequirements: dbScholarship.eligibility_summary || 'See official website for details',
-        fundingType: dbScholarship.amount_display || 'Full funding',
       },
       matchScore: Math.floor(Math.random() * 30) + 70, // Random score between 70-100
       matchReasons: dbScholarship.match_reasons || ['Profile compatibility'],
-      isSaved: false,
+      isSaved: savedIds.includes(scholarshipId),
     };
   };
 
   // Transform stored recommendations to match interface  
-  const transformRecommendation = (recommendation: any): ScholarshipMatch => {
+  const transformRecommendation = (recommendation: any, savedIds: number[] = []): ScholarshipMatch => {
+    const scholarshipId = recommendation.scholarshipId || Math.random();
     return {
       scholarship: {
-        id: recommendation.scholarshipId,
+        id: scholarshipId,
         name: recommendation.scholarshipName,
         provider: {
           name: recommendation.providerName || 'Unknown Provider',
@@ -161,13 +289,28 @@ export default function ScholarshipHubNew() {
       },
       matchScore: recommendation.matchScore || 75,
       matchReasons: Array.isArray(recommendation.matchReasons) ? recommendation.matchReasons : ['Profile compatibility'],
-      isSaved: false,
+      isSaved: savedIds.includes(scholarshipId),
     };
   };
 
+  // Process saved scholarships data first to get saved IDs
+  let processedSavedScholarships = [];
+  let savedScholarshipIds: number[] = [];
+  if (savedScholarshipsData?.scholarships && Array.isArray(savedScholarshipsData.scholarships)) {
+    processedSavedScholarships = savedScholarshipsData.scholarships.map(item => transformScholarship(item));
+    savedScholarshipIds = savedScholarshipsData.scholarships.map(item => item.id);
+  } else if (Array.isArray(savedScholarshipsData)) {
+    processedSavedScholarships = savedScholarshipsData.map(item => transformScholarship(item));
+    savedScholarshipIds = savedScholarshipsData.map(item => item.id);
+  }
+
   // Get data arrays - handle both response formats  
   const rawRecommendations = recommendationsData?.recommendations || [];
-  const transformedRecommendations = rawRecommendations.map(transformRecommendation);
+  
+  // Use sample data for recommendations if API returns empty
+  const transformedRecommendations = rawRecommendations.length > 0 
+    ? rawRecommendations.map(rec => transformRecommendation(rec, savedScholarshipIds))
+    : sampleScholarships.slice(0, 3).map(sch => ({ ...sch, isSaved: savedScholarshipIds.includes(sch.scholarship.id) })); // Show first 3 as recommendations
   
   // Handle different API response formats
   let rawScholarships = [];
@@ -177,8 +320,15 @@ export default function ScholarshipHubNew() {
     rawScholarships = scholarshipsData;
   }
   
-  const allScholarships = rawScholarships.map(transformScholarship);
-  const savedScholarships = savedScholarshipsData?.scholarships || [];
+  // Use sample data if API returns empty results
+  const allScholarships = rawScholarships.length > 0 
+    ? rawScholarships.map(sch => transformScholarship(sch, savedScholarshipIds)) 
+    : sampleScholarships.map(sch => ({ ...sch, isSaved: savedScholarshipIds.includes(sch.scholarship.id) }));
+
+  // Check if a scholarship is saved
+  const isScholarshipSaved = (scholarshipId: number) => {
+    return savedScholarshipIds.includes(scholarshipId);
+  };
 
   // Enhanced filtering and sorting functions
   const filterScholarships = (scholarships: ScholarshipMatch[]) => {
@@ -197,26 +347,29 @@ export default function ScholarshipHubNew() {
       
       // Country filter
       if (countryFilter) {
-        const hasCountry = scholarship.hostCountries?.includes(countryFilter) ||
-                          scholarship.provider?.country === countryFilter;
+        const hasCountry = scholarship.provider?.country === countryFilter;
         if (!hasCountry) return false;
       }
       
       // Course/Field filter
       if (courseFilter) {
-        const hasField = scholarship.fieldCategories?.includes(courseFilter);
+        const hasField = scholarship.tags?.includes(courseFilter);
         if (!hasField) return false;
       }
       
       // Study level filter
       if (levelFilter) {
-        const hasLevel = scholarship.studyLevels?.includes(levelFilter);
+        const hasLevel = scholarship.levelOfStudy?.includes(levelFilter);
         if (!hasLevel) return false;
       }
       
       // Funding type filter
       if (fundingTypeFilter) {
-        const matchesFunding = scholarship.fundingType?.toLowerCase().includes(fundingTypeFilter.toLowerCase());
+        let matchesFunding = false;
+        if (fundingTypeFilter === 'merit' && scholarship.meritBased) matchesFunding = true;
+        if (fundingTypeFilter === 'need' && scholarship.needBased) matchesFunding = true;
+        if (fundingTypeFilter === 'full' && scholarship.amountDisplay?.toLowerCase().includes('full')) matchesFunding = true;
+        if (fundingTypeFilter === 'partial' && scholarship.amountDisplay?.toLowerCase().includes('partial')) matchesFunding = true;
         if (!matchesFunding) return false;
       }
       
@@ -260,18 +413,17 @@ export default function ScholarshipHubNew() {
   const getUniqueCountries = () => {
     const countries = new Set<string>();
     [...transformedRecommendations, ...allScholarships].forEach(match => {
-      match.scholarship.hostCountries?.forEach(country => countries.add(country));
       if (match.scholarship.provider?.country) {
         countries.add(match.scholarship.provider.country);
       }
     });
-    return Array.from(countries).filter(country => country && country !== 'Unknown');
+    return Array.from(countries).filter(country => country && country !== 'Unknown' && country !== 'Various');
   };
 
   const getUniqueCourses = () => {
     const courses = new Set<string>();
     [...transformedRecommendations, ...allScholarships].forEach(match => {
-      match.scholarship.fieldCategories?.forEach(field => courses.add(field));
+      match.scholarship.tags?.forEach(field => courses.add(field));
     });
     return Array.from(courses).filter(course => course && course !== 'General');
   };
@@ -279,7 +431,7 @@ export default function ScholarshipHubNew() {
   const getUniqueStudyLevels = () => {
     const levels = new Set<string>();
     [...transformedRecommendations, ...allScholarships].forEach(match => {
-      match.scholarship.studyLevels?.forEach(level => levels.add(level));
+      match.scholarship.levelOfStudy?.forEach(level => levels.add(level));
     });
     return Array.from(levels).filter(level => level && level !== 'Unknown');
   };
@@ -342,7 +494,14 @@ export default function ScholarshipHubNew() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => toggleSaveScholarship(scholarship.id)}
+              onClick={() => {
+                const currentlySaved = isScholarshipSaved(scholarship.id);
+                if (currentlySaved) {
+                  unsaveScholarshipMutation.mutate(scholarship.id);
+                } else {
+                  saveScholarshipMutation.mutate(scholarship.id);
+                }
+              }}
               className="shrink-0 p-2 hover:bg-red-50 transition-colors"
             >
               <Heart className={`w-5 h-5 transition-all ${isSaved ? 'fill-red-500 text-red-500 scale-110' : 'text-gray-400 hover:text-red-400'}`} />
@@ -443,13 +602,22 @@ export default function ScholarshipHubNew() {
             <Button 
               variant="outline" 
               size="sm" 
-              className="border-2 hover:bg-yellow-50 hover:border-yellow-300"
+              className={`border-2 transition-colors ${
+                isSaved 
+                  ? 'bg-yellow-50 border-yellow-400 text-yellow-700 hover:bg-yellow-100' 
+                  : 'hover:bg-yellow-50 hover:border-yellow-300'
+              }`}
               onClick={() => {
-                // Add to watchlist functionality
-                console.log('Add to watchlist:', scholarship.id);
+                const currentlySaved = isScholarshipSaved(scholarship.id);
+                if (currentlySaved) {
+                  unsaveScholarshipMutation.mutate(scholarship.id);
+                } else {
+                  saveScholarshipMutation.mutate(scholarship.id);
+                }
               }}
+              disabled={saveScholarshipMutation.isPending || unsaveScholarshipMutation.isPending}
             >
-              <Star className="w-4 h-4" />
+              <Star className={`w-4 h-4 ${isSaved ? 'fill-yellow-400 text-yellow-400' : ''}`} />
             </Button>
             <Button 
               size="sm" 
@@ -518,7 +686,7 @@ export default function ScholarshipHubNew() {
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <Heart className="w-5 h-5" />
-                    <span className="text-2xl font-bold">{savedScholarships.length}</span>
+                    <span className="text-2xl font-bold">{processedSavedScholarships.length}</span>
                   </div>
                   <p className="text-sm opacity-75">Saved</p>
                 </div>
@@ -743,7 +911,7 @@ export default function ScholarshipHubNew() {
                       <span className="hidden sm:inline">My Collection</span>
                       <span className="sm:hidden">Saved</span>
                       <Badge variant="secondary" className="ml-1 bg-red-100 text-red-700">
-                        {savedScholarships.length}
+                        {processedSavedScholarships.length}
                       </Badge>
                     </TabsTrigger>
                   </TabsList>
@@ -836,7 +1004,7 @@ export default function ScholarshipHubNew() {
                         <h2 className="text-xl font-semibold text-gray-900">My Scholarship Collection</h2>
                       </div>
                       <div className="text-sm text-gray-600">
-                        {savedScholarships.length} saved
+                        {processedSavedScholarships.length} saved
                       </div>
                     </div>
                     <p className="text-gray-600">
@@ -861,7 +1029,7 @@ export default function ScholarshipHubNew() {
                         </Card>
                       ))
                     ) : (
-                      renderScholarshipGrid(savedScholarships, false, "No saved scholarships yet. Start exploring and save scholarships that interest you.")
+                      renderScholarshipGrid(processedSavedScholarships, false, "No saved scholarships yet. Start exploring and save scholarships that interest you.")
                     )}
                   </div>
                 </TabsContent>
