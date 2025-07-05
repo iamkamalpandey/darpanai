@@ -4102,7 +4102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GET /api/scholarships - Search and filter scholarships
   app.get('/api/scholarships', requireAuth, async (req, res) => {
     try {
-      const { scholarshipService } = await import('./services/scholarshipService');
+      const { scholarshipServiceFixed } = await import('./services/scholarshipServiceFixed');
       const userId = req.user!.id;
       
       const filters = {
@@ -4117,7 +4117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         offset: req.query.offset ? parseInt(req.query.offset as string) : 0,
       };
 
-      const results = await scholarshipService.searchScholarships(filters, userId);
+      const results = await scholarshipServiceFixed.searchScholarships(filters, userId);
       res.json(results);
     } catch (error: any) {
       console.error('Error searching scholarships:', error);
@@ -4128,12 +4128,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GET /api/scholarships/recommendations - Get personalized recommendations
   app.get('/api/scholarships/recommendations', requireAuth, async (req, res) => {
     try {
-      const { scholarshipService } = await import('./services/scholarshipService');
+      const { scholarshipServiceFixed } = await import('./services/scholarshipServiceFixed');
       const userId = req.user!.id;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
 
-      const recommendations = await scholarshipService.getPersonalizedRecommendations(userId, limit);
-      res.json({ recommendations });
+      const recommendations = await scholarshipServiceFixed.searchScholarships({ limit }, userId);
+      res.json({ recommendations: recommendations.scholarships });
     } catch (error: any) {
       console.error('Error getting recommendations:', error);
       res.status(500).json({ error: 'Failed to get recommendations', details: error.message });
@@ -4192,10 +4192,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GET /api/scholarships/user/saved - Get user's saved scholarships
   app.get('/api/scholarships/user/saved', requireAuth, async (req, res) => {
     try {
-      const { scholarshipService } = await import('./services/scholarshipService');
+      const { scholarshipServiceFixed } = await import('./services/scholarshipServiceFixed');
       const userId = req.user!.id;
 
-      const savedScholarships = await scholarshipService.getUserSavedScholarships(userId);
+      const savedScholarships = await scholarshipServiceFixed.getUserSavedScholarships(userId);
       res.json({ scholarships: savedScholarships });
     } catch (error: any) {
       console.error('Error getting saved scholarships:', error);
@@ -4259,9 +4259,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userProfile: {
           fieldOfStudy: user.fieldOfStudy,
           academicLevel: user.highestQualification,
-          gpa: preferences?.gpa ? Number(preferences.gpa) : undefined,
-          financialNeed: preferences?.financialNeed || false,
-          interests: preferences?.preferredTags || [],
+          gpa: undefined, // GPA field not in current schema
+          financialNeed: preferences?.needBasedPreference || false,
+          interests: preferences?.fieldsOfInterest || [],
           achievements: user.achievements || [],
           background: user.background || '',
         },

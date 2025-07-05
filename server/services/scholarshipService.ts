@@ -103,8 +103,7 @@ export class ScholarshipService {
       conditions.push(
         or(
           like(scholarshipPrograms.name, `%${filters.search}%`),
-          like(scholarshipPrograms.description, `%${filters.search}%`),
-          arrayContains(scholarshipPrograms.tags, [filters.search])
+          like(scholarshipPrograms.description, `%${filters.search}%`)
         )
       );
     }
@@ -248,7 +247,7 @@ export class ScholarshipService {
       .leftJoin(scholarshipPrograms, eq(userScholarships.scholarshipId, scholarshipPrograms.id))
       .leftJoin(scholarshipProviders, eq(scholarshipPrograms.providerId, scholarshipProviders.id))
       .where(eq(userScholarships.userId, userId))
-      .orderBy(desc(userScholarships.savedAt));
+      .orderBy(desc(userScholarships.createdAt));
 
     return results.map(result => ({
       scholarship: {
@@ -309,19 +308,19 @@ export class ScholarshipService {
 
     // Add preference-based filters
     if (userPreferences) {
-      if (userPreferences.levelOfStudy) {
-        searchCriteria.levelOfStudy = [userPreferences.levelOfStudy];
+      if (userPreferences.academicLevel) {
+        searchCriteria.levelOfStudy = [userPreferences.academicLevel];
       }
       
-      if (userPreferences.preferredAmountMin) {
-        searchCriteria.amountMin = userPreferences.preferredAmountMin;
+      if (userPreferences.budgetMin) {
+        searchCriteria.amountMin = userPreferences.budgetMin;
       }
 
-      if (userPreferences.preferredTags.length > 0) {
-        searchCriteria.tags = userPreferences.preferredTags;
+      if (userPreferences.fieldsOfInterest.length > 0) {
+        searchCriteria.tags = userPreferences.fieldsOfInterest;
       }
 
-      if (userPreferences.financialNeed) {
+      if (userPreferences.needBasedPreference) {
         searchCriteria.needBased = true;
       }
     }
@@ -361,24 +360,19 @@ export class ScholarshipService {
     }
 
     // Financial need match
-    if (preferences?.financialNeed && scholarship.needBased) {
+    if (preferences?.needBasedPreference && scholarship.needBased) {
       score += 15;
     }
 
     // Merit-based match
-    if (!preferences?.financialNeed && scholarship.meritBased) {
+    if (preferences?.meritBasedPreference && scholarship.meritBased) {
       score += 10;
     }
 
-    // GPA consideration
-    if (preferences?.gpa && Number(preferences.gpa) >= 3.5) {
-      score += 10;
-    }
-
-    // Preferred tags match
-    if (preferences?.preferredTags.length) {
+    // Preferred fields match
+    if (preferences?.fieldsOfInterest.length) {
       const tagMatches = scholarship.tags.filter(tag => 
-        preferences.preferredTags.includes(tag)
+        preferences.fieldsOfInterest.includes(tag)
       ).length;
       score += tagMatches * 5;
     }
@@ -413,17 +407,17 @@ export class ScholarshipService {
       reasons.push(`Suitable for your academic level`);
     }
 
-    if (preferences?.financialNeed && scholarship.needBased) {
+    if (preferences?.needBasedPreference && scholarship.needBased) {
       reasons.push(`Addresses your financial needs`);
     }
 
-    if (scholarship.meritBased && preferences?.gpa && Number(preferences.gpa) >= 3.5) {
+    if (scholarship.meritBased && preferences?.meritBasedPreference) {
       reasons.push(`Merit-based opportunity matching your academic performance`);
     }
 
-    if (preferences?.preferredTags.length) {
+    if (preferences?.fieldsOfInterest.length) {
       const matchingTags = scholarship.tags.filter(tag => 
-        preferences.preferredTags.includes(tag)
+        preferences.fieldsOfInterest.includes(tag)
       );
       if (matchingTags.length > 0) {
         reasons.push(`Matches your interests: ${matchingTags.join(', ')}`);

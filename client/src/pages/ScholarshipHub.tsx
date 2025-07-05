@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import DashboardLayout from '@/components/DashboardLayout';
 
 interface ScholarshipProgram {
   id: number;
@@ -282,7 +283,7 @@ const ScholarshipHub: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <DashboardLayout>
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
@@ -349,7 +350,7 @@ const ScholarshipHub: React.FC = () => {
                   </Card>
                 ))
               ) : scholarshipsData?.scholarships?.length > 0 ? (
-                scholarshipsData.scholarships.map((match: ScholarshipMatch) => (
+                (scholarshipsData as any)?.scholarships?.map((match: ScholarshipMatch) => (
                   <ScholarshipCard key={match.scholarship.id} match={match} />
                 ))
               ) : (
@@ -391,7 +392,7 @@ const ScholarshipHub: React.FC = () => {
                   </Card>
                 ))
               ) : recommendationsData?.recommendations?.length > 0 ? (
-                recommendationsData.recommendations.map((match: ScholarshipMatch) => (
+                (recommendationsData as any)?.recommendations?.map((match: ScholarshipMatch) => (
                   <ScholarshipCard key={match.scholarship.id} match={match} />
                 ))
               ) : (
@@ -423,7 +424,7 @@ const ScholarshipHub: React.FC = () => {
                   </Card>
                 ))
               ) : savedScholarshipsData?.scholarships?.length > 0 ? (
-                savedScholarshipsData.scholarships.map((match: ScholarshipMatch) => (
+                (savedScholarshipsData as any)?.scholarships?.map((match: ScholarshipMatch) => (
                   <ScholarshipCard 
                     key={match.scholarship.id} 
                     match={match} 
@@ -533,7 +534,7 @@ const ScholarshipHub: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </DashboardLayout>
   );
 };
 
