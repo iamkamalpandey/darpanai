@@ -4430,6 +4430,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   console.log("[INFO] [express] ✓ Advanced Scholarship Matching System (SMS) routes registered successfully");
 
+  // Scholarship Recommendation Routes
+  const scholarshipRecommendationRoutes = await import('./scholarshipRecommendationRoutes');
+  app.use('/api/scholarship-recommendations', scholarshipRecommendationRoutes.default);
+  console.log("[INFO] [express] ✓ Scholarship Recommendation routes registered successfully");
+
   const httpServer = createServer(app);
 
   return httpServer;

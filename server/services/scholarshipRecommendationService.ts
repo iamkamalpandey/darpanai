@@ -393,6 +393,19 @@ export class ScholarshipRecommendationService {
       throw error;
     }
   }
+
+  /**
+   * Regenerate recommendations for a user using the storage service
+   */
+  async regenerateUserRecommendations(userId: number): Promise<{ success: boolean; generatedCount: number }> {
+    try {
+      const { scholarshipRecommendationStorage } = await import('../scholarshipRecommendationStorage');
+      return await scholarshipRecommendationStorage.regenerateUserRecommendations(userId);
+    } catch (error: any) {
+      console.error('Error regenerating recommendations:', error);
+      throw error;
+    }
+  }
 }
 
 export const scholarshipRecommendationService = new ScholarshipRecommendationService();

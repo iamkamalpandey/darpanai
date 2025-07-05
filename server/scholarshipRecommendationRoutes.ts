@@ -11,6 +11,41 @@ const requireAuth = (req: any, res: Response, next: NextFunction) => {
   next();
 };
 
+// Get stored recommendations (default route)
+router.get("/", requireAuth, async (req: any, res: Response) => {
+  try {
+    const userId = req.user.id;
+    console.log(`[Stored Recommendations] Getting stored recommendations for user ${userId}`);
+    
+    const { scholarshipRecommendationStorage } = await import('./scholarshipRecommendationStorage');
+    const storedRecommendations = await scholarshipRecommendationStorage.getUserRecommendations(userId);
+    
+    console.log(`[Stored Recommendations] Found ${storedRecommendations.length} stored recommendations`);
+    
+    const stats = {
+      totalRecommendations: storedRecommendations.length,
+      averageMatchScore: storedRecommendations.length > 0 
+        ? Math.round(storedRecommendations.reduce((sum, r) => sum + r.matchScore, 0) / storedRecommendations.length)
+        : 0
+    };
+    
+    const responseData = {
+      recommendations: storedRecommendations,
+      stats,
+      total: storedRecommendations.length,
+    };
+    
+    console.log(`[Stored Recommendations] Sending response with ${responseData.total} stored recommendations`);
+    res.json(responseData);
+  } catch (error: any) {
+    console.error('[Stored Recommendations] Error:', error);
+    res.status(500).json({
+      error: "Failed to get stored recommendations",
+      message: error.message,
+    });
+  }
+});
+
 // Get personalized scholarship recommendations
 router.get("/recommendations", requireAuth, async (req: any, res: Response) => {
   try {
@@ -173,6 +208,30 @@ router.get("/user/preferences", requireAuth, async (req: any, res: Response) => 
     console.error('[User Preferences] Error:', error);
     res.status(500).json({
       error: "Failed to get user preferences",
+      message: error.message,
+    });
+  }
+});
+
+// Regenerate user recommendations
+router.post("/regenerate", requireAuth, async (req: any, res: Response) => {
+  try {
+    const userId = req.user.id;
+    console.log(`[Regenerate Recommendations] Generating new recommendations for user ${userId}`);
+    
+    const result = await scholarshipRecommendationService.regenerateUserRecommendations(userId);
+    
+    console.log(`[Regenerate Recommendations] Generated ${result.generatedCount} recommendations for user ${userId}`);
+    
+    res.json({
+      success: true,
+      message: `Successfully generated ${result.generatedCount} new recommendations`,
+      generatedCount: result.generatedCount,
+    });
+  } catch (error: any) {
+    console.error('[Regenerate Recommendations] Error:', error);
+    res.status(500).json({
+      error: "Failed to regenerate recommendations",
       message: error.message,
     });
   }
