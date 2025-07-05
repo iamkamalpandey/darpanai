@@ -43,7 +43,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return await res.json();
     },
     onSuccess: (user) => {
+      // Update both cache keys to ensure proper state sync
       queryClient.setQueryData(["/api/user"], user);
+      queryClient.setQueryData(["/api/user/fresh"], user);
       
       // Pre-warm common data based on user role for faster navigation
       if (user.role === 'admin') {
@@ -80,7 +82,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return await res.json();
     },
     onSuccess: (user) => {
+      // Update both cache keys to ensure proper state sync
       queryClient.setQueryData(["/api/user"], user);
+      queryClient.setQueryData(["/api/user/fresh"], user);
       
       // Pre-warm data for new users for faster dashboard access
       if (user.role === 'admin') {
@@ -116,7 +120,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await apiRequest("POST", "/api/logout");
     },
     onSuccess: () => {
+      // Clear both cache keys to ensure proper logout state
       queryClient.setQueryData(["/api/user"], null);
+      queryClient.setQueryData(["/api/user/fresh"], null);
       toast({
         title: "Logged out",
         description: "You have been logged out successfully.",
