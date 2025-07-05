@@ -134,8 +134,8 @@ export class ScholarshipRecommendationService {
     let fieldMatch = false;
     
     // Check specific fields first
-    if (user.field_of_study && scholarship.specific_fields) {
-      const userField = user.field_of_study.toLowerCase();
+    if (user.fieldOfStudy && scholarship.specific_fields) {
+      const userField = user.fieldOfStudy.toLowerCase();
       const scholarshipFields = Array.isArray(scholarship.specific_fields) 
         ? scholarship.specific_fields 
         : [];
@@ -147,33 +147,59 @@ export class ScholarshipRecommendationService {
     }
     
     // If no specific field match, check field categories
-    if (!fieldMatch && user.field_of_study && scholarship.field_categories) {
-      const userField = user.field_of_study.toLowerCase();
+    if (!fieldMatch && user.fieldOfStudy && scholarship.field_categories) {
+      const userField = user.fieldOfStudy.toLowerCase();
       const scholarshipCategories = Array.isArray(scholarship.field_categories) 
         ? scholarship.field_categories 
         : [];
       
-      // Map common fields to categories
+      // Enhanced field to category mapping for better matching
       const fieldToCategoryMap: Record<string, string[]> = {
-        'information technology': ['STEM', 'Technology'],
-        'computer science': ['STEM', 'Technology'],
-        'engineering': ['STEM'],
-        'business': ['Business'],
-        'medicine': ['Medicine', 'STEM'],
-        'law': ['Law'],
-        'arts': ['Arts'],
-        'social sciences': ['Social Sciences']
+        'information technology': ['STEM', 'Technology', 'Computer Science', 'Engineering'],
+        'computer science': ['STEM', 'Technology', 'Computer Science'],
+        'information systems': ['STEM', 'Technology', 'Business'],
+        'software engineering': ['STEM', 'Technology', 'Engineering'],
+        'engineering': ['STEM', 'Engineering'],
+        'business': ['Business', 'Management'],
+        'business administration': ['Business', 'Management'],
+        'management': ['Business', 'Management'],
+        'medicine': ['Medicine', 'STEM', 'Health Sciences'],
+        'nursing': ['Medicine', 'Health Sciences'],
+        'law': ['Law', 'Social Sciences'],
+        'arts': ['Arts', 'Humanities'],
+        'social sciences': ['Social Sciences'],
+        'economics': ['Business', 'Social Sciences'],
+        'finance': ['Business', 'Economics'],
+        'marketing': ['Business'],
+        'psychology': ['Social Sciences', 'Health Sciences']
       };
       
-      const userCategories = fieldToCategoryMap[userField] || ['STEM']; // Default to STEM for tech fields
+      const userCategories = fieldToCategoryMap[userField] || ['STEM', 'General']; 
       fieldMatch = scholarshipCategories.some((category: string) => 
-        userCategories.some(userCat => category.toLowerCase().includes(userCat.toLowerCase()))
+        userCategories.some(userCat => 
+          category.toLowerCase().includes(userCat.toLowerCase()) ||
+          userCat.toLowerCase().includes(category.toLowerCase())
+        )
       );
+    }
+    
+    // Even broader matching for partial profile completion
+    if (!fieldMatch && user.fieldOfStudy && scholarship.description) {
+      const userField = user.fieldOfStudy.toLowerCase();
+      const description = scholarship.description.toLowerCase();
+      fieldMatch = description.includes(userField) || 
+                   description.includes('technology') && userField.includes('technology') ||
+                   description.includes('business') && userField.includes('business') ||
+                   description.includes('stem') && ['information technology', 'computer science', 'engineering'].includes(userField);
     }
     
     if (fieldMatch) {
       score += 40;
-      reasons.push(`Matches your field: ${user.field_of_study}`);
+      reasons.push(`Matches your field: ${user.fieldOfStudy}`);
+    } else if (user.fieldOfStudy) {
+      // Partial score for having field info even without perfect match
+      score += 10;
+      reasons.push('General eligibility for your field');
     }
 
     // 2. Country Match (30 points) 

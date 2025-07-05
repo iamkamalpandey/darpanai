@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +21,11 @@ import {
   Filter,
   TrendingUp,
   Sparkles,
-  Info
+  Info,
+  Users,
+  Target,
+  Zap,
+  Clock
 } from 'lucide-react';
 
 interface ScholarshipProgram {
@@ -48,6 +52,7 @@ interface ScholarshipMatch {
   scholarship: ScholarshipProgram;
   matchScore: number;
   matchReasons: string[];
+  isSaved?: boolean;
 }
 
 interface ApiResponse {
@@ -63,431 +68,429 @@ export default function ScholarshipHubNew() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch personalized recommendations
-  const { data: recommendationsData, isLoading: isLoadingRecommendations, error: recommendationsError } = useQuery<ApiResponse>({
-    queryKey: ['scholarship-recommendations-new'],
-    queryFn: () => apiRequest('GET', '/api/scholarships/recommendations'),
-    retry: 3,
+  // Fetch scholarship recommendations
+  const { data: recommendationsData, isLoading: isLoadingRecommendations } = useQuery<ApiResponse>({
+    queryKey: ['/api/scholarship-recommendations'],
+    queryFn: () => fetch('/api/scholarship-recommendations').then(res => res.json()),
   });
 
-  // Fetch all scholarships for discovery
+  // Fetch all scholarships
   const { data: scholarshipsData, isLoading: isLoadingScholarships } = useQuery<ApiResponse>({
-    queryKey: ['scholarships-discovery'],
-    queryFn: () => {
-      const params = new URLSearchParams();
-      if (searchQuery.trim()) {
-        params.append('search', searchQuery.trim());
-      }
-      return apiRequest('GET', `/api/scholarships?${params.toString()}`);
-    },
+    queryKey: ['/api/scholarships/search'],
+    queryFn: () => fetch('/api/scholarships/search').then(res => res.json()),
   });
 
   // Fetch saved scholarships
   const { data: savedScholarshipsData, isLoading: isLoadingSaved } = useQuery<ApiResponse>({
-    queryKey: ['saved-scholarships-new'],
-    queryFn: () => apiRequest('GET', '/api/scholarships/user/saved'),
+    queryKey: ['/api/user-scholarships/saved'],
+    queryFn: () => fetch('/api/user-scholarships/saved').then(res => res.json()),
   });
 
-  // Save scholarship mutation
+  // Save/unsave scholarship mutation
   const saveScholarshipMutation = useMutation({
-    mutationFn: (scholarshipId: number) =>
-      apiRequest('POST', `/api/scholarships/${scholarshipId}/save`),
+    mutationFn: (scholarshipId: number) => 
+      apiRequest('POST', '/api/user-scholarships/save', { scholarshipId }),
     onSuccess: () => {
-      toast({ title: 'Scholarship saved successfully!' });
-      queryClient.invalidateQueries({ queryKey: ['saved-scholarships-new'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user-scholarships/saved'] });
+      toast({ title: "Scholarship saved successfully!" });
     },
-    onError: (error: any) => {
-      toast({ 
-        title: 'Failed to save scholarship', 
-        description: error.message,
-        variant: 'destructive' 
-      });
+    onError: () => {
+      toast({ title: "Error saving scholarship", variant: "destructive" });
     },
   });
 
-  // Remove scholarship mutation
-  const removeScholarshipMutation = useMutation({
-    mutationFn: (scholarshipId: number) =>
-      apiRequest('DELETE', `/api/scholarships/${scholarshipId}/save`),
-    onSuccess: () => {
-      toast({ title: 'Scholarship removed successfully!' });
-      queryClient.invalidateQueries({ queryKey: ['saved-scholarships-new'] });
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: 'Failed to remove scholarship', 
-        description: error.message,
-        variant: 'destructive' 
-      });
-    },
-  });
-
-
-
-  const formatDeadline = (deadline: string) => {
-    if (!deadline) return 'No deadline specified';
-    try {
-      const date = new Date(deadline);
-      const now = new Date();
-      const daysUntil = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-      
-      if (daysUntil < 0) return 'Deadline passed';
-      if (daysUntil === 0) return 'Due today';
-      if (daysUntil === 1) return 'Due tomorrow';
-      if (daysUntil <= 30) return `Due in ${daysUntil} days`;
-      
-      return date.toLocaleDateString();
-    } catch {
-      return deadline;
-    }
+  const toggleSaveScholarship = (scholarshipId: number) => {
+    saveScholarshipMutation.mutate(scholarshipId);
   };
 
-  const getMatchScoreColor = (score: number) => {
-    if (score >= 80) return 'bg-green-500';
-    if (score >= 60) return 'bg-yellow-500';
-    return 'bg-gray-400';
-  };
-
-  const simplifyScholarshipText = (text: string) => {
-    if (!showSimpleMode) return text;
-    
-    // Simplify complex terms for non-technical users
-    return text
-      .replace(/eligibility criteria/gi, 'who can apply')
-      .replace(/merit-based/gi, 'based on grades')
-      .replace(/need-based/gi, 'based on financial need')
-      .replace(/application deadline/gi, 'last day to apply')
-      .replace(/cumulative GPA/gi, 'overall grades')
-      .replace(/academic achievement/gi, 'good grades')
-      .replace(/extracurricular activities/gi, 'activities outside class');
-  };
+  // Get data arrays
+  const recommendations = recommendationsData?.recommendations || [];
+  const allScholarships = scholarshipsData?.scholarships || [];
+  const savedScholarships = savedScholarshipsData?.scholarships || [];
 
   const ScholarshipCard = ({ match, showMatchScore = false }: { match: ScholarshipMatch; showMatchScore?: boolean }) => {
-    const { scholarship, matchScore, matchReasons } = match;
-    const savedScholarshipIds = savedScholarshipsData?.scholarships?.map(s => s.scholarship.id) || [];
-    const isSaved = savedScholarshipIds.includes(scholarship.id);
+    const { scholarship, matchScore, matchReasons, isSaved } = match;
+    
+    // Determine urgency level based on deadline
+    const getUrgencyLevel = (deadline: string) => {
+      const deadlineDate = new Date(deadline);
+      const currentDate = new Date();
+      const daysUntilDeadline = Math.ceil((deadlineDate.getTime() - currentDate.getTime()) / (1000 * 3600 * 24));
+      
+      if (daysUntilDeadline <= 30) return 'urgent';
+      if (daysUntilDeadline <= 90) return 'moderate';
+      return 'plenty';
+    };
+
+    const urgencyLevel = getUrgencyLevel(scholarship.deadline);
+    const urgencyColors = {
+      urgent: 'text-red-600 bg-red-50 border-red-200',
+      moderate: 'text-orange-600 bg-orange-50 border-orange-200',
+      plenty: 'text-green-600 bg-green-50 border-green-200'
+    };
+
+    const urgencyText = {
+      urgent: 'Apply Soon!',
+      moderate: 'Upcoming Deadline',
+      plenty: 'Good Time to Apply'
+    };
 
     return (
-      <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
-        <CardHeader className="pb-3">
-          <div className="flex justify-between items-start">
+      <Card className="group h-full hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm overflow-hidden">
+        {/* Gradient Header */}
+        <div className="h-2 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500"></div>
+        
+        <CardHeader className="pb-4">
+          <div className="flex items-start justify-between">
             <div className="flex-1">
-              <CardTitle className="text-lg font-semibold text-gray-900 mb-1">
-                {simplifyScholarshipText(scholarship.name)}
+              <CardTitle className="text-lg font-bold leading-tight mb-3 group-hover:text-blue-600 transition-colors">
+                {scholarship.name}
               </CardTitle>
-              <p className="text-sm text-gray-600">{scholarship.provider.name}</p>
-            </div>
-            {showMatchScore && (
-              <div className="flex items-center gap-2 ml-4">
-                <div className={`w-2 h-2 rounded-full ${getMatchScoreColor(matchScore)}`}></div>
-                <span className="text-sm font-medium text-gray-700">{matchScore}% match</span>
+              <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                <div className="p-1 bg-blue-100 rounded-full">
+                  <Globe className="w-3 h-3 text-blue-600" />
+                </div>
+                <span className="font-medium">{scholarship.provider?.name || 'Provider'}</span>
               </div>
-            )}
+              
+              {showMatchScore && (
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                    <Star className="w-4 h-4 fill-current" />
+                    {matchScore}% Match
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => toggleSaveScholarship(scholarship.id)}
+              className="shrink-0 p-2 hover:bg-red-50 transition-colors"
+            >
+              <Heart className={`w-5 h-5 transition-all ${isSaved ? 'fill-red-500 text-red-500 scale-110' : 'text-gray-400 hover:text-red-400'}`} />
+            </Button>
           </div>
         </CardHeader>
 
-        <CardContent className="pt-0">
-          {/* Key Information */}
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <div className="flex items-center text-sm text-gray-600">
-              <DollarSign className="w-4 h-4 mr-1 flex-shrink-0" />
-              <span className="truncate">{scholarship.amountDisplay}</span>
-            </div>
-            <div className="flex items-center text-sm text-gray-600">
-              <Calendar className="w-4 h-4 mr-1 flex-shrink-0" />
-              <span className="truncate">{formatDeadline(scholarship.deadline)}</span>
-            </div>
-            <div className="flex items-center text-sm text-gray-600">
-              <GraduationCap className="w-4 h-4 mr-1 flex-shrink-0" />
-              <span className="truncate">{scholarship.levelOfStudy.join(', ')}</span>
-            </div>
+        <CardContent className="space-y-4">
+          {/* Description */}
+          <div className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
+            {showSimpleMode
+              ? scholarship.description?.replace(/\b(merit-based|need-based|academic excellence|CGPA|GPA)\b/gi, (match) => {
+                  const replacements: { [key: string]: string } = {
+                    'merit-based': 'for good grades',
+                    'need-based': 'for financial help',
+                    'academic excellence': 'high grades',
+                    'CGPA': 'grade average',
+                    'GPA': 'grade average'
+                  };
+                  return replacements[match.toLowerCase()] || match;
+                })
+              : scholarship.description}
           </div>
 
-          {/* Tags */}
-          <div className="flex flex-wrap gap-1 mb-4">
-            {scholarship.tags.slice(0, 3).map((tag, index) => (
-              <Badge key={index} variant="secondary" className="text-xs">
-                {simplifyScholarshipText(tag)}
-              </Badge>
-            ))}
-            {scholarship.tags.length > 3 && (
-              <Badge variant="outline" className="text-xs">
-                +{scholarship.tags.length - 3} more
-              </Badge>
-            )}
+          {/* Key Info Grid */}
+          <div className="grid grid-cols-1 gap-3">
+            <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-100">
+              <div className="p-2 bg-green-100 rounded-full">
+                <DollarSign className="w-4 h-4 text-green-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-green-700 text-sm">Funding Amount</p>
+                <p className="text-green-600 font-bold">
+                  {scholarship.amountDisplay || 'Funding Available'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+              <div className="p-2 bg-blue-100 rounded-full">
+                <Calendar className="w-4 h-4 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-blue-700 text-sm">Application Deadline</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-blue-600 font-medium">{scholarship.deadline}</p>
+                  <Badge 
+                    variant="outline" 
+                    className={`text-xs ${urgencyColors[urgencyLevel]}`}
+                  >
+                    {urgencyText[urgencyLevel]}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg border border-purple-100">
+              <div className="p-2 bg-purple-100 rounded-full">
+                <GraduationCap className="w-4 h-4 text-purple-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-purple-700 text-sm">Study Level</p>
+                <p className="text-purple-600 font-medium text-sm">
+                  {Array.isArray(scholarship.levelOfStudy) 
+                    ? scholarship.levelOfStudy.join(', ') 
+                    : scholarship.levelOfStudy || 'All Levels'}
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Match Reasons */}
-          {showMatchScore && matchReasons.length > 0 && (
-            <div className="mb-4 p-3 bg-green-50 rounded-lg">
-              <h4 className="text-sm font-medium text-green-800 mb-2 flex items-center">
-                <Sparkles className="w-4 h-4 mr-1" />
-                Why this matches you:
-              </h4>
-              <ul className="text-sm text-green-700 space-y-1">
+          {showMatchScore && matchReasons && matchReasons.length > 0 && (
+            <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
+              <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <Target className="w-4 h-4 text-blue-600" />
+                Why it's perfect for you:
+              </p>
+              <div className="space-y-1">
                 {matchReasons.slice(0, 2).map((reason, index) => (
-                  <li key={index} className="flex items-start">
-                    <span className="w-1 h-1 bg-green-500 rounded-full mr-2 mt-2 flex-shrink-0"></span>
-                    {simplifyScholarshipText(reason)}
-                  </li>
+                  <p key={index} className="text-sm text-blue-600 flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                    {reason}
+                  </p>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
 
-          {/* Description Preview */}
-          <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-            {simplifyScholarshipText(scholarship.description)}
-          </p>
-
           {/* Action Buttons */}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSelectedScholarship(match)}
-              className="flex-1"
+          <div className="flex gap-2 pt-2">
+            <Button 
+              size="sm" 
+              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold"
+              onClick={() => window.open(scholarship.applicationUrl, '_blank')}
             >
-              View Details
+              <Award className="w-4 h-4 mr-2" />
+              Apply Now
             </Button>
-            {!isSaved ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => saveScholarshipMutation.mutate(scholarship.id)}
-                className="px-3"
-                disabled={saveScholarshipMutation.isPending}
-              >
-                <Heart className="w-4 h-4" />
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => removeScholarshipMutation.mutate(scholarship.id)}
-                className="px-3 text-red-500 hover:text-red-700"
-                disabled={removeScholarshipMutation.isPending}
-              >
-                <Heart className="w-4 h-4 fill-current" />
-              </Button>
-            )}
+            <Button variant="outline" size="sm" className="border-2 hover:bg-gray-50">
+              <Info className="w-4 h-4 mr-1" />
+              Details
+            </Button>
           </div>
         </CardContent>
       </Card>
     );
   };
 
-  const renderScholarshipGrid = (matches: ScholarshipMatch[], showMatchScore = false, emptyMessage = "No scholarships found") => {
-    if (!matches || matches.length === 0) {
+  const renderScholarshipGrid = (scholarships: ScholarshipMatch[], showMatchScore: boolean, emptyMessage: string) => {
+    if (scholarships.length === 0) {
       return (
-        <div className="col-span-full text-center py-12">
-          <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-lg text-gray-600 mb-2">{emptyMessage}</p>
-          <p className="text-gray-500">Try adjusting your search or complete your profile for better matches</p>
+        <div className="text-center py-12">
+          <Globe className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{emptyMessage}</h3>
+          <p className="text-gray-500">Try adjusting your search or check back later.</p>
         </div>
       );
     }
 
-    return matches.map((match) => (
+    return scholarships.map((match) => (
       <ScholarshipCard key={match.scholarship.id} match={match} showMatchScore={showMatchScore} />
     ));
   };
 
-  // Get actual arrays from API responses
-  const recommendations = recommendationsData?.recommendations || [];
-  const allScholarships = scholarshipsData?.scholarships || [];
-  const savedScholarships = savedScholarshipsData?.scholarships || [];
-
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Award className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Scholarship Hub</h1>
-          </div>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Discover scholarships tailored to your profile and goals. Find funding for your education journey.
-          </p>
-          
-          {/* Complexity Toggle */}
-          <div className="mt-4 flex items-center justify-center gap-2">
-            <Button
-              variant={showSimpleMode ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowSimpleMode(!showSimpleMode)}
-              className="flex items-center gap-2"
-            >
-              <Sparkles className="w-4 h-4" />
-              {showSimpleMode ? "Simple Mode" : "Switch to Simple Mode"}
-            </Button>
-            <div className="text-sm text-gray-500 max-w-xs">
-              {showSimpleMode ? "Complex terms simplified" : "Simplify scholarship language"}
-            </div>
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="mb-8">
-          <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input
-              placeholder="Search scholarships by name, field, or keyword..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-3 text-lg"
-            />
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <Tabs defaultValue="recommendations" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto">
-            <TabsTrigger value="recommendations" className="flex items-center gap-2">
-              <Star className="w-4 h-4" />
-              For You ({recommendations.length})
-            </TabsTrigger>
-            <TabsTrigger value="discover" className="flex items-center gap-2">
-              <Search className="w-4 h-4" />
-              Discover ({allScholarships.length})
-            </TabsTrigger>
-            <TabsTrigger value="saved" className="flex items-center gap-2">
-              <Heart className="w-4 h-4" />
-              Saved ({savedScholarships.length})
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Recommendations Tab */}
-          <TabsContent value="recommendations" className="space-y-6">
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <TrendingUp className="w-6 h-6 text-blue-600" />
-                <h2 className="text-xl font-semibold text-gray-900">Personalized for You</h2>
-              </div>
-              <p className="text-gray-600">
-                {showSimpleMode 
-                  ? "Scholarships picked just for you based on your background and goals."
-                  : "Based on your profile and preferences, here are scholarships with the highest match potential."
-                }
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {isLoadingRecommendations ? (
-                Array.from({ length: 3 }).map((_, index) => (
-                  <Card key={index} className="animate-pulse">
-                    <CardHeader>
-                      <div className="h-6 bg-gray-200 rounded mb-2"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="h-4 bg-gray-200 rounded"></div>
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                renderScholarshipGrid(recommendations, true, "No personalized recommendations yet")
-              )}
-            </div>
-          </TabsContent>
-
-          {/* Discover Tab */}
-          <TabsContent value="discover" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {isLoadingScholarships ? (
-                Array.from({ length: 6 }).map((_, index) => (
-                  <Card key={index} className="animate-pulse">
-                    <CardHeader>
-                      <div className="h-6 bg-gray-200 rounded mb-2"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="h-4 bg-gray-200 rounded"></div>
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                renderScholarshipGrid(allScholarships, false, "No scholarships found")
-              )}
-            </div>
-          </TabsContent>
-
-          {/* Saved Tab */}
-          <TabsContent value="saved" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {isLoadingSaved ? (
-                Array.from({ length: 3 }).map((_, index) => (
-                  <Card key={index} className="animate-pulse">
-                    <CardHeader>
-                      <div className="h-6 bg-gray-200 rounded mb-2"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="h-4 bg-gray-200 rounded"></div>
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                renderScholarshipGrid(savedScholarships, false, "No saved scholarships yet")
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      {/* Scholarship Detail Modal would go here */}
-      {selectedScholarship && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {simplifyScholarshipText(selectedScholarship.scholarship.name)}
-                </h2>
-                <Button variant="ghost" onClick={() => setSelectedScholarship(null)}>
-                  ×
-                </Button>
-              </div>
-              <div className="space-y-4">
-                <p className="text-gray-600">
-                  {simplifyScholarshipText(selectedScholarship.scholarship.description)}
-                </p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-2">
-                      {showSimpleMode ? "Amount" : "Funding Amount"}
-                    </h3>
-                    <p className="text-gray-600">{selectedScholarship.scholarship.amountDisplay}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900 mb-2">
-                      {showSimpleMode ? "Last Day to Apply" : "Deadline"}
-                    </h3>
-                    <p className="text-gray-600">{formatDeadline(selectedScholarship.scholarship.deadline)}</p>
-                  </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        {/* Modern Header with Stats */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white">
+          <div className="absolute inset-0 bg-black/20"></div>
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <div className="p-3 bg-white/20 rounded-full backdrop-blur-sm">
+                  <Award className="w-8 h-8" />
                 </div>
-                <div className="pt-4">
-                  <Button asChild className="w-full">
-                    <a href={selectedScholarship.scholarship.applicationUrl} target="_blank" rel="noopener noreferrer">
-                      Apply Now
-                    </a>
+                <h1 className="text-4xl md:text-5xl font-bold">Scholarship Universe</h1>
+              </div>
+              <p className="text-xl md:text-2xl opacity-90 max-w-3xl mx-auto mb-8">
+                AI-powered scholarship matching • Find your perfect funding opportunity
+              </p>
+              
+              {/* Stats Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-8">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Target className="w-5 h-5" />
+                    <span className="text-2xl font-bold">{recommendations.length}</span>
+                  </div>
+                  <p className="text-sm opacity-75">Matched</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Globe className="w-5 h-5" />
+                    <span className="text-2xl font-bold">{allScholarships.length}</span>
+                  </div>
+                  <p className="text-sm opacity-75">Available</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Heart className="w-5 h-5" />
+                    <span className="text-2xl font-bold">{savedScholarships.length}</span>
+                  </div>
+                  <p className="text-sm opacity-75">Saved</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Zap className="w-5 h-5" />
+                    <span className="text-2xl font-bold">96%</span>
+                  </div>
+                  <p className="text-sm opacity-75">Match Rate</p>
+                </div>
+              </div>
+
+              {/* Smart Search Bar */}
+              <div className="max-w-2xl mx-auto">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/60 w-5 h-5" />
+                  <Input
+                    placeholder="Search by field, country, or scholarship name..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-12 pr-4 py-4 text-lg bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder-white/60 rounded-xl focus:bg-white/20 focus:border-white/40"
+                  />
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white border-white/30"
+                  >
+                    <Sparkles className="w-4 h-4 mr-1" />
+                    AI Search
                   </Button>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      )}
+
+        {/* Modern Content Section */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Tabs defaultValue="recommendations" className="space-y-8">
+            <div className="flex items-center justify-center">
+              <TabsList className="grid w-full grid-cols-3 max-w-2xl bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl p-2 shadow-lg">
+                <TabsTrigger 
+                  value="recommendations" 
+                  className="flex items-center gap-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md transition-all"
+                >
+                  <Star className="w-4 h-4" />
+                  <span className="hidden sm:inline">AI Matched</span>
+                  <span className="sm:hidden">Matched</span>
+                  <Badge variant="secondary" className="ml-1 bg-blue-100 text-blue-700">
+                    {recommendations.length}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="discover" 
+                  className="flex items-center gap-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md transition-all"
+                >
+                  <Globe className="w-4 h-4" />
+                  <span className="hidden sm:inline">Explore All</span>
+                  <span className="sm:hidden">Explore</span>
+                  <Badge variant="secondary" className="ml-1 bg-green-100 text-green-700">
+                    {allScholarships.length}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="saved" 
+                  className="flex items-center gap-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md transition-all"
+                >
+                  <Heart className="w-4 h-4" />
+                  <span className="hidden sm:inline">My Collection</span>
+                  <span className="sm:hidden">Saved</span>
+                  <Badge variant="secondary" className="ml-1 bg-red-100 text-red-700">
+                    {savedScholarships.length}
+                  </Badge>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* Recommendations Tab */}
+            <TabsContent value="recommendations" className="space-y-6">
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <TrendingUp className="w-6 h-6 text-blue-600" />
+                  <h2 className="text-xl font-semibold text-gray-900">Personalized for You</h2>
+                </div>
+                <p className="text-gray-600">
+                  Based on your profile and preferences, here are scholarships with the highest match potential.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {isLoadingRecommendations ? (
+                  Array.from({ length: 3 }).map((_, index) => (
+                    <Card key={index} className="animate-pulse">
+                      <CardHeader>
+                        <div className="h-6 bg-gray-200 rounded mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="h-4 bg-gray-200 rounded"></div>
+                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  renderScholarshipGrid(recommendations, true, "No personalized recommendations yet. Complete your profile to get better matches!")
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Discover Tab */}
+            <TabsContent value="discover" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {isLoadingScholarships ? (
+                  Array.from({ length: 6 }).map((_, index) => (
+                    <Card key={index} className="animate-pulse">
+                      <CardHeader>
+                        <div className="h-6 bg-gray-200 rounded mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="h-4 bg-gray-200 rounded"></div>
+                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  renderScholarshipGrid(allScholarships, false, "No scholarships found")
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Saved Tab */}
+            <TabsContent value="saved" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {isLoadingSaved ? (
+                  Array.from({ length: 3 }).map((_, index) => (
+                    <Card key={index} className="animate-pulse">
+                      <CardHeader>
+                        <div className="h-6 bg-gray-200 rounded mb-2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="h-4 bg-gray-200 rounded"></div>
+                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  renderScholarshipGrid(savedScholarships, false, "No saved scholarships yet")
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
     </DashboardLayout>
   );
 }
