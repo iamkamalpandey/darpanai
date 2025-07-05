@@ -102,6 +102,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log('Fresh user data retrieved successfully');
+      console.log('Profile image data:', {
+        hasProfileImage: !!freshUser.profileImageUrl,
+        profileImageLength: freshUser.profileImageUrl ? freshUser.profileImageUrl.length : 0
+      });
       console.log('Financial data in response:', {
         fundingSource: freshUser.fundingSource,
         estimatedBudget: freshUser.estimatedBudget,
@@ -120,7 +124,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       console.log('=== USER DATA RESPONSE SENT ===');
-      res.json(freshUser);
+      console.log('Profile image debug:', {
+        hasProfileImage: !!freshUser.profileImageUrl,
+        profileImageLength: freshUser.profileImageUrl?.length || 0,
+        profileImagePreview: freshUser.profileImageUrl?.substring(0, 50) || 'null'
+      });
+      
+      const responseData = { 
+        ...freshUser,
+        profileImageUrl: freshUser.profileImageUrl 
+      };
+      
+      console.log('Response includes profileImageUrl:', 'profileImageUrl' in responseData);
+      console.log('Response profileImageUrl length:', responseData.profileImageUrl?.length || 0);
+      
+      res.json(responseData);
     } catch (error) {
       console.error('Error fetching user data:', error);
       res.status(500).json({ error: 'Failed to fetch user data' });

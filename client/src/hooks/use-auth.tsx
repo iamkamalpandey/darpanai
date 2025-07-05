@@ -29,10 +29,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error,
     isLoading,
   } = useQuery<Omit<User, "password"> | null, Error>({
-    queryKey: ["/api/user"],
+    queryKey: ["/api/user/fresh"],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    staleTime: 10 * 60 * 1000, // 10 minutes for auth data
-    gcTime: 15 * 60 * 1000, // 15 minutes cache retention
+    staleTime: 5 * 60 * 1000, // 5 minutes for fresh auth data
+    gcTime: 10 * 60 * 1000, // 10 minutes cache retention
     refetchOnWindowFocus: false, // Prevent unnecessary auth checks
     retry: 1, // Reduce retry attempts for faster failure handling
   });
