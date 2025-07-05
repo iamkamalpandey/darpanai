@@ -100,6 +100,7 @@ const UserAdminCoeDetails = lazy(() => import("@/pages/UserAdminCoeDetails"));
 
 const MyWatchlist = lazy(() => import("@/pages/MyWatchlist"));
 const EduCounselAI = lazy(() => import("@/pages/EduCounselAI"));
+const EligibilityQuickScan = lazy(() => import("@/pages/EligibilityQuickScan"));
 const GamifiedLearningPath = lazy(() => import("@/pages/GamifiedLearningPathSimple"));
 const StudentApplicationSystem = lazy(() => import("@/pages/StudentApplicationSystem"));
 const ProfileBasedApplication = lazy(() => import("@/pages/ProfileBasedApplication"));
@@ -246,6 +247,13 @@ function Router() {
         <UserProtectedRoute path="/educounsel-ai" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <EduCounselAI />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/eligibility-quick-scan">
+        <UserProtectedRoute path="/eligibility-quick-scan" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <EligibilityQuickScan />
           </Suspense>
         )} />
       </Route>

@@ -324,6 +324,11 @@ process.on('unhandledRejection', (reason, promise) => {
     app.use('/api/assessment', simpleAssessmentRoutes.default);
     logWithLevel('✓ Simplified assessment routes registered successfully');
     
+    // Register eligibility quick scan routes
+    const eligibilityQuickScanRoutes = await import('./eligibilityQuickScanRoutes');
+    app.use('/api/eligibility', eligibilityQuickScanRoutes.default);
+    logWithLevel('✓ Eligibility Quick Scan routes registered successfully');
+    
     // Skip university initialization to prevent schema conflicts
     logWithLevel('✓ Database schema simplified - university initialization skipped');
     
