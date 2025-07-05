@@ -1993,12 +1993,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Destination suggestion routes removed - feature discontinued
 
   // Profile Image Upload endpoint
-  app.post('/api/user/upload-profile-image', requireAuth, multer({
+  const profileImageUpload = multer({
     storage: multer.memoryStorage(),
     limits: {
       fileSize: 5 * 1024 * 1024, // 5 MB limit for profile images
     },
     fileFilter: (_req, file, cb) => {
+      console.log('Multer fileFilter called with:', {
+        fieldname: file.fieldname,
+        originalname: file.originalname,
+        mimetype: file.mimetype
+      });
+      
       const allowedTypes = [
         'image/jpeg',
         'image/png',
@@ -2010,19 +2016,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
       
       if (allowedTypes.includes(file.mimetype) && validExtensions.includes(fileExtension)) {
+        console.log('File passed validation');
         cb(null, true);
       } else {
+        console.log('File failed validation');
         cb(new Error('Invalid file type. Only JPG, PNG, GIF, and WebP images are allowed.'));
       }
     }
-  }).single('profileImage'), async (req: Request, res: Response) => {
+  }).single('profileImage');
+
+  app.post('/api/user/upload-profile-image', requireAuth, (req: Request, res: Response, next: NextFunction) => {
+    console.log('=== MULTER UPLOAD MIDDLEWARE START ===');
+    
+    profileImageUpload(req, res, (err) => {
+      if (err) {
+        console.error('Multer error:', err);
+        if (err instanceof multer.MulterError) {
+          console.error('Multer error type:', err.code);
+          console.error('Multer error message:', err.message);
+          return res.status(400).json({ 
+            error: 'File upload error', 
+            message: err.message,
+            code: err.code 
+          });
+        } else {
+          console.error('Non-Multer error:', err);
+          return res.status(400).json({ 
+            error: 'File validation error', 
+            message: err.message 
+          });
+        }
+      }
+      console.log('Multer processing completed successfully');
+      next();
+    });
+  }, async (req: Request, res: Response) => {
     try {
+      console.log('=== PROFILE IMAGE UPLOAD SERVER ENDPOINT ===');
+      console.log('Request headers:', req.headers);
+      console.log('Request content-type:', req.get('content-type'));
+      console.log('Request body keys:', Object.keys(req.body || {}));
+      console.log('File object:', req.file);
+      console.log('Files object:', req.files);
+      
       const userId = req.user!.id;
       const file = req.file;
 
       if (!file) {
+        console.error('No file found in request');
         return res.status(400).json({ error: 'No image file provided' });
       }
+
+      console.log('File details:', {
+        fieldname: file.fieldname,
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+        buffer: file.buffer ? 'Present' : 'Missing'
+      });
 
       // For now, we'll store the image as base64 in the database
       // In a production environment, you'd want to upload to a cloud storage service
@@ -2046,6 +2097,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       console.error('Error uploading profile image:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       return res.status(500).json({ 
         error: 'Failed to upload profile image',
         message: error instanceof Error ? error.message : 'Unknown error occurred'
