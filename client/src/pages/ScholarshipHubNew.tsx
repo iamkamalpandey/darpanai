@@ -520,8 +520,9 @@ export default function ScholarshipHubNew() {
                 }
               }}
               className="shrink-0 p-2 hover:bg-red-50 transition-colors"
+              disabled={saveScholarshipMutation.isPending || unsaveScholarshipMutation.isPending}
             >
-              <Heart className={`w-5 h-5 transition-all ${isSaved ? 'fill-red-500 text-red-500 scale-110' : 'text-gray-400 hover:text-red-400'}`} />
+              <Heart className={`w-5 h-5 transition-all ${isScholarshipSaved(scholarship.id) ? 'fill-red-500 text-red-500 scale-110' : 'text-gray-400 hover:text-red-400'}`} />
             </Button>
           </div>
         </CardHeader>
@@ -599,10 +600,10 @@ export default function ScholarshipHubNew() {
               </p>
               <div className="space-y-1">
                 {matchReasons.slice(0, 2).map((reason, index) => (
-                  <p key={index} className="text-sm text-blue-600 flex items-center gap-2">
+                  <div key={index} className="text-sm text-blue-600 flex items-center gap-2">
                     <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
                     {reason}
-                  </p>
+                  </div>
                 ))}
               </div>
             </div>
@@ -620,7 +621,7 @@ export default function ScholarshipHubNew() {
               variant="outline" 
               size="sm" 
               className={`border-2 transition-colors ${
-                isSaved 
+                isScholarshipSaved(scholarship.id) 
                   ? 'bg-yellow-50 border-yellow-400 text-yellow-700 hover:bg-yellow-100' 
                   : 'hover:bg-yellow-50 hover:border-yellow-300'
               }`}
@@ -634,7 +635,7 @@ export default function ScholarshipHubNew() {
               }}
               disabled={saveScholarshipMutation.isPending || unsaveScholarshipMutation.isPending}
             >
-              <Star className={`w-4 h-4 ${isSaved ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+              <Star className={`w-4 h-4 ${isScholarshipSaved(scholarship.id) ? 'fill-yellow-400 text-yellow-400' : ''}`} />
             </Button>
             <Button 
               size="sm" 
