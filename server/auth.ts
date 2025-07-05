@@ -19,6 +19,7 @@ declare global {
       firstName: string;
       lastName: string;
       phoneNumber: string;
+      profileImageUrl?: string | null;
       
       // Personal Information
       dateOfBirth?: string | null;
