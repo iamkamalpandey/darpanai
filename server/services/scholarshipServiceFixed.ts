@@ -45,8 +45,8 @@ export class ScholarshipServiceFixed {
     const offset = filters.offset || 0;
     const page = Math.floor(offset / limit) + 1;
 
-    // Build search conditions using actual database columns
-    const conditions = [eq(scholarshipPrograms.isActive, filters.isActive ?? true)];
+    // Build search conditions using actual database columns - start with no filters for testing
+    const conditions = [];
 
     if (filters.search) {
       conditions.push(

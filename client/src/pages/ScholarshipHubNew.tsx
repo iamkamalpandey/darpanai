@@ -71,19 +71,19 @@ export default function ScholarshipHubNew() {
   // Fetch scholarship recommendations
   const { data: recommendationsData, isLoading: isLoadingRecommendations } = useQuery<ApiResponse>({
     queryKey: ['/api/scholarship-recommendations'],
-    queryFn: () => fetch('/api/scholarship-recommendations').then(res => res.json()),
+    queryFn: () => fetch('/api/scholarship-recommendations', { credentials: 'include' }).then(res => res.json()),
   });
 
   // Fetch all scholarships
   const { data: scholarshipsData, isLoading: isLoadingScholarships } = useQuery<ApiResponse>({
     queryKey: ['/api/scholarships/search'],
-    queryFn: () => fetch('/api/scholarships/search').then(res => res.json()),
+    queryFn: () => fetch('/api/scholarships/search', { credentials: 'include' }).then(res => res.json()),
   });
 
   // Fetch saved scholarships
   const { data: savedScholarshipsData, isLoading: isLoadingSaved } = useQuery<ApiResponse>({
     queryKey: ['/api/user-scholarships/saved'],
-    queryFn: () => fetch('/api/user-scholarships/saved').then(res => res.json()),
+    queryFn: () => fetch('/api/user-scholarships/saved', { credentials: 'include' }).then(res => res.json()),
   });
 
   // Save/unsave scholarship mutation
