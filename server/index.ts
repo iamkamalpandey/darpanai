@@ -290,6 +290,11 @@ process.on('unhandledRejection', (reason, promise) => {
     app.use('/api/admin', adminApplicationRoutes.default);
     logWithLevel('✓ Admin application management routes registered successfully');
     
+    // Register gamification progress tracking routes
+    const gamificationRoutes = await import('./gamificationRoutes');
+    app.use('/api/gamification', gamificationRoutes.default);
+    logWithLevel('✓ Gamification progress tracking routes registered successfully');
+    
     // Institution routes temporarily disabled due to auth dependency
     // Will be enabled after fixing requireAuth import
     logWithLevel('✓ Institution routes preparation completed');

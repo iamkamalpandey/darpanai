@@ -9,6 +9,65 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
+// Gamification Progress Tracking System
+export const userProgress = pgTable("user_progress", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  points: integer("points").default(0).notNull(),
+  level: integer("level").default(1).notNull(),
+  currentStreak: integer("current_streak").default(0).notNull(),
+  maxStreak: integer("max_streak").default(0).notNull(),
+  scholarshipsViewed: integer("scholarships_viewed").default(0).notNull(),
+  scholarshipsSaved: integer("scholarships_saved").default(0).notNull(),
+  profileCompletionBonus: boolean("profile_completion_bonus").default(false).notNull(),
+  firstRecommendationBonus: boolean("first_recommendation_bonus").default(false).notNull(),
+  lastActivityDate: timestamp("last_activity_date").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const achievements = pgTable("achievements", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  icon: text("icon").notNull(),
+  category: text("category").notNull(), // discovery, engagement, completion, milestone
+  pointsRequired: integer("points_required").default(0).notNull(),
+  condition: text("condition").notNull(), // viewed_10_scholarships, saved_5_scholarships, etc.
+  rarity: text("rarity").notNull(), // common, uncommon, rare, epic, legendary
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const userAchievements = pgTable("user_achievements", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  achievementId: integer("achievement_id").references(() => achievements.id).notNull(),
+  unlockedAt: timestamp("unlocked_at").defaultNow().notNull(),
+}, (table) => ({
+  userAchievementUnique: uniqueIndex("user_achievement_unique").on(table.userId, table.achievementId),
+}));
+
+export const milestones = pgTable("milestones", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  icon: text("icon").notNull(),
+  order: integer("order").notNull(),
+  pointsRequired: integer("points_required").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const userMilestones = pgTable("user_milestones", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  milestoneId: integer("milestone_id").references(() => milestones.id).notNull(),
+  completedAt: timestamp("completed_at").defaultNow().notNull(),
+}, (table) => ({
+  userMilestoneUnique: uniqueIndex("user_milestone_unique").on(table.userId, table.milestoneId),
+}));
+
 // Unified Professional Application System
 export const institutions = pgTable("institutions", {
   id: serial("id").primaryKey(),
@@ -2188,6 +2247,59 @@ export const insertRequiredDocumentSchema = createInsertSchema(requiredDocuments
   createdAt: true,
   updatedAt: true,
 });
+
+// Gamification Schema Types
+export const insertUserProgressSchema = createInsertSchema(userProgress, {
+  userId: z.number().positive("User ID is required"),
+  points: z.number().min(0).default(0),
+  level: z.number().min(1).default(1),
+  currentStreak: z.number().min(0).default(0),
+  maxStreak: z.number().min(0).default(0),
+  scholarshipsViewed: z.number().min(0).default(0),
+  scholarshipsSaved: z.number().min(0).default(0),
+  profileCompletionBonus: z.boolean().default(false),
+  firstRecommendationBonus: z.boolean().default(false),
+}).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAchievementSchema = createInsertSchema(achievements, {
+  name: z.string().min(1, "Achievement name is required"),
+  description: z.string().min(1, "Achievement description is required"),
+  icon: z.string().min(1, "Achievement icon is required"),
+  category: z.enum(["discovery", "engagement", "completion", "milestone"]),
+  pointsRequired: z.number().min(0).default(0),
+  condition: z.string().min(1, "Achievement condition is required"),
+  rarity: z.enum(["common", "uncommon", "rare", "epic", "legendary"]),
+  isActive: z.boolean().default(true),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMilestoneSchema = createInsertSchema(milestones, {
+  name: z.string().min(1, "Milestone name is required"),
+  description: z.string().min(1, "Milestone description is required"),
+  icon: z.string().min(1, "Milestone icon is required"),
+  order: z.number().min(1, "Milestone order is required"),
+  pointsRequired: z.number().min(0, "Points required must be positive"),
+  isActive: z.boolean().default(true),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Gamification Types
+export type UserProgress = typeof userProgress.$inferSelect;
+export type InsertUserProgress = z.infer<typeof insertUserProgressSchema>;
+export type Achievement = typeof achievements.$inferSelect;
+export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
+export type UserAchievement = typeof userAchievements.$inferSelect;
+export type Milestone = typeof milestones.$inferSelect;
+export type InsertMilestone = z.infer<typeof insertMilestoneSchema>;
+export type UserMilestone = typeof userMilestones.$inferSelect;
 
 export const insertApplicationSchema = createInsertSchema(applications, {
   userId: z.number().positive("User ID is required"),

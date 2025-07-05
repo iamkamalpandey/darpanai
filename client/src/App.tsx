@@ -41,6 +41,7 @@ const AIScholarshipAnalysis = lazy(() => import("@/pages/AIScholarshipAnalysis")
 const ScholarshipDetailsPage = lazy(() => import("@/pages/ScholarshipDetailsPage"));
 const ScholarshipHub = lazy(() => import("@/pages/ScholarshipHub"));
 const ScholarshipRecommendations = lazy(() => import("@/pages/ScholarshipRecommendations"));
+const GamifiedProgress = lazy(() => import("@/pages/GamifiedProgress"));
 const UserVisaAnalysisView = lazy(() => import("@/pages/UserVisaAnalysisView"));
 const EnrollmentAnalysisResults = lazy(() => import("@/pages/EnrollmentAnalysisResults"));
 const VisaAnalysisResults = lazy(() => import("@/pages/VisaAnalysisResults"));
@@ -315,6 +316,13 @@ function Router() {
         <UserProtectedRoute path="/scholarship-recommendations" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <ScholarshipRecommendations />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/progress-tracker">
+        <UserProtectedRoute path="/progress-tracker" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <GamifiedProgress />
           </Suspense>
         )} />
       </Route>

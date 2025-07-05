@@ -1,403 +1,339 @@
-import { Router } from "express";
-import { gamificationStorage } from "./gamificationStorage";
-import { 
-  insertLearningPathMilestoneSchema,
-  insertUserLearningProgressSchema,
-  insertLearningPathActivitySchema,
-  insertAchievementBadgeSchema,
-  insertLearningPathChallengeSchema
-} from "@shared/schema";
+import { Router, Request, Response } from "express";
+import { gamificationService } from "./services/gamificationService";
+import { db } from "./db";
+import { achievements, milestones } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 const router = Router();
 
-// Note: Authentication middleware will be passed in when routes are mounted
-
-// User Learning Path - Main gamified dashboard
-router.get("/user/learning-path", async (req: any, res) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
-    }
-
-    const learningPath = await gamificationStorage.getUserLearningPath(userId);
-    res.json(learningPath);
-  } catch (error) {
-    console.error("Error fetching user learning path:", error);
-    res.status(500).json({ error: "Failed to fetch learning path" });
+// Authentication middleware
+const requireAuth = (req: Request, res: Response, next: any) => {
+  if (!req.user) {
+    return res.status(401).json({ error: "Authentication required" });
   }
-});
+  next();
+};
 
-// User Progress Management
-router.get("/user/progress", async (req: any, res) => {
+/**
+ * Get user's gamification stats and progress
+ */
+router.get("/stats", requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
+      return res.status(401).json({ error: "Authentication required" });
     }
 
-    const progress = await gamificationStorage.getUserProgress(userId);
-    res.json(progress);
-  } catch (error) {
-    console.error("Error fetching user progress:", error);
-    res.status(500).json({ error: "Failed to fetch progress" });
-  }
-});
-
-router.post("/user/progress/:milestoneId", async (req: any, res) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
-    }
-
-    const milestoneId = parseInt(req.params.milestoneId);
-    const updateData = req.body;
+    const stats = await gamificationService.getGamificationStats(userId);
     
-    const progress = await gamificationStorage.updateUserProgress(userId, milestoneId, updateData);
-    res.json(progress);
-  } catch (error) {
-    console.error("Error updating user progress:", error);
-    res.status(500).json({ error: "Failed to update progress" });
-  }
-});
+    console.log(`[Gamification API] Retrieved stats for user ${userId}:`, {
+      points: stats.points,
+      level: stats.level,
+      achievementCount: stats.achievements.length,
+      milestoneCount: stats.milestones.length
+    });
 
-router.post("/user/complete-milestone/:milestoneId", async (req: any, res) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
-    }
-
-    const milestoneId = parseInt(req.params.milestoneId);
-    const { pointsEarned } = req.body;
-    
-    const progress = await gamificationStorage.completeUserMilestone(userId, milestoneId, pointsEarned || 0);
-    
-    // Check for badge eligibility after completing milestone
-    await checkAndAwardBadges(userId, 'milestone', milestoneId);
-    
-    res.json(progress);
-  } catch (error) {
-    console.error("Error completing milestone:", error);
-    res.status(500).json({ error: "Failed to complete milestone" });
-  }
-});
-
-// User Stats
-router.get("/user/stats", async (req: any, res) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
-    }
-
-    let stats = await gamificationStorage.getUserStats(userId);
-    if (!stats) {
-      stats = await gamificationStorage.initializeUserStats(userId);
-    }
-    
     res.json(stats);
   } catch (error) {
-    console.error("Error fetching user stats:", error);
-    res.status(500).json({ error: "Failed to fetch stats" });
+    console.error('[Gamification API] Error getting user stats:', error);
+    res.status(500).json({ error: "Failed to get gamification stats" });
   }
 });
 
-// Milestones Management
-router.get("/milestones", async (req, res) => {
-  try {
-    const { category, isActive } = req.query;
-    const filters: any = {};
-    
-    if (category) filters.category = category as string;
-    if (isActive !== undefined) filters.isActive = isActive === 'true';
-    
-    const milestones = await gamificationStorage.getMilestones(filters);
-    res.json(milestones);
-  } catch (error) {
-    console.error("Error fetching milestones:", error);
-    res.status(500).json({ error: "Failed to fetch milestones" });
-  }
-});
-
-router.get("/milestones/:id", async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    const milestone = await gamificationStorage.getMilestoneById(id);
-    
-    if (!milestone) {
-      return res.status(404).json({ error: "Milestone not found" });
-    }
-    
-    res.json(milestone);
-  } catch (error) {
-    console.error("Error fetching milestone:", error);
-    res.status(500).json({ error: "Failed to fetch milestone" });
-  }
-});
-
-router.get("/milestones/:id/activities", async (req, res) => {
-  try {
-    const milestoneId = parseInt(req.params.id);
-    const activities = await gamificationStorage.getActivitiesByMilestone(milestoneId);
-    res.json(activities);
-  } catch (error) {
-    console.error("Error fetching milestone activities:", error);
-    res.status(500).json({ error: "Failed to fetch activities" });
-  }
-});
-
-// Activity Progress
-router.get("/user/activity/:activityId", async (req: any, res) => {
+/**
+ * Track scholarship view activity
+ */
+router.post("/track/scholarship-view", requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
+      return res.status(401).json({ error: "Authentication required" });
     }
 
-    const activityId = parseInt(req.params.activityId);
-    const progress = await gamificationStorage.getUserActivityProgress(userId, activityId);
-    res.json(progress);
+    await gamificationService.trackScholarshipView(userId);
+    
+    console.log(`[Gamification API] Tracked scholarship view for user ${userId}`);
+    
+    res.json({ success: true, message: "Scholarship view tracked" });
   } catch (error) {
-    console.error("Error fetching activity progress:", error);
-    res.status(500).json({ error: "Failed to fetch activity progress" });
+    console.error('[Gamification API] Error tracking scholarship view:', error);
+    res.status(500).json({ error: "Failed to track scholarship view" });
   }
 });
 
-router.post("/user/activity/:activityId/progress", async (req: any, res) => {
+/**
+ * Track scholarship save activity
+ */
+router.post("/track/scholarship-save", requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
+      return res.status(401).json({ error: "Authentication required" });
     }
 
-    const activityId = parseInt(req.params.activityId);
-    const updateData = req.body;
+    await gamificationService.trackScholarshipSave(userId);
     
-    const progress = await gamificationStorage.updateUserActivityProgress(userId, activityId, updateData);
-    res.json(progress);
+    console.log(`[Gamification API] Tracked scholarship save for user ${userId}`);
+    
+    res.json({ success: true, message: "Scholarship save tracked" });
   } catch (error) {
-    console.error("Error updating activity progress:", error);
-    res.status(500).json({ error: "Failed to update activity progress" });
+    console.error('[Gamification API] Error tracking scholarship save:', error);
+    res.status(500).json({ error: "Failed to track scholarship save" });
   }
 });
 
-router.post("/user/activity/:activityId/complete", async (req: any, res) => {
+/**
+ * Award points for specific actions
+ */
+router.post("/award-points", requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
+      return res.status(401).json({ error: "Authentication required" });
     }
 
-    const activityId = parseInt(req.params.activityId);
-    const { milestoneId, pointsEarned } = req.body;
+    const { points, action, updateStreak } = req.body;
     
-    const progress = await gamificationStorage.completeUserActivity(
-      userId, 
-      activityId, 
-      milestoneId, 
-      pointsEarned || 0
-    );
+    if (!points || !action) {
+      return res.status(400).json({ error: "Points and action are required" });
+    }
+
+    const result = await gamificationService.awardPoints(userId, points, action, updateStreak);
     
-    // Check for badge eligibility after completing activity
-    await checkAndAwardBadges(userId, 'activity', activityId);
-    
-    res.json(progress);
+    console.log(`[Gamification API] Awarded ${points} points to user ${userId} for ${action}`, {
+      leveledUp: result.leveledUp,
+      newAchievements: result.unlockedAchievements.length,
+      newMilestones: result.unlockedMilestones.length
+    });
+
+    res.json({
+      success: true,
+      progress: result.newProgress,
+      leveledUp: result.leveledUp,
+      unlockedAchievements: result.unlockedAchievements,
+      unlockedMilestones: result.unlockedMilestones
+    });
   } catch (error) {
-    console.error("Error completing activity:", error);
-    res.status(500).json({ error: "Failed to complete activity" });
+    console.error('[Gamification API] Error awarding points:', error);
+    res.status(500).json({ error: "Failed to award points" });
   }
 });
 
-// Badge System
-router.get("/badges", async (req, res) => {
+/**
+ * Get all available achievements
+ */
+router.get("/achievements", requireAuth, async (req: Request, res: Response) => {
   try {
-    const { badgeType, rarity, isSecret } = req.query;
-    const filters: any = {};
-    
-    if (badgeType) filters.badgeType = badgeType as string;
-    if (rarity) filters.rarity = rarity as string;
-    if (isSecret !== undefined) filters.isSecret = isSecret === 'true';
-    
-    const badges = await gamificationStorage.getBadges(filters);
-    res.json(badges);
+    const allAchievements = await db
+      .select()
+      .from(achievements)
+      .where(eq(achievements.isActive, true))
+      .orderBy(achievements.pointsRequired);
+
+    res.json(allAchievements);
   } catch (error) {
-    console.error("Error fetching badges:", error);
-    res.status(500).json({ error: "Failed to fetch badges" });
+    console.error('[Gamification API] Error getting achievements:', error);
+    res.status(500).json({ error: "Failed to get achievements" });
   }
 });
 
-router.get("/user/badges", async (req: any, res) => {
+/**
+ * Get all available milestones
+ */
+router.get("/milestones", requireAuth, async (req: Request, res: Response) => {
+  try {
+    const allMilestones = await db
+      .select()
+      .from(milestones)
+      .where(eq(milestones.isActive, true))
+      .orderBy(milestones.order);
+
+    res.json(allMilestones);
+  } catch (error) {
+    console.error('[Gamification API] Error getting milestones:', error);
+    res.status(500).json({ error: "Failed to get milestones" });
+  }
+});
+
+/**
+ * Initialize gamification data (achievements and milestones)
+ */
+router.post("/initialize", requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
+      return res.status(401).json({ error: "Authentication required" });
     }
 
-    const badges = await gamificationStorage.getUserBadges(userId);
-    res.json(badges);
-  } catch (error) {
-    console.error("Error fetching user badges:", error);
-    res.status(500).json({ error: "Failed to fetch user badges" });
-  }
-});
+    // Initialize user progress
+    await gamificationService.initializeUserProgress(userId);
 
-// Challenge System
-router.get("/challenges", async (req, res) => {
-  try {
-    const challenges = await gamificationStorage.getActiveChallenges();
-    res.json(challenges);
-  } catch (error) {
-    console.error("Error fetching challenges:", error);
-    res.status(500).json({ error: "Failed to fetch challenges" });
-  }
-});
-
-router.post("/challenges/:challengeId/join", async (req: any, res) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
-    }
-
-    const challengeId = parseInt(req.params.challengeId);
-    const participation = await gamificationStorage.joinChallenge(userId, challengeId);
-    res.json(participation);
-  } catch (error) {
-    console.error("Error joining challenge:", error);
-    res.status(500).json({ error: "Failed to join challenge" });
-  }
-});
-
-router.get("/user/challenges", async (req: any, res) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: "User not authenticated" });
-    }
-
-    const challenges = await gamificationStorage.getUserChallenges(userId);
-    res.json(challenges);
-  } catch (error) {
-    console.error("Error fetching user challenges:", error);
-    res.status(500).json({ error: "Failed to fetch user challenges" });
-  }
-});
-
-router.get("/challenges/:challengeId/leaderboard", async (req, res) => {
-  try {
-    const challengeId = parseInt(req.params.challengeId);
-    const limit = parseInt(req.query.limit as string) || 10;
+    // Initialize default achievements if they don't exist
+    const existingAchievements = await db.select().from(achievements).limit(1);
     
-    const leaderboard = await gamificationStorage.getChallengeLeaderboard(challengeId, limit);
-    res.json(leaderboard);
-  } catch (error) {
-    console.error("Error fetching challenge leaderboard:", error);
-    res.status(500).json({ error: "Failed to fetch leaderboard" });
-  }
-});
-
-// Leaderboard
-router.get("/leaderboard", async (req, res) => {
-  try {
-    const limit = parseInt(req.query.limit as string) || 10;
-    const leaderboard = await gamificationStorage.getUserLeaderboard(limit);
-    res.json(leaderboard);
-  } catch (error) {
-    console.error("Error fetching leaderboard:", error);
-    res.status(500).json({ error: "Failed to fetch leaderboard" });
-  }
-});
-
-// Admin routes for content management
-router.post("/admin/milestones", async (req: any, res) => {
-  try {
-    // Add admin check here if needed
-    const validatedData = insertLearningPathMilestoneSchema.parse(req.body);
-    const milestone = await gamificationStorage.createMilestone(validatedData);
-    res.status(201).json(milestone);
-  } catch (error) {
-    console.error("Error creating milestone:", error);
-    res.status(500).json({ error: "Failed to create milestone" });
-  }
-});
-
-router.post("/admin/activities", async (req: any, res) => {
-  try {
-    const validatedData = insertLearningPathActivitySchema.parse(req.body);
-    const activity = await gamificationStorage.createActivity(validatedData);
-    res.status(201).json(activity);
-  } catch (error) {
-    console.error("Error creating activity:", error);
-    res.status(500).json({ error: "Failed to create activity" });
-  }
-});
-
-router.post("/admin/badges", async (req: any, res) => {
-  try {
-    const validatedData = insertAchievementBadgeSchema.parse(req.body);
-    const badge = await gamificationStorage.createBadge(validatedData);
-    res.status(201).json(badge);
-  } catch (error) {
-    console.error("Error creating badge:", error);
-    res.status(500).json({ error: "Failed to create badge" });
-  }
-});
-
-router.post("/admin/challenges", async (req: any, res) => {
-  try {
-    const validatedData = insertLearningPathChallengeSchema.parse(req.body);
-    const challenge = await gamificationStorage.createChallenge(validatedData);
-    res.status(201).json(challenge);
-  } catch (error) {
-    console.error("Error creating challenge:", error);
-    res.status(500).json({ error: "Failed to create challenge" });
-  }
-});
-
-// Helper function to check and award badges
-async function checkAndAwardBadges(userId: number, contextType: string, contextId: number) {
-  try {
-    // Get user stats and progress
-    const stats = await gamificationStorage.getUserStats(userId);
-    if (!stats) return;
-
-    // Example badge criteria - these would be more sophisticated in production
-    const badgeChecks = [
-      {
-        id: 1, // "First Steps" badge
-        criteria: () => stats.completedMilestones >= 1,
-        contextType: 'milestone'
-      },
-      {
-        id: 2, // "Milestone Master" badge
-        criteria: () => stats.completedMilestones >= 5,
-        contextType: 'milestone'
-      },
-      {
-        id: 3, // "Streak Warrior" badge
-        criteria: () => stats.currentStreak >= 7,
-        contextType: 'streak'
-      },
-      {
-        id: 4, // "Point Collector" badge
-        criteria: () => stats.totalPoints >= 1000,
-        contextType: 'points'
-      }
-    ];
-
-    for (const badgeCheck of badgeChecks) {
-      if (badgeCheck.criteria()) {
-        const isEligible = await gamificationStorage.checkBadgeEligibility(userId, badgeCheck.id);
-        if (isEligible) {
-          await gamificationStorage.awardBadge(userId, badgeCheck.id, contextType, contextId);
+    if (existingAchievements.length === 0) {
+      const defaultAchievements = [
+        {
+          name: "Explorer",
+          description: "View your first 5 scholarship recommendations",
+          icon: "🔍",
+          category: "discovery" as const,
+          pointsRequired: 0,
+          condition: "viewed_5_scholarships",
+          rarity: "common" as const
+        },
+        {
+          name: "Scholar Hunter",
+          description: "View 10 different scholarship opportunities",
+          icon: "🎯",
+          category: "discovery" as const,
+          pointsRequired: 0,
+          condition: "viewed_10_scholarships",
+          rarity: "uncommon" as const
+        },
+        {
+          name: "Dedicated Researcher",
+          description: "View 25 scholarship opportunities",
+          icon: "📚",
+          category: "discovery" as const,
+          pointsRequired: 0,
+          condition: "viewed_25_scholarships",
+          rarity: "rare" as const
+        },
+        {
+          name: "Saver",
+          description: "Save your first 3 scholarship opportunities",
+          icon: "💾",
+          category: "engagement" as const,
+          pointsRequired: 0,
+          condition: "saved_3_scholarships",
+          rarity: "common" as const
+        },
+        {
+          name: "Collector",
+          description: "Save 5 scholarship opportunities",
+          icon: "📋",
+          category: "engagement" as const,
+          pointsRequired: 0,
+          condition: "saved_5_scholarships",
+          rarity: "uncommon" as const
+        },
+        {
+          name: "Master Collector",
+          description: "Save 10 scholarship opportunities",
+          icon: "🏆",
+          category: "engagement" as const,
+          pointsRequired: 0,
+          condition: "saved_10_scholarships",
+          rarity: "rare" as const
+        },
+        {
+          name: "Rising Star",
+          description: "Reach Level 5",
+          icon: "⭐",
+          category: "milestone" as const,
+          pointsRequired: 0,
+          condition: "reached_level_5",
+          rarity: "uncommon" as const
+        },
+        {
+          name: "Elite Scholar",
+          description: "Reach Level 10",
+          icon: "🌟",
+          category: "milestone" as const,
+          pointsRequired: 0,
+          condition: "reached_level_10",
+          rarity: "epic" as const
+        },
+        {
+          name: "Consistent",
+          description: "Maintain a 7-day activity streak",
+          icon: "🔥",
+          category: "engagement" as const,
+          pointsRequired: 0,
+          condition: "streak_7_days",
+          rarity: "uncommon" as const
+        },
+        {
+          name: "Dedicated",
+          description: "Maintain a 30-day activity streak",
+          icon: "🚀",
+          category: "engagement" as const,
+          pointsRequired: 0,
+          condition: "streak_30_days",
+          rarity: "legendary" as const
         }
-      }
+      ];
+
+      await db.insert(achievements).values(defaultAchievements);
     }
+
+    // Initialize default milestones if they don't exist
+    const existingMilestones = await db.select().from(milestones).limit(1);
+    
+    if (existingMilestones.length === 0) {
+      const defaultMilestones = [
+        {
+          name: "Getting Started",
+          description: "Begin your scholarship journey",
+          icon: "🌱",
+          order: 1,
+          pointsRequired: 0
+        },
+        {
+          name: "First Steps",
+          description: "Earn your first 50 points",
+          icon: "👣",
+          order: 2,
+          pointsRequired: 50
+        },
+        {
+          name: "Active Explorer",
+          description: "Reach 100 points",
+          icon: "🗺️",
+          order: 3,
+          pointsRequired: 100
+        },
+        {
+          name: "Scholarship Seeker",
+          description: "Accumulate 250 points",
+          icon: "🔍",
+          order: 4,
+          pointsRequired: 250
+        },
+        {
+          name: "Dedicated Student",
+          description: "Reach 500 points",
+          icon: "📖",
+          order: 5,
+          pointsRequired: 500
+        },
+        {
+          name: "Scholar",
+          description: "Achieve 1000 points",
+          icon: "🎓",
+          order: 6,
+          pointsRequired: 1000
+        },
+        {
+          name: "Master Scholar",
+          description: "Reach 2000 points",
+          icon: "👑",
+          order: 7,
+          pointsRequired: 2000
+        }
+      ];
+
+      await db.insert(milestones).values(defaultMilestones);
+    }
+
+    console.log(`[Gamification API] Initialized gamification system for user ${userId}`);
+    
+    res.json({ success: true, message: "Gamification system initialized" });
   } catch (error) {
-    console.error("Error checking badge eligibility:", error);
+    console.error('[Gamification API] Error initializing gamification:', error);
+    res.status(500).json({ error: "Failed to initialize gamification system" });
   }
-}
+});
 
 export default router;
