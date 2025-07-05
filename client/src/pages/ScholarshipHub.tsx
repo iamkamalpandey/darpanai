@@ -77,7 +77,7 @@ const ScholarshipHub: React.FC = () => {
 
   // Fetch personalized recommendations
   const { data: recommendationsData, isLoading: isLoadingRecommendations } = useQuery({
-    queryKey: ['scholarship-recommendations'],
+    queryKey: ['scholarship-recommendations', Date.now()], // Force fresh with timestamp
     queryFn: () => apiRequest('GET', '/api/scholarships/recommendations'),
     staleTime: 0, // Force fresh data
     cacheTime: 0, // Don't cache
@@ -91,7 +91,19 @@ const ScholarshipHub: React.FC = () => {
   console.log('recommendationsData keys:', recommendationsData ? Object.keys(recommendationsData) : 'null');
   console.log('Recommendations Array:', recommendationsData?.recommendations);
   console.log('Recommendations Length:', recommendationsData?.recommendations?.length);
+  console.log('Total:', recommendationsData?.total);
   console.log('First recommendation:', recommendationsData?.recommendations?.[0]);
+  
+  // Check if it's a conditional rendering issue
+  const hasRecommendations = recommendationsData?.recommendations?.length > 0;
+  console.log('hasRecommendations check result:', hasRecommendations);
+  console.log('Individual checks:');
+  console.log('  recommendationsData exists:', !!recommendationsData);
+  console.log('  recommendations exists:', !!recommendationsData?.recommendations);
+  console.log('  recommendations is array:', Array.isArray(recommendationsData?.recommendations));
+  console.log('  recommendations length:', recommendationsData?.recommendations?.length);
+  console.log('  length > 0:', (recommendationsData?.recommendations?.length || 0) > 0);
+  
   console.log('Full JSON structure:', JSON.stringify(recommendationsData, null, 2));
   console.log('=== END DEBUG ===');
 
