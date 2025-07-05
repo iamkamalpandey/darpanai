@@ -144,10 +144,18 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 </p>
               </div>
               <div className="relative">
-                <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                  <span className="text-xs font-semibold text-white">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
-                  </span>
+                <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center overflow-hidden">
+                  {user?.profileImageUrl ? (
+                    <img 
+                      src={user.profileImageUrl} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs font-semibold text-white">
+                      {user?.firstName?.[0]}{user?.lastName?.[0]}
+                    </span>
+                  )}
                 </div>
                 <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-red-600 rounded-full flex items-center justify-center border-2 border-white">
                   <Shield className="h-2 w-2 text-white" />
@@ -231,10 +239,18 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center min-w-0 flex-1">
-                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-medium text-white">
-                        {user?.firstName?.[0]}{user?.lastName?.[0]}
-                      </span>
+                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {user?.profileImageUrl ? (
+                        <img 
+                          src={user.profileImageUrl} 
+                          alt="Profile" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-xs font-medium text-white">
+                          {user?.firstName?.[0]}{user?.lastName?.[0]}
+                        </span>
+                      )}
                     </div>
                     <div className="ml-3 min-w-0 flex-1">
                       <p className="text-sm font-medium text-gray-900 truncate">
@@ -333,10 +349,18 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-lg">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center min-w-0 flex-1">
-                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-medium text-white">
-                        {user?.firstName?.[0]}{user?.lastName?.[0]}
-                      </span>
+                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {user?.profileImageUrl ? (
+                        <img 
+                          src={user.profileImageUrl} 
+                          alt="Profile" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-xs font-medium text-white">
+                          {user?.firstName?.[0]}{user?.lastName?.[0]}
+                        </span>
+                      )}
                     </div>
                     <div className="ml-3 min-w-0 flex-1">
                       <p className="text-sm font-medium text-gray-900 truncate">

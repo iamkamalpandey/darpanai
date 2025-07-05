@@ -135,10 +135,18 @@ export function ExpertLayout({ children }: ExpertLayoutProps) {
               </div>
             </div>
             <div className="flex items-center">
-              <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                <span className="text-xs font-semibold text-white">
-                  {(user?.firstName?.[0] || '') + (user?.lastName?.[0] || '')}
-                </span>
+              <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center overflow-hidden">
+                {user?.profileImageUrl ? (
+                  <img 
+                    src={user.profileImageUrl} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-xs font-semibold text-white">
+                    {(user?.firstName?.[0] || '') + (user?.lastName?.[0] || '')}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -219,10 +227,18 @@ export function ExpertLayout({ children }: ExpertLayoutProps) {
           <div className="border-t border-gray-200 p-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="relative">
-                <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                  <span className="text-xs font-semibold text-white">
-                    {(user?.firstName?.[0] || '') + (user?.lastName?.[0] || '')}
-                  </span>
+                <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center overflow-hidden">
+                  {user?.profileImageUrl ? (
+                    <img 
+                      src={user.profileImageUrl} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs font-semibold text-white">
+                      {(user?.firstName?.[0] || '') + (user?.lastName?.[0] || '')}
+                    </span>
+                  )}
                 </div>
                 <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-purple-600 rounded-full flex items-center justify-center border-2 border-white">
                   <UserCheck className="h-2 w-2 text-white" />
@@ -315,10 +331,18 @@ export function ExpertLayout({ children }: ExpertLayoutProps) {
           <div className="border-t border-gray-200 p-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="relative">
-                <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
-                  <span className="text-sm font-semibold text-white">
-                    {(user?.firstName?.[0] || '') + (user?.lastName?.[0] || '')}
-                  </span>
+                <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center overflow-hidden">
+                  {user?.profileImageUrl ? (
+                    <img 
+                      src={user.profileImageUrl} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-sm font-semibold text-white">
+                      {(user?.firstName?.[0] || '') + (user?.lastName?.[0] || '')}
+                    </span>
+                  )}
                 </div>
                 <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-purple-600 rounded-full flex items-center justify-center border-2 border-white">
                   <UserCheck className="h-3 w-3 text-white" />

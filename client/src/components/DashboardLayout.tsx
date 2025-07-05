@@ -238,10 +238,18 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
                 <div className="bg-white rounded-lg p-3 border border-gray-200 shadow-lg">
                   <div className="flex items-center justify-between">
                     <Link href="/profile" className="flex items-center min-w-0 flex-1 hover:bg-gray-50 rounded-md p-1 -m-1 transition-colors">
-                      <div className="relative h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs font-medium text-white">
-                          {user?.firstName?.[0]}{user?.lastName?.[0]}
-                        </span>
+                      <div className="relative h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        {user?.profileImageUrl ? (
+                          <img 
+                            src={user.profileImageUrl} 
+                            alt="Profile" 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-xs font-medium text-white">
+                            {user?.firstName?.[0]}{user?.lastName?.[0]}
+                          </span>
+                        )}
                         <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-white rounded-full flex items-center justify-center shadow-sm">
                           <div className={`h-3 w-3 rounded-full flex items-center justify-center ${
                             completionPercentage >= 80 ? 'bg-green-500' : 
@@ -340,10 +348,18 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="border-t border-gray-200 p-4">
             <div className="flex items-center">
               <Link href="/profile" className="flex items-center min-w-0 flex-1 hover:bg-gray-50 rounded-md p-2 -m-2 transition-colors">
-                <div className="relative h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-medium text-white">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
-                  </span>
+                <div className="relative h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {user?.profileImageUrl ? (
+                    <img 
+                      src={user.profileImageUrl} 
+                      alt="Profile" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-sm font-medium text-white">
+                      {user?.firstName?.[0]}{user?.lastName?.[0]}
+                    </span>
+                  )}
                   <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-white rounded-full flex items-center justify-center shadow-sm">
                     <div className={`h-3 w-3 rounded-full flex items-center justify-center ${
                       completionPercentage >= 80 ? 'bg-green-500' : 

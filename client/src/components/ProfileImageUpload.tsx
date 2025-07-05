@@ -92,8 +92,10 @@ export function ProfileImageUpload({
         description: "Your profile image has been successfully updated.",
       });
       
-      // Invalidate relevant queries
+      // Invalidate all user-related queries to refresh profile image everywhere
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/fresh'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/profile-completion'] });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       
       // Call callback if provided
