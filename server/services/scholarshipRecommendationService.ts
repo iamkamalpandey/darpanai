@@ -45,11 +45,22 @@ export class ScholarshipRecommendationService {
 
       console.log(`[Scholarship Recommendations] Found ${scholarshipList.length} active scholarships`);
 
+      if (scholarshipList.length === 0) {
+        console.log('[Scholarship Recommendations] No active scholarships found in database');
+        return [];
+      }
+
       // Calculate match scores for each scholarship
       const matches: ScholarshipMatch[] = [];
       
       for (const scholarship of scholarshipList) {
+        console.log(`[Scholarship Recommendations] Processing scholarship: ${scholarship.name}`);
         const matchResult = this.calculateMatchScore(user, scholarship);
+        console.log(`[Scholarship Recommendations] Match result for ${scholarship.name}:`, {
+          score: matchResult.matchScore,
+          reasons: matchResult.matchReasons
+        });
+        
         // Always include scholarships with any score (including fallback score)
         matches.push({
           scholarship,
@@ -64,6 +75,13 @@ export class ScholarshipRecommendationService {
       const topMatches = matches.slice(0, 10);
 
       console.log(`[Scholarship Recommendations] Generated ${topMatches.length} matches for user ${userId}`);
+      console.log('[Scholarship Recommendations] Top matches summary:', 
+        topMatches.map(match => ({
+          name: match.scholarship.name,
+          score: match.matchScore,
+          reasons: match.matchReasons
+        }))
+      );
 
       // Check which scholarships are saved by the user
       if (topMatches.length > 0) {
@@ -84,6 +102,7 @@ export class ScholarshipRecommendationService {
         });
       }
 
+      console.log(`[Scholarship Recommendations] Returning ${topMatches.length} recommendations`);
       return topMatches;
     } catch (error) {
       console.error('Error getting scholarship recommendations:', error);
