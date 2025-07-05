@@ -41,6 +41,8 @@ const AIScholarshipAnalysis = lazy(() => import("@/pages/AIScholarshipAnalysis")
 const ScholarshipDetailsPage = lazy(() => import("@/pages/ScholarshipDetailsPage"));
 const ScholarshipHub = lazy(() => import("@/pages/ScholarshipHub"));
 const ScholarshipHubNew = lazy(() => import("@/pages/ScholarshipHubNew"));
+const UserScholarshipDetails = lazy(() => import("@/pages/ScholarshipDetails"));
+const ScholarshipCollection = lazy(() => import("@/pages/ScholarshipCollection"));
 const ScholarshipRecommendations = lazy(() => import("@/pages/ScholarshipRecommendations"));
 const ScholarshipRecommendationsNew = lazy(() => import("@/pages/ScholarshipRecommendationsNew"));
 const GamifiedProgress = lazy(() => import("@/pages/GamifiedProgress"));
@@ -318,6 +320,22 @@ function Router() {
         <UserProtectedRoute path="/scholarship-recommendations" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <ScholarshipRecommendationsNew />
+          </Suspense>
+        )} />
+      </Route>
+      <Route path="/scholarship-details/:id">
+        {(params) => (
+          <UserProtectedRoute path="/scholarship-details/:id" component={() => (
+            <Suspense fallback={<LoadingFallback />}>
+              <UserScholarshipDetails params={params} />
+            </Suspense>
+          )} />
+        )}
+      </Route>
+      <Route path="/my-scholarships">
+        <UserProtectedRoute path="/my-scholarships" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <ScholarshipCollection />
           </Suspense>
         )} />
       </Route>

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import DashboardLayout from '@/components/DashboardLayout';
+import { Link } from 'wouter';
 import {
   Heart,
   Star,
@@ -25,7 +26,8 @@ import {
   Users,
   Target,
   Zap,
-  Clock
+  Clock,
+  Eye
 } from 'lucide-react';
 
 interface ScholarshipProgram {
@@ -320,17 +322,30 @@ export default function ScholarshipHubNew() {
 
           {/* Action Buttons */}
           <div className="flex gap-2 pt-2">
+            <Link href={`/scholarship-details/${scholarship.id}`} className="flex-1">
+              <Button variant="outline" size="sm" className="w-full border-2 hover:bg-blue-50 hover:border-blue-300">
+                <Eye className="w-4 h-4 mr-1" />
+                View Details
+              </Button>
+            </Link>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="border-2 hover:bg-yellow-50 hover:border-yellow-300"
+              onClick={() => {
+                // Add to watchlist functionality
+                console.log('Add to watchlist:', scholarship.id);
+              }}
+            >
+              <Star className="w-4 h-4" />
+            </Button>
             <Button 
               size="sm" 
-              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold"
               onClick={() => window.open(scholarship.applicationUrl, '_blank')}
             >
-              <Award className="w-4 h-4 mr-2" />
-              Apply Now
-            </Button>
-            <Button variant="outline" size="sm" className="border-2 hover:bg-gray-50">
-              <Info className="w-4 h-4 mr-1" />
-              Details
+              <Award className="w-4 h-4 mr-1" />
+              Apply
             </Button>
           </div>
         </CardContent>
