@@ -79,14 +79,21 @@ const ScholarshipHub: React.FC = () => {
   const { data: recommendationsData, isLoading: isLoadingRecommendations } = useQuery({
     queryKey: ['scholarship-recommendations'],
     queryFn: () => apiRequest('GET', '/api/scholarships/recommendations'),
+    staleTime: 0, // Force fresh data
+    cacheTime: 0, // Don't cache
   });
 
   // Debug logging
-  console.log('Recommendations Data:', recommendationsData);
+  console.log('=== SCHOLARSHIP RECOMMENDATIONS DEBUG ===');
+  console.log('Raw recommendationsData:', recommendationsData);
   console.log('Is Loading:', isLoadingRecommendations);
+  console.log('Type of recommendationsData:', typeof recommendationsData);
+  console.log('recommendationsData keys:', recommendationsData ? Object.keys(recommendationsData) : 'null');
   console.log('Recommendations Array:', recommendationsData?.recommendations);
   console.log('Recommendations Length:', recommendationsData?.recommendations?.length);
-  console.log('Raw API Response Structure:', JSON.stringify(recommendationsData, null, 2));
+  console.log('First recommendation:', recommendationsData?.recommendations?.[0]);
+  console.log('Full JSON structure:', JSON.stringify(recommendationsData, null, 2));
+  console.log('=== END DEBUG ===');
 
   // Fetch saved scholarships
   const { data: savedScholarshipsData, isLoading: isLoadingSaved } = useQuery({

@@ -21,19 +21,23 @@ router.get("/recommendations", requireAuth, async (req: any, res: Response) => {
     const recommendations = await scholarshipRecommendationService.getRecommendations(userId);
     
     console.log(`[Scholarship Recommendations] Service returned ${recommendations.length} recommendations`);
-    console.log(`[Scholarship Recommendations] Response data:`, {
-      recommendations: recommendations.length,
-      total: recommendations.length,
-      firstRecommendation: recommendations[0] ? {
-        name: recommendations[0].scholarship.name,
-        score: recommendations[0].matchScore
-      } : 'none'
-    });
+    console.log(`[Scholarship Recommendations] First 2 recommendations:`, 
+      recommendations.slice(0, 2).map(r => ({
+        name: r.scholarship.name,
+        score: r.matchScore,
+        reasons: r.matchReasons,
+        fieldCategories: r.scholarship.field_categories,
+        hostCountries: r.scholarship.host_countries
+      }))
+    );
     
-    res.json({
+    const responseData = {
       recommendations,
       total: recommendations.length,
-    });
+    };
+    
+    console.log(`[Scholarship Recommendations] Sending response with ${responseData.total} recommendations`);
+    res.json(responseData);
   } catch (error: any) {
     console.error('[Scholarship Recommendations] Error:', error);
     res.status(500).json({
