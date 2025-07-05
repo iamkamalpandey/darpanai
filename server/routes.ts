@@ -4147,6 +4147,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { scholarshipService } = await import('./services/scholarshipService');
       const scholarshipId = parseInt(req.params.id);
+      
+      if (isNaN(scholarshipId)) {
+        return res.status(400).json({ error: 'Invalid scholarship ID' });
+      }
 
       const scholarship = await scholarshipService.getScholarshipById(scholarshipId);
       if (!scholarship) {

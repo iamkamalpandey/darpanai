@@ -348,7 +348,7 @@ export default function ScholarshipDetailsPage({ params }: ScholarshipDetailsPag
               <div>
                 <span className="text-sm font-medium text-muted-foreground">Degree Required</span>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {scholarshipData.degreeRequired.map((degree, index) => (
+                  {scholarshipData.degreeRequired?.map((degree, index) => (
                     <Badge key={index} variant="secondary">{degree}</Badge>
                   ))}
                 </div>
@@ -398,7 +398,7 @@ export default function ScholarshipDetailsPage({ params }: ScholarshipDetailsPag
               <div>
                 <span className="text-sm font-medium text-muted-foreground">Host Countries</span>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {scholarshipData.hostCountries.map((country, index) => (
+                  {scholarshipData.hostCountries?.map((country, index) => (
                     <Badge key={index} variant="default">{country}</Badge>
                   ))}
                 </div>
@@ -407,14 +407,14 @@ export default function ScholarshipDetailsPage({ params }: ScholarshipDetailsPag
               <div>
                 <span className="text-sm font-medium text-muted-foreground">Eligible Countries</span>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {scholarshipData.eligibleCountries.includes('*') ? (
+                  {scholarshipData.eligibleCountries?.includes('*') ? (
                     <Badge variant="default">All Countries</Badge>
                   ) : (
-                    scholarshipData.eligibleCountries.slice(0, 10).map((country, index) => (
+                    scholarshipData.eligibleCountries?.slice(0, 10).map((country, index) => (
                       <Badge key={index} variant="outline">{country}</Badge>
                     ))
                   )}
-                  {scholarshipData.eligibleCountries.length > 10 && !scholarshipData.eligibleCountries.includes('*') && (
+                  {scholarshipData.eligibleCountries && scholarshipData.eligibleCountries.length > 10 && !scholarshipData.eligibleCountries.includes('*') && (
                     <Badge variant="outline">+{scholarshipData.eligibleCountries.length - 10} more</Badge>
                   )}
                 </div>
@@ -433,7 +433,7 @@ export default function ScholarshipDetailsPage({ params }: ScholarshipDetailsPag
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {scholarshipData.languageRequirements.map((req, index) => (
+                  {scholarshipData.languageRequirements?.map((req, index) => (
                     <div key={index} className="p-2 bg-gray-50 rounded">
                       <p className="font-medium">{req.level}</p>
                       {req.testType && <p className="text-sm text-muted-foreground">Test: {req.testType}</p>}
@@ -455,7 +455,7 @@ export default function ScholarshipDetailsPage({ params }: ScholarshipDetailsPag
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-2">
-                {scholarshipData.documentsRequired.map((doc, index) => (
+                {scholarshipData.documentsRequired?.map((doc, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-primary rounded-full"></div>
                     <span>{doc}</span>
