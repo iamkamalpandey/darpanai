@@ -771,39 +771,12 @@ export default function ScholarshipHubNew() {
                     />
                   </div>
 
-                  {/* Quick Filter Buttons */}
-                  <div className="flex flex-wrap gap-2 lg:gap-3">
+                  {/* AI Search Button Only */}
+                  <div className="flex-shrink-0">
                     <Button 
                       variant="secondary" 
                       size="sm" 
-                      className="bg-white/20 hover:bg-white/30 text-white border-white/30 rounded-xl px-4 py-2 backdrop-blur-sm transition-all hover:scale-105"
-                      onClick={() => setSearchQuery('computer science')}
-                    >
-                      <BookOpen className="w-4 h-4 mr-2" />
-                      STEM
-                    </Button>
-                    <Button 
-                      variant="secondary" 
-                      size="sm" 
-                      className="bg-white/20 hover:bg-white/30 text-white border-white/30 rounded-xl px-4 py-2 backdrop-blur-sm transition-all hover:scale-105"
-                      onClick={() => setCountryFilter('United States')}
-                    >
-                      <Globe className="w-4 h-4 mr-2" />
-                      USA
-                    </Button>
-                    <Button 
-                      variant="secondary" 
-                      size="sm" 
-                      className="bg-white/20 hover:bg-white/30 text-white border-white/30 rounded-xl px-4 py-2 backdrop-blur-sm transition-all hover:scale-105"
-                      onClick={() => setFundingTypeFilter('full')}
-                    >
-                      <DollarSign className="w-4 h-4 mr-2" />
-                      Full Fund
-                    </Button>
-                    <Button 
-                      variant="secondary" 
-                      size="sm" 
-                      className="bg-gradient-to-r from-yellow-400/80 to-orange-400/80 hover:from-yellow-400 hover:to-orange-400 text-white border-0 rounded-xl px-4 py-2 backdrop-blur-sm transition-all hover:scale-105 font-medium shadow-lg"
+                      className="bg-gradient-to-r from-yellow-400/80 to-orange-400/80 hover:from-yellow-400 hover:to-orange-400 text-white border-0 rounded-xl px-6 py-3 backdrop-blur-sm transition-all hover:scale-105 font-medium shadow-lg"
                     >
                       <Sparkles className="w-4 h-4 mr-2" />
                       AI Search
@@ -957,26 +930,70 @@ export default function ScholarshipHubNew() {
                       </select>
                     </div>
 
-                    {/* Filter Summary */}
+                    {/* Filter Summary & Clear Options */}
                     <div className="pt-4 border-t border-gray-200">
-                      <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center justify-between text-sm mb-3">
                         <span className="text-gray-600">Active Filters:</span>
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                          {[countryFilter, courseFilter, levelFilter, fundingTypeFilter].filter(Boolean).length}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                            {[countryFilter, courseFilter, levelFilter, fundingTypeFilter].filter(Boolean).length}
+                          </Badge>
+                          {[countryFilter, courseFilter, levelFilter, fundingTypeFilter].filter(Boolean).length > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setCountryFilter('');
+                                setCourseFilter('');
+                                setLevelFilter('');
+                                setFundingTypeFilter('');
+                              }}
+                              className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 h-auto"
+                            >
+                              Clear All
+                            </Button>
+                          )}
+                        </div>
                       </div>
                       <div className="mt-2 space-y-1">
                         {countryFilter && (
-                          <Badge variant="outline" className="text-xs mr-1 mb-1">{countryFilter}</Badge>
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs mr-1 mb-1 cursor-pointer hover:bg-red-50 hover:border-red-300"
+                            onClick={() => setCountryFilter('')}
+                          >
+                            {countryFilter} ×
+                          </Badge>
                         )}
                         {courseFilter && (
-                          <Badge variant="outline" className="text-xs mr-1 mb-1">{courseFilter}</Badge>
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs mr-1 mb-1 cursor-pointer hover:bg-red-50 hover:border-red-300"
+                            onClick={() => setCourseFilter('')}
+                          >
+                            {courseFilter} ×
+                          </Badge>
                         )}
                         {levelFilter && (
-                          <Badge variant="outline" className="text-xs mr-1 mb-1">{levelFilter}</Badge>
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs mr-1 mb-1 cursor-pointer hover:bg-red-50 hover:border-red-300"
+                            onClick={() => setLevelFilter('')}
+                          >
+                            {levelFilter} ×
+                          </Badge>
                         )}
                         {fundingTypeFilter && (
-                          <Badge variant="outline" className="text-xs mr-1 mb-1">{fundingTypeFilter}</Badge>
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs mr-1 mb-1 cursor-pointer hover:bg-red-50 hover:border-red-300"
+                            onClick={() => setFundingTypeFilter('')}
+                          >
+                            {fundingTypeFilter === 'full' ? 'Full Funding' : 
+                             fundingTypeFilter === 'partial' ? 'Partial Funding' :
+                             fundingTypeFilter === 'merit' ? 'Merit-based' :
+                             fundingTypeFilter === 'need' ? 'Need-based' : fundingTypeFilter} ×
+                          </Badge>
                         )}
                       </div>
                     </div>
