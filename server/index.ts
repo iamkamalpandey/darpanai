@@ -301,7 +301,7 @@ process.on('unhandledRejection', (reason, promise) => {
     
     // Register scholarship matching routes
     const { scholarshipMatchingRoutes } = await import('./scholarshipMatchingRoutes');
-    app.use('/api/scholarship-matching', scholarshipMatchingRoutes);
+    app.use('/api/scholarship-hub', scholarshipMatchingRoutes);
     logWithLevel('✓ Scholarship matching routes registered successfully');
     
     // Register watchlist routes

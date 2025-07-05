@@ -90,7 +90,7 @@ export default function ScholarshipDetailsPage({ params }: ScholarshipDetailsPag
   });
 
   const handleBackClick = () => {
-    setLocation('/scholarship-matching');
+    setLocation('/scholarship-hub');
   };
 
   const formatCurrency = (amount: string | undefined, currency: string) => {

@@ -302,13 +302,6 @@ function Router() {
           )} />
         )}
       </Route>
-      <Route path="/scholarship-matching">
-        <UserProtectedRoute path="/scholarship-matching" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <AIScholarshipAnalysis />
-          </Suspense>
-        )} />
-      </Route>
       <Route path="/scholarship-hub">
         <UserProtectedRoute path="/scholarship-hub" component={() => (
           <Suspense fallback={<LoadingFallback />}>

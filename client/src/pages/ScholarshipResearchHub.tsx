@@ -74,7 +74,7 @@ export default function ScholarshipResearchHub() {
       id: 'ai-scholarship-matching',
       title: 'AI Scholarship Matching',
       description: 'Intelligent AI-powered scholarship recommendations',
-      href: '/scholarship-matching',
+      href: '/scholarship-hub',
       icon: <Brain className="w-6 h-6" />,
       features: ['AI analysis', 'Profile matching', 'Success predictions'],
       status: 'active',
@@ -420,7 +420,7 @@ export default function ScholarshipResearchHub() {
           
           <div className="text-center mt-4">
             <Button asChild variant="outline">
-              <Link href="/scholarship-matching">
+              <Link href="/scholarship-hub">
                 <Brain className="w-4 h-4 mr-2" />
                 Get Full AI Analysis
               </Link>
@@ -446,7 +446,7 @@ export default function ScholarshipResearchHub() {
               </Button>
               
               <Button asChild variant="outline" className="h-20 flex-col gap-2">
-                <Link href="/scholarship-matching">
+                <Link href="/scholarship-hub">
                   <Brain className="w-6 h-6" />
                   <span>AI Matching</span>
                 </Link>
