@@ -330,9 +330,9 @@ export default function ScholarshipDetailsPage({ params }: ScholarshipDetailsPag
               <div>
                 <span className="text-sm font-medium text-muted-foreground">Study Levels</span>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {scholarshipData.studyLevels.map((level, index) => (
+                  {scholarshipData.studyLevels?.map((level, index) => (
                     <Badge key={index} variant="secondary">{level}</Badge>
-                  ))}
+                  )) || <span className="text-sm text-muted-foreground">Not specified</span>}
                 </div>
               </div>
               

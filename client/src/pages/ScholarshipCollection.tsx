@@ -23,11 +23,16 @@ import {
   Target,
   SortAsc,
   Grid,
-  List
+  List,
+  Award,
+  Users,
+  Clock,
+  FilterX
 } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import DashboardLayout from "@/components/DashboardLayout";
 
 interface SavedScholarship {
   id: number;

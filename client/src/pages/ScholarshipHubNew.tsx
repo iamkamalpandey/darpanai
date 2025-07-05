@@ -67,6 +67,14 @@ export default function ScholarshipHubNew() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedScholarship, setSelectedScholarship] = useState<ScholarshipMatch | null>(null);
   const [showSimpleMode, setShowSimpleMode] = useState(false);
+  
+  // Enhanced filtering states
+  const [countryFilter, setCountryFilter] = useState('');
+  const [courseFilter, setCourseFilter] = useState('');
+  const [levelFilter, setLevelFilter] = useState('');
+  const [fundingTypeFilter, setFundingTypeFilter] = useState('');
+  const [sortBy, setSortBy] = useState('match');
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -171,6 +179,110 @@ export default function ScholarshipHubNew() {
   
   const allScholarships = rawScholarships.map(transformScholarship);
   const savedScholarships = savedScholarshipsData?.scholarships || [];
+
+  // Enhanced filtering and sorting functions
+  const filterScholarships = (scholarships: ScholarshipMatch[]) => {
+    return scholarships.filter(match => {
+      const scholarship = match.scholarship;
+      
+      // Search filter
+      if (searchQuery) {
+        const searchLower = searchQuery.toLowerCase();
+        const matchesSearch = 
+          scholarship.name.toLowerCase().includes(searchLower) ||
+          scholarship.description.toLowerCase().includes(searchLower) ||
+          scholarship.provider?.name.toLowerCase().includes(searchLower);
+        if (!matchesSearch) return false;
+      }
+      
+      // Country filter
+      if (countryFilter) {
+        const hasCountry = scholarship.hostCountries?.includes(countryFilter) ||
+                          scholarship.provider?.country === countryFilter;
+        if (!hasCountry) return false;
+      }
+      
+      // Course/Field filter
+      if (courseFilter) {
+        const hasField = scholarship.fieldCategories?.includes(courseFilter);
+        if (!hasField) return false;
+      }
+      
+      // Study level filter
+      if (levelFilter) {
+        const hasLevel = scholarship.studyLevels?.includes(levelFilter);
+        if (!hasLevel) return false;
+      }
+      
+      // Funding type filter
+      if (fundingTypeFilter) {
+        const matchesFunding = scholarship.fundingType?.toLowerCase().includes(fundingTypeFilter.toLowerCase());
+        if (!matchesFunding) return false;
+      }
+      
+      return true;
+    });
+  };
+
+  const sortScholarships = (scholarships: ScholarshipMatch[]) => {
+    return [...scholarships].sort((a, b) => {
+      switch (sortBy) {
+        case 'match':
+          return b.matchScore - a.matchScore;
+        case 'deadline':
+          return new Date(a.scholarship.deadline).getTime() - new Date(b.scholarship.deadline).getTime();
+        case 'name':
+          return a.scholarship.name.localeCompare(b.scholarship.name);
+        case 'amount':
+          // Simple string comparison for amount
+          return a.scholarship.amount.localeCompare(b.scholarship.amount);
+        default:
+          return b.matchScore - a.matchScore;
+      }
+    });
+  };
+
+  // Apply filtering and sorting
+  const filteredRecommendations = sortScholarships(filterScholarships(transformedRecommendations));
+  const filteredAllScholarships = sortScholarships(filterScholarships(allScholarships));
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSearchQuery('');
+    setCountryFilter('');
+    setCourseFilter('');
+    setLevelFilter('');
+    setFundingTypeFilter('');
+    setSortBy('match');
+  };
+
+  // Get unique values for filter options
+  const getUniqueCountries = () => {
+    const countries = new Set<string>();
+    [...transformedRecommendations, ...allScholarships].forEach(match => {
+      match.scholarship.hostCountries?.forEach(country => countries.add(country));
+      if (match.scholarship.provider?.country) {
+        countries.add(match.scholarship.provider.country);
+      }
+    });
+    return Array.from(countries).filter(country => country && country !== 'Unknown');
+  };
+
+  const getUniqueCourses = () => {
+    const courses = new Set<string>();
+    [...transformedRecommendations, ...allScholarships].forEach(match => {
+      match.scholarship.fieldCategories?.forEach(field => courses.add(field));
+    });
+    return Array.from(courses).filter(course => course && course !== 'General');
+  };
+
+  const getUniqueStudyLevels = () => {
+    const levels = new Set<string>();
+    [...transformedRecommendations, ...allScholarships].forEach(match => {
+      match.scholarship.studyLevels?.forEach(level => levels.add(level));
+    });
+    return Array.from(levels).filter(level => level && level !== 'Unknown');
+  };
 
   const ScholarshipCard = ({ match, showMatchScore = false }: { match: ScholarshipMatch; showMatchScore?: boolean }) => {
     const { scholarship, matchScore, matchReasons, isSaved } = match;
@@ -443,129 +555,319 @@ export default function ScholarshipHubNew() {
           </div>
         </div>
 
-        {/* Modern Content Section */}
+        {/* Modern Content Section with Sidebar Layout */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Tabs defaultValue="recommendations" className="space-y-8">
-            <div className="flex items-center justify-center">
-              <TabsList className="grid w-full grid-cols-3 max-w-2xl bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl p-2 shadow-lg">
-                <TabsTrigger 
-                  value="recommendations" 
-                  className="flex items-center gap-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md transition-all"
-                >
-                  <Star className="w-4 h-4" />
-                  <span className="hidden sm:inline">AI Matched</span>
-                  <span className="sm:hidden">Matched</span>
-                  <Badge variant="secondary" className="ml-1 bg-blue-100 text-blue-700">
-                    {transformedRecommendations.length}
-                  </Badge>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="discover" 
-                  className="flex items-center gap-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md transition-all"
-                >
-                  <Globe className="w-4 h-4" />
-                  <span className="hidden sm:inline">Explore All</span>
-                  <span className="sm:hidden">Explore</span>
-                  <Badge variant="secondary" className="ml-1 bg-green-100 text-green-700">
-                    {allScholarships.length}
-                  </Badge>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="saved" 
-                  className="flex items-center gap-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md transition-all"
-                >
-                  <Heart className="w-4 h-4" />
-                  <span className="hidden sm:inline">My Collection</span>
-                  <span className="sm:hidden">Saved</span>
-                  <Badge variant="secondary" className="ml-1 bg-red-100 text-red-700">
-                    {savedScholarships.length}
-                  </Badge>
-                </TabsTrigger>
-              </TabsList>
+          <div className="flex gap-8">
+            {/* Enhanced Filter Sidebar */}
+            <div className="w-80 shrink-0 hidden lg:block">
+              <div className="sticky top-4">
+                <Card className="bg-white/90 backdrop-blur-sm shadow-lg border-0 overflow-hidden">
+                  <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                    <div className="flex items-center gap-3">
+                      <Filter className="w-5 h-5" />
+                      <CardTitle className="text-lg">Advanced Filters</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-6">
+                    {/* Quick Actions */}
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={clearAllFilters}
+                        className="flex-1 text-xs hover:bg-red-50 hover:border-red-200"
+                      >
+                        Clear All
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-xs hover:bg-blue-50 hover:border-blue-200"
+                      >
+                        <TrendingUp className="w-3 h-3 mr-1" />
+                        Popular
+                      </Button>
+                    </div>
+
+                    {/* Country Filter */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <Globe className="w-4 h-4" />
+                        Study Destination
+                      </label>
+                      <select
+                        value={countryFilter}
+                        onChange={(e) => setCountryFilter(e.target.value)}
+                        className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">All Countries</option>
+                        {getUniqueCountries().map(country => (
+                          <option key={country} value={country}>{country}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Course/Field Filter */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <BookOpen className="w-4 h-4" />
+                        Field of Study
+                      </label>
+                      <select
+                        value={courseFilter}
+                        onChange={(e) => setCourseFilter(e.target.value)}
+                        className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">All Fields</option>
+                        {getUniqueCourses().map(course => (
+                          <option key={course} value={course}>{course}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Study Level Filter */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4" />
+                        Study Level
+                      </label>
+                      <select
+                        value={levelFilter}
+                        onChange={(e) => setLevelFilter(e.target.value)}
+                        className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">All Levels</option>
+                        {getUniqueStudyLevels().map(level => (
+                          <option key={level} value={level}>{level}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Funding Type Filter */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <DollarSign className="w-4 h-4" />
+                        Funding Type
+                      </label>
+                      <select
+                        value={fundingTypeFilter}
+                        onChange={(e) => setFundingTypeFilter(e.target.value)}
+                        className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">All Types</option>
+                        <option value="full">Full Funding</option>
+                        <option value="partial">Partial Funding</option>
+                        <option value="merit">Merit-based</option>
+                        <option value="need">Need-based</option>
+                      </select>
+                    </div>
+
+                    {/* Sort Options */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4" />
+                        Sort By
+                      </label>
+                      <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="match">Best Match</option>
+                        <option value="deadline">Deadline (Earliest)</option>
+                        <option value="name">Name (A-Z)</option>
+                        <option value="amount">Amount</option>
+                      </select>
+                    </div>
+
+                    {/* Filter Summary */}
+                    <div className="pt-4 border-t border-gray-200">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600">Active Filters:</span>
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                          {[countryFilter, courseFilter, levelFilter, fundingTypeFilter].filter(Boolean).length}
+                        </Badge>
+                      </div>
+                      <div className="mt-2 space-y-1">
+                        {countryFilter && (
+                          <Badge variant="outline" className="text-xs mr-1 mb-1">{countryFilter}</Badge>
+                        )}
+                        {courseFilter && (
+                          <Badge variant="outline" className="text-xs mr-1 mb-1">{courseFilter}</Badge>
+                        )}
+                        {levelFilter && (
+                          <Badge variant="outline" className="text-xs mr-1 mb-1">{levelFilter}</Badge>
+                        )}
+                        {fundingTypeFilter && (
+                          <Badge variant="outline" className="text-xs mr-1 mb-1">{fundingTypeFilter}</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
 
-            {/* Recommendations Tab */}
-            <TabsContent value="recommendations" className="space-y-6">
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <TrendingUp className="w-6 h-6 text-blue-600" />
-                  <h2 className="text-xl font-semibold text-gray-900">Personalized for You</h2>
+            {/* Main Content Area */}
+            <div className="flex-1 min-w-0">
+              <Tabs defaultValue="recommendations" className="space-y-8">
+                <div className="flex items-center justify-center">
+                  <TabsList className="grid w-full grid-cols-3 max-w-2xl bg-white/80 backdrop-blur-sm border border-gray-200 rounded-2xl p-2 shadow-lg">
+                    <TabsTrigger 
+                      value="recommendations" 
+                      className="flex items-center gap-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md transition-all"
+                    >
+                      <Star className="w-4 h-4" />
+                      <span className="hidden sm:inline">AI Matched</span>
+                      <span className="sm:hidden">Matched</span>
+                      <Badge variant="secondary" className="ml-1 bg-blue-100 text-blue-700">
+                        {filteredRecommendations.length}
+                      </Badge>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="discover" 
+                      className="flex items-center gap-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md transition-all"
+                    >
+                      <Globe className="w-4 h-4" />
+                      <span className="hidden sm:inline">Explore All</span>
+                      <span className="sm:hidden">Explore</span>
+                      <Badge variant="secondary" className="ml-1 bg-green-100 text-green-700">
+                        {filteredAllScholarships.length}
+                      </Badge>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="saved" 
+                      className="flex items-center gap-2 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md transition-all"
+                    >
+                      <Heart className="w-4 h-4" />
+                      <span className="hidden sm:inline">My Collection</span>
+                      <span className="sm:hidden">Saved</span>
+                      <Badge variant="secondary" className="ml-1 bg-red-100 text-red-700">
+                        {savedScholarships.length}
+                      </Badge>
+                    </TabsTrigger>
+                  </TabsList>
                 </div>
-                <p className="text-gray-600">
-                  Based on your profile and preferences, here are scholarships with the highest match potential.
-                </p>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {isLoadingRecommendations ? (
-                  Array.from({ length: 3 }).map((_, index) => (
-                    <Card key={index} className="animate-pulse">
-                      <CardHeader>
-                        <div className="h-6 bg-gray-200 rounded mb-2"></div>
-                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          <div className="h-4 bg-gray-200 rounded"></div>
-                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : (
-                  renderScholarshipGrid(transformedRecommendations, true, "No personalized recommendations yet. Complete your profile to get better matches!")
-                )}
-              </div>
-            </TabsContent>
+                {/* Recommendations Tab */}
+                <TabsContent value="recommendations" className="space-y-6">
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <TrendingUp className="w-6 h-6 text-blue-600" />
+                        <h2 className="text-xl font-semibold text-gray-900">Personalized for You</h2>
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {filteredRecommendations.length} of {transformedRecommendations.length} shown
+                      </div>
+                    </div>
+                    <p className="text-gray-600">
+                      Based on your profile and preferences, here are scholarships with the highest match potential.
+                    </p>
+                  </div>
 
-            {/* Discover Tab */}
-            <TabsContent value="discover" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {isLoadingScholarships ? (
-                  Array.from({ length: 6 }).map((_, index) => (
-                    <Card key={index} className="animate-pulse">
-                      <CardHeader>
-                        <div className="h-6 bg-gray-200 rounded mb-2"></div>
-                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          <div className="h-4 bg-gray-200 rounded"></div>
-                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : (
-                  renderScholarshipGrid(allScholarships, false, "No scholarships found")
-                )}
-              </div>
-            </TabsContent>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {isLoadingRecommendations ? (
+                      Array.from({ length: 3 }).map((_, index) => (
+                        <Card key={index} className="animate-pulse">
+                          <CardHeader>
+                            <div className="h-6 bg-gray-200 rounded mb-2"></div>
+                            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3">
+                              <div className="h-4 bg-gray-200 rounded"></div>
+                              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      renderScholarshipGrid(filteredRecommendations, true, "No recommendations match your current filters. Try adjusting the filters to see more results.")
+                    )}
+                  </div>
+                </TabsContent>
 
-            {/* Saved Tab */}
-            <TabsContent value="saved" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {isLoadingSaved ? (
-                  Array.from({ length: 3 }).map((_, index) => (
-                    <Card key={index} className="animate-pulse">
-                      <CardHeader>
-                        <div className="h-6 bg-gray-200 rounded mb-2"></div>
-                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          <div className="h-4 bg-gray-200 rounded"></div>
-                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : (
-                  renderScholarshipGrid(savedScholarships, false, "No saved scholarships yet")
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
+                {/* Discover Tab */}
+                <TabsContent value="discover" className="space-y-6">
+                  <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <Globe className="w-6 h-6 text-green-600" />
+                        <h2 className="text-xl font-semibold text-gray-900">Explore All Scholarships</h2>
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {filteredAllScholarships.length} of {allScholarships.length} shown
+                      </div>
+                    </div>
+                    <p className="text-gray-600">
+                      Discover the complete range of available scholarships and opportunities worldwide.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {isLoadingScholarships ? (
+                      Array.from({ length: 6 }).map((_, index) => (
+                        <Card key={index} className="animate-pulse">
+                          <CardHeader>
+                            <div className="h-6 bg-gray-200 rounded mb-2"></div>
+                            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3">
+                              <div className="h-4 bg-gray-200 rounded"></div>
+                              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      renderScholarshipGrid(filteredAllScholarships, false, "No scholarships match your current filters. Try adjusting the filters to discover more opportunities.")
+                    )}
+                  </div>
+                </TabsContent>
+
+                {/* Saved Tab */}
+                <TabsContent value="saved" className="space-y-6">
+                  <div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-lg p-6 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <Heart className="w-6 h-6 text-red-600" />
+                        <h2 className="text-xl font-semibold text-gray-900">My Scholarship Collection</h2>
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {savedScholarships.length} saved
+                      </div>
+                    </div>
+                    <p className="text-gray-600">
+                      Your personally curated collection of scholarships. Keep track of opportunities you're interested in.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {isLoadingSaved ? (
+                      Array.from({ length: 3 }).map((_, index) => (
+                        <Card key={index} className="animate-pulse">
+                          <CardHeader>
+                            <div className="h-6 bg-gray-200 rounded mb-2"></div>
+                            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3">
+                              <div className="h-4 bg-gray-200 rounded"></div>
+                              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      renderScholarshipGrid(savedScholarships, false, "No saved scholarships yet. Start exploring and save scholarships that interest you.")
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
         </div>
       </div>
     </DashboardLayout>
