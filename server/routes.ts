@@ -123,22 +123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'ETag': `"fresh-${Date.now()}-${userId}"` // Dynamic ETag to prevent 304
       });
       
-      console.log('=== USER DATA RESPONSE SENT ===');
-      console.log('Profile image debug:', {
-        hasProfileImage: !!freshUser.profileImageUrl,
-        profileImageLength: freshUser.profileImageUrl?.length || 0,
-        profileImagePreview: freshUser.profileImageUrl?.substring(0, 50) || 'null'
-      });
-      
-      const responseData = { 
-        ...freshUser,
-        profileImageUrl: freshUser.profileImageUrl 
-      };
-      
-      console.log('Response includes profileImageUrl:', 'profileImageUrl' in responseData);
-      console.log('Response profileImageUrl length:', responseData.profileImageUrl?.length || 0);
-      
-      res.json(responseData);
+      res.json(freshUser);
     } catch (error) {
       console.error('Error fetching user data:', error);
       res.status(500).json({ error: 'Failed to fetch user data' });
