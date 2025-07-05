@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import DashboardLayout from '@/components/DashboardLayout';
 import {
   Heart,
   Star,
@@ -121,18 +122,7 @@ export default function ScholarshipHubNew() {
     },
   });
 
-  // Debug logging
-  useEffect(() => {
-    console.log('=== SCHOLARSHIP HUB DEBUG ===');
-    console.log('Recommendations Data:', recommendationsData);
-    console.log('Recommendations Array:', recommendationsData?.recommendations);
-    console.log('Recommendations Length:', recommendationsData?.recommendations?.length || 0);
-    console.log('Scholarships Data:', scholarshipsData);
-    console.log('Saved Data:', savedScholarshipsData);
-    console.log('Loading states:', { isLoadingRecommendations, isLoadingScholarships, isLoadingSaved });
-    console.log('Error:', recommendationsError);
-    console.log('=== END DEBUG ===');
-  }, [recommendationsData, scholarshipsData, savedScholarshipsData, isLoadingRecommendations, recommendationsError]);
+
 
   const formatDeadline = (deadline: string) => {
     if (!deadline) return 'No deadline specified';
@@ -309,10 +299,10 @@ export default function ScholarshipHubNew() {
   const savedScholarships = savedScholarshipsData?.scholarships || [];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <DashboardLayout>
+      <div className="space-y-8">
         {/* Header */}
-        <div className="text-center mb-8">
+        <div className="text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Award className="w-8 h-8 text-blue-600" />
             <h1 className="text-3xl font-bold text-gray-900">Scholarship Hub</h1>
@@ -350,19 +340,6 @@ export default function ScholarshipHubNew() {
             />
           </div>
         </div>
-
-        {/* Debug Info for Development */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mb-4 p-4 bg-yellow-50 rounded-lg">
-            <h3 className="font-medium text-yellow-800 mb-2">Debug Info:</h3>
-            <div className="text-sm text-yellow-700 space-y-1">
-              <div>Recommendations: {recommendations.length} items</div>
-              <div>All Scholarships: {allScholarships.length} items</div>
-              <div>Saved: {savedScholarships.length} items</div>
-              <div>Loading: R:{isLoadingRecommendations ? 'Y' : 'N'} S:{isLoadingScholarships ? 'Y' : 'N'} Sv:{isLoadingSaved ? 'Y' : 'N'}</div>
-            </div>
-          </div>
-        )}
 
         {/* Tabs */}
         <Tabs defaultValue="recommendations" className="space-y-6">
@@ -511,6 +488,7 @@ export default function ScholarshipHubNew() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
