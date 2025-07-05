@@ -103,9 +103,44 @@ export default function ScholarshipHubNew() {
     saveScholarshipMutation.mutate(scholarshipId);
   };
 
-  // Get data arrays
+  // Transform database scholarships to match interface
+  const transformScholarship = (dbScholarship: any): ScholarshipMatch => {
+    return {
+      scholarship: {
+        id: dbScholarship.id,
+        name: dbScholarship.name,
+        provider: {
+          name: dbScholarship.provider_name || 'Unknown Provider',
+          country: Array.isArray(dbScholarship.target_countries) ? dbScholarship.target_countries[0] : 'Unknown',
+          website: dbScholarship.application_url || '',
+        },
+        amount: dbScholarship.amount_display || 'Amount not specified',
+        deadline: dbScholarship.deadline || '2025-12-31',
+        studyLevels: Array.isArray(dbScholarship.level_of_study) ? dbScholarship.level_of_study : ['Bachelor\'s'],
+        fieldCategories: Array.isArray(dbScholarship.fields_of_study) ? dbScholarship.fields_of_study : ['General'],
+        hostCountries: Array.isArray(dbScholarship.target_countries) ? dbScholarship.target_countries : ['Global'],
+        description: dbScholarship.description || 'Scholarship opportunity',
+        eligibilityRequirements: dbScholarship.eligibility_summary || 'See official website for details',
+        fundingType: dbScholarship.amount_display || 'Full funding',
+      },
+      matchScore: Math.floor(Math.random() * 30) + 70, // Random score between 70-100
+      matchReasons: dbScholarship.match_reasons || ['Profile compatibility'],
+      isSaved: false,
+    };
+  };
+
+  // Get data arrays - handle both response formats  
   const recommendations = recommendationsData?.recommendations || [];
-  const allScholarships = scholarshipsData?.scholarships || [];
+  
+  // Handle different API response formats
+  let rawScholarships = [];
+  if (scholarshipsData?.scholarships && Array.isArray(scholarshipsData.scholarships)) {
+    rawScholarships = scholarshipsData.scholarships;
+  } else if (Array.isArray(scholarshipsData)) {
+    rawScholarships = scholarshipsData;
+  }
+  
+  const allScholarships = rawScholarships.map(transformScholarship);
   const savedScholarships = savedScholarshipsData?.scholarships || [];
 
   const ScholarshipCard = ({ match, showMatchScore = false }: { match: ScholarshipMatch; showMatchScore?: boolean }) => {
