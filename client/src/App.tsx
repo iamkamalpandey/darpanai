@@ -39,6 +39,7 @@ const VisaAnalysisView = lazy(() => import("@/pages/VisaAnalysisView"));
 const ScholarshipResearch = lazy(() => import("@/pages/ScholarshipResearch"));
 const AIScholarshipAnalysis = lazy(() => import("@/pages/AIScholarshipAnalysis"));
 const ScholarshipDetailsPage = lazy(() => import("@/pages/ScholarshipDetailsPage"));
+const ScholarshipDetailsPageFixed = lazy(() => import("@/pages/ScholarshipDetailsPageFixed"));
 const ScholarshipHub = lazy(() => import("@/pages/ScholarshipHub"));
 const ScholarshipHubNew = lazy(() => import("@/pages/ScholarshipHubNew"));
 const UserScholarshipDetails = lazy(() => import("@/pages/ScholarshipDetails"));
@@ -297,7 +298,7 @@ function Router() {
         {(params) => (
           <UserProtectedRoute path="/scholarship-details/:scholarshipId" component={() => (
             <Suspense fallback={<LoadingFallback />}>
-              <ScholarshipDetailsPage params={params} />
+              <ScholarshipDetailsPageFixed params={params} />
             </Suspense>
           )} />
         )}

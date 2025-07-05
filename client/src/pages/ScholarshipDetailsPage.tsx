@@ -17,67 +17,34 @@ interface ScholarshipDetailsPageProps {
 
 interface ScholarshipDetail {
   id: number;
-  scholarshipId: string;
   name: string;
-  shortName?: string;
-  providerName: string;
-  providerType: string;
-  providerCountry: string;
-  providerWebsite?: string;
-  hostCountries: string[];
-  eligibleCountries: string[];
-  studyLevels: string[];
-  fieldCategories: string[];
-  specificFields?: string[];
-  fundingType: string;
-  fundingCurrency: string;
-  tuitionCoveragePercentage?: string;
-  livingAllowanceAmount?: string;
-  livingAllowanceFrequency?: string;
-  totalValueMin?: string;
-  totalValueMax?: string;
-  applicationOpenDate?: string;
-  applicationDeadline: string;
-  notificationDate?: string;
-  programStartDate?: string;
-  durationValue?: number;
-  durationUnit?: string;
-  minGpa?: string;
-  gpaScale?: string;
-  degreeRequired: string[];
-  minAge?: number;
-  maxAge?: number;
-  genderRequirement: string;
-  minWorkExperience?: number;
-  leadershipRequired: boolean;
-  languageRequirements: Array<{
-    level: string;
-    testType?: string;
-    validityYears?: number;
-  }>;
-  applicationUrl?: string;
-  applicationFeeAmount?: string;
-  applicationFeeCurrency?: string;
-  feeWaiverAvailable: boolean;
-  documentsRequired: string[];
-  interviewRequired: boolean;
-  essayRequired: boolean;
-  renewable: boolean;
-  maxRenewalDuration?: string;
-  renewalCriteria?: string;
-  workRestrictions?: string;
-  travelRestrictions?: string;
-  otherScholarshipsAllowed?: string;
-  mentorshipAvailable: boolean;
-  networkingOpportunities: boolean;
-  internshipOpportunities: boolean;
-  researchOpportunities: boolean;
   description: string;
+  amount_min?: number;
+  amount_max?: number;
+  amount_display?: string;
+  deadline: string;
+  application_url?: string;
+  level_of_study: string[];
+  need_based: boolean;
+  merit_based: boolean;
   tags: string[];
-  difficultyLevel: string;
-  totalApplicantsPerYear?: number;
-  acceptanceRate?: string;
-  status: string;
+  eligibility_summary: string[];
+  required_documents: string[];
+  target_countries: string[];
+  fields_of_study: string[];
+  min_gpa?: number;
+  language_requirements?: string;
+  is_active: boolean;
+  provider: {
+    id: number;
+    name: string;
+    website?: string;
+    description?: string;
+    contact_email?: string;
+    country?: string;
+    established_year?: number;
+    logo_url?: string;
+  };
 }
 
 export default function ScholarshipDetailsPage({ params }: ScholarshipDetailsPageProps) {
@@ -86,6 +53,10 @@ export default function ScholarshipDetailsPage({ params }: ScholarshipDetailsPag
 
   const { data: scholarship, isLoading, error } = useQuery({
     queryKey: ['/api/scholarships', params.scholarshipId],
+    queryFn: () => fetch(`/api/scholarships/${params.scholarshipId}`, { credentials: 'include' }).then(res => {
+      if (!res.ok) throw new Error('Failed to fetch scholarship');
+      return res.json();
+    }),
     enabled: !!params.scholarshipId,
   });
 
@@ -93,23 +64,9 @@ export default function ScholarshipDetailsPage({ params }: ScholarshipDetailsPag
     setLocation('/scholarship-matching');
   };
 
-  const formatCurrency = (amount: string | undefined, currency: string) => {
+  const formatCurrency = (amount: number | undefined) => {
     if (!amount) return 'N/A';
-    const numAmount = parseFloat(amount);
-    if (isNaN(numAmount)) return amount;
-    
-    const currencySymbols: { [key: string]: string } = {
-      'USD': '$',
-      'EUR': '€',
-      'GBP': '£',
-      'AUD': 'A$',
-      'CAD': 'C$',
-      'JPY': '¥',
-      'INR': '₹'
-    };
-    
-    const symbol = currencySymbols[currency] || currency;
-    return `${symbol}${numAmount.toLocaleString()}`;
+    return `£${amount.toLocaleString()}`;
   };
 
   const formatDate = (dateString: string | undefined) => {
@@ -125,23 +82,24 @@ export default function ScholarshipDetailsPage({ params }: ScholarshipDetailsPag
     }
   };
 
-  const getDifficultyColor = (level: string) => {
-    switch (level?.toLowerCase()) {
-      case 'low': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'high': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const getDifficultyColor = (tags: string[]) => {
+    const hasHighCompetition = tags.some(tag => tag.toLowerCase().includes('competitive'));
+    if (hasHighCompetition) return 'bg-red-100 text-red-800';
+    return 'bg-yellow-100 text-yellow-800';
   };
 
-  const getFundingTypeColor = (type: string) => {
-    switch (type?.toLowerCase()) {
-      case 'full': return 'bg-green-100 text-green-800';
-      case 'partial': return 'bg-blue-100 text-blue-800';
-      case 'tuition-only': return 'bg-purple-100 text-purple-800';
-      case 'stipend-only': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const getFundingTypeColor = (merit: boolean, need: boolean) => {
+    if (merit && need) return 'bg-green-100 text-green-800';
+    if (merit) return 'bg-blue-100 text-blue-800';
+    if (need) return 'bg-purple-100 text-purple-800';
+    return 'bg-gray-100 text-gray-800';
+  };
+
+  const getFundingTypeLabel = (merit: boolean, need: boolean) => {
+    if (merit && need) return 'Merit & Need Based';
+    if (merit) return 'Merit Based';
+    if (need) return 'Need Based';
+    return 'General';
   };
 
   if (isLoading) {
@@ -196,15 +154,15 @@ export default function ScholarshipDetailsPage({ params }: ScholarshipDetailsPag
                 <CardTitle className="text-2xl">{scholarshipData.name}</CardTitle>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <MapPin className="w-4 h-4" />
-                  <span>{scholarshipData.providerName} • {scholarshipData.providerCountry}</span>
+                  <span>{scholarshipData.provider.name} • {scholarshipData.provider.country}</span>
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <Badge className={getFundingTypeColor(scholarshipData.fundingType)}>
-                  {scholarshipData.fundingType} Funding
+                <Badge className={getFundingTypeColor(scholarshipData.merit_based, scholarshipData.need_based)}>
+                  {getFundingTypeLabel(scholarshipData.merit_based, scholarshipData.need_based)}
                 </Badge>
-                <Badge className={getDifficultyColor(scholarshipData.difficultyLevel)}>
-                  {scholarshipData.difficultyLevel} Difficulty
+                <Badge className={getDifficultyColor(scholarshipData.tags || [])}>
+                  {scholarshipData.tags?.some(tag => tag.toLowerCase().includes('competitive')) ? 'High Competition' : 'Moderate Competition'}
                 </Badge>
               </div>
             </div>
@@ -212,10 +170,10 @@ export default function ScholarshipDetailsPage({ params }: ScholarshipDetailsPag
           <CardContent>
             <p className="text-gray-700 leading-relaxed">{scholarshipData.description}</p>
             
-            {scholarshipData.applicationUrl && (
+            {scholarshipData.application_url && (
               <div className="mt-4">
                 <Button asChild>
-                  <a href={scholarshipData.applicationUrl} target="_blank" rel="noopener noreferrer">
+                  <a href={scholarshipData.application_url} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="w-4 h-4 mr-2" />
                     Apply Now
                   </a>
