@@ -154,7 +154,7 @@ export default function ScholarshipDetailsPageFixed({ params }: ScholarshipDetai
                 <CardTitle className="text-2xl">{scholarshipData.name}</CardTitle>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <MapPin className="w-4 h-4" />
-                  <span>{scholarshipData.provider.name} • {scholarshipData.provider.country}</span>
+                  <span>{scholarshipData.provider?.name || 'Unknown Provider'} • {scholarshipData.provider?.country || 'Global'}</span>
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
@@ -358,15 +358,15 @@ export default function ScholarshipDetailsPageFixed({ params }: ScholarshipDetai
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <h4 className="font-medium mb-2">Organization</h4>
-                <p className="text-muted-foreground">{scholarshipData.provider.name}</p>
+                <p className="text-muted-foreground">{scholarshipData.provider?.name || 'Unknown Provider'}</p>
               </div>
               <div>
                 <h4 className="font-medium mb-2">Country</h4>
-                <p className="text-muted-foreground">{scholarshipData.provider.country}</p>
+                <p className="text-muted-foreground">{scholarshipData.provider?.country || 'Global'}</p>
               </div>
             </div>
             
-            {scholarshipData.provider.website && (
+            {scholarshipData.provider?.website && (
               <div>
                 <h4 className="font-medium mb-2">Website</h4>
                 <a 
@@ -380,7 +380,7 @@ export default function ScholarshipDetailsPageFixed({ params }: ScholarshipDetai
               </div>
             )}
 
-            {scholarshipData.provider.contact_email && (
+            {scholarshipData.provider?.contact_email && (
               <div>
                 <h4 className="font-medium mb-2">Contact Email</h4>
                 <a 
