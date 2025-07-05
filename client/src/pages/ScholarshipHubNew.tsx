@@ -669,72 +669,164 @@ export default function ScholarshipHubNew() {
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        {/* Modern Header with Stats */}
-        <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white">
-          <div className="absolute inset-0 bg-black/20"></div>
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-3 mb-6">
-                <div className="p-3 bg-white/20 rounded-full backdrop-blur-sm">
-                  <Award className="w-8 h-8" />
+        {/* Enhanced Scholarship Universe Header */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-700">
+          {/* Animated background elements */}
+          <div className="absolute inset-0">
+            <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl animate-pulse"></div>
+            <div className="absolute top-32 right-20 w-16 h-16 bg-white/5 rounded-full blur-lg animate-bounce"></div>
+            <div className="absolute bottom-20 left-1/4 w-24 h-24 bg-white/5 rounded-full blur-xl animate-pulse delay-300"></div>
+          </div>
+          
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+            {/* Header Content */}
+            <div className="text-center mb-10">
+              <div className="flex items-center justify-center gap-4 mb-6">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-white/30 rounded-full blur-lg"></div>
+                  <div className="relative p-4 bg-white/20 rounded-full backdrop-blur-sm border border-white/30">
+                    <Award className="w-10 h-10 text-white" />
+                  </div>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-bold">Scholarship Universe</h1>
+                <div>
+                  <h1 className="text-4xl lg:text-6xl font-bold text-white tracking-tight">
+                    Scholarship Universe
+                  </h1>
+                  <div className="h-1 w-32 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full mx-auto mt-2"></div>
+                </div>
               </div>
-              <p className="text-xl md:text-2xl opacity-90 max-w-3xl mx-auto mb-8">
+              
+              <p className="text-lg lg:text-xl text-white/90 max-w-3xl mx-auto mb-8 leading-relaxed">
                 AI-powered scholarship matching • Find your perfect funding opportunity
               </p>
-              
-              {/* Stats Cards */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-8">
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Target className="w-5 h-5" />
-                    <span className="text-2xl font-bold">{transformedRecommendations.length}</span>
+            </div>
+
+            {/* Enhanced Stats Dashboard */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 max-w-5xl mx-auto mb-10">
+              <div className="group bg-white/15 backdrop-blur-md rounded-2xl p-4 lg:p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer">
+                <div className="flex items-center justify-center gap-3 mb-3">
+                  <div className="p-2 bg-white/20 rounded-lg group-hover:scale-110 transition-transform">
+                    <Target className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
                   </div>
-                  <p className="text-sm opacity-75">Matched</p>
+                  <span className="text-2xl lg:text-3xl font-bold text-white">{transformedRecommendations.length}</span>
                 </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Globe className="w-5 h-5" />
-                    <span className="text-2xl font-bold">{allScholarships.length}</span>
-                  </div>
-                  <p className="text-sm opacity-75">Available</p>
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Heart className="w-5 h-5" />
-                    <span className="text-2xl font-bold">{processedSavedScholarships.length}</span>
-                  </div>
-                  <p className="text-sm opacity-75">Saved</p>
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                  <div className="flex items-center justify-center gap-2 mb-2">
-                    <Zap className="w-5 h-5" />
-                    <span className="text-2xl font-bold">96%</span>
-                  </div>
-                  <p className="text-sm opacity-75">Match Rate</p>
+                <p className="text-sm lg:text-base text-white/80 font-medium">Matched</p>
+                <div className="w-full bg-white/20 rounded-full h-1 mt-2">
+                  <div className="bg-yellow-400 h-1 rounded-full" style={{width: '85%'}}></div>
                 </div>
               </div>
 
-              {/* Smart Search Bar */}
-              <div className="max-w-2xl mx-auto">
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/60 w-5 h-5" />
-                  <Input
-                    placeholder="Search by field, country, or scholarship name..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-12 pr-4 py-4 text-lg bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder-white/60 rounded-xl focus:bg-white/20 focus:border-white/40"
-                  />
-                  <Button 
-                    variant="secondary" 
-                    size="sm" 
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white border-white/30"
-                  >
-                    <Sparkles className="w-4 h-4 mr-1" />
-                    AI Search
-                  </Button>
+              <div className="group bg-white/15 backdrop-blur-md rounded-2xl p-4 lg:p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer">
+                <div className="flex items-center justify-center gap-3 mb-3">
+                  <div className="p-2 bg-white/20 rounded-lg group-hover:scale-110 transition-transform">
+                    <Globe className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
+                  </div>
+                  <span className="text-2xl lg:text-3xl font-bold text-white">{allScholarships.length}</span>
                 </div>
+                <p className="text-sm lg:text-base text-white/80 font-medium">Available</p>
+                <div className="w-full bg-white/20 rounded-full h-1 mt-2">
+                  <div className="bg-green-400 h-1 rounded-full" style={{width: '92%'}}></div>
+                </div>
+              </div>
+
+              <div className="group bg-white/15 backdrop-blur-md rounded-2xl p-4 lg:p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer">
+                <div className="flex items-center justify-center gap-3 mb-3">
+                  <div className="p-2 bg-white/20 rounded-lg group-hover:scale-110 transition-transform">
+                    <Heart className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
+                  </div>
+                  <span className="text-2xl lg:text-3xl font-bold text-white">{processedSavedScholarships.length}</span>
+                </div>
+                <p className="text-sm lg:text-base text-white/80 font-medium">Saved</p>
+                <div className="w-full bg-white/20 rounded-full h-1 mt-2">
+                  <div className="bg-red-400 h-1 rounded-full" style={{width: `${Math.min((processedSavedScholarships.length / Math.max(allScholarships.length, 1)) * 100, 100)}%`}}></div>
+                </div>
+              </div>
+
+              <div className="group bg-white/15 backdrop-blur-md rounded-2xl p-4 lg:p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer">
+                <div className="flex items-center justify-center gap-3 mb-3">
+                  <div className="p-2 bg-white/20 rounded-lg group-hover:scale-110 transition-transform">
+                    <Zap className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
+                  </div>
+                  <span className="text-2xl lg:text-3xl font-bold text-white">96%</span>
+                </div>
+                <p className="text-sm lg:text-base text-white/80 font-medium">Match Rate</p>
+                <div className="w-full bg-white/20 rounded-full h-1 mt-2">
+                  <div className="bg-purple-400 h-1 rounded-full" style={{width: '96%'}}></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Enhanced Search Interface */}
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+                <div className="flex flex-col lg:flex-row gap-4 items-center">
+                  {/* Main Search Bar */}
+                  <div className="relative flex-1 w-full">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/70 w-5 h-5" />
+                    <Input
+                      placeholder="Search by field, country, or scholarship name..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-12 pr-4 py-4 text-lg bg-white/10 backdrop-blur-sm border-white/30 text-white placeholder-white/60 rounded-xl focus:bg-white/20 focus:border-white/50 focus:ring-2 focus:ring-white/30 transition-all"
+                    />
+                  </div>
+
+                  {/* Quick Filter Buttons */}
+                  <div className="flex flex-wrap gap-2 lg:gap-3">
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      className="bg-white/20 hover:bg-white/30 text-white border-white/30 rounded-xl px-4 py-2 backdrop-blur-sm transition-all hover:scale-105"
+                      onClick={() => setSearchQuery('computer science')}
+                    >
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      STEM
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      className="bg-white/20 hover:bg-white/30 text-white border-white/30 rounded-xl px-4 py-2 backdrop-blur-sm transition-all hover:scale-105"
+                      onClick={() => setCountryFilter('United States')}
+                    >
+                      <Globe className="w-4 h-4 mr-2" />
+                      USA
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      className="bg-white/20 hover:bg-white/30 text-white border-white/30 rounded-xl px-4 py-2 backdrop-blur-sm transition-all hover:scale-105"
+                      onClick={() => setFundingTypeFilter('full')}
+                    >
+                      <DollarSign className="w-4 h-4 mr-2" />
+                      Full Fund
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      className="bg-gradient-to-r from-yellow-400/80 to-orange-400/80 hover:from-yellow-400 hover:to-orange-400 text-white border-0 rounded-xl px-4 py-2 backdrop-blur-sm transition-all hover:scale-105 font-medium shadow-lg"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      AI Search
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Search Results Preview */}
+                {searchQuery && (
+                  <div className="mt-4 pt-4 border-t border-white/20">
+                    <div className="flex items-center justify-between text-sm text-white/80">
+                      <span>Found {filteredAllScholarships.length} scholarships matching "{searchQuery}"</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSearchQuery('')}
+                        className="text-white/60 hover:text-white hover:bg-white/10 rounded-lg"
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
