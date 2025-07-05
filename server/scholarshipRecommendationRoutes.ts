@@ -16,8 +16,19 @@ router.get("/recommendations", requireAuth, async (req: any, res: Response) => {
   try {
     const userId = req.user.id;
     console.log(`[Scholarship Recommendations] Getting recommendations for user ${userId}`);
+    console.log(`[Scholarship Recommendations] User object:`, req.user);
     
     const recommendations = await scholarshipRecommendationService.getRecommendations(userId);
+    
+    console.log(`[Scholarship Recommendations] Service returned ${recommendations.length} recommendations`);
+    console.log(`[Scholarship Recommendations] Response data:`, {
+      recommendations: recommendations.length,
+      total: recommendations.length,
+      firstRecommendation: recommendations[0] ? {
+        name: recommendations[0].scholarship.name,
+        score: recommendations[0].matchScore
+      } : 'none'
+    });
     
     res.json({
       recommendations,

@@ -78,7 +78,7 @@ const ScholarshipHub: React.FC = () => {
   // Fetch personalized recommendations
   const { data: recommendationsData, isLoading: isLoadingRecommendations } = useQuery({
     queryKey: ['scholarship-recommendations'],
-    queryFn: () => apiRequest('GET', '/api/scholarship-recommendations/recommendations'),
+    queryFn: () => apiRequest('GET', '/api/scholarships/recommendations'),
   });
 
   // Debug logging
@@ -90,7 +90,7 @@ const ScholarshipHub: React.FC = () => {
   // Fetch saved scholarships
   const { data: savedScholarshipsData, isLoading: isLoadingSaved } = useQuery({
     queryKey: ['saved-scholarships'],
-    queryFn: () => apiRequest('GET', '/api/scholarship-recommendations/user/saved'),
+    queryFn: () => apiRequest('GET', '/api/scholarships/user/saved'),
   });
 
   // Fetch user preferences
