@@ -87,14 +87,14 @@ router.get("/search", async (req: Request, res: Response) => {
       fieldCategory: req.query.fieldCategory as string,
       fundingType: req.query.fundingType as string,
       difficultyLevel: req.query.difficultyLevel as string,
-      minAmount: req.query.minAmount ? Number(req.query.minAmount) : undefined,
-      maxAmount: req.query.maxAmount ? Number(req.query.maxAmount) : undefined,
+      minAmount: req.query.minAmount && !isNaN(Number(req.query.minAmount)) ? Number(req.query.minAmount) : undefined,
+      maxAmount: req.query.maxAmount && !isNaN(Number(req.query.maxAmount)) ? Number(req.query.maxAmount) : undefined,
       deadlineFrom: req.query.deadlineFrom as string,
       deadlineTo: req.query.deadlineTo as string,
       renewable: req.query.renewable === 'true' ? true : req.query.renewable === 'false' ? false : undefined,
       leadershipRequired: req.query.leadershipRequired === 'true' ? true : req.query.leadershipRequired === 'false' ? false : undefined,
-      limit: req.query.limit ? Number(req.query.limit) : 20,
-      offset: req.query.offset ? Number(req.query.offset) : 0
+      limit: req.query.limit && !isNaN(Number(req.query.limit)) ? Number(req.query.limit) : 20,
+      offset: req.query.offset && !isNaN(Number(req.query.offset)) ? Number(req.query.offset) : 0
     });
 
     const result = await scholarshipStorage.searchScholarships(searchParams);

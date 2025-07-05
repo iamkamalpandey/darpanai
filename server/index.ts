@@ -224,20 +224,19 @@ process.on('unhandledRejection', (reason, promise) => {
     app.use('/api/countries', countryRoutes.default);
     logWithLevel('✓ Country routes registered successfully');
     
-    // Register scholarship routes
+    // Register scholarship routes (primary database operations)
     const scholarshipRoutes = await import('./scholarshipRoutes');
     app.use('/api/scholarships', scholarshipRoutes.default);
-    // Note: Removed broad /api mount to avoid conflicts with other routes
     logWithLevel('✓ Scholarship routes registered successfully');
     
-    // Register AI-powered scholarship matching routes
+    // Register AI-powered scholarship matching routes on different path to avoid conflicts
     const scholarshipAIRoutes = await import('./scholarshipAIRoutes');
-    app.use('/api/scholarships', scholarshipAIRoutes.default);
+    app.use('/api/scholarship-ai', scholarshipAIRoutes.default);
     logWithLevel('✓ AI scholarship matching routes registered successfully');
     
-    // Register scholarship recommendation routes
+    // Register scholarship recommendation routes on different path to avoid conflicts
     const scholarshipRecommendationRoutes = await import('./scholarshipRecommendationRoutes');
-    app.use('/api/scholarships', scholarshipRecommendationRoutes.default);
+    app.use('/api/scholarship-recs', scholarshipRecommendationRoutes.default);
     logWithLevel('✓ Scholarship recommendation routes registered successfully');
     
     // Register chatbot routes
