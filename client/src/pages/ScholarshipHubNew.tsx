@@ -528,7 +528,7 @@ export default function ScholarshipHubNew() {
 
         <CardContent className="space-y-4">
           {/* Description */}
-          <div className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
+          <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
             {showSimpleMode
               ? scholarship.description?.replace(/\b(merit-based|need-based|academic excellence|CGPA|GPA)\b/gi, (match) => {
                   const replacements: { [key: string]: string } = {
@@ -541,7 +541,7 @@ export default function ScholarshipHubNew() {
                   return replacements[match.toLowerCase()] || match;
                 })
               : scholarship.description}
-          </div>
+          </p>
 
           {/* Key Info Grid */}
           <div className="grid grid-cols-1 gap-3">

@@ -345,14 +345,16 @@ export default function ScholarshipDetailsPage({ params }: ScholarshipDetailsPag
                 </div>
               </div>
               
-              <div>
-                <span className="text-sm font-medium text-muted-foreground">Degree Required</span>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {scholarshipData.degreeRequired.map((degree, index) => (
-                    <Badge key={index} variant="secondary">{degree}</Badge>
-                  ))}
+              {scholarshipData.degreeRequired && Array.isArray(scholarshipData.degreeRequired) && scholarshipData.degreeRequired.length > 0 && (
+                <div>
+                  <span className="text-sm font-medium text-muted-foreground">Degree Required</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {scholarshipData.degreeRequired.map((degree, index) => (
+                      <Badge key={index} variant="secondary">{degree}</Badge>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
               
               {scholarshipData.minGpa && (
                 <div>
@@ -398,24 +400,33 @@ export default function ScholarshipDetailsPage({ params }: ScholarshipDetailsPag
               <div>
                 <span className="text-sm font-medium text-muted-foreground">Host Countries</span>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {scholarshipData.hostCountries.map((country, index) => (
-                    <Badge key={index} variant="default">{country}</Badge>
-                  ))}
+                  {scholarshipData.hostCountries && Array.isArray(scholarshipData.hostCountries) ? 
+                    scholarshipData.hostCountries.map((country, index) => (
+                      <Badge key={index} variant="default">{country}</Badge>
+                    )) :
+                    <span className="text-sm text-muted-foreground">Not specified</span>
+                  }
                 </div>
               </div>
               
               <div>
                 <span className="text-sm font-medium text-muted-foreground">Eligible Countries</span>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {scholarshipData.eligibleCountries.includes('*') ? (
-                    <Badge variant="default">All Countries</Badge>
+                  {scholarshipData.eligibleCountries && Array.isArray(scholarshipData.eligibleCountries) ? (
+                    scholarshipData.eligibleCountries.includes('*') ? (
+                      <Badge variant="default">All Countries</Badge>
+                    ) : (
+                      <>
+                        {scholarshipData.eligibleCountries.slice(0, 10).map((country, index) => (
+                          <Badge key={index} variant="outline">{country}</Badge>
+                        ))}
+                        {scholarshipData.eligibleCountries.length > 10 && !scholarshipData.eligibleCountries.includes('*') && (
+                          <Badge variant="outline">+{scholarshipData.eligibleCountries.length - 10} more</Badge>
+                        )}
+                      </>
+                    )
                   ) : (
-                    scholarshipData.eligibleCountries.slice(0, 10).map((country, index) => (
-                      <Badge key={index} variant="outline">{country}</Badge>
-                    ))
-                  )}
-                  {scholarshipData.eligibleCountries.length > 10 && !scholarshipData.eligibleCountries.includes('*') && (
-                    <Badge variant="outline">+{scholarshipData.eligibleCountries.length - 10} more</Badge>
+                    <span className="text-sm text-muted-foreground">Not specified</span>
                   )}
                 </div>
               </div>
@@ -455,12 +466,18 @@ export default function ScholarshipDetailsPage({ params }: ScholarshipDetailsPag
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-2">
-                {scholarshipData.documentsRequired.map((doc, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
-                    <span>{doc}</span>
+                {scholarshipData.documentsRequired && Array.isArray(scholarshipData.documentsRequired) ? 
+                  scholarshipData.documentsRequired.map((doc, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
+                      <span>{doc}</span>
+                    </div>
+                  )) :
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                    <span className="text-gray-500">No specific documents listed</span>
                   </div>
-                ))}
+                }
               </div>
               
               <Separator className="my-4" />
