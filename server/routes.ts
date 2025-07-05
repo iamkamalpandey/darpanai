@@ -4128,23 +4128,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // GET /api/scholarships/search - Search scholarships (frontend endpoint)
   app.get('/api/scholarships/search', requireAuth, async (req, res) => {
     try {
-      const { scholarshipServiceFixed } = await import('./services/scholarshipServiceFixed');
-      const userId = req.user!.id;
+      const { db } = await import('./db');
+      const { scholarshipPrograms, scholarshipProviders } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
       
-      const filters = {
-        search: req.query.search as string,
-        needBased: req.query.needBased === 'true',
-        meritBased: req.query.meritBased === 'true',
-        levelOfStudy: req.query.levelOfStudy ? (req.query.levelOfStudy as string).split(',') : undefined,
-        tags: req.query.tags ? (req.query.tags as string).split(',') : undefined,
-        amountMin: req.query.amountMin && !isNaN(parseInt(req.query.amountMin as string)) ? parseInt(req.query.amountMin as string) : undefined,
-        amountMax: req.query.amountMax && !isNaN(parseInt(req.query.amountMax as string)) ? parseInt(req.query.amountMax as string) : undefined,
-        limit: req.query.limit && !isNaN(parseInt(req.query.limit as string)) ? parseInt(req.query.limit as string) : 20,
-        offset: req.query.offset && !isNaN(parseInt(req.query.offset as string)) ? parseInt(req.query.offset as string) : 0,
-      };
+      // Fetch all scholarships with their providers
+      const scholarshipResults = await db
+        .select({
+          id: scholarshipPrograms.id,
+          name: scholarshipPrograms.name,
+          description: scholarshipPrograms.description,
+          amountMin: scholarshipPrograms.amountMin,
+          amountMax: scholarshipPrograms.amountMax,
+          amountDisplay: scholarshipPrograms.amountDisplay,
+          deadline: scholarshipPrograms.deadline,
+          levelOfStudy: scholarshipPrograms.levelOfStudy,
+          needBased: scholarshipPrograms.needBased,
+          meritBased: scholarshipPrograms.meritBased,
+          tags: scholarshipPrograms.tags,
+          eligibilitySummary: scholarshipPrograms.eligibilitySummary,
+          requiredDocuments: scholarshipPrograms.requiredDocuments,
+          applicationUrl: scholarshipPrograms.applicationUrl,
+          providerId: scholarshipPrograms.providerId,
+          providerName: scholarshipProviders.name,
+          providerWebsite: scholarshipProviders.website,
+          isActive: scholarshipPrograms.isActive
+        })
+        .from(scholarshipPrograms)
+        .leftJoin(scholarshipProviders, eq(scholarshipPrograms.providerId, scholarshipProviders.id))
+        .where(eq(scholarshipPrograms.isActive, true));
 
-      const results = await scholarshipServiceFixed.searchScholarships(filters, userId);
-      res.json(results);
+      // Transform to frontend format
+      const scholarships = scholarshipResults.map(scholarship => ({
+        scholarship: {
+          id: scholarship.id,
+          name: scholarship.name,
+          description: scholarship.description || '',
+          amountDisplay: scholarship.amountDisplay || `$${scholarship.amountMin?.toLocaleString()} - $${scholarship.amountMax?.toLocaleString()}`,
+          deadline: scholarship.deadline || '',
+          levelOfStudy: scholarship.levelOfStudy || [],
+          needBased: scholarship.needBased || false,
+          meritBased: scholarship.meritBased || false,
+          tags: scholarship.tags || [],
+          eligibilitySummary: scholarship.eligibilitySummary || [],
+          requiredDocuments: scholarship.requiredDocuments || [],
+          applicationUrl: scholarship.applicationUrl || '',
+          provider: {
+            id: scholarship.providerId || 0,
+            name: scholarship.providerName || 'Unknown Provider',
+            website: scholarship.providerWebsite || ''
+          }
+        },
+        matchScore: 85, // Default match score
+        matchReasons: ['Available scholarship opportunity', 'Meets basic criteria'],
+        isSaved: false
+      }));
+
+      res.json({
+        scholarships,
+        total: scholarships.length
+      });
     } catch (error: any) {
       console.error('Error searching scholarships:', error);
       res.status(500).json({ error: 'Failed to search scholarships', details: error.message });

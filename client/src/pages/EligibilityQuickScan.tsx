@@ -66,8 +66,11 @@ const EligibilityQuickScan: React.FC = () => {
 
   // Quick Scan Mutation
   const quickScanMutation = useMutation({
-    mutationFn: () => apiRequest('POST', '/api/eligibility/quick-scan', {}),
-    onSuccess: (data) => {
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/eligibility/quick-scan', {});
+      return response.json();
+    },
+    onSuccess: (data: QuickScanResult) => {
       setScanResults(data);
       setIsScanning(false);
       toast({
@@ -249,7 +252,7 @@ const EligibilityQuickScan: React.FC = () => {
             </Card>
 
             {/* Improvement Suggestions */}
-            {scanResults.improvementSuggestions.length > 0 && (
+            {scanResults?.improvementSuggestions?.length > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
