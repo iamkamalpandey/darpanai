@@ -2080,9 +2080,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const base64Image = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
       
       // Update user profile with new image URL
-      const updatedUser = await storage.updateUserProfile(userId, {
-        profileImageUrl: base64Image
-      });
+      const updatedUser = await storage.updateUserProfileImage(userId, base64Image);
 
       console.log(`Profile image updated for user ${userId}`);
       
