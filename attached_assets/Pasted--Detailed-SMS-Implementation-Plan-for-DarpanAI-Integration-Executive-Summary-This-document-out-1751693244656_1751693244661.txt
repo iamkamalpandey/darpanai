@@ -1,0 +1,1863 @@
+# Detailed SMS Implementation Plan for DarpanAI Integration
+
+## Executive Summary
+
+This document outlines the comprehensive implementation plan for integrating the Advanced Scholarship Matching System (SMS) into the existing DarpanAI platform. The integration leverages the existing authentication, database infrastructure, and admin system while adding specialized scholarship matching capabilities.
+
+## 1. Current System Analysis
+
+### 1.1 Existing DarpanAI Architecture
+- **Frontend**: React 18 with TypeScript, Wouter routing, TanStack Query, shadcn/ui components
+- **Backend**: Express.js, Passport.js authentication, Drizzle ORM
+- **Database**: PostgreSQL with existing tables (users, analyses, appointments)
+- **Authentication**: Role-based access (admin/user) with session management
+- **Current Features**: Visa rejection analysis, consultation booking, quota management
+
+### 1.2 Integration Approach
+The SMS will be integrated as a new module within the existing DarpanAI platform, maintaining consistency with current architecture and design patterns.
+
+## 2. Database Schema Extensions
+
+### 2.1 New Tables
+
+```sql
+-- Scholarship providers/organizations
+CREATE TABLE scholarship_providers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    website VARCHAR(500),
+    description TEXT,
+    contact_email VARCHAR(255),
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Main scholarships table
+CREATE TABLE scholarships (
+    id SERIAL PRIMARY KEY,
+    provider_id INTEGER REFERENCES scholarship_providers(id),
+    scholarship_name VARCHAR(500) NOT NULL,
+    description TEXT NOT NULL,
+    amount_min INTEGER, -- in dollars
+    amount_max INTEGER,
+    amount_display VARCHAR(100), -- e.g., "$5,000 - $10,000"
+    deadline DATE,
+    application_url VARCHAR(500) NOT NULL,
+    level_of_study TEXT[] DEFAULT '{}', -- array: ['Undergraduate', 'Graduate', 'PhD']
+    need_based BOOLEAN DEFAULT false,
+    merit_based BOOLEAN DEFAULT false,
+    eligibility_summary TEXT[] DEFAULT '{}',
+    required_documents TEXT[] DEFAULT '{}',
+    tags TEXT[] DEFAULT '{}', -- ['STEM', 'First-Gen', 'Minority', etc.]
+    match_reasons TEXT[] DEFAULT '{}',
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- User scholarship interactions
+CREATE TABLE user_scholarships (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    scholarship_id INTEGER REFERENCES scholarships(id) ON DELETE CASCADE,
+    status VARCHAR(50) DEFAULT 'saved', -- 'saved', 'interested', 'applied', 'withdrawn'
+    application_status VARCHAR(50) DEFAULT 'not_started', -- 'not_started', 'in_progress', 'submitted', 'rejected', 'accepted'
+    notes TEXT,
+    saved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, scholarship_id)
+);
+
+-- Scholarship matching preferences
+CREATE TABLE user_scholarship_preferences (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE UNIQUE,
+    major VARCHAR(255),
+    gpa DECIMAL(3,2),
+    financial_need BOOLEAN DEFAULT false,
+    level_of_study VARCHAR(50), -- 'Undergraduate', 'Graduate', 'PhD'
+    graduation_year INTEGER,
+    ethnicity VARCHAR(100),
+    first_generation BOOLEAN DEFAULT false,
+    military_service BOOLEAN DEFAULT false,
+    disabilities BOOLEAN DEFAULT false,
+    preferred_amount_min INTEGER,
+    preferred_tags TEXT[] DEFAULT '{}',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Scholarship inquiries (extends existing system)
+CREATE TABLE scholarship_inquiries (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    scholarship_id INTEGER REFERENCES scholarships(id) ON DELETE CASCADE,
+    inquiry_type VARCHAR(50) DEFAULT 'general', -- 'general', 'eligibility', 'application', 'deadline'
+    message TEXT,
+    status VARCHAR(50) DEFAULT 'open', -- 'open', 'in_progress', 'resolved', 'closed'
+    admin_response TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Scholarship search/filter analytics
+CREATE TABLE scholarship_search_analytics (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    search_query VARCHAR(500),
+    filters_applied JSONB, -- Store filter criteria as JSON
+    results_count INTEGER,
+    scholarships_viewed INTEGER[] DEFAULT '{}',
+    scholarships_saved INTEGER[] DEFAULT '{}',
+    session_duration INTEGER, -- in seconds
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 2.2 User Table Extensions
+
+```sql
+-- Add scholarship-specific fields to existing users table
+ALTER TABLE users ADD COLUMN scholarship_quota INTEGER DEFAULT 50;
+ALTER TABLE users ADD COLUMN scholarship_searches_used INTEGER DEFAULT 0;
+ALTER TABLE users ADD COLUMN last_scholarship_search TIMESTAMP;
+```
+
+## 3. Backend API Implementation
+
+### 3.1 New API Endpoints
+
+#### 3.1.1 Scholarship Endpoints
+```typescript
+// GET /api/scholarships - Get scholarships with filtering/search
+// Query parameters: search, need_based, level_of_study, tags, limit, offset
+interface ScholarshipQuery {
+  search?: string;
+  need_based?: boolean;
+  level_of_study?: string[];
+  tags?: string[];
+  amount_min?: number;
+  amount_max?: number;
+  limit?: number;
+  offset?: number;
+}
+
+// GET /api/scholarships/:id - Get specific scholarship details
+// POST /api/scholarships/:id/save - Save scholarship for user
+// DELETE /api/scholarships/:id/save - Remove saved scholarship
+// PATCH /api/scholarships/:id/status - Update application status
+```
+
+#### 3.1.2 User Preference Endpoints
+```typescript
+// GET /api/user/scholarship-preferences - Get user's preferences
+// POST /api/user/scholarship-preferences - Create/update preferences
+// GET /api/user/saved-scholarships - Get user's saved scholarships
+// GET /api/user/scholarship-matches - Get personalized matches
+```
+
+#### 3.1.3 Inquiry Endpoints
+```typescript
+// POST /api/scholarships/:id/inquire - Submit inquiry about specific scholarship
+// GET /api/user/inquiries - Get user's inquiries
+// GET /api/user/inquiries/:id - Get specific inquiry details
+```
+
+### 3.2 Matching Algorithm Implementation
+
+```typescript
+// server/services/scholarshipMatching.ts
+class ScholarshipMatcher {
+  async calculateMatchScore(
+    scholarship: Scholarship,
+    userPreferences: UserPreferences
+  ): Promise<{ score: number; reasons: string[] }> {
+    let score = 0;
+    const reasons: string[] = [];
+
+    // Major/Field matching (30 points)
+    if (this.matchesMajor(scholarship.tags, userPreferences.major)) {
+      score += 30;
+      reasons.push('Matches your major');
+    }
+
+    // GPA requirements (25 points)
+    if (this.meetsGPARequirement(scholarship, userPreferences.gpa)) {
+      score += 25;
+      reasons.push('Meets GPA requirement');
+    }
+
+    // Financial need (20 points)
+    if (scholarship.need_based && userPreferences.financial_need) {
+      score += 20;
+      reasons.push('Matches financial need');
+    }
+
+    // Level of study (15 points)
+    if (scholarship.level_of_study.includes(userPreferences.level_of_study)) {
+      score += 15;
+      reasons.push('Matches your level of study');
+    }
+
+    // Demographic matching (10 points)
+    if (this.matchesDemographics(scholarship, userPreferences)) {
+      score += 10;
+      reasons.push('Matches your profile');
+    }
+
+    return { score: Math.min(score, 100), reasons };
+  }
+
+  private matchesMajor(scholarshipTags: string[], userMajor: string): boolean {
+    // Implementation for major matching logic
+    return scholarshipTags.some(tag => 
+      tag.toLowerCase().includes(userMajor.toLowerCase())
+    );
+  }
+
+  // Additional matching methods...
+}
+```
+
+## 4. Frontend Implementation
+
+### 4.1 New Components Structure
+
+```
+client/src/components/scholarship/
+├── ScholarshipDashboard.tsx        # Main dashboard component
+├── ScholarshipCard.tsx             # Individual scholarship card
+├── ScholarshipDetailModal.tsx      # Detailed view modal
+├── ScholarshipFilters.tsx          # Filter panel
+├── SavedScholarships.tsx           # Saved scholarships sidebar
+├── ScholarshipPreferences.tsx      # User preferences form
+├── ScholarshipInquiry.tsx          # Inquiry form
+└── ScholarshipSearchBar.tsx        # Search input component
+```
+
+### 4.2 Dashboard Layout
+
+```typescript
+// client/src/components/scholarship/ScholarshipDashboard.tsx
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { ScholarshipCard } from './ScholarshipCard';
+import { ScholarshipFilters } from './ScholarshipFilters';
+import { SavedScholarships } from './SavedScholarships';
+
+interface ScholarshipDashboardProps {}
+
+export const ScholarshipDashboard: React.FC<ScholarshipDashboardProps> = () => {
+  const [filters, setFilters] = useState({
+    search: '',
+    need_based: false,
+    level_of_study: [],
+    tags: [],
+    amount_min: null,
+    amount_max: null
+  });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedScholarship, setSelectedScholarship] = useState(null);
+
+  const { data: scholarships, isLoading, error } = useQuery({
+    queryKey: ['scholarships', filters, currentPage],
+    queryFn: () => fetchScholarships(filters, currentPage),
+    keepPreviousData: true
+  });
+
+  const { data: savedScholarships } = useQuery({
+    queryKey: ['saved-scholarships'],
+    queryFn: fetchSavedScholarships
+  });
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Main Content Area */}
+          <div className="lg:col-span-3">
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-6">
+                Find Your Perfect Scholarship
+              </h1>
+              
+              <ScholarshipFilters 
+                filters={filters} 
+                onFiltersChange={setFilters}
+              />
+
+              <div className="mt-8">
+                {isLoading ? (
+                  <div className="text-center py-8">Loading scholarships...</div>
+                ) : error ? (
+                  <div className="text-center py-8 text-red-600">
+                    Error loading scholarships
+                  </div>
+                ) : (
+                  <div className="grid gap-6">
+                    {scholarships?.data?.map((scholarship) => (
+                      <ScholarshipCard
+                        key={scholarship.id}
+                        scholarship={scholarship}
+                        onViewDetails={setSelectedScholarship}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Saved Scholarships Sidebar */}
+          <div className="lg:col-span-1">
+            <SavedScholarships 
+              scholarships={savedScholarships}
+              onUpdateStatus={updateScholarshipStatus}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
+### 4.3 Enhanced Scholarship Card
+
+```typescript
+// client/src/components/scholarship/ScholarshipCard.tsx
+import React from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Calendar, DollarSign, GraduationCap, Heart } from 'lucide-react';
+
+interface ScholarshipCardProps {
+  scholarship: Scholarship;
+  onViewDetails: (scholarship: Scholarship) => void;
+  onSave?: (scholarshipId: number) => void;
+  isSaved?: boolean;
+}
+
+export const ScholarshipCard: React.FC<ScholarshipCardProps> = ({
+  scholarship,
+  onViewDetails,
+  onSave,
+  isSaved = false
+}) => {
+  const matchScore = scholarship.match_score || 0;
+  const matchReasons = scholarship.match_reasons || [];
+
+  return (
+    <Card className="hover:shadow-lg transition-shadow duration-200">
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <CardTitle className="text-lg font-semibold text-gray-900 mb-1">
+              {scholarship.scholarship_name}
+            </CardTitle>
+            <p className="text-sm text-gray-600">{scholarship.provider_name}</p>
+          </div>
+          
+          {/* Match Score Circle */}
+          <div className="flex flex-col items-center ml-4">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+              matchScore >= 80 ? 'bg-green-500' : 
+              matchScore >= 60 ? 'bg-yellow-500' : 
+              'bg-gray-400'
+            }`}>
+              {matchScore}%
+            </div>
+            <span className="text-xs text-gray-500 mt-1">Match</span>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="pt-0">
+        {/* Key Information */}
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="flex items-center text-sm text-gray-600">
+            <DollarSign className="w-4 h-4 mr-1" />
+            {scholarship.amount_display}
+          </div>
+          <div className="flex items-center text-sm text-gray-600">
+            <Calendar className="w-4 h-4 mr-1" />
+            {formatDate(scholarship.deadline)}
+          </div>
+          <div className="flex items-center text-sm text-gray-600">
+            <GraduationCap className="w-4 h-4 mr-1" />
+            {scholarship.level_of_study.join(', ')}
+          </div>
+        </div>
+
+        {/* Tags */}
+        <div className="flex flex-wrap gap-1 mb-4">
+          {scholarship.tags.map((tag, index) => (
+            <Badge key={index} variant="secondary" className="text-xs">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+
+        {/* Match Reasons */}
+        {matchReasons.length > 0 && (
+          <div className="mb-4">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">
+              Why it's a match:
+            </h4>
+            <ul className="text-sm text-gray-600 space-y-1">
+              {matchReasons.map((reason, index) => (
+                <li key={index} className="flex items-center">
+                  <span className="w-1 h-1 bg-green-500 rounded-full mr-2"></span>
+                  {reason}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Description Preview */}
+        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+          {scholarship.description}
+        </p>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewDetails(scholarship)}
+            className="flex-1"
+          >
+            View Details
+          </Button>
+          {!isSaved && onSave && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onSave(scholarship.id)}
+              className="px-3"
+            >
+              <Heart className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+```
+
+## 5. Admin Panel Extensions
+
+### 5.1 Scholarship Management
+
+```typescript
+// client/src/components/admin/ScholarshipManagement.tsx
+export const ScholarshipManagement: React.FC = () => {
+  const [scholarships, setScholarships] = useState([]);
+  const [selectedScholarship, setSelectedScholarship] = useState(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Scholarship Management</h1>
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          Add New Scholarship
+        </Button>
+      </div>
+
+      {/* Scholarship List Table */}
+      <div className="bg-white rounded-lg shadow">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Provider</TableHead>
+              <TableHead>Amount</TableHead>
+              <TableHead>Deadline</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {scholarships.map((scholarship) => (
+              <TableRow key={scholarship.id}>
+                <TableCell>{scholarship.scholarship_name}</TableCell>
+                <TableCell>{scholarship.provider_name}</TableCell>
+                <TableCell>{scholarship.amount_display}</TableCell>
+                <TableCell>{formatDate(scholarship.deadline)}</TableCell>
+                <TableCell>
+                  <Badge variant={scholarship.is_active ? "default" : "secondary"}>
+                    {scholarship.is_active ? "Active" : "Inactive"}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Button variant="ghost" size="sm">Edit</Button>
+                  <Button variant="ghost" size="sm">Delete</Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+};
+```
+
+### 5.2 Analytics Dashboard
+
+```typescript
+// client/src/components/admin/ScholarshipAnalytics.tsx
+export const ScholarshipAnalytics: React.FC = () => {
+  const { data: analytics } = useQuery({
+    queryKey: ['scholarship-analytics'],
+    queryFn: fetchScholarshipAnalytics
+  });
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Scholarship Analytics</h1>
+      
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-2xl font-bold">{analytics?.totalScholarships}</div>
+            <p className="text-sm text-gray-600">Total Scholarships</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-2xl font-bold">{analytics?.activeUsers}</div>
+            <p className="text-sm text-gray-600">Active Users</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-2xl font-bold">{analytics?.totalSaves}</div>
+            <p className="text-sm text-gray-600">Total Saves</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-2xl font-bold">{analytics?.avgMatchScore}</div>
+            <p className="text-sm text-gray-600">Avg Match Score</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts and Graphs */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Popular Scholarships */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Most Popular Scholarships</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* Chart implementation */}
+          </CardContent>
+        </Card>
+
+        {/* Search Trends */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Search Trends</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {/* Chart implementation */}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+```
+
+## 6. Integration with Existing Features
+
+### 6.1 Navigation Updates
+
+```typescript
+// Update client/src/components/layout/Navigation.tsx
+const navigationItems = [
+  { path: '/', label: 'Dashboard', icon: Home },
+  { path: '/analyze', label: 'Document Analysis', icon: FileText },
+  { path: '/scholarships', label: 'Scholarships', icon: GraduationCap }, // New
+  { path: '/appointments', label: 'Appointments', icon: Calendar },
+  { path: '/profile', label: 'Profile', icon: User }
+];
+```
+
+### 6.2 User Profile Extensions
+
+```typescript
+// Add scholarship preferences to existing profile
+export const UserProfile: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('general');
+
+  return (
+    <div className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="scholarships">Scholarship Preferences</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="general">
+          {/* Existing profile content */}
+        </TabsContent>
+        
+        <TabsContent value="scholarships">
+          <ScholarshipPreferences />
+        </TabsContent>
+        
+        <TabsContent value="security">
+          {/* Security settings */}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+```
+
+## 7. Performance Optimizations
+
+### 7.1 Database Indexing
+
+```sql
+-- Create indexes for better query performance
+CREATE INDEX idx_scholarships_level_of_study ON scholarships USING GIN(level_of_study);
+CREATE INDEX idx_scholarships_tags ON scholarships USING GIN(tags);
+CREATE INDEX idx_scholarships_deadline ON scholarships(deadline);
+CREATE INDEX idx_scholarships_need_based ON scholarships(need_based);
+CREATE INDEX idx_scholarships_provider ON scholarships(provider_id);
+CREATE INDEX idx_user_scholarships_user_id ON user_scholarships(user_id);
+CREATE INDEX idx_user_scholarships_status ON user_scholarships(status);
+```
+
+### 7.2 Caching Strategy
+
+```typescript
+// server/services/cacheService.ts
+import NodeCache from 'node-cache';
+
+class CacheService {
+  private cache = new NodeCache({ stdTTL: 600 }); // 10 minutes
+
+  async getScholarships(filters: ScholarshipFilters): Promise<Scholarship[]> {
+    const cacheKey = `scholarships:${JSON.stringify(filters)}`;
+    
+    let scholarships = this.cache.get<Scholarship[]>(cacheKey);
+    if (!scholarships) {
+      scholarships = await this.fetchScholarshipsFromDB(filters);
+      this.cache.set(cacheKey, scholarships);
+    }
+    
+    return scholarships;
+  }
+
+  invalidateScholarshipCache() {
+    this.cache.flushAll();
+  }
+}
+```
+
+## 8. Security Considerations
+
+### 8.1 Rate Limiting
+
+```typescript
+// server/middleware/scholarshipRateLimit.ts
+import rateLimit from 'express-rate-limit';
+
+export const scholarshipSearchLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // limit each IP to 50 requests per windowMs
+  message: 'Too many scholarship searches from this IP',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+```
+
+### 8.2 Input Validation
+
+```typescript
+// server/validation/scholarshipValidation.ts
+import { z } from 'zod';
+
+export const scholarshipQuerySchema = z.object({
+  search: z.string().max(100).optional(),
+  need_based: z.boolean().optional(),
+  level_of_study: z.array(z.string()).optional(),
+  tags: z.array(z.string()).max(10).optional(),
+  amount_min: z.number().min(0).optional(),
+  amount_max: z.number().min(0).optional(),
+  limit: z.number().min(1).max(50).optional(),
+  offset: z.number().min(0).optional()
+});
+```
+
+## 9. Testing Strategy
+
+### 9.1 Unit Tests
+
+```typescript
+// tests/services/scholarshipMatcher.test.ts
+describe('ScholarshipMatcher', () => {
+  const matcher = new ScholarshipMatcher();
+
+  test('should calculate correct match score for perfect match', () => {
+    const scholarship = {
+      tags: ['Computer Science', 'STEM'],
+      need_based: true,
+      level_of_study: ['Undergraduate']
+    };
+    
+    const preferences = {
+      major: 'Computer Science',
+      financial_need: true,
+      level_of_study: 'Undergraduate',
+      gpa: 3.5
+    };
+
+    const result = matcher.calculateMatchScore(scholarship, preferences);
+    expect(result.score).toBeGreaterThan(70);
+    expect(result.reasons).toContain('Matches your major');
+  });
+});
+```
+
+### 9.2 Integration Tests
+
+```typescript
+// tests/api/scholarships.test.ts
+describe('Scholarship API', () => {
+  test('GET /api/scholarships should return filtered results', async () => {
+    const response = await request(app)
+      .get('/api/scholarships')
+      .query({ search: 'engineering', need_based: true })
+      .expect(200);
+
+    expect(response.body.data).toBeInstanceOf(Array);
+    expect(response.body.pagination).toBeDefined();
+  });
+});
+```
+
+## 10. Deployment & Migration
+
+### 10.1 Database Migration
+
+```typescript
+// migrations/001_add_scholarship_tables.ts
+export async function up(db: Database) {
+  await db.execute(`
+    CREATE TABLE scholarship_providers (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      website VARCHAR(500),
+      description TEXT,
+      contact_email VARCHAR(255),
+      is_active BOOLEAN DEFAULT true,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  // Add all other table creation queries...
+}
+
+export async function down(db: Database) {
+  await db.execute('DROP TABLE IF EXISTS scholarship_inquiries');
+  await db.execute('DROP TABLE IF EXISTS scholarship_search_analytics');
+  await db.execute('DROP TABLE IF EXISTS user_scholarship_preferences');
+  await db.execute('DROP TABLE IF EXISTS user_scholarships');
+  await db.execute('DROP TABLE IF EXISTS scholarships');
+  await db.execute('DROP TABLE IF EXISTS scholarship_providers');
+}
+```
+
+### 10.2 Environment Configuration
+
+```env
+# Add to .env file
+SCHOLARSHIP_QUOTA_DEFAULT=50
+SCHOLARSHIP_SEARCH_RATE_LIMIT=50
+SCHOLARSHIP_CACHE_TTL=600
+SCHOLARSHIP_MATCH_THRESHOLD=60
+```
+
+## 11. Success Metrics & Monitoring
+
+### 11.1 Key Performance Indicators
+
+- **User Engagement**: Daily/Monthly active users in scholarship module
+- **Search Performance**: Average search response time < 500ms
+- **Match Quality**: Average match score > 70%
+- **Conversion Rate**: Percentage of users who save scholarships after viewing
+- **Application Rate**: Percentage of saved scholarships that users apply to
+
+### 11.2 Monitoring Implementation
+
+```typescript
+// server/services/metricsService.ts
+class MetricsService {
+  async trackScholarshipSearch(userId: number, filters: any, resultCount: number) {
+    await db.insert(scholarship_search_analytics).values({
+      user_id: userId,
+      search_query: filters.search,
+      filters_applied: filters,
+      results_count: resultCount,
+      created_at: new Date()
+    });
+  }
+
+  async trackScholarshipSave(userId: number, scholarshipId: number) {
+    // Analytics tracking implementation
+  }
+}
+```
+
+## 12. Future Enhancements
+
+### 12.1 Phase 2 Features
+- **AI-Powered Essay Assistance**: Help users write scholarship essays
+- **Deadline Notifications**: Email/SMS reminders for application deadlines
+- **Application Tracking**: Track application status across multiple scholarships
+- **Recommendation Engine**: ML-based personalized scholarship recommendations
+
+### 12.2 Phase 3 Features
+- **Integration with Financial Aid**: Connect with FAFSA and other financial aid systems
+- **Scholarship Application Portal**: Allow users to apply directly through the platform
+- **Video Guidance**: Video tutorials for scholarship applications
+- **Community Features**: User forums and scholarship sharing
+
+## 13. Implementation Timeline
+
+### Phase 1 (Weeks 1-4): Foundation
+- Database schema implementation
+- Basic API endpoints
+- Core matching algorithm
+- Basic UI components
+
+### Phase 2 (Weeks 5-8): Core Features
+- Complete dashboard implementation
+- Advanced filtering and search
+- User preferences system
+- Admin panel integration
+
+### Phase 3 (Weeks 9-12): Enhancement & Testing
+- Performance optimization
+- Comprehensive testing
+- Security hardening
+- Documentation and training
+
+### Phase 4 (Weeks 13-16): Deployment & Monitoring
+- Production deployment
+- Monitoring setup
+- User training
+- Performance tuning
+
+This comprehensive implementation plan ensures the successful integration of the Advanced Scholarship Matching System into the existing DarpanAI platform while maintaining consistency with the current architecture and user experience.
+
+## 14. Data Population Strategy
+
+### 14.1 Initial Scholarship Data Sources
+
+```typescript
+// server/services/dataImportService.ts
+interface ScholarshipDataSource {
+  name: string;
+  url: string;
+  format: 'json' | 'csv' | 'xml';
+  mapping: ScholarshipFieldMapping;
+}
+
+class DataImportService {
+  private sources: ScholarshipDataSource[] = [
+    {
+      name: 'Federal Student Aid',
+      url: 'https://studentaid.gov/data',
+      format: 'json',
+      mapping: {
+        name: 'program_name',
+        amount: 'award_amount',
+        deadline: 'application_deadline',
+        eligibility: 'eligibility_criteria'
+      }
+    },
+    {
+      name: 'College Board Scholarship Search',
+      url: 'https://bigfuture.collegeboard.org/scholarships',
+      format: 'csv',
+      mapping: {
+        name: 'scholarship_title',
+        provider: 'sponsor_name',
+        amount: 'award_value',
+        deadline: 'deadline_date'
+      }
+    }
+  ];
+
+  async importScholarshipData(sourceId: string): Promise<void> {
+    const source = this.sources.find(s => s.name === sourceId);
+    if (!source) throw new Error('Data source not found');
+
+    const rawData = await this.fetchDataFromSource(source);
+    const normalizedData = this.normalizeData(rawData, source.mapping);
+    
+    await this.batchInsertScholarships(normalizedData);
+  }
+
+  private async batchInsertScholarships(scholarships: NormalizedScholarship[]): Promise<void> {
+    const batchSize = 100;
+    for (let i = 0; i < scholarships.length; i += batchSize) {
+      const batch = scholarships.slice(i, i + batchSize);
+      await db.insert(scholarships_table).values(batch);
+    }
+  }
+}
+```
+
+### 14.2 Sample Data Generation
+
+```typescript
+// scripts/seedScholarshipData.ts
+const sampleScholarships = [
+  {
+    scholarship_name: 'Google Computer Science Scholarship',
+    provider_name: 'Google',
+    description: 'Supporting underrepresented students in computer science',
+    amount_display: '$10,000',
+    deadline: '2025-12-01',
+    level_of_study: ['Undergraduate', 'Graduate'],
+    tags: ['Computer Science', 'STEM', 'Diversity', 'Technology'],
+    need_based: false,
+    merit_based: true,
+    eligibility_summary: [
+      'Must be enrolled in a computer science program',
+      'Minimum 3.5 GPA required',
+      'Demonstrate leadership in technology'
+    ],
+    required_documents: [
+      'Academic transcripts',
+      'Personal statement',
+      'Two letters of recommendation',
+      'Resume'
+    ]
+  },
+  {
+    scholarship_name: 'First Generation College Student Grant',
+    provider_name: 'Education Foundation',
+    description: 'Financial assistance for first-generation college students',
+    amount_display: '$5,000',
+    deadline: '2025-11-15',
+    level_of_study: ['Undergraduate'],
+    tags: ['First-Generation', 'Need-Based', 'General'],
+    need_based: true,
+    merit_based: false,
+    eligibility_summary: [
+      'First person in family to attend college',
+      'Demonstrate financial need',
+      'Minimum 2.5 GPA'
+    ],
+    required_documents: [
+      'FAFSA form',
+      'Tax returns',
+      'Personal essay',
+      'Academic transcripts'
+    ]
+  }
+  // Add more sample scholarships...
+];
+
+export async function seedScholarshipData() {
+  await db.insert(scholarship_providers).values([
+    { name: 'Google', website: 'https://google.com/scholarships' },
+    { name: 'Education Foundation', website: 'https://educationfoundation.org' }
+  ]);
+
+  await db.insert(scholarships).values(sampleScholarships);
+}
+```
+
+## 15. Advanced Features Implementation
+
+### 15.1 Smart Recommendation Engine
+
+```typescript
+// server/services/recommendationEngine.ts
+class RecommendationEngine {
+  async generatePersonalizedRecommendations(userId: number): Promise<Scholarship[]> {
+    const userPreferences = await this.getUserPreferences(userId);
+    const userHistory = await this.getUserScholarshipHistory(userId);
+    const similarUsers = await this.findSimilarUsers(userId);
+    
+    // Collaborative filtering
+    const collaborativeRecommendations = await this.collaborativeFiltering(
+      userId, 
+      similarUsers
+    );
+    
+    // Content-based filtering
+    const contentBasedRecommendations = await this.contentBasedFiltering(
+      userPreferences
+    );
+    
+    // Hybrid approach: combine both methods
+    return this.mergeRecommendations(
+      collaborativeRecommendations,
+      contentBasedRecommendations
+    );
+  }
+
+  private async collaborativeFiltering(
+    userId: number, 
+    similarUsers: number[]
+  ): Promise<Scholarship[]> {
+    const scholarshipsLikedBySimilarUsers = await db
+      .select()
+      .from(user_scholarships)
+      .where(
+        and(
+          inArray(user_scholarships.user_id, similarUsers),
+          eq(user_scholarships.status, 'saved')
+        )
+      )
+      .groupBy(user_scholarships.scholarship_id)
+      .having(count() > 2); // Liked by at least 2 similar users
+
+    return scholarshipsLikedBySimilarUsers;
+  }
+
+  private async contentBasedFiltering(
+    preferences: UserPreferences
+  ): Promise<Scholarship[]> {
+    const query = db
+      .select()
+      .from(scholarships)
+      .where(
+        and(
+          eq(scholarships.is_active, true),
+          or(
+            arrayContains(scholarships.tags, preferences.preferred_tags),
+            arrayContains(scholarships.level_of_study, [preferences.level_of_study])
+          )
+        )
+      );
+
+    return await query.limit(20);
+  }
+}
+```
+
+### 15.2 Application Deadline Notifications
+
+```typescript
+// server/services/notificationService.ts
+class NotificationService {
+  async scheduleDeadlineNotifications(): Promise<void> {
+    const upcomingDeadlines = await db
+      .select()
+      .from(scholarships)
+      .innerJoin(user_scholarships, eq(scholarships.id, user_scholarships.scholarship_id))
+      .innerJoin(users, eq(user_scholarships.user_id, users.id))
+      .where(
+        and(
+          between(
+            scholarships.deadline,
+            new Date(),
+            new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // Next 30 days
+          ),
+          eq(user_scholarships.status, 'saved')
+        )
+      );
+
+    for (const deadline of upcomingDeadlines) {
+      await this.sendDeadlineNotification(deadline);
+    }
+  }
+
+  private async sendDeadlineNotification(deadline: any): Promise<void> {
+    const daysUntilDeadline = Math.ceil(
+      (deadline.deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+    );
+
+    const emailContent = this.generateDeadlineEmailContent(
+      deadline.scholarship_name,
+      deadline.deadline,
+      daysUntilDeadline
+    );
+
+    await this.sendEmail(deadline.email, emailContent);
+  }
+
+  private generateDeadlineEmailContent(
+    scholarshipName: string,
+    deadline: Date,
+    daysLeft: number
+  ): EmailContent {
+    return {
+      subject: `Scholarship Deadline Reminder: ${scholarshipName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2563eb;">Scholarship Deadline Reminder</h2>
+          <p>This is a friendly reminder that the deadline for <strong>${scholarshipName}</strong> is approaching.</p>
+          
+          <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="margin-top: 0; color: #dc2626;">Deadline: ${deadline.toLocaleDateString()}</h3>
+            <p style="font-size: 18px; color: #dc2626; font-weight: bold;">
+              ${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining
+            </p>
+          </div>
+          
+          <p>Don't miss this opportunity! Make sure to:</p>
+          <ul>
+            <li>Complete your application</li>
+            <li>Gather all required documents</li>
+            <li>Submit before the deadline</li>
+          </ul>
+          
+          <p>
+            <a href="${process.env.FRONTEND_URL}/scholarships" 
+               style="background-color: #2563eb; color: white; padding: 12px 24px; 
+                      text-decoration: none; border-radius: 6px; display: inline-block;">
+              View Scholarship Details
+            </a>
+          </p>
+        </div>
+      `
+    };
+  }
+}
+```
+
+### 15.3 Essay Writing Assistant
+
+```typescript
+// server/services/essayAssistantService.ts
+class EssayAssistantService {
+  async generateEssayOutline(
+    scholarshipId: number,
+    userId: number,
+    prompt: string
+  ): Promise<EssayOutline> {
+    const scholarship = await this.getScholarship(scholarshipId);
+    const userProfile = await this.getUserProfile(userId);
+    
+    const openaiResponse = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a scholarship essay writing assistant. Help create an outline for a scholarship essay based on the prompt and user's background.`
+        },
+        {
+          role: 'user',
+          content: `
+            Scholarship: ${scholarship.scholarship_name}
+            Provider: ${scholarship.provider_name}
+            Essay Prompt: ${prompt}
+            
+            User Background:
+            - Major: ${userProfile.major}
+            - GPA: ${userProfile.gpa}
+            - Year: ${userProfile.level_of_study}
+            - Interests: ${userProfile.preferred_tags?.join(', ')}
+            
+            Please create a detailed essay outline with:
+            1. Introduction approach
+            2. Main body points (3-4 key themes)
+            3. Conclusion strategy
+            4. Tips for personalization
+          `
+        }
+      ],
+      max_tokens: 1000,
+      temperature: 0.7
+    });
+
+    return this.parseEssayOutline(openaiResponse.choices[0].message.content);
+  }
+
+  async provideFeedback(essayText: string, scholarshipId: number): Promise<EssayFeedback> {
+    const scholarship = await this.getScholarship(scholarshipId);
+    
+    const openaiResponse = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'system',
+          content: `You are a scholarship essay reviewer. Provide constructive feedback on scholarship essays.`
+        },
+        {
+          role: 'user',
+          content: `
+            Please review this scholarship essay for: ${scholarship.scholarship_name}
+            
+            Essay Text:
+            ${essayText}
+            
+            Please provide feedback on:
+            1. Content and relevance to scholarship
+            2. Structure and organization
+            3. Writing quality and clarity
+            4. Specific suggestions for improvement
+            5. Overall score (1-10)
+          `
+        }
+      ],
+      max_tokens: 800,
+      temperature: 0.5
+    });
+
+    return this.parseEssayFeedback(openaiResponse.choices[0].message.content);
+  }
+}
+```
+
+## 16. Mobile Responsiveness & PWA Features
+
+### 16.1 Mobile-First Design
+
+```typescript
+// client/src/components/scholarship/MobileScholarshipCard.tsx
+export const MobileScholarshipCard: React.FC<ScholarshipCardProps> = ({
+  scholarship,
+  onViewDetails,
+  onSave,
+  isSaved
+}) => {
+  return (
+    <Card className="w-full mb-4 shadow-sm">
+      <CardContent className="p-4">
+        {/* Mobile-optimized layout */}
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex-1 pr-3">
+            <h3 className="font-semibold text-sm leading-tight mb-1">
+              {scholarship.scholarship_name}
+            </h3>
+            <p className="text-xs text-gray-600 mb-2">
+              {scholarship.provider_name}
+            </p>
+          </div>
+          
+          <div className="flex flex-col items-center">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-xs ${
+              scholarship.match_score >= 80 ? 'bg-green-500' : 
+              scholarship.match_score >= 60 ? 'bg-yellow-500' : 'bg-gray-400'
+            }`}>
+              {scholarship.match_score}%
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile-specific info display */}
+        <div className="space-y-2 mb-3">
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-600">Amount:</span>
+            <span className="font-medium">{scholarship.amount_display}</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-600">Deadline:</span>
+            <span className="font-medium">{formatDate(scholarship.deadline)}</span>
+          </div>
+        </div>
+
+        {/* Tags - limited display on mobile */}
+        <div className="flex flex-wrap gap-1 mb-3">
+          {scholarship.tags.slice(0, 3).map((tag, index) => (
+            <Badge key={index} variant="secondary" className="text-xs px-2 py-1">
+              {tag}
+            </Badge>
+          ))}
+          {scholarship.tags.length > 3 && (
+            <Badge variant="outline" className="text-xs px-2 py-1">
+              +{scholarship.tags.length - 3}
+            </Badge>
+          )}
+        </div>
+
+        {/* Mobile action buttons */}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewDetails(scholarship)}
+            className="flex-1 text-xs"
+          >
+            Details
+          </Button>
+          {!isSaved && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onSave(scholarship.id)}
+              className="px-3"
+            >
+              <Heart className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+```
+
+### 16.2 PWA Configuration
+
+```typescript
+// client/public/sw.js (Service Worker)
+const CACHE_NAME = 'darpanai-scholarships-v1';
+const urlsToCache = [
+  '/',
+  '/scholarships',
+  '/static/js/bundle.js',
+  '/static/css/main.css',
+  '/manifest.json'
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(urlsToCache))
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        // Return cached version or fetch from network
+        return response || fetch(event.request);
+      })
+  );
+});
+```
+
+```json
+// client/public/manifest.json
+{
+  "name": "DarpanAI Scholarships",
+  "short_name": "DarpanAI",
+  "description": "Find and apply for scholarships with AI-powered matching",
+  "start_url": "/scholarships",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+```
+
+## 17. API Documentation
+
+### 17.1 OpenAPI Specification
+
+```yaml
+# docs/api/scholarships.yaml
+openapi: 3.0.0
+info:
+  title: DarpanAI Scholarship API
+  version: 1.0.0
+  description: API for scholarship matching and management
+
+paths:
+  /api/scholarships:
+    get:
+      summary: Get scholarships with filtering
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search term for scholarship name or provider
+        - name: need_based
+          in: query
+          schema:
+            type: boolean
+          description: Filter by need-based scholarships
+        - name: level_of_study
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by education level
+        - name: tags
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by scholarship tags
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Scholarship'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  filters:
+                    $ref: '#/components/schemas/AppliedFilters'
+
+  /api/scholarships/{id}:
+    get:
+      summary: Get scholarship details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Scholarship details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScholarshipDetail'
+
+  /api/scholarships/{id}/save:
+    post:
+      summary: Save scholarship for user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Scholarship saved successfully
+        '409':
+          description: Scholarship already saved
+
+components:
+  schemas:
+    Scholarship:
+      type: object
+      properties:
+        id:
+          type: integer
+        scholarship_name:
+          type: string
+        provider_name:
+          type: string
+        description:
+          type: string
+        amount_display:
+          type: string
+        deadline:
+          type: string
+          format: date
+        level_of_study:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+        match_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        match_reasons:
+          type: array
+          items:
+            type: string
+        need_based:
+          type: boolean
+        merit_based:
+          type: boolean
+```
+
+## 18. Error Handling & Logging
+
+### 18.1 Comprehensive Error Handling
+
+```typescript
+// server/middleware/errorHandler.ts
+export class ScholarshipError extends Error {
+  constructor(
+    message: string,
+    public statusCode: number = 500,
+    public errorCode: string = 'INTERNAL_ERROR'
+  ) {
+    super(message);
+    this.name = 'ScholarshipError';
+  }
+}
+
+export const scholarshipErrorHandler = (
+  error: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (error instanceof ScholarshipError) {
+    return res.status(error.statusCode).json({
+      error: {
+        message: error.message,
+        code: error.errorCode,
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+
+  // Log unexpected errors
+  console.error('Unexpected scholarship error:', error);
+  
+  res.status(500).json({
+    error: {
+      message: 'Internal server error',
+      code: 'INTERNAL_ERROR',
+      timestamp: new Date().toISOString()
+    }
+  });
+};
+```
+
+### 18.2 Structured Logging
+
+```typescript
+// server/services/loggerService.ts
+import winston from 'winston';
+
+class LoggerService {
+  private logger: winston.Logger;
+
+  constructor() {
+    this.logger = winston.createLogger({
+      level: 'info',
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.errors({ stack: true }),
+        winston.format.json()
+      ),
+      transports: [
+        new winston.transports.File({ filename: 'logs/scholarship-error.log', level: 'error' }),
+        new winston.transports.File({ filename: 'logs/scholarship-combined.log' })
+      ]
+    });
+  }
+
+  logScholarshipSearch(userId: number, filters: any, resultCount: number, duration: number) {
+    this.logger.info('Scholarship search performed', {
+      userId,
+      filters,
+      resultCount,
+      duration,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  logScholarshipSave(userId: number, scholarshipId: number) {
+    this.logger.info('Scholarship saved', {
+      userId,
+      scholarshipId,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  logError(error: Error, context: any) {
+    this.logger.error('Scholarship system error', {
+      error: error.message,
+      stack: error.stack,
+      context,
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+export const scholarshipLogger = new LoggerService();
+```
+
+## 19. Performance Monitoring
+
+### 19.1 Database Query Optimization
+
+```typescript
+// server/services/performanceMonitor.ts
+class PerformanceMonitor {
+  async monitorDatabaseQueries() {
+    const slowQueries = await db.execute(`
+      SELECT query, mean_time, calls, total_time 
+      FROM pg_stat_statements 
+      WHERE query LIKE '%scholarship%' 
+      AND mean_time > 100 
+      ORDER BY mean_time DESC 
+      LIMIT 10
+    `);
+
+    if (slowQueries.length > 0) {
+      scholarshipLogger.logError(
+        new Error('Slow database queries detected'),
+        { slowQueries }
+      );
+    }
+  }
+
+  async trackAPIPerformance(endpoint: string, duration: number) {
+    const performanceMetric = {
+      endpoint,
+      duration,
+      timestamp: new Date().toISOString(),
+      threshold: 500 // 500ms threshold
+    };
+
+    if (duration > 500) {
+      scholarshipLogger.logError(
+        new Error('API performance threshold exceeded'),
+        performanceMetric
+      );
+    }
+  }
+}
+```
+
+### 19.2 Frontend Performance Optimization
+
+```typescript
+// client/src/hooks/useScholarshipSearch.ts
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
+
+export const useScholarshipSearch = (filters: ScholarshipFilters) => {
+  // Memoize the query key to prevent unnecessary re-renders
+  const queryKey = useMemo(() => 
+    ['scholarships', JSON.stringify(filters)], 
+    [filters]
+  );
+
+  return useQuery({
+    queryKey,
+    queryFn: () => fetchScholarships(filters),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
+    keepPreviousData: true,
+    refetchOnWindowFocus: false
+  });
+};
+
+// Implement virtual scrolling for large scholarship lists
+export const useVirtualizedScholarships = (scholarships: Scholarship[]) => {
+  return useMemo(() => {
+    const itemHeight = 200; // Approximate height of each scholarship card
+    const containerHeight = 600; // Height of the scrollable container
+    const visibleItems = Math.ceil(containerHeight / itemHeight);
+    
+    return {
+      itemHeight,
+      containerHeight,
+      visibleItems,
+      totalItems: scholarships.length
+    };
+  }, [scholarships.length]);
+};
+```
+
+## 20. Accessibility & Internationalization
+
+### 20.1 Accessibility Features
+
+```typescript
+// client/src/components/scholarship/AccessibleScholarshipCard.tsx
+export const AccessibleScholarshipCard: React.FC<ScholarshipCardProps> = ({
+  scholarship,
+  onViewDetails,
+  onSave
+}) => {
+  return (
+    <Card 
+      className="hover:shadow-lg transition-shadow duration-200 focus-within:ring-2 focus-within:ring-blue-500"
+      role="article"
+      aria-label={`Scholarship: ${scholarship.scholarship_name}`}
+    >
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <h3 
+              className="text-lg font-semibold text-gray-900 mb-1"
+              id={`scholarship-title-${scholarship.id}`}
+            >
+              {scholarship.scholarship_name}
+            </h3>
+            <p className="text-sm text-gray-600 mb-2">
+              {scholarship.provider_name}
+            </p>
+          </div>
+          
+          <div 
+            className="flex flex-col items-center ml-4"
+            role="img"
+            aria-label={`Match score: ${scholarship.match_score} percent`}
+          >
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+              scholarship.match_score >= 80 ? 'bg-green-500' : 
+              scholarship.match_score >= 60 ? 'bg-yellow-500' : 'bg-gray-400'
+            }`}>
+              {scholarship.match_score}%
+            </div>
+            <span className="text-xs text-gray-500 mt-1">Match</span>
+          </div>
+        </div>
+
+        {/* Screen reader friendly description */}
+        <div className="sr-only">
+          <p>
+            This scholarship offers {scholarship.amount_display} with a deadline of {formatDate(scholarship.deadline)}.
+            Available for {scholarship.level_of_study.join(' and ')} students.
+            {scholarship.need_based ? ' This is a need-based scholarship.' : ''}
+            {scholarship.merit_based ? ' This is a merit-based scholarship.' : ''}
+          </p>
+        </div>
+
+        {/* Keyboard navigation support */}
+        <div className="flex gap-2 mt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onViewDetails(scholarship)}
+            className="flex-1"
+            aria-describedby={`scholarship-title-${scholarship.id}`}
+          >
+            View Details
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onSave(scholarship.id)}
+            className="px-3"
+            aria-label={`Save ${scholarship.scholarship_name} scholarship`}
+          >
+            <Heart className="w-4 h-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+```
+
+### 20.2 Internationalization Setup
+
+```typescript
+// client/src/i18n/scholarshipTranslations.ts
+export const scholarshipTranslations = {
+  en: {
+    scholarship: {
+      title: 'Find Your Perfect Scholarship',
+      searchPlaceholder: 'Search scholarships...',
+      filters: {
+        needBased: 'Need-based only',
+        levelOfStudy: 'Level of Study',
+        tags: 'Categories',
+        amount: 'Award Amount',
+        reset: 'Reset Filters'
+      },
+      card: {
+        matchScore: 'Match',
+        deadline: 'Deadline',
+        amount: 'Amount',
+        viewDetails: 'View Details',
+        save: 'Save',
+        whyMatch: 'Why it\'s a match:'
+      },
+      saved: {
+        title: 'Saved Scholarships',
+        status: 'Application Status',
+        remove: 'Remove',
+        statuses: {
+          not_started: 'Not Started',
+          in_progress: 'In Progress',
+          submitted: 'Submitted',
+          accepted: 'Accepted',
+          rejected: 'Rejected'
+        }
+      }
+    }
+  },
+  es: {
+    scholarship: {
+      title: 'Encuentra Tu Beca Perfecta',
+      searchPlaceholder: 'Buscar becas...',
+      filters: {
+        needBased: 'Solo basado en necesidad',
+        levelOfStudy: 'Nivel de Estudios',
+        tags: 'Categorías',
+        amount: 'Monto del Premio',
+        reset: 'Resetear Filtros'
+      }
+      // ... more translations
+    }
+  }
+};
+```
+
+## 21. Security Best Practices
+
+### 21.1 Input Sanitization
+
+```typescript
+// server/middleware/sanitization.ts
+import DOMPurify from 'isomorphic-dompurify';
+import { body, query } from 'express-validator';
+
+export const sanitizeScholarshipInput = [
+  body('scholarship_name').trim().escape().isLength({ min: 1, max: 500 }),
+  body('description').customSanitizer(value => DOMPurify.sanitize(value)),
+  body('tags.*').trim().escape().isLength({ max: 50 }),
+  body('eligibility_summary.*').trim().escape().isLength({ max: 1000 }),
+  query('search').optional().trim().escape().isLength({ max: 100 }),
+  query('tags').optional().isArray({ max: 10 })
+];
+```
+
+### 21.2 Rate Limiting by User Role
+
+```typescript
+// server/middleware/adaptiveRateLimit.ts
+export const adaptiveRateLimit = (req: Request, res: Response, next: NextFunction) => {
+  const user = req.user as any;
+  
+  let maxRequests
