@@ -40,7 +40,7 @@ const ScholarshipResearch = lazy(() => import("@/pages/ScholarshipResearch"));
 const AIScholarshipAnalysis = lazy(() => import("@/pages/AIScholarshipAnalysis"));
 const ScholarshipDetailsPage = lazy(() => import("@/pages/ScholarshipDetailsPage"));
 const ScholarshipHub = lazy(() => import("@/pages/ScholarshipHub"));
-const ScholarshipHubNew = lazy(() => import("@/pages/ScholarshipHubNew"));
+const ScholarshipHubNew = lazy(() => import("@/pages/ScholarshipHubRedesigned"));
 const UserScholarshipDetails = lazy(() => import("@/pages/ScholarshipDetails"));
 const ScholarshipCollectionNew = lazy(() => import("@/pages/ScholarshipCollectionNew"));
 const ScholarshipRecommendations = lazy(() => import("@/pages/ScholarshipRecommendations"));
