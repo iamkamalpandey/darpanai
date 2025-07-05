@@ -1281,6 +1281,22 @@ export const scholarshipSearchAnalytics = pgTable("scholarship_search_analytics"
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Scholarship Recommendations table - stores personalized recommendations for each user
+export const scholarshipRecommendations = pgTable("scholarship_recommendations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  scholarshipId: integer("scholarship_id").references(() => scholarshipPrograms.id, { onDelete: "cascade" }).notNull(),
+  matchScore: integer("match_score").notNull(), // 0-100
+  matchReasons: text("match_reasons").array().default([]).notNull(),
+  rank: integer("rank").notNull(), // 1-10 for top 10 recommendations
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userScholarshipRecUnique: uniqueIndex("user_scholarship_rec_unique").on(table.userId, table.scholarshipId),
+  userRecRankUnique: uniqueIndex("user_rec_rank_unique").on(table.userId, table.rank)
+}));
+
 // SMS Schema validation
 export const scholarshipProviderSchema = createInsertSchema(scholarshipProviders).omit({ id: true, createdAt: true });
 export const scholarshipProgramSchema = createInsertSchema(scholarshipPrograms).omit({ id: true, createdAt: true, updatedAt: true });
@@ -1331,6 +1347,17 @@ export const scholarshipInquiryRelations = relations(scholarshipInquiries, ({ on
   }),
 }));
 
+export const scholarshipRecommendationRelations = relations(scholarshipRecommendations, ({ one }) => ({
+  user: one(users, {
+    fields: [scholarshipRecommendations.userId],
+    references: [users.id],
+  }),
+  scholarship: one(scholarshipPrograms, {
+    fields: [scholarshipRecommendations.scholarshipId],
+    references: [scholarshipPrograms.id],
+  }),
+}));
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -1350,6 +1377,8 @@ export type UserScholarshipPreferences = typeof userScholarshipPreferences.$infe
 export type InsertUserScholarshipPreferences = z.infer<typeof scholarshipPreferencesSchema>;
 export type ScholarshipInquiry = typeof scholarshipInquiries.$inferSelect;
 export type InsertScholarshipInquiry = z.infer<typeof scholarshipInquirySchema>;
+export type ScholarshipRecommendation = typeof scholarshipRecommendations.$inferSelect;
+export type InsertScholarshipRecommendation = typeof scholarshipRecommendations.$inferInsert;
 
 // Student Application Types
 export type StudentApplication = typeof studentApplications.$inferSelect;
@@ -1661,7 +1690,7 @@ export const userLearningProgress = pgTable("user_learning_progress", {
   feedback: text("feedback"), // User feedback on milestone
   difficultyRating: integer("difficulty_rating"), // User rated difficulty 1-5
 }, (table) => ({
-  userMilestoneUnique: uniqueIndex("user_milestone_unique").on(table.userId, table.milestoneId)
+  userMilestoneUnique: uniqueIndex("user_milestone_unique_gamification").on(table.userId, table.milestoneId)
 }));
 
 // Gamification User Stats - Overall progress and achievements
