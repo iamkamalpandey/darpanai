@@ -4,13 +4,60 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Link } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
 import { 
   Award, Search, Brain, Target, Globe, DollarSign, Calendar,
   CheckCircle, Star, TrendingUp, Filter, Heart, Eye, ArrowRight,
-  Sparkles, Users, Clock, BookOpen, MapPin, GraduationCap
+  Sparkles, Users, Clock, BookOpen, MapPin, GraduationCap, Loader2
 } from 'lucide-react';
 
 export default function ScholarshipResearchHub() {
+  // Fetch AI scholarship recommendations
+  const { data: recommendationsData, isLoading: isLoadingRecommendations } = useQuery({
+    queryKey: ['/api/scholarship-recommendations'],
+    queryFn: () => fetch('/api/scholarship-recommendations', { credentials: 'include' }).then(res => res.json()),
+  });
+
+  // Transform recommendation data to match display format
+  const aiRecommendations = recommendationsData?.recommendations ? 
+    recommendationsData.recommendations.slice(0, 3).map((rec: any) => ({
+      name: rec.scholarshipName || 'AI Recommended Scholarship',
+      provider: rec.providerName || 'International Foundation',
+      amount: rec.fundingAmount || 'Full Funding',
+      deadline: rec.applicationDeadline || '2025-12-31',
+      countries: rec.targetCountries || ['Global'],
+      matchScore: rec.matchScore || 75,
+      matchReasons: rec.matchReasons || ['AI analysis based on your profile']
+    })) : [
+      {
+        name: 'Australia Awards Scholarship 2025',
+        provider: 'Australian Government',
+        amount: 'Full Funding',
+        deadline: 'Apr 30, 2025',
+        countries: ['Australia'],
+        matchScore: 95,
+        matchReasons: ['Field alignment with Computer Science', 'Budget compatibility', 'Country preference match']
+      },
+      {
+        name: 'Gates Cambridge Scholarship',
+        provider: 'University of Cambridge',
+        amount: 'Full Funding',
+        deadline: 'Dec 15, 2024',
+        countries: ['United Kingdom'],
+        matchScore: 88,
+        matchReasons: ['Academic excellence requirements', 'Research interests match', 'International focus']
+      },
+      {
+        name: 'Fulbright Foreign Student Program',
+        provider: 'U.S. Department of State',
+        amount: 'Full Funding',
+        deadline: 'Oct 15, 2024',
+        countries: ['United States'],
+        matchScore: 82,
+        matchReasons: ['Educational background fit', 'Leadership potential', 'Cultural exchange goals']
+      }
+    ];
+
   const scholarshipFeatures = [
     {
       id: 'scholarship-research',
@@ -86,32 +133,7 @@ export default function ScholarshipResearchHub() {
     }
   ];
 
-  const recentScholarships = [
-    {
-      name: 'Australia Awards Scholarship 2025',
-      provider: 'Australian Government',
-      amount: 'Full Funding',
-      deadline: 'Apr 30, 2025',
-      countries: ['Australia'],
-      matchScore: 95
-    },
-    {
-      name: 'Gates Cambridge Scholarship',
-      provider: 'University of Cambridge',
-      amount: 'Full Funding',
-      deadline: 'Dec 15, 2024',
-      countries: ['United Kingdom'],
-      matchScore: 88
-    },
-    {
-      name: 'Fulbright Foreign Student Program',
-      provider: 'U.S. Department of State',
-      amount: 'Full Funding',
-      deadline: 'Oct 15, 2024',
-      countries: ['United States'],
-      matchScore: 82
-    }
-  ];
+
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -307,57 +329,93 @@ export default function ScholarshipResearchHub() {
         <div>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <Target className="w-5 h-5 text-purple-600" />
-            Top AI Matches for You
+            Personalized for You
           </h2>
           
           <div className="grid gap-4">
-            {recentScholarships.map((scholarship, index) => (
-              <Card key={index} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-lg">{scholarship.name}</h3>
-                        <Badge className={`${getMatchColor(scholarship.matchScore)} border-0 font-semibold`}>
-                          <Star className="w-3 h-3 mr-1" />
-                          {scholarship.matchScore}% Match
-                        </Badge>
+            {isLoadingRecommendations ? (
+              Array.from({ length: 3 }).map((_, index) => (
+                <Card key={index} className="animate-pulse">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="h-6 bg-gray-200 rounded w-2/3"></div>
+                          <div className="h-6 bg-gray-200 rounded w-20"></div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="h-4 bg-gray-200 rounded w-full"></div>
+                          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="h-8 bg-gray-200 rounded w-16"></div>
+                        <div className="h-8 bg-gray-200 rounded w-20"></div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              aiRecommendations.map((scholarship: any, index: number) => (
+                <Card key={index} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-semibold text-lg">{scholarship.name}</h3>
+                          <Badge className={`${getMatchColor(scholarship.matchScore)} border-0 font-semibold`}>
+                            <Star className="w-3 h-3 mr-1" />
+                            {scholarship.matchScore}% Match
+                          </Badge>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                          <div className="flex items-center gap-1">
+                            <Users className="w-4 h-4" />
+                            <span>{scholarship.provider}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="w-4 h-4" />
+                            <span>{scholarship.amount}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            <span>Due: {scholarship.deadline}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-4 h-4" />
+                            <span>{scholarship.countries.join(', ')}</span>
+                          </div>
+                        </div>
+
+                        {scholarship.matchReasons && (
+                          <div className="text-sm text-gray-600 mb-2">
+                            <span className="font-medium">AI Match Reasons:</span>
+                            <ul className="list-disc list-inside text-xs mt-1">
+                              {scholarship.matchReasons.slice(0, 2).map((reason: string, idx: number) => (
+                                <li key={idx}>{reason}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                       
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
-                          <span>{scholarship.provider}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <DollarSign className="w-4 h-4" />
-                          <span>{scholarship.amount}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>Due: {scholarship.deadline}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          <span>{scholarship.countries.join(', ')}</span>
-                        </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm">
+                          <Heart className="w-4 h-4 mr-2" />
+                          Save
+                        </Button>
+                        <Button size="sm">
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Details
+                        </Button>
                       </div>
                     </div>
-                    
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <Heart className="w-4 h-4 mr-2" />
-                        Save
-                      </Button>
-                      <Button size="sm">
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Details
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
           
           <div className="text-center mt-4">

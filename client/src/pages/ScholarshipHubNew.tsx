@@ -233,8 +233,25 @@ export default function ScholarshipHubNew() {
     },
   });
 
+  const unsaveScholarshipMutation = useMutation({
+    mutationFn: (scholarshipId: number) => 
+      apiRequest('DELETE', `/api/user-scholarships/unsave/${scholarshipId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user-scholarships/saved'] });
+      toast({ title: "Scholarship removed from collection!" });
+    },
+    onError: () => {
+      toast({ title: "Error removing scholarship", variant: "destructive" });
+    },
+  });
+
   const toggleSaveScholarship = (scholarshipId: number) => {
-    saveScholarshipMutation.mutate(scholarshipId);
+    const isSaved = isScholarshipSaved(scholarshipId);
+    if (isSaved) {
+      unsaveScholarshipMutation.mutate(scholarshipId);
+    } else {
+      saveScholarshipMutation.mutate(scholarshipId);
+    }
   };
 
   // Transform database scholarships to match interface
