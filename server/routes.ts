@@ -4125,7 +4125,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Note: /api/scholarships/search route moved to scholarshipRoutes.ts to avoid conflicts
+  // GET /api/scholarships/search - Search scholarships (frontend endpoint)
+  app.get('/api/scholarships/search', requireAuth, async (req, res) => {
+    try {
+      const { scholarshipServiceFixed } = await import('./services/scholarshipServiceFixed');
+      const userId = req.user!.id;
+      
+      const filters = {
+        search: req.query.search as string,
+        needBased: req.query.needBased === 'true',
+        meritBased: req.query.meritBased === 'true',
+        levelOfStudy: req.query.levelOfStudy ? (req.query.levelOfStudy as string).split(',') : undefined,
+        tags: req.query.tags ? (req.query.tags as string).split(',') : undefined,
+        amountMin: req.query.amountMin && !isNaN(parseInt(req.query.amountMin as string)) ? parseInt(req.query.amountMin as string) : undefined,
+        amountMax: req.query.amountMax && !isNaN(parseInt(req.query.amountMax as string)) ? parseInt(req.query.amountMax as string) : undefined,
+        limit: req.query.limit && !isNaN(parseInt(req.query.limit as string)) ? parseInt(req.query.limit as string) : 20,
+        offset: req.query.offset && !isNaN(parseInt(req.query.offset as string)) ? parseInt(req.query.offset as string) : 0,
+      };
+
+      const results = await scholarshipServiceFixed.searchScholarships(filters, userId);
+      res.json(results);
+    } catch (error: any) {
+      console.error('Error searching scholarships:', error);
+      res.status(500).json({ error: 'Failed to search scholarships', details: error.message });
+    }
+  });
 
   // GET /api/scholarships/recommendations - Get personalized recommendations
   app.get('/api/scholarships/recommendations', requireAuth, async (req, res) => {
@@ -4147,10 +4171,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { scholarshipService } = await import('./services/scholarshipService');
       const scholarshipId = parseInt(req.params.id);
-      
-      if (isNaN(scholarshipId)) {
-        return res.status(400).json({ error: 'Invalid scholarship ID' });
-      }
 
       const scholarship = await scholarshipService.getScholarshipById(scholarshipId);
       if (!scholarship) {

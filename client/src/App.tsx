@@ -40,8 +40,7 @@ const ScholarshipResearch = lazy(() => import("@/pages/ScholarshipResearch"));
 const AIScholarshipAnalysis = lazy(() => import("@/pages/AIScholarshipAnalysis"));
 const ScholarshipDetailsPage = lazy(() => import("@/pages/ScholarshipDetailsPage"));
 const ScholarshipHub = lazy(() => import("@/pages/ScholarshipHub"));
-const ScholarshipHubNew = lazy(() => import("@/pages/ScholarshipHubRedesigned"));
-const EnhancedScholarshipHub = lazy(() => import("@/pages/EnhancedScholarshipHub"));
+const ScholarshipHubNew = lazy(() => import("@/pages/ScholarshipHubNew"));
 const UserScholarshipDetails = lazy(() => import("@/pages/ScholarshipDetails"));
 const ScholarshipCollectionNew = lazy(() => import("@/pages/ScholarshipCollectionNew"));
 const ScholarshipRecommendations = lazy(() => import("@/pages/ScholarshipRecommendations"));
@@ -303,10 +302,17 @@ function Router() {
           )} />
         )}
       </Route>
+      <Route path="/scholarship-matching">
+        <UserProtectedRoute path="/scholarship-matching" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <AIScholarshipAnalysis />
+          </Suspense>
+        )} />
+      </Route>
       <Route path="/scholarship-hub">
         <UserProtectedRoute path="/scholarship-hub" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <EnhancedScholarshipHub />
+            <ScholarshipHubNew />
           </Suspense>
         )} />
       </Route>
