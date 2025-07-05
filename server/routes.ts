@@ -4098,6 +4098,312 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   console.log("[INFO] [express] ✓ Document management routes registered successfully");
 
+  // Advanced Scholarship Matching System (SMS) Routes
+  // GET /api/scholarships - Search and filter scholarships
+  app.get('/api/scholarships', requireAuth, async (req, res) => {
+    try {
+      const { scholarshipService } = await import('./services/scholarshipService');
+      const userId = req.user!.id;
+      
+      const filters = {
+        search: req.query.search as string,
+        needBased: req.query.needBased === 'true',
+        meritBased: req.query.meritBased === 'true',
+        levelOfStudy: req.query.levelOfStudy ? (req.query.levelOfStudy as string).split(',') : undefined,
+        tags: req.query.tags ? (req.query.tags as string).split(',') : undefined,
+        amountMin: req.query.amountMin ? parseInt(req.query.amountMin as string) : undefined,
+        amountMax: req.query.amountMax ? parseInt(req.query.amountMax as string) : undefined,
+        limit: req.query.limit ? parseInt(req.query.limit as string) : 20,
+        offset: req.query.offset ? parseInt(req.query.offset as string) : 0,
+      };
+
+      const results = await scholarshipService.searchScholarships(filters, userId);
+      res.json(results);
+    } catch (error: any) {
+      console.error('Error searching scholarships:', error);
+      res.status(500).json({ error: 'Failed to search scholarships', details: error.message });
+    }
+  });
+
+  // GET /api/scholarships/recommendations - Get personalized recommendations
+  app.get('/api/scholarships/recommendations', requireAuth, async (req, res) => {
+    try {
+      const { scholarshipService } = await import('./services/scholarshipService');
+      const userId = req.user!.id;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+
+      const recommendations = await scholarshipService.getPersonalizedRecommendations(userId, limit);
+      res.json({ recommendations });
+    } catch (error: any) {
+      console.error('Error getting recommendations:', error);
+      res.status(500).json({ error: 'Failed to get recommendations', details: error.message });
+    }
+  });
+
+  // GET /api/scholarships/:id - Get specific scholarship details
+  app.get('/api/scholarships/:id', requireAuth, async (req, res) => {
+    try {
+      const { scholarshipService } = await import('./services/scholarshipService');
+      const scholarshipId = parseInt(req.params.id);
+
+      const scholarship = await scholarshipService.getScholarshipById(scholarshipId);
+      if (!scholarship) {
+        return res.status(404).json({ error: 'Scholarship not found' });
+      }
+
+      res.json(scholarship);
+    } catch (error: any) {
+      console.error('Error getting scholarship:', error);
+      res.status(500).json({ error: 'Failed to get scholarship', details: error.message });
+    }
+  });
+
+  // POST /api/scholarships/:id/save - Save scholarship for user
+  app.post('/api/scholarships/:id/save', requireAuth, async (req, res) => {
+    try {
+      const { scholarshipService } = await import('./services/scholarshipService');
+      const userId = req.user!.id;
+      const scholarshipId = parseInt(req.params.id);
+      const { status } = req.body;
+
+      await scholarshipService.saveScholarshipForUser(userId, scholarshipId, status || 'saved');
+      res.json({ success: true, message: 'Scholarship saved successfully' });
+    } catch (error: any) {
+      console.error('Error saving scholarship:', error);
+      res.status(500).json({ error: 'Failed to save scholarship', details: error.message });
+    }
+  });
+
+  // DELETE /api/scholarships/:id/save - Remove saved scholarship
+  app.delete('/api/scholarships/:id/save', requireAuth, async (req, res) => {
+    try {
+      const { scholarshipService } = await import('./services/scholarshipService');
+      const userId = req.user!.id;
+      const scholarshipId = parseInt(req.params.id);
+
+      await scholarshipService.removeScholarshipForUser(userId, scholarshipId);
+      res.json({ success: true, message: 'Scholarship removed successfully' });
+    } catch (error: any) {
+      console.error('Error removing scholarship:', error);
+      res.status(500).json({ error: 'Failed to remove scholarship', details: error.message });
+    }
+  });
+
+  // GET /api/scholarships/user/saved - Get user's saved scholarships
+  app.get('/api/scholarships/user/saved', requireAuth, async (req, res) => {
+    try {
+      const { scholarshipService } = await import('./services/scholarshipService');
+      const userId = req.user!.id;
+
+      const savedScholarships = await scholarshipService.getUserSavedScholarships(userId);
+      res.json({ scholarships: savedScholarships });
+    } catch (error: any) {
+      console.error('Error getting saved scholarships:', error);
+      res.status(500).json({ error: 'Failed to get saved scholarships', details: error.message });
+    }
+  });
+
+  // GET /api/scholarships/user/preferences - Get user scholarship preferences
+  app.get('/api/scholarships/user/preferences', requireAuth, async (req, res) => {
+    try {
+      const { scholarshipService } = await import('./services/scholarshipService');
+      const userId = req.user!.id;
+
+      const preferences = await scholarshipService.getUserScholarshipPreferences(userId);
+      res.json({ preferences });
+    } catch (error: any) {
+      console.error('Error getting preferences:', error);
+      res.status(500).json({ error: 'Failed to get preferences', details: error.message });
+    }
+  });
+
+  // PUT /api/scholarships/user/preferences - Update user scholarship preferences
+  app.put('/api/scholarships/user/preferences', requireAuth, async (req, res) => {
+    try {
+      const { scholarshipService } = await import('./services/scholarshipService');
+      const userId = req.user!.id;
+      const preferences = req.body;
+
+      const updatedPreferences = await scholarshipService.updateUserScholarshipPreferences(userId, preferences);
+      res.json({ preferences: updatedPreferences });
+    } catch (error: any) {
+      console.error('Error updating preferences:', error);
+      res.status(500).json({ error: 'Failed to update preferences', details: error.message });
+    }
+  });
+
+  // POST /api/scholarships/:id/analyze - AI-powered scholarship analysis
+  app.post('/api/scholarships/:id/analyze', requireAuth, async (req, res) => {
+    try {
+      const { scholarshipAiService } = await import('./services/scholarshipAiService');
+      const { scholarshipService } = await import('./services/scholarshipService');
+      const userId = req.user!.id;
+      const scholarshipId = parseInt(req.params.id);
+
+      // Get scholarship details
+      const scholarship = await scholarshipService.getScholarshipById(scholarshipId);
+      if (!scholarship) {
+        return res.status(404).json({ error: 'Scholarship not found' });
+      }
+
+      // Get user profile for analysis
+      const { eq } = await import('drizzle-orm');
+      const { users } = await import('@shared/schema');
+      const { db } = await import('./db');
+      const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      const preferences = await scholarshipService.getUserScholarshipPreferences(userId);
+
+      // Prepare analysis request
+      const analysisRequest = {
+        scholarshipDescription: scholarship.description,
+        userProfile: {
+          fieldOfStudy: user.fieldOfStudy,
+          academicLevel: user.highestQualification,
+          gpa: preferences?.gpa ? Number(preferences.gpa) : undefined,
+          financialNeed: preferences?.financialNeed || false,
+          interests: preferences?.preferredTags || [],
+          achievements: user.achievements || [],
+          background: user.background || '',
+        },
+        requirements: scholarship.eligibilitySummary,
+      };
+
+      const analysis = await scholarshipAiService.analyzeScholarshipMatch(analysisRequest);
+      res.json({ analysis, scholarship });
+    } catch (error: any) {
+      console.error('Error analyzing scholarship:', error);
+      res.status(500).json({ error: 'Failed to analyze scholarship', details: error.message });
+    }
+  });
+
+  // POST /api/scholarships/essay-assistance - AI essay writing assistance
+  app.post('/api/scholarships/essay-assistance', requireAuth, async (req, res) => {
+    try {
+      const { scholarshipAiService } = await import('./services/scholarshipAiService');
+      const userId = req.user!.id;
+      const { scholarshipName, essayPrompt } = req.body;
+
+      // Get user profile
+      const { eq } = await import('drizzle-orm');
+      const { users } = await import('@shared/schema');
+      const { db } = await import('./db');
+      const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+
+      const essayOutline = await scholarshipAiService.generateEssayOutline(
+        scholarshipName,
+        essayPrompt,
+        {
+          background: user.background || '',
+          fieldOfStudy: user.fieldOfStudy,
+          achievements: user.achievements || [],
+        }
+      );
+
+      res.json({ essayOutline });
+    } catch (error: any) {
+      console.error('Error generating essay assistance:', error);
+      res.status(500).json({ error: 'Failed to generate essay assistance', details: error.message });
+    }
+  });
+
+  // GET /api/scholarships/analytics - Get scholarship analytics (admin only)
+  app.get('/api/scholarships/analytics', requireAuth, async (req, res) => {
+    try {
+      if (req.user!.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const { scholarshipService } = await import('./services/scholarshipService');
+      const analytics = await scholarshipService.getScholarshipAnalytics();
+      res.json(analytics);
+    } catch (error: any) {
+      console.error('Error getting analytics:', error);
+      res.status(500).json({ error: 'Failed to get analytics', details: error.message });
+    }
+  });
+
+  // POST /api/scholarships/populate-sample - Populate sample data (admin only)
+  app.post('/api/scholarships/populate-sample', requireAuth, async (req, res) => {
+    try {
+      if (req.user!.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const { scholarshipService } = await import('./services/scholarshipService');
+      await scholarshipService.populateSampleData();
+      res.json({ success: true, message: 'Sample scholarship data populated successfully' });
+    } catch (error: any) {
+      console.error('Error populating sample data:', error);
+      res.status(500).json({ error: 'Failed to populate sample data', details: error.message });
+    }
+  });
+
+  // Admin Scholarship Management Routes
+  // POST /api/admin/scholarships - Create new scholarship
+  app.post('/api/admin/scholarships', requireAuth, async (req, res) => {
+    try {
+      if (req.user!.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const { scholarshipService } = await import('./services/scholarshipService');
+      const scholarshipData = req.body;
+
+      const scholarship = await scholarshipService.createScholarshipProgram(scholarshipData);
+      res.json({ success: true, scholarship });
+    } catch (error: any) {
+      console.error('Error creating scholarship:', error);
+      res.status(500).json({ error: 'Failed to create scholarship', details: error.message });
+    }
+  });
+
+  // PUT /api/admin/scholarships/:id - Update scholarship
+  app.put('/api/admin/scholarships/:id', requireAuth, async (req, res) => {
+    try {
+      if (req.user!.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const { scholarshipService } = await import('./services/scholarshipService');
+      const scholarshipId = parseInt(req.params.id);
+      const updateData = req.body;
+
+      const scholarship = await scholarshipService.updateScholarshipProgram(scholarshipId, updateData);
+      if (!scholarship) {
+        return res.status(404).json({ error: 'Scholarship not found' });
+      }
+
+      res.json({ success: true, scholarship });
+    } catch (error: any) {
+      console.error('Error updating scholarship:', error);
+      res.status(500).json({ error: 'Failed to update scholarship', details: error.message });
+    }
+  });
+
+  // DELETE /api/admin/scholarships/:id - Delete scholarship
+  app.delete('/api/admin/scholarships/:id', requireAuth, async (req, res) => {
+    try {
+      if (req.user!.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const { scholarshipService } = await import('./services/scholarshipService');
+      const scholarshipId = parseInt(req.params.id);
+
+      const success = await scholarshipService.deleteScholarshipProgram(scholarshipId);
+      if (!success) {
+        return res.status(404).json({ error: 'Scholarship not found' });
+      }
+
+      res.json({ success: true, message: 'Scholarship deleted successfully' });
+    } catch (error: any) {
+      console.error('Error deleting scholarship:', error);
+      res.status(500).json({ error: 'Failed to delete scholarship', details: error.message });
+    }
+  });
+
+  console.log("[INFO] [express] ✓ Advanced Scholarship Matching System (SMS) routes registered successfully");
+
   const httpServer = createServer(app);
 
   return httpServer;

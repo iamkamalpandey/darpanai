@@ -1137,6 +1137,144 @@ export const analysisResponseSchema = z.object({
   })),
 });
 
+// Advanced Scholarship Matching System (SMS) Tables
+export const scholarshipProviders = pgTable("scholarship_providers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  website: text("website"),
+  description: text("description"),
+  contactEmail: text("contact_email"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const scholarshipPrograms = pgTable("scholarship_programs", {
+  id: serial("id").primaryKey(),
+  providerId: integer("provider_id").references(() => scholarshipProviders.id).notNull(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  amountMin: integer("amount_min"), // in USD
+  amountMax: integer("amount_max"),
+  amountDisplay: text("amount_display").notNull(),
+  deadline: timestamp("deadline"),
+  applicationUrl: text("application_url").notNull(),
+  levelOfStudy: text("level_of_study").array().default([]).notNull(),
+  needBased: boolean("need_based").default(false).notNull(),
+  meritBased: boolean("merit_based").default(false).notNull(),
+  eligibilitySummary: text("eligibility_summary").array().default([]).notNull(),
+  requiredDocuments: text("required_documents").array().default([]).notNull(),
+  tags: text("tags").array().default([]).notNull(),
+  matchReasons: text("match_reasons").array().default([]).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const userScholarships = pgTable("user_scholarships", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  scholarshipId: integer("scholarship_id").references(() => scholarshipPrograms.id, { onDelete: "cascade" }).notNull(),
+  status: text("status").default("saved").notNull(), // saved, interested, applied, withdrawn
+  applicationStatus: text("application_status").default("not_started").notNull(),
+  notes: text("notes"),
+  savedAt: timestamp("saved_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueUserScholarship: uniqueIndex("unique_user_scholarship").on(table.userId, table.scholarshipId),
+}));
+
+export const userScholarshipPreferences = pgTable("user_scholarship_preferences", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull().unique(),
+  major: text("major"),
+  gpa: decimal("gpa", { precision: 3, scale: 2 }),
+  financialNeed: boolean("financial_need").default(false).notNull(),
+  levelOfStudy: text("level_of_study"),
+  graduationYear: integer("graduation_year"),
+  ethnicity: text("ethnicity"),
+  firstGeneration: boolean("first_generation").default(false).notNull(),
+  militaryService: boolean("military_service").default(false).notNull(),
+  disabilities: boolean("disabilities").default(false).notNull(),
+  preferredAmountMin: integer("preferred_amount_min"),
+  preferredTags: text("preferred_tags").array().default([]).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const scholarshipInquiries = pgTable("scholarship_inquiries", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  scholarshipId: integer("scholarship_id").references(() => scholarshipPrograms.id, { onDelete: "cascade" }).notNull(),
+  inquiryType: text("inquiry_type").default("general").notNull(),
+  message: text("message"),
+  status: text("status").default("open").notNull(),
+  adminResponse: text("admin_response"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const scholarshipSearchAnalytics = pgTable("scholarship_search_analytics", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  searchQuery: text("search_query"),
+  filtersApplied: jsonb("filters_applied"),
+  resultsCount: integer("results_count"),
+  scholarshipsViewed: integer("scholarships_viewed").array().default([]).notNull(),
+  scholarshipsSaved: integer("scholarships_saved").array().default([]).notNull(),
+  sessionDuration: integer("session_duration"), // in seconds
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// SMS Schema validation
+export const scholarshipProviderSchema = createInsertSchema(scholarshipProviders).omit({ id: true, createdAt: true });
+export const scholarshipProgramSchema = createInsertSchema(scholarshipPrograms).omit({ id: true, createdAt: true, updatedAt: true });
+export const userScholarshipSchema = createInsertSchema(userScholarships).omit({ id: true, savedAt: true, updatedAt: true });
+export const scholarshipPreferencesSchema = createInsertSchema(userScholarshipPreferences).omit({ id: true, createdAt: true, updatedAt: true });
+export const scholarshipInquirySchema = createInsertSchema(scholarshipInquiries).omit({ id: true, createdAt: true, updatedAt: true });
+
+// SMS Relations
+export const scholarshipProviderRelations = relations(scholarshipProviders, ({ many }) => ({
+  programs: many(scholarshipPrograms),
+}));
+
+export const scholarshipProgramRelations = relations(scholarshipPrograms, ({ one, many }) => ({
+  provider: one(scholarshipProviders, {
+    fields: [scholarshipPrograms.providerId],
+    references: [scholarshipProviders.id],
+  }),
+  userScholarships: many(userScholarships),
+  inquiries: many(scholarshipInquiries),
+}));
+
+export const userScholarshipRelations = relations(userScholarships, ({ one }) => ({
+  user: one(users, {
+    fields: [userScholarships.userId],
+    references: [users.id],
+  }),
+  scholarship: one(scholarshipPrograms, {
+    fields: [userScholarships.scholarshipId],
+    references: [scholarshipPrograms.id],
+  }),
+}));
+
+export const userScholarshipPreferencesRelations = relations(userScholarshipPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userScholarshipPreferences.userId],
+    references: [users.id],
+  }),
+}));
+
+export const scholarshipInquiryRelations = relations(scholarshipInquiries, ({ one }) => ({
+  user: one(users, {
+    fields: [scholarshipInquiries.userId],
+    references: [users.id],
+  }),
+  scholarship: one(scholarshipPrograms, {
+    fields: [scholarshipInquiries.scholarshipId],
+    references: [scholarshipPrograms.id],
+  }),
+}));
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -1144,6 +1282,18 @@ export type LoginUser = z.infer<typeof loginUserSchema>;
 
 export type Analysis = typeof analyses.$inferSelect;
 export type InsertAnalysis = z.infer<typeof insertAnalysisSchema>;
+
+// SMS Type exports
+export type ScholarshipProvider = typeof scholarshipProviders.$inferSelect;
+export type InsertScholarshipProvider = z.infer<typeof scholarshipProviderSchema>;
+export type ScholarshipProgram = typeof scholarshipPrograms.$inferSelect;
+export type InsertScholarshipProgram = z.infer<typeof scholarshipProgramSchema>;
+export type UserScholarship = typeof userScholarships.$inferSelect;
+export type InsertUserScholarship = z.infer<typeof userScholarshipSchema>;
+export type UserScholarshipPreferences = typeof userScholarshipPreferences.$inferSelect;
+export type InsertUserScholarshipPreferences = z.infer<typeof scholarshipPreferencesSchema>;
+export type ScholarshipInquiry = typeof scholarshipInquiries.$inferSelect;
+export type InsertScholarshipInquiry = z.infer<typeof scholarshipInquirySchema>;
 
 // Student Application Types
 export type StudentApplication = typeof studentApplications.$inferSelect;
