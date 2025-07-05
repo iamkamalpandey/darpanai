@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { scholarshipRecommendationService } from "./services/scholarshipRecommendationService";
+import { enhancedScholarshipRecommendationService } from "./services/enhancedScholarshipRecommendationService";
 
 const router = Router();
 
@@ -41,6 +42,33 @@ router.get("/", requireAuth, async (req: any, res: Response) => {
     console.error('[Stored Recommendations] Error:', error);
     res.status(500).json({
       error: "Failed to get stored recommendations",
+      message: error.message,
+    });
+  }
+});
+
+// Get enhanced personalized scholarship recommendations
+router.get("/enhanced", requireAuth, async (req: any, res: Response) => {
+  try {
+    const userId = req.user.id;
+    console.log(`[Enhanced Recommendations] Getting enhanced recommendations for user ${userId}`);
+    
+    const recommendations = await enhancedScholarshipRecommendationService.getEnhancedRecommendations(userId);
+    
+    console.log(`[Enhanced Recommendations] Service returned ${recommendations.length} enhanced recommendations`);
+    
+    const responseData = {
+      recommendations,
+      total: recommendations.length,
+      type: 'enhanced'
+    };
+    
+    console.log(`[Enhanced Recommendations] Sending response with ${responseData.total} enhanced recommendations`);
+    res.json(responseData);
+  } catch (error: any) {
+    console.error('[Enhanced Recommendations] Error:', error);
+    res.status(500).json({
+      error: "Failed to get enhanced scholarship recommendations",
       message: error.message,
     });
   }
