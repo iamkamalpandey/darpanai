@@ -86,6 +86,7 @@ const ScholarshipHub: React.FC = () => {
   console.log('Is Loading:', isLoadingRecommendations);
   console.log('Recommendations Array:', recommendationsData?.recommendations);
   console.log('Recommendations Length:', recommendationsData?.recommendations?.length);
+  console.log('Raw API Response Structure:', JSON.stringify(recommendationsData, null, 2));
 
   // Fetch saved scholarships
   const { data: savedScholarshipsData, isLoading: isLoadingSaved } = useQuery({
