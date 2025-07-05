@@ -102,7 +102,7 @@ const ScholarshipHub: React.FC = () => {
   // Save scholarship mutation
   const saveScholarshipMutation = useMutation({
     mutationFn: (scholarshipId: number) => 
-      apiRequest('POST', `/api/scholarship-recommendations/save`, { scholarshipId }),
+      apiRequest('POST', `/api/scholarships/${scholarshipId}/save`),
     onSuccess: () => {
       toast({ title: 'Scholarship saved successfully!' });
       queryClient.invalidateQueries({ queryKey: ['saved-scholarships'] });

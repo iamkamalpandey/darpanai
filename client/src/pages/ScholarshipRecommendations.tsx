@@ -70,7 +70,7 @@ const ScholarshipRecommendations: React.FC = () => {
   const { data: recommendationsData, isLoading: isLoadingRecommendations } = useQuery({
     queryKey: ['scholarship-recommendations'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/scholarship-recommendations/recommendations');
+      const response = await apiRequest('GET', '/api/scholarships/recommendations');
       return response;
     },
   });
@@ -79,7 +79,7 @@ const ScholarshipRecommendations: React.FC = () => {
   const { data: savedData, isLoading: isLoadingSaved } = useQuery({
     queryKey: ['saved-scholarships'],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/scholarship-recommendations/user/saved');
+      const response = await apiRequest('GET', '/api/scholarships/user/saved');
       return response;
     },
   });
@@ -88,9 +88,9 @@ const ScholarshipRecommendations: React.FC = () => {
   const toggleSaveMutation = useMutation({
     mutationFn: ({ scholarshipId, save }: { scholarshipId: number, save: boolean }) => {
       if (save) {
-        return apiRequest('POST', `/api/scholarship-recommendations/${scholarshipId}/save`);
+        return apiRequest('POST', `/api/scholarships/${scholarshipId}/save`);
       } else {
-        return apiRequest('DELETE', `/api/scholarship-recommendations/${scholarshipId}/save`);
+        return apiRequest('DELETE', `/api/scholarships/${scholarshipId}/save`);
       }
     },
     onSuccess: (_, { save }) => {
