@@ -124,20 +124,20 @@ export class ScholarshipRecommendationService {
       userField: user.field_of_study,
       userCountries: user.preferred_countries,
       userLevel: user.highest_qualification,
-      scholarshipFieldCategories: scholarship.fieldCategories,
-      scholarshipSpecificFields: scholarship.specificFields,
-      scholarshipCountries: scholarship.hostCountries,
-      scholarshipLevels: scholarship.studyLevels
+      scholarshipFieldCategories: scholarship.field_categories,
+      scholarshipSpecificFields: scholarship.specific_fields,
+      scholarshipCountries: scholarship.host_countries,
+      scholarshipLevels: scholarship.study_levels
     });
 
     // 1. Field of Study Match (40 points)
     let fieldMatch = false;
     
     // Check specific fields first
-    if (user.field_of_study && scholarship.specificFields) {
+    if (user.field_of_study && scholarship.specific_fields) {
       const userField = user.field_of_study.toLowerCase();
-      const scholarshipFields = Array.isArray(scholarship.specificFields) 
-        ? scholarship.specificFields 
+      const scholarshipFields = Array.isArray(scholarship.specific_fields) 
+        ? scholarship.specific_fields 
         : [];
       
       fieldMatch = scholarshipFields.some((field: string) => 
@@ -147,10 +147,10 @@ export class ScholarshipRecommendationService {
     }
     
     // If no specific field match, check field categories
-    if (!fieldMatch && user.field_of_study && scholarship.fieldCategories) {
+    if (!fieldMatch && user.field_of_study && scholarship.field_categories) {
       const userField = user.field_of_study.toLowerCase();
-      const scholarshipCategories = Array.isArray(scholarship.fieldCategories) 
-        ? scholarship.fieldCategories 
+      const scholarshipCategories = Array.isArray(scholarship.field_categories) 
+        ? scholarship.field_categories 
         : [];
       
       // Map common fields to categories
@@ -177,12 +177,12 @@ export class ScholarshipRecommendationService {
     }
 
     // 2. Country Match (30 points) 
-    if (user.preferred_countries && scholarship.hostCountries) {
+    if (user.preferred_countries && scholarship.host_countries) {
       const userCountries = Array.isArray(user.preferred_countries) 
         ? user.preferred_countries 
         : [];
-      const scholarshipCountries = Array.isArray(scholarship.hostCountries) 
-        ? scholarship.hostCountries 
+      const scholarshipCountries = Array.isArray(scholarship.host_countries) 
+        ? scholarship.host_countries 
         : [];
       
       // Country name to code mapping
@@ -229,10 +229,10 @@ export class ScholarshipRecommendationService {
     }
 
     // 3. Study Level Match (20 points)
-    if (user.highest_qualification && scholarship.studyLevels) {
+    if (user.highest_qualification && scholarship.study_levels) {
       const userLevel = user.highest_qualification.toLowerCase();
-      const scholarshipLevels = Array.isArray(scholarship.studyLevels) 
-        ? scholarship.studyLevels 
+      const scholarshipLevels = Array.isArray(scholarship.study_levels) 
+        ? scholarship.study_levels 
         : [];
       
       const levelMatch = scholarshipLevels.some((level: string) => 
