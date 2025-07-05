@@ -1,17 +1,14 @@
 import { db } from "../db";
 import {
-  scholarshipProviders,
-  scholarshipPrograms,
   userScholarships,
   users,
-  ScholarshipProvider,
-  ScholarshipProgram,
   User,
 } from "@shared/schema";
+import { scholarships } from "@shared/scholarshipSchema";
 import { eq, and, or, gte, lte, inArray, desc, sql, like, arrayContains, isNull } from "drizzle-orm";
 
 export interface ScholarshipMatch {
-  scholarship: ScholarshipProgram & { provider: ScholarshipProvider };
+  scholarship: any;
   matchScore: number;
   matchReasons: string[];
   isSaved?: boolean;
@@ -33,57 +30,62 @@ export class ScholarshipRecommendationService {
         throw new Error('User not found');
       }
 
-      // Get all active scholarships with providers
-      const scholarships = await db
-        .select({
-          scholarship: scholarshipPrograms,
-          provider: scholarshipProviders,
-        })
-        .from(scholarshipPrograms)
-        .innerJoin(
-          scholarshipProviders,
-          eq(scholarshipPrograms.providerId, scholarshipProviders.id)
-        )
-        .where(
-          and(
-            eq(scholarshipPrograms.isActive, true),
-            or(
-              isNull(scholarshipPrograms.deadline),
-              gte(scholarshipPrograms.deadline, new Date())
-            )
-          )
-        );
+      console.log(`[Scholarship Recommendations] User profile:`, {
+        id: user.id,
+        field: user.fieldOfStudy,
+        countries: user.preferredCountries,
+        qualification: user.highestQualification
+      });
 
-      // Get user's saved scholarships
-      const savedScholarshipIds = await db
-        .select({ scholarshipId: userScholarships.scholarshipId })
-        .from(userScholarships)
-        .where(eq(userScholarships.userId, userId));
-      
-      const savedIds = new Set(savedScholarshipIds.map(s => s.scholarshipId));
+      // Get all active scholarships
+      const scholarshipList = await db
+        .select()
+        .from(scholarships)
+        .where(eq(scholarships.status, 'active'));
+
+      console.log(`[Scholarship Recommendations] Found ${scholarshipList.length} active scholarships`);
 
       // Calculate match scores for each scholarship
       const matches: ScholarshipMatch[] = [];
       
-      for (const { scholarship, provider } of scholarships) {
-        const { score, reasons } = this.calculateMatchScore(scholarship, user);
-        
-        if (score > 0) {
+      for (const scholarship of scholarshipList) {
+        const matchResult = this.calculateMatchScore(user, scholarship);
+        if (matchResult.matchScore > 0) {
           matches.push({
-            scholarship: { ...scholarship, provider },
-            matchScore: score,
-            matchReasons: reasons,
-            isSaved: savedIds.has(scholarship.id),
+            scholarship,
+            matchScore: matchResult.matchScore,
+            matchReasons: matchResult.matchReasons,
+            isSaved: false // Will be updated later
           });
         }
       }
 
-      // Sort by match score (highest first)
+      // Sort by match score (highest first) and limit to top 10
       matches.sort((a, b) => b.matchScore - a.matchScore);
+      const topMatches = matches.slice(0, 10);
 
-      // Return top 20 matches
-      return matches.slice(0, 20);
+      console.log(`[Scholarship Recommendations] Generated ${topMatches.length} matches for user ${userId}`);
 
+      // Check which scholarships are saved by the user
+      if (topMatches.length > 0) {
+        const scholarshipIds = topMatches.map(match => match.scholarship.id);
+        const savedScholarships = await db
+          .select({ scholarshipId: userScholarships.scholarshipId })
+          .from(userScholarships)
+          .where(
+            and(
+              eq(userScholarships.userId, userId),
+              inArray(userScholarships.scholarshipId, scholarshipIds)
+            )
+          );
+
+        const savedIds = new Set(savedScholarships.map(s => s.scholarshipId));
+        topMatches.forEach(match => {
+          match.isSaved = savedIds.has(match.scholarship.id);
+        });
+      }
+
+      return topMatches;
     } catch (error) {
       console.error('Error getting scholarship recommendations:', error);
       throw error;
@@ -94,99 +96,112 @@ export class ScholarshipRecommendationService {
    * Calculate match score between scholarship and user profile
    */
   private calculateMatchScore(
-    scholarship: ScholarshipProgram,
-    user: User
-  ): { score: number; reasons: string[] } {
+    user: User,
+    scholarship: any
+  ): { matchScore: number; matchReasons: string[] } {
     let score = 0;
     const reasons: string[] = [];
 
-    // 1. Study Level Match (30 points)
-    if (scholarship.levelOfStudy && user.highestQualification) {
-      const userLevel = user.highestQualification.toLowerCase();
-      const eligibleLevels = scholarship.levelOfStudy.map(l => l.toLowerCase());
+    console.log(`[Match Scoring] Evaluating scholarship: ${scholarship.name} for user fields:`, {
+      userField: user.fieldOfStudy,
+      userCountries: user.preferredCountries,
+      userLevel: user.highestQualification,
+      scholarshipFields: scholarship.specificFields,
+      scholarshipCountries: scholarship.hostCountries,
+      scholarshipLevels: scholarship.studyLevels
+    });
+
+    // 1. Field of Study Match (40 points)
+    if (user.fieldOfStudy && scholarship.specificFields) {
+      const userField = user.fieldOfStudy.toLowerCase();
+      const scholarshipFields = Array.isArray(scholarship.specificFields) 
+        ? scholarship.specificFields 
+        : [];
       
-      // Check if user's level matches or progresses to scholarship level
-      if (this.isLevelEligible(userLevel, eligibleLevels)) {
+      const fieldMatch = scholarshipFields.some((field: string) => 
+        field.toLowerCase().includes(userField) || 
+        userField.includes(field.toLowerCase())
+      );
+      
+      if (fieldMatch) {
+        score += 40;
+        reasons.push(`Matches your field: ${user.fieldOfStudy}`);
+      }
+    }
+
+    // 2. Country Match (30 points) 
+    if (user.preferredCountries && scholarship.hostCountries) {
+      const userCountries = Array.isArray(user.preferredCountries) 
+        ? user.preferredCountries 
+        : [];
+      const scholarshipCountries = Array.isArray(scholarship.hostCountries) 
+        ? scholarship.hostCountries 
+        : [];
+      
+      const countryMatch = userCountries.some((country: string) => 
+        scholarshipCountries.some((sCountry: string) => 
+          sCountry.toLowerCase().includes(country.toLowerCase()) ||
+          country.toLowerCase().includes(sCountry.toLowerCase())
+        )
+      );
+      
+      if (countryMatch) {
         score += 30;
+        reasons.push('Available in your preferred countries');
+      }
+    }
+
+    // 3. Study Level Match (20 points)
+    if (user.highestQualification && scholarship.studyLevels) {
+      const userLevel = user.highestQualification.toLowerCase();
+      const scholarshipLevels = Array.isArray(scholarship.studyLevels) 
+        ? scholarship.studyLevels 
+        : [];
+      
+      const levelMatch = scholarshipLevels.some((level: string) => 
+        level.toLowerCase().includes(userLevel) || 
+        userLevel.includes(level.toLowerCase()) ||
+        (userLevel.includes('bachelor') && level.toLowerCase().includes('master')) ||
+        (userLevel.includes('master') && level.toLowerCase().includes('phd'))
+      );
+      
+      if (levelMatch) {
+        score += 20;
         reasons.push('Matches your study level');
       }
     }
 
-    // 2. Field of Study Match (25 points)
-    if (scholarship.tags && user.fields_of_interest) {
-      const userFields = user.fields_of_interest.map((f: string) => f.toLowerCase());
-      const scholarshipTags = scholarship.tags.map((t: string) => t.toLowerCase());
-      
-      const fieldMatch = userFields.some((field: string) => 
-        scholarshipTags.some((tag: string) => 
-          tag.includes(field) || field.includes(tag)
-        )
-      );
-      
-      if (fieldMatch) {
-        score += 25;
-        reasons.push('Matches your field of study');
-      }
+    // 4. Base eligibility (10 points if any match found)
+    if (score > 0) {
+      score += 10;
+      reasons.push('Eligible based on profile');
     }
 
-    // 3. Financial Need Match (20 points)
-    if (scholarship.needBased && user.budget_min !== null && user.budget_max !== null) {
-      // If user has budget constraints and scholarship is need-based
-      if (user.budget_max < 50000) { // Assuming this indicates financial need
-        score += 20;
-        reasons.push('Need-based funding available');
-      }
-    }
-
-    // 4. Merit-Based Match (15 points)
-    if (scholarship.meritBased) {
-      // Merit-based scholarships are relevant to all users
-      score += 15;
-      reasons.push('Merit-based opportunity');
-    }
-
-    // 5. Country/Location Match (10 points)
-    if (user.preferredCountries && scholarship.tags) {
-      const userCountries = user.preferredCountries.map((c: string) => c.toLowerCase());
-      const hasCountryMatch = scholarship.tags.some((tag: string) => 
-        userCountries.some((country: string) => 
-          tag.toLowerCase().includes(country) || country.includes(tag.toLowerCase())
-        )
-      );
-      
-      if (hasCountryMatch) {
-        score += 10;
-        reasons.push('Available in your preferred country');
-      }
-    }
-
-    // Ensure score doesn't exceed 100
-    score = Math.min(score, 100);
-
-    return { score, reasons };
+    console.log(`[Match Scoring] Final score: ${score} for scholarship: ${scholarship.name}`);
+    
+    return { matchScore: score, matchReasons: reasons };
   }
 
   /**
    * Check if user's academic level makes them eligible
    */
   private isLevelEligible(userLevel: string, eligibleLevels: string[]): boolean {
-    const levelProgression: { [key: string]: string[] } = {
-      'high school': ['undergraduate', 'bachelor', 'diploma'],
-      'diploma': ['undergraduate', 'bachelor', 'graduate', 'master'],
-      'undergraduate': ['graduate', 'master', 'phd', 'doctoral'],
-      'bachelor': ['graduate', 'master', 'phd', 'doctoral'],
-      'graduate': ['phd', 'doctoral', 'postdoctoral'],
-      'master': ['phd', 'doctoral', 'postdoctoral'],
+    const progressionMap: { [key: string]: string[] } = {
+      'high school': ['bachelor', 'undergraduate', 'diploma'],
+      'diploma': ['bachelor', 'undergraduate', 'master', 'graduate'],
+      'bachelor': ['master', 'graduate', 'phd', 'doctorate'],
+      'master': ['phd', 'doctorate'],
+      'phd': ['postdoc', 'research'],
     };
 
     // Direct match
-    if (eligibleLevels.includes(userLevel)) {
+    if (eligibleLevels.some(level => level.toLowerCase() === userLevel)) {
       return true;
     }
 
-    // Check progression match
-    const nextLevels = levelProgression[userLevel] || [];
-    return eligibleLevels.some(level => nextLevels.includes(level));
+    // Check progression
+    const nextLevels = progressionMap[userLevel] || [];
+    return eligibleLevels.some(level => nextLevels.includes(level.toLowerCase()));
   }
 
   /**
@@ -196,40 +211,32 @@ export class ScholarshipRecommendationService {
     try {
       const saved = await db
         .select({
-          scholarship: scholarshipPrograms,
-          provider: scholarshipProviders,
-          savedStatus: userScholarships,
+          scholarship: scholarships,
+          savedAt: userScholarships.savedAt,
         })
         .from(userScholarships)
         .innerJoin(
-          scholarshipPrograms,
-          eq(userScholarships.scholarshipId, scholarshipPrograms.id)
-        )
-        .innerJoin(
-          scholarshipProviders,
-          eq(scholarshipPrograms.providerId, scholarshipProviders.id)
+          scholarships,
+          eq(userScholarships.scholarshipId, scholarships.id)
         )
         .where(eq(userScholarships.userId, userId))
-        .orderBy(desc(userScholarships.createdAt));
+        .orderBy(desc(userScholarships.savedAt));
 
-      // Get user for match score calculation
       const [user] = await db
         .select()
         .from(users)
         .where(eq(users.id, userId));
 
-      return saved.map(({ scholarship, provider, savedStatus }) => {
-        const { score, reasons } = this.calculateMatchScore(scholarship, user);
-        
+      return saved.map(({ scholarship }) => {
+        const matchResult = user ? this.calculateMatchScore(user, scholarship) : { matchScore: 0, matchReasons: [] };
         return {
-          scholarship: { ...scholarship, provider },
-          matchScore: score,
-          matchReasons: reasons,
+          scholarship,
+          matchScore: matchResult.matchScore,
+          matchReasons: matchResult.matchReasons,
           isSaved: true,
         };
       });
-
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting saved scholarships:', error);
       throw error;
     }
@@ -241,24 +248,11 @@ export class ScholarshipRecommendationService {
   async toggleSaveScholarship(userId: number, scholarshipId: number, save: boolean): Promise<void> {
     try {
       if (save) {
-        // Save scholarship
-        await db
-          .insert(userScholarships)
-          .values({
-            userId,
-            scholarshipId,
-            status: 'saved',
-            applicationStatus: 'not_started',
-          })
-          .onConflictDoUpdate({
-            target: [userScholarships.userId, userScholarships.scholarshipId],
-            set: {
-              status: 'saved',
-              updatedAt: new Date(),
-            },
-          });
+        await db.insert(userScholarships).values({
+          userId,
+          scholarshipId,
+        });
       } else {
-        // Remove saved scholarship
         await db
           .delete(userScholarships)
           .where(
@@ -268,7 +262,7 @@ export class ScholarshipRecommendationService {
             )
           );
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error toggling scholarship save:', error);
       throw error;
     }
@@ -284,18 +278,10 @@ export class ScholarshipRecommendationService {
     message: string
   ): Promise<void> {
     try {
-      // For now, we'll just log the inquiry
-      // In a full implementation, this would save to a scholarship_inquiries table
-      console.log('Scholarship inquiry created:', {
-        userId,
-        scholarshipId,
-        inquiryType,
-        message,
-        createdAt: new Date(),
-      });
-      
-      // You could also send an email notification to admins here
-    } catch (error) {
+      console.log(`Creating scholarship inquiry for user ${userId}, scholarship ${scholarshipId}`);
+      // This would save to a scholarship_inquiries table if it existed
+      // For now, just log the inquiry
+    } catch (error: any) {
       console.error('Error creating scholarship inquiry:', error);
       throw error;
     }
