@@ -32,9 +32,9 @@ export class ScholarshipRecommendationService {
 
       console.log(`[Scholarship Recommendations] User profile:`, {
         id: user.id,
-        field: user.fieldOfStudy,
-        countries: user.preferredCountries,
-        qualification: user.highestQualification
+        field: user.field_of_study,
+        countries: user.preferred_countries,
+        qualification: user.highest_qualification
       });
 
       // Get all active scholarships
@@ -103,17 +103,17 @@ export class ScholarshipRecommendationService {
     const reasons: string[] = [];
 
     console.log(`[Match Scoring] Evaluating scholarship: ${scholarship.name} for user fields:`, {
-      userField: user.fieldOfStudy,
-      userCountries: user.preferredCountries,
-      userLevel: user.highestQualification,
+      userField: user.field_of_study,
+      userCountries: user.preferred_countries,
+      userLevel: user.highest_qualification,
       scholarshipFields: scholarship.specificFields,
       scholarshipCountries: scholarship.hostCountries,
       scholarshipLevels: scholarship.studyLevels
     });
 
     // 1. Field of Study Match (40 points)
-    if (user.fieldOfStudy && scholarship.specificFields) {
-      const userField = user.fieldOfStudy.toLowerCase();
+    if (user.field_of_study && scholarship.specificFields) {
+      const userField = user.field_of_study.toLowerCase();
       const scholarshipFields = Array.isArray(scholarship.specificFields) 
         ? scholarship.specificFields 
         : [];
@@ -125,14 +125,14 @@ export class ScholarshipRecommendationService {
       
       if (fieldMatch) {
         score += 40;
-        reasons.push(`Matches your field: ${user.fieldOfStudy}`);
+        reasons.push(`Matches your field: ${user.field_of_study}`);
       }
     }
 
     // 2. Country Match (30 points) 
-    if (user.preferredCountries && scholarship.hostCountries) {
-      const userCountries = Array.isArray(user.preferredCountries) 
-        ? user.preferredCountries 
+    if (user.preferred_countries && scholarship.hostCountries) {
+      const userCountries = Array.isArray(user.preferred_countries) 
+        ? user.preferred_countries 
         : [];
       const scholarshipCountries = Array.isArray(scholarship.hostCountries) 
         ? scholarship.hostCountries 
@@ -152,8 +152,8 @@ export class ScholarshipRecommendationService {
     }
 
     // 3. Study Level Match (20 points)
-    if (user.highestQualification && scholarship.studyLevels) {
-      const userLevel = user.highestQualification.toLowerCase();
+    if (user.highest_qualification && scholarship.studyLevels) {
+      const userLevel = user.highest_qualification.toLowerCase();
       const scholarshipLevels = Array.isArray(scholarship.studyLevels) 
         ? scholarship.studyLevels 
         : [];
@@ -212,7 +212,7 @@ export class ScholarshipRecommendationService {
       const saved = await db
         .select({
           scholarship: scholarships,
-          savedAt: userScholarships.savedAt,
+          savedAt: userScholarships.createdAt,
         })
         .from(userScholarships)
         .innerJoin(
@@ -220,7 +220,7 @@ export class ScholarshipRecommendationService {
           eq(userScholarships.scholarshipId, scholarships.id)
         )
         .where(eq(userScholarships.userId, userId))
-        .orderBy(desc(userScholarships.savedAt));
+        .orderBy(desc(userScholarships.createdAt));
 
       const [user] = await db
         .select()

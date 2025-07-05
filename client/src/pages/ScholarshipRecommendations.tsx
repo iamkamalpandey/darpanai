@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import DashboardLayout from '@/components/DashboardLayout';
 import { 
   DollarSign, 
   Calendar, 
@@ -162,12 +163,13 @@ const ScholarshipRecommendations: React.FC = () => {
   const isLoading = isLoadingRecommendations || isLoadingSaved;
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Scholarship Recommendations</h1>
-        <p className="text-gray-600">Personalized scholarships matched to your profile</p>
-      </div>
+    <DashboardLayout>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Scholarship Recommendations</h1>
+          <p className="text-gray-600">Personalized scholarships matched to your profile</p>
+        </div>
 
       {/* Search Bar */}
       <div className="mb-6">
@@ -420,7 +422,8 @@ const ScholarshipRecommendations: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 };
 
