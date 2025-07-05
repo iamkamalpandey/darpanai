@@ -103,17 +103,17 @@ export class ScholarshipRecommendationService {
     const reasons: string[] = [];
 
     console.log(`[Match Scoring] Evaluating scholarship: ${scholarship.name} for user fields:`, {
-      userField: user.field_of_study,
-      userCountries: user.preferred_countries,
-      userLevel: user.highest_qualification,
+      userField: user.fieldOfStudy,
+      userCountries: user.preferredCountries,
+      userLevel: user.highestQualification,
       scholarshipFields: scholarship.specificFields,
       scholarshipCountries: scholarship.hostCountries,
       scholarshipLevels: scholarship.studyLevels
     });
 
     // 1. Field of Study Match (40 points)
-    if (user.field_of_study && scholarship.specificFields) {
-      const userField = user.field_of_study.toLowerCase();
+    if (user.fieldOfStudy && scholarship.specificFields) {
+      const userField = user.fieldOfStudy.toLowerCase();
       const scholarshipFields = Array.isArray(scholarship.specificFields) 
         ? scholarship.specificFields 
         : [];
@@ -125,14 +125,14 @@ export class ScholarshipRecommendationService {
       
       if (fieldMatch) {
         score += 40;
-        reasons.push(`Matches your field: ${user.field_of_study}`);
+        reasons.push(`Matches your field: ${user.fieldOfStudy}`);
       }
     }
 
     // 2. Country Match (30 points) 
-    if (user.preferred_countries && scholarship.hostCountries) {
-      const userCountries = Array.isArray(user.preferred_countries) 
-        ? user.preferred_countries 
+    if (user.preferredCountries && scholarship.hostCountries) {
+      const userCountries = Array.isArray(user.preferredCountries) 
+        ? user.preferredCountries 
         : [];
       const scholarshipCountries = Array.isArray(scholarship.hostCountries) 
         ? scholarship.hostCountries 
@@ -152,8 +152,8 @@ export class ScholarshipRecommendationService {
     }
 
     // 3. Study Level Match (20 points)
-    if (user.highest_qualification && scholarship.studyLevels) {
-      const userLevel = user.highest_qualification.toLowerCase();
+    if (user.highestQualification && scholarship.studyLevels) {
+      const userLevel = user.highestQualification.toLowerCase();
       const scholarshipLevels = Array.isArray(scholarship.studyLevels) 
         ? scholarship.studyLevels 
         : [];

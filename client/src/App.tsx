@@ -311,6 +311,13 @@ function Router() {
           </Suspense>
         )} />
       </Route>
+      <Route path="/scholarship-recommendations">
+        <UserProtectedRoute path="/scholarship-recommendations" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <ScholarshipRecommendations />
+          </Suspense>
+        )} />
+      </Route>
       <Route path="/my-watchlist">
         <UserProtectedRoute path="/my-watchlist" component={() => (
           <Suspense fallback={<LoadingFallback />}>
