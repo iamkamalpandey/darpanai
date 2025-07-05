@@ -129,8 +129,35 @@ export default function ScholarshipHubNew() {
     };
   };
 
+  // Transform stored recommendations to match interface  
+  const transformRecommendation = (recommendation: any): ScholarshipMatch => {
+    return {
+      scholarship: {
+        id: recommendation.scholarshipId,
+        name: recommendation.scholarshipName,
+        provider: {
+          name: recommendation.providerName || 'Unknown Provider',
+          country: recommendation.providerCountry || 'Various',
+          website: recommendation.websiteUrl || '',
+        },
+        amount: recommendation.fundingAmount || 'Amount not specified',
+        deadline: recommendation.applicationDeadline || '2025-12-31',
+        studyLevels: Array.isArray(recommendation.targetCountries) ? recommendation.targetCountries : ['Bachelor\'s'],
+        fieldCategories: Array.isArray(recommendation.targetCountries) ? recommendation.targetCountries : ['General'],
+        hostCountries: Array.isArray(recommendation.targetCountries) ? recommendation.targetCountries : ['Global'],
+        description: recommendation.scholarshipDescription || 'Scholarship opportunity',
+        eligibilityRequirements: recommendation.eligibilityCriteria || 'See official website for details',
+        fundingType: recommendation.fundingType || 'Merit-based',
+      },
+      matchScore: recommendation.matchScore || 75,
+      matchReasons: Array.isArray(recommendation.matchReasons) ? recommendation.matchReasons : ['Profile compatibility'],
+      isSaved: false,
+    };
+  };
+
   // Get data arrays - handle both response formats  
-  const recommendations = recommendationsData?.recommendations || [];
+  const rawRecommendations = recommendationsData?.recommendations || [];
+  const transformedRecommendations = rawRecommendations.map(transformRecommendation);
   
   // Handle different API response formats
   let rawScholarships = [];
@@ -350,7 +377,7 @@ export default function ScholarshipHubNew() {
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
                   <div className="flex items-center justify-center gap-2 mb-2">
                     <Target className="w-5 h-5" />
-                    <span className="text-2xl font-bold">{recommendations.length}</span>
+                    <span className="text-2xl font-bold">{transformedRecommendations.length}</span>
                   </div>
                   <p className="text-sm opacity-75">Matched</p>
                 </div>
@@ -414,7 +441,7 @@ export default function ScholarshipHubNew() {
                   <span className="hidden sm:inline">AI Matched</span>
                   <span className="sm:hidden">Matched</span>
                   <Badge variant="secondary" className="ml-1 bg-blue-100 text-blue-700">
-                    {recommendations.length}
+                    {transformedRecommendations.length}
                   </Badge>
                 </TabsTrigger>
                 <TabsTrigger 
@@ -471,7 +498,7 @@ export default function ScholarshipHubNew() {
                     </Card>
                   ))
                 ) : (
-                  renderScholarshipGrid(recommendations, true, "No personalized recommendations yet. Complete your profile to get better matches!")
+                  renderScholarshipGrid(transformedRecommendations, true, "No personalized recommendations yet. Complete your profile to get better matches!")
                 )}
               </div>
             </TabsContent>
