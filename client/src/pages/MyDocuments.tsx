@@ -118,23 +118,37 @@ export default function MyDocuments() {
         throw new Error('Document limit reached. You can upload a maximum of 15 documents. Please delete some documents to upload new ones.');
       }
       
-      const response = await fetch('/api/document-management/upload', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-      });
-      
-      console.log('Upload response status:', response.status);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.log('Upload error data:', errorData);
-        throw new Error(errorData.error || 'Upload failed');
+      try {
+        // Create an AbortController for timeout handling
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
+        const response = await fetch('/api/document-management/upload', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        console.log('Upload response status:', response.status);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Upload failed' }));
+          console.log('Upload error data:', errorData);
+          throw new Error(errorData.error || 'Upload failed');
+        }
+        
+        const result = await response.json();
+        console.log('Upload success result:', result);
+        return result;
+      } catch (error: any) {
+        console.error('Upload error caught:', error);
+        if (error.name === 'AbortError') {
+          throw new Error('Upload timeout. Please try again with a smaller file.');
+        }
+        throw error;
       }
-      
-      const result = await response.json();
-      console.log('Upload success result:', result);
-      return result;
     },
     onSuccess: (data) => {
       console.log('Upload mutation success:', data);
