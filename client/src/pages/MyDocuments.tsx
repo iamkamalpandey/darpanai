@@ -123,7 +123,7 @@ export default function MyDocuments() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
         
-        const response = await fetch('/api/document-management/upload', {
+        const response = await fetch('/api/documents/upload', {
           method: 'POST',
           body: formData,
           credentials: 'include',
