@@ -120,7 +120,8 @@ export default function MyDocuments() {
       
       const response = await fetch('/api/document-management/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'include'
       });
       
       console.log('Upload response status:', response.status);
