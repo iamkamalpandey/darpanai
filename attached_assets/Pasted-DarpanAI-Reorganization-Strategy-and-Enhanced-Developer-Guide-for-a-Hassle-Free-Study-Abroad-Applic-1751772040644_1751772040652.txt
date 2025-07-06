@@ -1,0 +1,720 @@
+DarpanAI: Reorganization Strategy and Enhanced Developer Guide for a Hassle-Free Study Abroad Application
+1. Introduction
+DarpanAI is poised to become the leading AI-powered platform for international students, streamlining the complex study abroad journey. This document presents a strategic reorganization plan to achieve a truly "hassle-free" application experience. We will redefine user roles, restructure the application's architecture for scalability and maintainability, and propose feature enhancements to maximize utility for students, while empowering Study Abroad Experts and Admins in their respective capacities.
+
+2. Current Application Overview and Analysis
+Based on the provided codebase, DarpanAI currently features:
+
+Frontend (React/TypeScript/Tailwind/Shadcn UI): Pages for document analysis (Offer Letter, CoE, Academic, CV), scholarship research, destination suggestions, profile editing, and various admin dashboards. Components for UI elements, file uploads, and authentication.
+
+Backend (Node.js/Express/TypeScript/Firebase): Routes for document processing, scholarship management, AI services (Gemini API, Google Vision AI), user authentication, and basic data storage. Services for OCR, AI analysis, and database interactions.
+
+Shared: Zod schemas for data validation across frontend and backend.
+
+Key Observations & Areas for Improvement:
+
+Feature Richness: The application already covers many critical areas of the study abroad journey.
+
+AI Foundation: AI is integrated for document analysis and chatbot functionalities.
+
+Separation of Concerns: While there are pages, components, routes, services, and storage directories, some backend services might benefit from further modularization as features grow.
+
+Workflow Integration: The current features are somewhat standalone. The vision requires a more integrated, guided workflow for students.
+
+Role Clarity: While admin pages exist, the precise workflow and interaction points between students, experts, and admins need formalization.
+
+Data Management: Ensuring a comprehensive, centralized, and easily queryable database for universities, courses, and scholarships is crucial for AI-driven recommendations.
+
+3. Reorganization Strategy: Core Principles
+Our reorganization strategy is built upon the following pillars:
+
+Student-Centric Guided Workflow: The student's journey from initial interest to application submission will be the primary navigation path, guided by AI and human expertise.
+
+AI as the Intelligent Co-Pilot: AI will automate repetitive tasks, provide personalized insights, validate information, and proactively guide students, reducing friction at every step.
+
+Clear Role Delineation & Collaboration: Defined roles for Students, Study Abroad Experts, and Admins will ensure efficient operations and specialized support.
+
+Modular and Scalable Architecture: The application will be designed with independent, reusable modules to facilitate easier development, testing, and future expansion.
+
+Data as the Single Source of Truth: A robust and well-structured database will underpin all recommendations, analyses, and application processes, preventing hallucinations and ensuring accuracy.
+
+Security and Compliance by Design: Security measures and data privacy will be baked into every layer of the application.
+
+4. Redefined Roles and Responsibilities
+To achieve the "hassle-free" vision, the roles within DarpanAI will be clearly defined:
+
+4.1. Student (End-User)
+Primary Interaction: The student is the primary user of the platform, engaging with the AI chatbot and guided application wizard.
+
+Responsibilities:
+
+Creating and maintaining their comprehensive profile.
+
+Uploading and reviewing their academic and personal documents.
+
+Exploring AI-driven course, institution, and scholarship recommendations.
+
+Filling out application forms (pre-filled by AI).
+
+Reviewing and submitting applications for expert/admin approval.
+
+Tracking application statuses and communicating with experts.
+
+Confirming manual submission on university portals.
+
+Goal: Achieve their study abroad dream with minimal manual effort and maximum clarity.
+
+4.2. Study Abroad Expert (Consultant)
+Primary Interaction: Human oversight, personalized guidance, and quality assurance.
+
+Responsibilities:
+
+Accessing and reviewing student applications submitted for review.
+
+Providing personalized feedback and requesting revisions from students.
+
+Approving applications for final Admin review.
+
+Conducting one-on-one consultations (if offered).
+
+Staying updated on institution-specific requirements and market trends.
+
+Providing feedback to the DarpanAI development team for AI improvement.
+
+Goal: Ensure student applications are flawless and strategically strong, leveraging AI to manage caseloads efficiently.
+
+4.3. Admin (Platform Administrator / Business Operations)
+Primary Interaction: System management, institutional partnerships, lead generation, and overall business strategy.
+
+Responsibilities:
+
+Final approval of student applications before submission.
+
+Managing the university/institution database (adding, updating courses, requirements).
+
+Managing scholarship database.
+
+Managing user accounts (students, experts).
+
+Monitoring system performance and analytics.
+
+Overseeing lead generation activities for represented institutions.
+
+Managing document templates and checklists.
+
+Handling system-wide announcements and updates.
+
+Reviewing feedback and managing system settings.
+
+Goal: Ensure the platform runs smoothly, partnerships are optimized, and business objectives are met.
+
+5. Proposed Application Structure (High-Level Redesign)
+The application will adopt a more modular architecture, promoting clear separation of concerns and enhancing scalability.
+
+5.1. Frontend Architecture (client/src/)
+The frontend will be reorganized to reflect the student's guided journey and clear admin/expert workflows.
+
+client/src/features/ (NEW): Encapsulate related components, pages, hooks, and logic for specific functionalities.
+
+auth/ (Login, Register, Profile Management)
+
+onboarding/ (Initial profile setup, guided tour)
+
+documents/ (Upload, Analysis View, Document Repository)
+
+recommendations/ (Course, University, Scholarship, Destination display)
+
+applications/ (Application Wizard, My Applications Dashboard, Application Details)
+
+chatbot/ (Chat interface, history)
+
+admin/ (Unified admin panel features, e.g., User Management, System Settings)
+
+expert/ (Application Review Queue, Student Portfolio View)
+
+notifications/ (In-app alerts, toasts)
+
+client/src/shared/: Reusable UI components (components/ui), utility functions (lib/utils), hooks (hooks), and global styles.
+
+client/src/app/: Main application layout (App.tsx), routing (main.tsx), and global context providers.
+
+5.1.1. Student Dashboard Sidebar Reorganization (Enhanced User Experience)
+
+To provide a more intuitive and student-centric navigation, the primary sidebar for students will be reorganized into logical sections reflecting their study abroad journey.
+
+Dashboard
+
+Overview (Quick links to profile completion, next application steps, recent notifications)
+
+My Profile
+
+Profile Details (Edit Profile, view completeness score)
+
+My Documents (Upload, View Analyzed Documents, Document Repository)
+
+Explore Opportunities
+
+Courses & Universities (Search, Browse Catalog)
+
+Scholarships (Search, Matching Results)
+
+Study Destinations (Suggestions, Details)
+
+My Applications
+
+Application Wizard (Start New Application)
+
+Application Tracker (View All Applications, Status)
+
+AI Assistant
+
+Chat with AI (Main Chatbot Interface)
+
+Analysis History (Previous Document Analyses, Visa Analysis, CoE Analysis, etc.)
+
+Support & Resources
+
+Consultations (Book, View Appointments)
+
+Updates & News (System announcements, industry news)
+
+Document Templates & Checklists
+
+Account
+
+Settings
+
+Notifications (Specific notification preferences)
+
+This new structure improves user experience by:
+
+Aligning with User Journey: Grouping features based on the natural progression of a student's study abroad process.
+
+Reducing Cognitive Load: Fewer top-level items, with related functionalities nested logically.
+
+Enhancing Discoverability: Making it easier for students to find the tools they need at each stage.
+
+Promoting AI Integration: Clearly positioning the "AI Assistant" as a central hub for intelligent tools.
+
+5.1.2. Study Abroad Expert Dashboard Sidebar Reorganization (Enhanced Workflow)
+
+The sidebar for Study Abroad Experts will be optimized to support their core responsibilities of review, guidance, and collaboration.
+
+Dashboard
+
+Overview (Pending reviews, upcoming consultations, recent student activity)
+
+Student Management
+
+My Students (List of assigned students, quick access to profiles)
+
+Student Search (Find and assign students)
+
+Application Review
+
+Review Queue (Applications Pending Expert Review)
+
+Approved for Admin (Applications Pending Admin Approval)
+
+Revisions Requested (Applications Revisions Requested from students)
+
+Consultations
+
+My Appointments (View and manage scheduled consultations)
+
+Book Consultation (Schedule new consultations)
+
+Knowledge Base
+
+University Catalog (Browse, search university/course details)
+
+Scholarship Database (Browse, search scholarship details)
+
+Document Templates (Access and manage templates)
+
+Communication
+
+Messages (In-app messages with students)
+
+Notifications (System alerts, student activity notifications)
+
+Reports
+
+My Performance (Expert-specific metrics, caseload)
+
+Account
+
+Profile Settings
+
+Availability Management
+
+This structure focuses on:
+
+Workflow Efficiency: Grouping review queues and student management for quick access.
+
+Information Access: Centralizing access to university, course, and scholarship data for informed guidance.
+
+Collaboration: Providing clear channels for communication and feedback with students.
+
+5.1.3. Admin Dashboard Sidebar Reorganization (Enhanced Control & Oversight)
+
+The Admin sidebar will be designed for comprehensive system management, lead generation, and strategic oversight.
+
+Dashboard
+
+System Overview (Key metrics, recent activity, alerts)
+
+User Management
+
+Students (Manage student accounts, view profiles)
+
+Experts (Manage expert accounts, assignments)
+
+Admins (Manage other admin accounts)
+
+Application Oversight
+
+Final Approval Queue (Applications Pending Admin Approval)
+
+All Applications (Browse all applications, filter by status)
+
+Application History (Audit trail of all application changes)
+
+Catalog Management
+
+Universities & Courses (Add, edit, manage university/course details)
+
+Scholarships (Add, edit, manage scholarship details)
+
+Document Templates (Manage system-wide templates)
+
+Lead Management
+
+Leads Dashboard (Overview of lead pipeline)
+
+Generate Leads (Tools for lead generation activities)
+
+Lead Assignments (Assign leads to experts)
+
+System Configuration
+
+Settings (Global application settings, AI configurations)
+
+Announcements (Manage system-wide updates and news)
+
+Feedback (Review user feedback)
+
+Reports & Analytics
+
+Performance Reports (Overall system performance, conversion rates)
+
+Financial Reports (If applicable, revenue, costs)
+
+AI Performance (EVALS metrics, hallucination rates)
+
+Account
+
+Profile Settings
+
+Audit Logs (View system-wide activity logs)
+
+This structure emphasizes:
+
+Centralized Control: All management functionalities are easily accessible.
+
+Strategic Insights: Dedicated sections for reports and analytics to inform business decisions.
+
+Lead-to-Application Flow: Integrating lead management with the application process.
+
+5.2. Backend Architecture (server/)
+The backend will move towards a more service-oriented or modular monolith design, where each core feature is managed by a dedicated service and exposed via specific API routes.
+
+server/modules/ (NEW): Each module encapsulates its own routes, services, and storage logic.
+
+auth/: User authentication, session management, role management.
+
+users/: User profile management (student, expert, admin details).
+
+documents/: Document upload, storage, OCR processing, raw text extraction.
+
+ai-analysis/: Orchestrates LLM calls for document parsing, eligibility checks, content generation (SOP drafts), and safety filtering.
+
+catalog/: Manages university, course, and scholarship data (CRUD operations).
+
+recommendations/: Logic for matching and ranking recommendations based on user profiles and catalog data.
+
+applications/: Manages the application workflow state, approvals, and submission package generation.
+
+notifications/: Handles email, in-app, and push notifications.
+
+chatbot/: Orchestrates chat interactions, RAG, and conversational state.
+
+admin/: Specific admin-level operations (e.g., User Management, System Settings).
+
+integrations/: Handles external university API calls or RPA logic (future phase).
+
+server/core/: Global middleware, error handling, database initialization (db.ts), AI service clients (aiServices.ts, openai.ts, googleVisionService.ts).
+
+server/shared/: Reusable types, interfaces, and utility functions specific to the backend.
+
+5.3. Shared Code (shared/)
+This directory will continue to house common TypeScript interfaces and Zod schemas, ensuring data consistency across frontend and backend.
+
+6. Feature Adjustments, Additions, and Removals (Proofreading & Consulting)
+This section details how existing features will be refined and new ones introduced to align with the "hassle-free" vision and defined roles.
+
+6.1. Core Features: Keep & Enhance
+Student Profile Management (client/src/pages/ProfileEdit.tsx, EnhancedUserProfile.tsx):
+
+Enhancement: Make profile completion a guided, interactive process. AI identifies missing information crucial for applications and prompts the student. Introduce a "Profile Completeness Score" and suggest actions to improve it.
+
+Document Analysis Suite (OfferLetterAnalysis, AcademicDocumentAnalysis, CvAnalysis, CoEAnalysis):
+
+Enhancement: Deepen AI's understanding to extract all data points required for common university applications. Implement AI-driven "Document Quality Checks" and "Completeness Checks" with explicit feedback (e.g., "GPA is unclear," "Signature missing").
+
+Integration: Directly link analyzed documents to the student's profile and application wizard.
+
+Scholarship Matching (ScholarshipMatchingMVP.tsx, ScholarshipResearch.tsx):
+
+Enhancement: More granular matching criteria based on detailed student profiles and scholarship requirements. AI can explain why a scholarship is a good fit.
+
+Study Destination Suggestions (StudyDestinationSuggestions.tsx):
+
+Enhancement: Integrate more deeply with course/university data. AI provides detailed pros/cons for each destination based on student preferences and profile.
+
+AI Chatbot (ScholarshipChatbotPage.tsx):
+
+Enhancement: Transform into a proactive, state-aware "Application Guide Bot" (as per previous plan). It guides students through the application steps, answers questions, and provides real-time eligibility feedback.
+
+6.2. Key Adjustments & Refinements
+Unified Application Workflow (client/src/pages/ApplicationWizard.tsx, MyApplications.tsx):
+
+Refinement: This will be the central student experience. A multi-step wizard guides students through selecting courses, pre-filling forms, attaching documents, and submitting for review.
+
+Status Tracking: The Application schema will have a robust status enum (Draft, Pending Expert Review, Revisions Requested, Pending Admin Approval, Returned for Expert Review, Approved for Submission, Submitted, Offer Received, Rejected).
+
+Admin/Expert Dashboards:
+
+Refinement: Tailor client/src/pages/admin/* pages to reflect the new roles.
+
+Expert Dashboard: Focus on "Application Review Queue," showing applications Pending Expert Review.
+
+Admin Dashboard: Focus on "Final Approval Queue" (Pending Admin Approval), "Lead Management," and "University/Scholarship Catalog Management."
+
+6.3. New Feature Additions (Crucial for Hassle-Free & Role Definition)
+Centralized University & Course Catalog (Admin Feature):
+
+Admin UI (client/src/pages/admin/UniversityManagement.tsx): Allows Admins to add, edit, and manage detailed university and course information, including admission requirements, application links, and deadlines. This is the bedrock for accurate recommendations and form mapping.
+
+Backend (server/modules/catalog/): Dedicated API for managing this data.
+
+Expert Review Interface (client/src/pages/expert/ApplicationReviewQueue.tsx):
+
+UI: A dedicated interface for Study Abroad Experts to view student applications, review pre-filled forms, check attached documents, add notes, and perform Approve for Admin Review or Request Revisions actions.
+
+Backend (server/modules/applications/): New API endpoints for expert actions.
+
+Admin Final Approval Interface (client/src/pages/admin/FinalApplicationApproval.tsx):
+
+UI: A dedicated interface for Admins to view applications approved by experts, perform final checks, and execute Approve for Submission or Send Back to Expert actions.
+
+Backend (server/modules/applications/): New API endpoints for admin actions.
+
+Application Package Generation:
+
+Backend (server/modules/applications/): A service to compile the pre-filled form data and attached documents into a single, organized package (e.g., a ZIP file or a structured PDF bundle) for student manual submission.
+
+In-App Messaging/Collaboration:
+
+UI: A simple messaging system within DarpanAI for students to communicate with their assigned expert, and for experts/admins to send revision requests or updates.
+
+Backend (server/modules/notifications/ or new messages/ module): APIs for sending and receiving messages.
+
+AI-driven SOP/Essay Assistance:
+
+UI: A guided writing tool where AI assists students in structuring and refining their Statement of Purpose or essays based on their profile and target institution's requirements. Crucially, AI provides suggestions and critiques, but the student retains full control over the final content to avoid hallucination and maintain authenticity.
+
+Backend (server/modules/ai-analysis/): New LLM prompts and logic for this specific task.
+
+Automated Lead Generation & Tracking (Admin Feature):
+
+UI (client/src/pages/admin/LeadManagement.tsx): Tools for Admins to input or import student leads, assign them to experts, and track their progress through the DarpanAI funnel.
+
+Backend (server/modules/admin/ or new leads/ module): APIs for lead management.
+
+6.4. Features to Adjust/Deprioritize (Proofreading)
+admin-analyses-corrupted.tsx, admin-analyses-backup.tsx, admin-analyses-old.tsx: These appear to be old/backup versions. Consolidate into a single, robust admin-analyses.tsx that reflects the new application tracking.
+
+Redundant UI Components: Review client/src/components/ui/ and client/src/components/ for any duplicated or overly specific components that can be generalized (e.g., multiple AnalysisHistory components).
+
+Simplified offerLetterRoutesSimplified.ts vs offerLetterRoutesNew.ts vs offerLetterRoutes.ts: Consolidate these into a single, well-defined offerLetterRoutes.ts within the documents module. Apply this consolidation principle across other duplicated route/service files.
+
+7. Detailed Developer Guide for Restructured App
+This guide outlines the technical considerations for implementing the reorganized DarpanAI.
+
+7.1. Architectural Principles
+Modular Monolith (Backend): While conceptually split into "modules," initial implementation can be within a single Node.js/Express application, with clear folder separation and independent service/route files for each module. This allows for easier deployment initially and can be refactored into microservices later if scale demands.
+
+API-First Development: Define clear API contracts (using Zod for request/response validation) for all interactions between frontend, backend modules, and external services.
+
+Event-Driven Communication (Internal): For complex workflows like application status changes, consider using an internal event bus (e.g., Node.js EventEmitter or a lightweight message queue) to decouple modules. For example, ApplicationService emits an application.statusChanged event, which NotificationService listens to.
+
+7.2. Key Modules & Responsibilities (Backend - server/modules/)
+Each module will have its own routes.ts, service.ts, and storage.ts (or repository.ts) files.
+
+auth/
+
+Responsibility: User registration, login, session management, password reset, JWT token generation/validation.
+
+Key Files: authRoutes.ts, authService.ts. Integrates with Firebase Auth.
+
+users/
+
+Responsibility: CRUD for user profiles (students, experts, admins), role assignment.
+
+Key Files: userRoutes.ts, userService.ts, userStorage.ts.
+
+Schema: shared/schema.ts (for UserProfile).
+
+documents/
+
+Responsibility: Handles file uploads, secure storage (Firebase Storage), orchestrates OCR (Google Vision AI, Tesseract.js), and initial raw text extraction.
+
+Key Files: documentRoutes.ts, documentService.ts, fileStorage.ts, pdfFallbackService.ts, tesseractFallbackService.ts.
+
+ai-analysis/
+
+Responsibility: Core AI logic. Orchestrates LLM calls for structured data extraction from documents, eligibility checks, content generation (SOP drafts), and applying safety/moderation filters.
+
+Key Files: aiAnalysisRoutes.ts, aiAnalysisService.ts (integrates aiServices.ts, darpanAI.ts, offerLetterAnalysisEngine.ts, academicDocumentAnalysisService.ts, cvAnalysisService.ts, coeExtractor.ts).
+
+Schemas: Uses shared/offerLetterSchema.ts, academicDocumentSchema.ts, cvAnalysisSchema.ts, coeSchema.ts.
+
+catalog/
+
+Responsibility: Manages the master database of universities, courses, and scholarships. Provides APIs for search and retrieval.
+
+Key Files: catalogRoutes.ts, catalogService.ts, universityStorage.ts (NEW), courseStorage.ts (NEW), scholarshipStorage.ts.
+
+Schemas: shared/universitySchema.ts (NEW), shared/courseSchema.ts (NEW), shared/scholarshipSchema.ts.
+
+recommendations/
+
+Responsibility: Implements the logic for matching student profiles to courses, universities, and scholarships. Leverages AI for ranking and personalized justification (RAG pattern).
+
+Key Files: recommendationRoutes.ts, recommendationService.ts.
+
+applications/
+
+Responsibility: Manages the entire application lifecycle: draft, pre-filling, student submission for review, expert approval, admin approval, and package generation.
+
+Key Files: applicationRoutes.ts, applicationService.ts.
+
+Schema: shared/applicationSchema.ts (updated with approval fields).
+
+notifications/
+
+Responsibility: Sends emails, in-app notifications, and potentially push notifications for status updates, revision requests, etc.
+
+Key Files: notificationService.ts (integrates emailService.ts).
+
+chatbot/
+
+Responsibility: Manages conversational state, integrates with ai-analysis for responses, and orchestrates RAG for factual queries.
+
+Key Files: chatbotRoutes.ts, chatbotService.ts.
+
+admin/
+
+Responsibility: Specific admin functionalities like user management, lead management, system settings, and analytics reporting.
+
+Key Files: adminRoutes.ts, adminService.ts.
+
+integrations/ (Future Phase)
+
+Responsibility: Handles direct API calls to university application systems or orchestrates RPA for automated submissions.
+
+Key Files: universityIntegrationService.ts (for direct API calls).
+
+7.3. Key Modules & Responsibilities (Frontend - client/src/features/)
+auth/: Login, registration, password reset.
+
+onboarding/: Initial profile setup wizard.
+
+documents/:
+
+UploadForm: Handles file selection and upload.
+
+DocumentAnalysisView: Displays extracted data and analysis results.
+
+DocumentRepository: Lists all uploaded documents.
+
+recommendations/:
+
+CourseCard, UniversityCard, ScholarshipCard: Display individual recommendations.
+
+RecommendationList: Displays filtered and ranked lists.
+
+SearchFilter: Components for searching and filtering.
+
+applications/:
+
+ApplicationWizard: Multi-step form for creating/editing applications.
+
+Integrates ApplicationFormBuilder (dynamically renders forms).
+
+Integrates DocumentUploaderEnhanced (for attaching documents).
+
+Integrates PaymentGatewayUI.
+
+MyApplicationsDashboard: Lists all student applications with status badges.
+
+ApplicationDetailsView: Shows detailed application status, history, and communication.
+
+ApplicationPackageDownload: Button/link to download the compiled package.
+
+chatbot/:
+
+ChatInterface: Main chat window.
+
+ChatInput: Text input and action buttons (e.g., "Upload Document," "Start Application").
+
+ChatMessage: Displays AI and user messages.
+
+admin/:
+
+UserManagementTable: CRUD for users.
+
+CatalogManagement: UI for managing universities, courses, scholarships.
+
+LeadManagementDashboard: For tracking leads.
+
+SystemSettings: For platform configuration.
+
+expert/:
+
+ApplicationReviewQueue: Table of applications pending expert review.
+
+ApplicationReviewDetail: Detailed view for experts to review, add notes, approve/request revisions (ApplicationApprovalControls).
+
+7.4. Data Models (Updated Schemas - shared/)
+UserProfile (shared/schema.ts): Expand to include all data points needed for university applications (e.g., detailed academic history, test scores, extracurriculars, personal statement drafts). Add profileCompletionPercentage.
+
+University (shared/universitySchema.ts - NEW):
+
+interface University {
+    id: string;
+    name: string;
+    country: string;
+    city: string;
+    website: string;
+    applicationPortalUrl: string; // Link to external portal
+    applicationFee: number;
+    currency: string;
+    requiredDocuments: string[]; // List of general docs
+    admissionRequirements: { [courseId: string]: { gpa: number; ielts: number; etc: any } };
+    // Add API details for future direct integration
+    apiIntegrationDetails?: { type: 'API' | 'RPA'; endpoint?: string; credentials?: string };
+}
+
+Course (shared/courseSchema.ts - NEW):
+
+interface Course {
+    id: string;
+    universityId: string;
+    name: string;
+    level: 'Bachelor' | 'Master' | 'PhD';
+    duration: string;
+    tuitionFee: number;
+    currency: string;
+    intakeDates: string[]; // e.g., ['Fall 2025', 'Spring 2026']
+    description: string;
+    // Link to university's course page
+    coursePageUrl: string;
+    // Specific entry requirements for this course
+    entryRequirements: { gpa: number; ielts: number; etc: any };
+}
+
+Scholarship (shared/scholarshipSchema.ts): Existing schema can be enhanced with more detailed eligibility criteria.
+
+Application (shared/applicationSchema.ts - NEW/UPDATED):
+
+enum ApplicationStatus {
+    DRAFT = 'Draft',
+    PENDING_EXPERT_REVIEW = 'Pending Expert Review',
+    REVISIONS_REQUESTED = 'Revisions Requested',
+    PENDING_ADMIN_APPROVAL = 'Pending Admin Approval',
+    RETURNED_FOR_EXPERT_REVIEW = 'Returned for Expert Review',
+    APPROVED_FOR_SUBMISSION = 'Approved for Submission',
+    SUBMITTED = 'Submitted',
+    UNDER_REVIEW = 'Under Review',
+    OFFER_RECEIVED = 'Offer Received',
+    REJECTED = 'Rejected',
+    WITHDRAWN = 'Withdrawn'
+}
+
+interface Application {
+    id: string;
+    userId: string;
+    universityId: string;
+    courseId: string;
+    status: ApplicationStatus;
+    createdAt: Date;
+    lastUpdatedAt: Date;
+    submittedForReviewAt?: Date;
+    expertReviewerId?: string;
+    expertReviewDate?: Date;
+    expertNotes?: string;
+    adminReviewerId?: string;
+    adminReviewDate?: Date;
+    adminNotes?: string;
+    applicationData: { [key: string]: any }; // JSON object for form fields
+    documentsAttached: { documentId: string; fileName: string; type: string; url: string }[];
+    paymentStatus: 'Pending' | 'Paid' | 'Waived';
+    paymentTransactionId?: string;
+    submissionMethod: 'Manual' | 'DirectAPI' | 'RPA'; // How it was submitted
+    submissionConfirmation?: string; // Confirmation number/screenshot URL
+    history: { status: ApplicationStatus; timestamp: Date; actorId: string; notes?: string }[];
+}
+
+Lead (shared/leadSchema.ts - NEW): For admin lead management.
+
+7.5. AI Integration Points (Enhanced)
+Intelligent Profile Building: AI identifies gaps in student profiles and suggests specific information to add for better recommendations.
+
+Dynamic Document Checklist & Quality Check: AI generates checklists based on target universities/courses and validates document quality and completeness upon upload.
+
+AI-Powered Form Pre-filling: Core AI function to map and populate application forms from student data.
+
+AI-Assisted Essay/SOP Drafting: LLM provides structural advice, grammar checks, and content suggestions, with the student in full control.
+
+Real-time Eligibility Feedback: AI instantly checks student qualifications against course requirements.
+
+Proactive Chatbot Guidance: The chatbot monitors application state and proactively prompts students for next steps, offering direct links to relevant sections.
+
+Automated Status Updates (AI-driven Email Parsing): AI analyzes incoming emails from universities to update application statuses automatically.
+
+7.6. Technology Stack Review
+The existing stack (React, Node.js, Express, TypeScript, Firebase, Tailwind, Shadcn UI, Tanstack Query, Wouter, Gemini API, Google Vision AI) is well-suited for this restructured application. Firebase Firestore's real-time capabilities are particularly beneficial for updating application statuses across different user roles.
+
+7.7. Deployment Considerations
+CI/CD for Modules: Implement separate CI/CD pipelines for core backend modules if they are eventually split into microservices. For a modular monolith, a single pipeline for the backend is sufficient.
+
+Environment Configuration: Ensure robust environment variable management for API keys, database connections, and external service credentials across development, staging, and production.
+
+Scalability: Monitor Firebase usage (Firestore reads/writes, Storage) and Node.js server load. Optimize queries and document processing for performance.
+
+Security: Re-emphasize all security measures from the "Security, Code Quality, and AI Vulnerability Analysis" document, especially for handling sensitive application data and managing multi-role access.
+
+EVALS: The continuous EVALS strategy (offline and online) is paramount for maintaining AI quality and safety throughout the application process.
+
+7.8. Proofreading and Consulting Adjustments
+Consolidate Redundant Files: Go through server/ and client/src/pages/ to merge or remove redundant files (e.g., offerLetterRoutesNew.ts, offerLetterRoutesSimplified.ts, various admin-analyses files). This will streamline the codebase.
+
+Standardize Naming: Ensure consistent naming conventions across all new and refactored modules (e.g., Service, Storage, Routes).
+
+Comprehensive Documentation: Each new module and significant feature should have clear internal documentation (code comments, READMEs for modules).
+
+User Feedback Integration: Ensure a clear channel for students, experts, and admins to provide feedback on the new workflow, which can then feed into the development backlog.
+
+This detailed reorganization strategy provides a clear roadmap for evolving DarpanAI into a truly indispensable platform for international students, driven by intelligent automation and supported by dedicated human expertise.
