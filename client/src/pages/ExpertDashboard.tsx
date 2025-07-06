@@ -3,8 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { 
   Users, 
   FileText, 
@@ -16,7 +15,24 @@ import {
   CheckCircle2,
   AlertCircle,
   User,
-  Globe
+  Globe,
+  Bell,
+  BarChart3,
+  BookOpen,
+  Settings,
+  LogOut,
+  ArrowUp,
+  ArrowDown,
+  Plus,
+  Search,
+  Filter,
+  Menu,
+  X,
+  Home,
+  BookUser,
+  GraduationCap,
+  FileSearch,
+  UserCheck
 } from "lucide-react";
 
 interface StudentProfile {
@@ -49,10 +65,30 @@ interface ExpertStats {
 }
 
 export default function ExpertDashboard() {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [, setLocation] = useLocation();
+  const [activeNavItem, setActiveNavItem] = useState("dashboard");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // Mock data for demonstration - replace with actual API calls
-  const expertStats: ExpertStats = {
+  // Fetch real expert stats from database
+  const { data: expertStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['/api/expert/stats'],
+    queryFn: () => fetch('/api/expert/stats').then(res => res.json())
+  });
+
+  // Fetch recent students from database
+  const { data: recentStudents, isLoading: studentsLoading } = useQuery({
+    queryKey: ['/api/expert/students/recent'],
+    queryFn: () => fetch('/api/expert/students/recent').then(res => res.json())
+  });
+
+  // Fetch consultation requests from database
+  const { data: consultationRequests, isLoading: consultationsLoading } = useQuery({
+    queryKey: ['/api/expert/consultations/pending'],
+    queryFn: () => fetch('/api/expert/consultations/pending').then(res => res.json())
+  });
+
+  // Fallback data for when API is not ready
+  const fallbackStats: ExpertStats = {
     totalStudents: 24,
     activeConsultations: 8,
     completedThisWeek: 12,
@@ -60,7 +96,7 @@ export default function ExpertDashboard() {
     successRate: 94
   };
 
-  const recentStudents: StudentProfile[] = [
+  const fallbackStudents: StudentProfile[] = [
     {
       id: 1,
       name: "Priya Sharma",
@@ -96,7 +132,7 @@ export default function ExpertDashboard() {
     }
   ];
 
-  const consultationRequests: ConsultationRequest[] = [
+  const fallbackConsultations: ConsultationRequest[] = [
     {
       id: 1,
       studentName: "Priya Sharma",
@@ -123,15 +159,31 @@ export default function ExpertDashboard() {
     }
   ];
 
+  // Use data from API or fallback
+  const currentStats = expertStats || fallbackStats;
+  const currentStudents = recentStudents || fallbackStudents;
+  const currentConsultations = consultationRequests || fallbackConsultations;
+
+  const navigationItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: Home, href: '/expert' },
+    { id: 'students', label: 'Student Management', icon: Users, href: '/expert/students' },
+    { id: 'consultations', label: 'Consultations', icon: MessageSquare, href: '/expert/consultations' },
+    { id: 'documents', label: 'Document Review', icon: FileText, href: '/expert/documents' },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3, href: '/expert/analytics' },
+    { id: 'resources', label: 'Resources', icon: BookOpen, href: '/expert/resources' },
+    { id: 'settings', label: 'Settings', icon: Settings, href: '/expert/settings' }
+  ];
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
+        return 'bg-green-100 text-green-800';
       case 'pending':
         return 'bg-yellow-100 text-yellow-800';
       case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'scheduled':
         return 'bg-blue-100 text-blue-800';
+      case 'scheduled':
+        return 'bg-purple-100 text-purple-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -166,368 +218,307 @@ export default function ExpertDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <Globe className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Expert Dashboard</h1>
-                <p className="text-sm text-gray-600">Study Abroad Consultation Platform</p>
-              </div>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <div className={`bg-white border-r border-gray-200 transition-all duration-300 ${sidebarCollapsed ? 'w-20' : 'w-72'} flex flex-col shadow-sm`}>
+        {/* Logo */}
+        <div className="flex items-center gap-3 p-6 border-b border-gray-200">
+          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+            <span className="text-white font-semibold text-lg">D</span>
+          </div>
+          {!sidebarCollapsed && (
+            <div>
+              <h1 className="text-xl font-semibold text-gray-800">DarpanAI</h1>
+              <p className="text-sm text-gray-500">Expert Portal</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Messages
-              </Button>
-              <Button size="sm">
-                <Calendar className="h-4 w-4 mr-2" />
-                Schedule
+          )}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="ml-auto"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          >
+            {sidebarCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+          </Button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4">
+          <div className="space-y-1">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeNavItem === item.id;
+              return (
+                <Link key={item.id} href={item.href}>
+                  <div
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 ${
+                      isActive 
+                        ? 'bg-orange-50 text-orange-600 border-l-3 border-orange-500' 
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-orange-600'
+                    }`}
+                    onClick={() => setActiveNavItem(item.id)}
+                  >
+                    <Icon className="h-5 w-5 flex-shrink-0" />
+                    {!sidebarCollapsed && (
+                      <span className="font-medium">{item.label}</span>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* User Profile & Logout */}
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-sm font-medium">EX</span>
+            </div>
+            {!sidebarCollapsed && (
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-800">Expert User</p>
+                <p className="text-xs text-gray-500">Study Abroad Expert</p>
+              </div>
+            )}
+          </div>
+          {!sidebarCollapsed && (
+            <Button variant="ghost" size="sm" className="w-full justify-start text-gray-600">
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-800">Expert Dashboard</h1>
+              <p className="text-sm text-gray-500">Welcome back! Here's what's happening with your students.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Button variant="ghost" size="sm" className="relative">
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    3
+                  </span>
+                </Button>
+              </div>
+              <Button size="sm" className="bg-orange-500 hover:bg-orange-600">
+                <Plus className="h-4 w-4 mr-2" />
+                New Consultation
               </Button>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{expertStats.totalStudents}</div>
-              <p className="text-xs text-muted-foreground">+3 from last week</p>
-            </CardContent>
-          </Card>
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {/* Stats Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card className="relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-orange-600"></div>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Total Students</CardTitle>
+                <Users className="h-4 w-4 text-gray-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-gray-800">{currentStats.totalStudents}</div>
+                <div className="flex items-center text-sm mt-2">
+                  <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
+                  <span className="text-green-600 font-medium">+3</span>
+                  <span className="text-gray-500 ml-1">from last week</span>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Consultations</CardTitle>
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{expertStats.activeConsultations}</div>
-              <p className="text-xs text-muted-foreground">2 urgent pending</p>
-            </CardContent>
-          </Card>
+            <Card className="relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-blue-600"></div>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Active Consultations</CardTitle>
+                <MessageSquare className="h-4 w-4 text-gray-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-gray-800">{currentStats.activeConsultations}</div>
+                <div className="flex items-center text-sm mt-2">
+                  <AlertCircle className="h-3 w-3 text-orange-500 mr-1" />
+                  <span className="text-orange-600 font-medium">2 urgent</span>
+                  <span className="text-gray-500 ml-1">pending</span>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed This Week</CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{expertStats.completedThisWeek}</div>
-              <p className="text-xs text-muted-foreground">+2 from last week</p>
-            </CardContent>
-          </Card>
+            <Card className="relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 to-green-600"></div>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Completed This Week</CardTitle>
+                <CheckCircle2 className="h-4 w-4 text-gray-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-gray-800">{currentStats.completedThisWeek}</div>
+                <div className="flex items-center text-sm mt-2">
+                  <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
+                  <span className="text-green-600 font-medium">+2</span>
+                  <span className="text-gray-500 ml-1">from last week</span>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{expertStats.avgResponseTime}</div>
-              <p className="text-xs text-muted-foreground">0.5h improvement</p>
-            </CardContent>
-          </Card>
+            <Card className="relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-purple-600"></div>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Success Rate</CardTitle>
+                <TrendingUp className="h-4 w-4 text-gray-400" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-gray-800">{currentStats.successRate}%</div>
+                <div className="flex items-center text-sm mt-2">
+                  <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
+                  <span className="text-green-600 font-medium">+2%</span>
+                  <span className="text-gray-500 ml-1">this month</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{expertStats.successRate}%</div>
-              <p className="text-xs text-muted-foreground">+2% from last month</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="students">My Students</TabsTrigger>
-            <TabsTrigger value="consultations">Consultation Queue</TabsTrigger>
-            <TabsTrigger value="tools">AI Tools</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Recent Students */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Users className="h-5 w-5 mr-2" />
-                    Recent Student Activity
-                  </CardTitle>
-                  <CardDescription>Latest updates from your assigned students</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {recentStudents.map((student) => (
-                      <div key={student.id} className="flex items-center justify-between p-3 border rounded-lg">
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Recent Student Activity */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5 text-orange-500" />
+                      Recent Student Activity
+                    </CardTitle>
+                    <CardDescription>Latest updates from your assigned students</CardDescription>
+                  </div>
+                  <Link href="/expert/students">
+                    <Button variant="outline" size="sm">View All</Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {studentsLoading ? (
+                    <div className="text-center py-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"></div>
+                      <p className="text-sm text-gray-500 mt-2">Loading students...</p>
+                    </div>
+                  ) : (
+                    currentStudents.slice(0, 5).map((student) => (
+                      <div key={student.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
                         <div className="flex items-center space-x-3">
                           <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                             <User className="h-5 w-5 text-blue-600" />
                           </div>
                           <div>
-                            <p className="font-medium text-sm">{student.name}</p>
+                            <p className="font-medium text-sm text-gray-800">{student.name}</p>
                             <p className="text-xs text-gray-500">{student.fieldOfStudy} • {student.country}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <Badge className={getStatusColor(student.status)} variant="secondary">
+                          <Badge className={getStatusColor(student.status)}>
                             {student.status}
                           </Badge>
                           <p className="text-xs text-gray-500 mt-1">{student.lastActivity}</p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                  <div className="mt-4">
-                    <Link href="/expert/students">
-                      <Button variant="outline" className="w-full">View All Students</Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Consultation Requests */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Calendar className="h-5 w-5 mr-2" />
-                    Pending Consultations
-                  </CardTitle>
-                  <CardDescription>Consultation requests requiring your attention</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {consultationRequests.map((consultation) => (
-                      <div key={consultation.id} className="flex items-center justify-between p-3 border rounded-lg">
+            {/* Pending Consultations */}
+            <Card className="shadow-sm">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-blue-500" />
+                      Pending Consultations
+                    </CardTitle>
+                    <CardDescription>Consultation requests requiring attention</CardDescription>
+                  </div>
+                  <Link href="/expert/consultations">
+                    <Button variant="outline" size="sm">View All</Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {consultationsLoading ? (
+                    <div className="text-center py-4">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                      <p className="text-sm text-gray-500 mt-2">Loading consultations...</p>
+                    </div>
+                  ) : (
+                    currentConsultations.slice(0, 5).map((consultation) => (
+                      <div key={consultation.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors">
                         <div>
-                          <p className="font-medium text-sm">{consultation.studentName}</p>
+                          <p className="font-medium text-sm text-gray-800">{consultation.studentName}</p>
                           <p className="text-xs text-gray-500">{getConsultationType(consultation.type)}</p>
                         </div>
                         <div className="text-right space-y-1">
-                          <Badge className={getPriorityColor(consultation.priority)} variant="secondary">
+                          <Badge className={getPriorityColor(consultation.priority)}>
                             {consultation.priority}
                           </Badge>
                           <p className="text-xs text-gray-500">{consultation.requestedDate}</p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                  <div className="mt-4">
-                    <Link href="/expert/consultations">
-                      <Button variant="outline" className="w-full">View All Requests</Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="students" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Student Portfolio Management</CardTitle>
-                <CardDescription>Manage your assigned students and track their progress</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentStudents.map((student) => (
-                    <div key={student.id} className="p-4 border rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                            <User className="h-6 w-6 text-blue-600" />
-                          </div>
-                          <div>
-                            <h3 className="font-medium">{student.name}</h3>
-                            <p className="text-sm text-gray-500">{student.email}</p>
-                          </div>
-                        </div>
-                        <Badge className={getStatusColor(student.status)} variant="secondary">
-                          {student.status}
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <p className="text-gray-500">Country</p>
-                          <p className="font-medium">{student.country}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Field of Study</p>
-                          <p className="font-medium">{student.fieldOfStudy}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Profile Completion</p>
-                          <p className="font-medium">{student.profileCompletion}%</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500">Documents</p>
-                          <p className="font-medium">{student.documentsUploaded} uploaded</p>
-                        </div>
-                      </div>
-                      <div className="mt-4 flex space-x-2">
-                        <Button size="sm" variant="outline">View Profile</Button>
-                        <Button size="sm" variant="outline">
-                          <MessageSquare className="h-4 w-4 mr-1" />
-                          Message
-                        </Button>
-                        <Button size="sm">Schedule Consultation</Button>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
 
-          <TabsContent value="consultations" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Consultation Queue</CardTitle>
-                <CardDescription>Manage consultation requests and schedule appointments</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {consultationRequests.map((consultation) => (
-                    <div key={consultation.id} className="p-4 border rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h3 className="font-medium">{consultation.studentName}</h3>
-                          <p className="text-sm text-gray-500">{getConsultationType(consultation.type)}</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge className={getPriorityColor(consultation.priority)} variant="secondary">
-                            {consultation.priority}
-                          </Badge>
-                          <Badge className={getStatusColor(consultation.status)} variant="secondary">
-                            {consultation.status}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-gray-500">Requested: {consultation.requestedDate}</p>
-                        <div className="space-x-2">
-                          <Button size="sm" variant="outline">View Details</Button>
-                          <Button size="sm">Accept & Schedule</Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="tools" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* AI Document Analysis */}
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                    <FileText className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <CardTitle>Document Analysis</CardTitle>
-                  <CardDescription>AI-powered analysis of academic documents</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
-                      Academic Transcripts
-                    </div>
-                    <div className="flex items-center text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
-                      Offer Letters
-                    </div>
-                    <div className="flex items-center text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
-                      Certificates
-                    </div>
-                  </div>
-                  <Link href="/academic-document-analysis">
-                    <Button className="w-full">Start Analysis</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-
-              {/* Eligibility Quick Scan */}
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                    <TrendingUp className="h-6 w-6 text-green-600" />
-                  </div>
-                  <CardTitle>Eligibility Scan</CardTitle>
-                  <CardDescription>Quick eligibility assessment for programs</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
-                      GPA Calculations
-                    </div>
-                    <div className="flex items-center text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
-                      Program Matching
-                    </div>
-                    <div className="flex items-center text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
-                      Improvement Tips
-                    </div>
-                  </div>
-                  <Link href="/eligibility-quick-scan">
-                    <Button className="w-full">Quick Scan</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-
-              {/* Scholarship Matching */}
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                    <Award className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <CardTitle>Scholarship Matching</CardTitle>
-                  <CardDescription>AI-driven scholarship recommendations</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
-                      Smart Matching
-                    </div>
-                    <div className="flex items-center text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
-                      Eligibility Scoring
-                    </div>
-                    <div className="flex items-center text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-green-500 mr-2" />
-                      Application Guide
-                    </div>
-                  </div>
-                  <Link href="/scholarship-hub">
-                    <Button className="w-full">Find Scholarships</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
+          {/* Quick Actions */}
+          <Card className="mt-8 shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-purple-500" />
+                Quick Actions
+              </CardTitle>
+              <CardDescription>Frequently used tools and shortcuts</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Link href="/expert/students">
+                  <Button variant="outline" className="w-full h-16 flex flex-col gap-2">
+                    <Users className="h-5 w-5" />
+                    <span className="text-sm">Manage Students</span>
+                  </Button>
+                </Link>
+                <Link href="/expert/consultations">
+                  <Button variant="outline" className="w-full h-16 flex flex-col gap-2">
+                    <Calendar className="h-5 w-5" />
+                    <span className="text-sm">Schedule Meeting</span>
+                  </Button>
+                </Link>
+                <Link href="/expert/documents">
+                  <Button variant="outline" className="w-full h-16 flex flex-col gap-2">
+                    <FileText className="h-5 w-5" />
+                    <span className="text-sm">Review Documents</span>
+                  </Button>
+                </Link>
+                <Link href="/expert/analytics">
+                  <Button variant="outline" className="w-full h-16 flex flex-col gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    <span className="text-sm">View Analytics</span>
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
