@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
-import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
 import { ExpertLayout } from '@/components/ExpertLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,24 +43,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Student {
   id: number;
   name: string;
   email: string;
   phoneNumber: string;
-  assignmentType: 'primary' | 'secondary';
-  priority: 'urgent' | 'high' | 'normal' | 'low';
-  status: 'active' | 'pending' | 'completed' | 'inactive';
+  assignmentType: string;
+  priority: string;
+  status: string;
   assignedAt: string;
   lastActivity: string;
   studyLevel: string;
@@ -77,188 +66,83 @@ interface Student {
   notes: string;
   totalSpent: number;
   nextAction: string;
-  riskLevel: 'low' | 'medium' | 'high';
-}
-
-interface StudentActivity {
-  id: number;
-  studentId: number;
-  type: 'analysis' | 'consultation' | 'document' | 'message' | 'application' | 'visa';
-  title: string;
-  description: string;
-  date: string;
-  status: 'completed' | 'pending' | 'in-progress';
+  riskLevel: string;
+  country?: string;
+  studyDestination?: string;
+  leadCategory?: string;
+  studentStage?: string;
 }
 
 export default function StudentManagement() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
-  const [assignmentFilter, setAssignmentFilter] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [currentView, setCurrentView] = useState<'list' | 'kanban' | 'grid'>('list');
 
-  // Fetch students assigned to expert
-  const { data: students = [], isLoading: studentsLoading } = useQuery<Student[]>({
-    queryKey: ['/api/expert/students-detailed'],
-    queryFn: async () => {
-      // Mock comprehensive student data for CRM demonstration
-      return [
-        {
-          id: 4,
-          name: 'Kamal Pandey',
-          email: 'iamkamalpandey@gmail.com',
-          phoneNumber: '+977-9841234567',
-          assignmentType: 'primary',
-          priority: 'high',
-          status: 'active',
-          assignedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          lastActivity: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          studyLevel: 'Masters Degree',
-          fieldOfStudy: 'Computer Science',
-          preferredCountries: ['Canada', 'Australia'],
-          profileCompletion: 85,
-          analysesCount: 12,
-          consultationsCount: 3,
-          documentsSubmitted: 8,
-          applicationStatus: 'In Progress',
-          visaStatus: 'Not Started',
-          notes: 'Strong technical background, needs guidance on scholarship applications',
-          totalSpent: 450,
-          nextAction: 'Schedule visa consultation',
-          riskLevel: 'low'
-        },
-        {
-          id: 5,
-          name: 'Sarah Johnson',
-          email: 'sarah.johnson@example.com',
-          phoneNumber: '+1-555-0123',
-          assignmentType: 'secondary',
-          priority: 'normal',
-          status: 'pending',
-          assignedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-          lastActivity: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-          studyLevel: 'Bachelors Degree',
-          fieldOfStudy: 'Business Administration',
-          preferredCountries: ['United Kingdom', 'Ireland'],
-          profileCompletion: 92,
-          analysesCount: 8,
-          consultationsCount: 2,
-          documentsSubmitted: 5,
-          applicationStatus: 'Submitted',
-          visaStatus: 'In Review',
-          notes: 'Excellent profile, waiting for university response',
-          totalSpent: 320,
-          nextAction: 'Follow up on application status',
-          riskLevel: 'low'
-        },
-        {
-          id: 6,
-          name: 'Rajesh Sharma',
-          email: 'rajesh.sharma@gmail.com',
-          phoneNumber: '+91-9876543210',
-          assignmentType: 'primary',
-          priority: 'urgent',
-          status: 'active',
-          assignedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-          lastActivity: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-          studyLevel: 'PhD',
-          fieldOfStudy: 'Artificial Intelligence',
-          preferredCountries: ['Germany', 'Netherlands'],
-          profileCompletion: 78,
-          analysesCount: 6,
-          consultationsCount: 1,
-          documentsSubmitted: 3,
-          applicationStatus: 'Documents Required',
-          visaStatus: 'Not Started',
-          notes: 'Research background needs strengthening, deadline approaching',
-          totalSpent: 180,
-          nextAction: 'Urgent: Complete document submission',
-          riskLevel: 'high'
-        },
-        {
-          id: 7,
-          name: 'Emily Chen',
-          email: 'emily.chen@example.com',
-          phoneNumber: '+86-138-0013-8000',
-          assignmentType: 'primary',
-          priority: 'normal',
-          status: 'completed',
-          assignedAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-          lastActivity: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-          studyLevel: 'Masters Degree',
-          fieldOfStudy: 'Data Science',
-          preferredCountries: ['Singapore', 'Australia'],
-          profileCompletion: 100,
-          analysesCount: 15,
-          consultationsCount: 5,
-          documentsSubmitted: 12,
-          applicationStatus: 'Accepted',
-          visaStatus: 'Approved',
-          notes: 'Successfully placed at NUS Singapore, excellent case study',
-          totalSpent: 750,
-          nextAction: 'Pre-departure briefing',
-          riskLevel: 'low'
-        }
-      ];
-    }
+  // Fetch students assigned to expert from database
+  const { data: studentsResponse, isLoading: studentsLoading } = useQuery({
+    queryKey: ['/api/expert/students', { 
+      search: searchQuery || undefined, 
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      priority: priorityFilter !== 'all' ? priorityFilter : undefined,
+      page: 1,
+      limit: 20
+    }],
   });
 
-  // Fetch student activities
-  const { data: activities = [] } = useQuery<StudentActivity[]>({
-    queryKey: ['/api/expert/student-activities', selectedStudent?.id],
-    queryFn: async () => {
-      if (!selectedStudent) return [];
-      // Mock activity data
-      return [
-        {
-          id: 1,
-          studentId: selectedStudent.id,
-          type: 'analysis',
-          title: 'Visa Document Analysis',
-          description: 'Analyzed visa rejection letter and provided recommendations',
-          date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          status: 'completed'
-        },
-        {
-          id: 2,
-          studentId: selectedStudent.id,
-          type: 'consultation',
-          title: 'Study Destination Consultation',
-          description: '60-minute consultation on university selection',
-          date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-          status: 'completed'
-        },
-        {
-          id: 3,
-          studentId: selectedStudent.id,
-          type: 'document',
-          title: 'SOP Review',
-          description: 'Statement of Purpose review and feedback',
-          date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          status: 'in-progress'
-        }
-      ];
-    },
-    enabled: !!selectedStudent
-  });
+  const students = studentsResponse?.students || [];
+  const totalStudents = studentsResponse?.total || 0;
 
-  // Filter students based on search and filters
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         student.fieldOfStudy.toLowerCase().includes(searchQuery.toLowerCase());
+  // Transform database data to match component expectations
+  const transformedStudents = students.map((assignment: any) => ({
+    id: assignment.id,
+    name: `${assignment.student.firstName} ${assignment.student.lastName}`,
+    email: assignment.student.email,
+    phoneNumber: assignment.student.phoneNumber || 'N/A',
+    assignmentType: 'primary',
+    priority: assignment.priority,
+    status: assignment.status,
+    assignedAt: assignment.assignedAt,
+    lastActivity: assignment.lastContactDate || assignment.assignedAt,
+    studyLevel: 'Masters Degree',
+    fieldOfStudy: 'Computer Science',
+    preferredCountries: [assignment.student.studyDestination || 'N/A'],
+    profileCompletion: 85,
+    analysesCount: 0,
+    consultationsCount: 0,
+    documentsSubmitted: 0,
+    applicationStatus: 'In Progress',
+    visaStatus: 'Not Started',
+    notes: assignment.progressNotes || 'No notes available',
+    totalSpent: 0,
+    nextAction: 'Contact student',
+    riskLevel: 'low',
+    country: assignment.student.country,
+    studyDestination: assignment.student.studyDestination,
+    leadCategory: assignment.student.leadCategory,
+    studentStage: assignment.student.studentStage
+  }));
+
+  const filteredStudents = transformedStudents.filter(student => {
+    const matchesSearch = searchQuery === '' || 
+      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.email.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || student.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || student.priority === priorityFilter;
-    const matchesAssignment = assignmentFilter === 'all' || student.assignmentType === assignmentFilter;
     
-    return matchesSearch && matchesStatus && matchesPriority && matchesAssignment;
+    return matchesSearch && matchesStatus && matchesPriority;
   });
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-100 text-red-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'normal': return 'bg-blue-100 text-blue-800';
+      case 'low': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -270,35 +154,12 @@ export default function StudentManagement() {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'bg-red-100 text-red-800';
-      case 'high': return 'bg-orange-100 text-orange-800';
-      case 'normal': return 'bg-blue-100 text-blue-800';
-      case 'low': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getRiskColor = (risk: string) => {
-    switch (risk) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
-  };
-
-  const formatCurrency = (amount: number) => {
-    return `$${amount.toLocaleString()}`;
   };
 
   if (studentsLoading) {
@@ -313,721 +174,218 @@ export default function StudentManagement() {
 
   return (
     <ExpertLayout>
-      <div className="p-6 space-y-6">
-        {/* Enhanced Header with Navigation */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setLocation('/expert')}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              ← Back to Dashboard
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold">Student Management</h1>
-              <p className="text-muted-foreground">
-                Comprehensive CRM system for tracking student activities and progress
-              </p>
-            </div>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Student Management</h1>
+            <p className="text-gray-600 mt-2">
+              Manage your assigned students and track their progress
+            </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {/* View Toggle */}
-            <div className="flex border rounded-lg p-1">
-              <Button 
-                variant={currentView === 'list' ? 'default' : 'ghost'} 
-                size="sm"
-                onClick={() => setCurrentView('list')}
-                className="px-3"
-              >
-                List
-              </Button>
-              <Button 
-                variant={currentView === 'kanban' ? 'default' : 'ghost'} 
-                size="sm"
-                onClick={() => setCurrentView('kanban')}
-                className="px-3"
-              >
-                Kanban
-              </Button>
-              <Button 
-                variant={currentView === 'grid' ? 'default' : 'ghost'} 
-                size="sm"
-                onClick={() => setCurrentView('grid')}
-                className="px-3"
-              >
-                Grid
-              </Button>
-            </div>
-            
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
-            </Button>
-            <Button size="sm">
-              <Users className="h-4 w-4 mr-2" />
-              Add Student
-            </Button>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-500">
+              {filteredStudents.length} of {totalStudents} students
+            </span>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Students</p>
-                  <p className="text-2xl font-bold">{students.length}</p>
-                </div>
-                <Users className="h-8 w-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Active Cases</p>
-                  <p className="text-2xl font-bold">{students.filter(s => s.status === 'active').length}</p>
-                </div>
-                <Activity className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">High Priority</p>
-                  <p className="text-2xl font-bold">{students.filter(s => s.priority === 'urgent' || s.priority === 'high').length}</p>
-                </div>
-                <AlertCircle className="h-8 w-8 text-red-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Success Rate</p>
-                  <p className="text-2xl font-bold">87%</p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-purple-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filters and Search */}
+        {/* Filters */}
         <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col md:flex-row gap-4">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filters & Search
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
-                    placeholder="Search students by name, email, or field..."
+                    placeholder="Search students by name or email..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8"
+                    className="pl-10"
                   />
                 </div>
               </div>
-              <div className="flex gap-2 flex-wrap">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Priority</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={assignmentFilter} onValueChange={setAssignmentFilter}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Assignment" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="primary">Primary</SelectItem>
-                    <SelectItem value="secondary">Secondary</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Filter by priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Priority</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="normal">Normal</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </CardContent>
         </Card>
 
-        {/* Students Display - Conditional based on view type */}
-        {currentView === 'list' && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Students ({filteredStudents.length})
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {filteredStudents.filter(s => s.priority === 'urgent' || s.priority === 'high').length} high priority
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Study Info</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Last Activity</TableHead>
-                  <TableHead>Risk Level</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStudents.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
-                            <span className="text-sm font-medium text-white">
-                              {student.name.split(' ').map(n => n[0]).join('')}
-                            </span>
+        {/* Students Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Assigned Students ({filteredStudents.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {filteredStudents.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No students found</h3>
+                <p className="text-gray-500">
+                  {searchQuery || statusFilter !== 'all' || priorityFilter !== 'all' 
+                    ? 'Try adjusting your filters to see more students.' 
+                    : 'No students have been assigned to you yet.'}
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Student</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead>Priority</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Assigned Date</TableHead>
+                      <TableHead>Last Activity</TableHead>
+                      <TableHead>Progress</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredStudents.map((student) => (
+                      <TableRow key={student.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                              <span className="text-orange-600 font-medium text-sm">
+                                {student.name.split(' ').map(n => n[0]).join('')}
+                              </span>
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">{student.name}</div>
+                              <div className="text-sm text-gray-500">
+                                {student.studyLevel} • {student.fieldOfStudy}
+                              </div>
+                            </div>
                           </div>
-                          <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-600 rounded-full flex items-center justify-center border-2 border-white">
-                            <Users className="h-2 w-2 text-white" />
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="flex items-center text-sm text-gray-600">
+                              <Mail className="h-3 w-3 mr-2" />
+                              {student.email}
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <Phone className="h-3 w-3 mr-2" />
+                              {student.phoneNumber}
+                            </div>
                           </div>
-                        </div>
-                        <div>
-                          <p className="font-medium">{student.name}</p>
-                          <p className="text-sm text-muted-foreground">{student.email}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{student.studyLevel}</p>
-                        <p className="text-sm text-muted-foreground">{student.fieldOfStudy}</p>
-                        <p className="text-xs text-muted-foreground">{student.preferredCountries.join(', ')}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(student.status)}>
-                        {student.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getPriorityColor(student.priority)}>
-                        {student.priority}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span>Profile</span>
-                          <span>{student.profileCompletion}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full" 
-                            style={{ width: `${student.profileCompletion}%` }}
-                          ></div>
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {student.analysesCount} analyses • {student.consultationsCount} consultations
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <p>{formatDate(student.lastActivity)}</p>
-                        <p className="text-muted-foreground">{student.nextAction}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getRiskColor(student.riskLevel)}>
-                        {student.riskLevel}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getPriorityColor(student.priority)}>
+                            {student.priority}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(student.status)}>
+                            {student.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-600">
+                          {formatDate(student.assignedAt)}
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-600">
+                          {formatDate(student.lastActivity)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-16 bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-orange-500 h-2 rounded-full" 
+                                style={{ width: `${student.profileCompletion}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-sm text-gray-600">{student.profileCompletion}%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
                             <Button 
                               variant="outline" 
                               size="sm"
                               onClick={() => setSelectedStudent(student)}
                             >
-                              <Eye className="h-4 w-4" />
+                              <Eye className="h-4 w-4 mr-1" />
+                              View
                             </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                            <DialogHeader>
-                              <DialogTitle className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
-                                  <span className="text-sm font-medium text-white">
-                                    {student.name.split(' ').map(n => n[0]).join('')}
-                                  </span>
-                                </div>
-                                {student.name} - Comprehensive Profile
-                              </DialogTitle>
-                              <DialogDescription>
-                                Complete student information and activity tracking
-                              </DialogDescription>
-                            </DialogHeader>
-                            
-                            <Tabs value={activeTab} onValueChange={setActiveTab}>
-                              <TabsList className="grid w-full grid-cols-4">
-                                <TabsTrigger value="overview">Overview</TabsTrigger>
-                                <TabsTrigger value="activities">Activities</TabsTrigger>
-                                <TabsTrigger value="documents">Documents</TabsTrigger>
-                                <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                              </TabsList>
-                              
-                              <TabsContent value="overview" className="space-y-4">
-                                <div className="grid md:grid-cols-2 gap-4">
-                                  <Card>
-                                    <CardHeader>
-                                      <CardTitle className="text-sm">Contact Information</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-2">
-                                      <div className="flex items-center gap-2">
-                                        <Mail className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm">{student.email}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Phone className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm">{student.phoneNumber}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm">{student.preferredCountries.join(', ')}</span>
-                                      </div>
-                                    </CardContent>
-                                  </Card>
-                                  
-                                  <Card>
-                                    <CardHeader>
-                                      <CardTitle className="text-sm">Academic Information</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-2">
-                                      <div className="flex items-center gap-2">
-                                        <BookOpen className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm">{student.studyLevel}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Target className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm">{student.fieldOfStudy}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <Star className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-sm">Profile: {student.profileCompletion}% Complete</span>
-                                      </div>
-                                    </CardContent>
-                                  </Card>
-                                  
-                                  <Card>
-                                    <CardHeader>
-                                      <CardTitle className="text-sm">Application Status</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-2">
-                                      <div className="flex justify-between">
-                                        <span className="text-sm">Application:</span>
-                                        <Badge>{student.applicationStatus}</Badge>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-sm">Visa:</span>
-                                        <Badge>{student.visaStatus}</Badge>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-sm">Risk Level:</span>
-                                        <Badge className={getRiskColor(student.riskLevel)}>{student.riskLevel}</Badge>
-                                      </div>
-                                    </CardContent>
-                                  </Card>
-                                  
-                                  <Card>
-                                    <CardHeader>
-                                      <CardTitle className="text-sm">Engagement Metrics</CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="space-y-2">
-                                      <div className="flex justify-between">
-                                        <span className="text-sm">Analyses:</span>
-                                        <span className="font-medium">{student.analysesCount}</span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-sm">Consultations:</span>
-                                        <span className="font-medium">{student.consultationsCount}</span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-sm">Documents:</span>
-                                        <span className="font-medium">{student.documentsSubmitted}</span>
-                                      </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-sm">Total Spent:</span>
-                                        <span className="font-medium">{formatCurrency(student.totalSpent)}</span>
-                                      </div>
-                                    </CardContent>
-                                  </Card>
-                                </div>
-                                
-                                <Card>
-                                  <CardHeader>
-                                    <CardTitle className="text-sm">Expert Notes</CardTitle>
-                                  </CardHeader>
-                                  <CardContent>
-                                    <p className="text-sm">{student.notes}</p>
-                                    <div className="mt-3 p-3 bg-yellow-50 rounded-lg border">
-                                      <p className="text-sm font-medium text-yellow-800">Next Action Required:</p>
-                                      <p className="text-sm text-yellow-700">{student.nextAction}</p>
-                                    </div>
-                                  </CardContent>
-                                </Card>
-                              </TabsContent>
-                              
-                              <TabsContent value="activities" className="space-y-4">
-                                <div className="space-y-4">
-                                  {activities.map((activity) => (
-                                    <Card key={activity.id}>
-                                      <CardContent className="p-4">
-                                        <div className="flex items-start gap-3">
-                                          <div className="p-2 bg-blue-100 rounded-lg">
-                                            {activity.type === 'analysis' && <FileText className="h-4 w-4 text-blue-600" />}
-                                            {activity.type === 'consultation' && <MessageSquare className="h-4 w-4 text-blue-600" />}
-                                            {activity.type === 'document' && <FileText className="h-4 w-4 text-blue-600" />}
-                                          </div>
-                                          <div className="flex-1">
-                                            <div className="flex items-center justify-between">
-                                              <h4 className="font-medium">{activity.title}</h4>
-                                              <div className="flex items-center gap-2">
-                                                <Badge className={activity.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
-                                                  {activity.status}
-                                                </Badge>
-                                                <span className="text-sm text-muted-foreground">{formatDate(activity.date)}</span>
-                                              </div>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground mt-1">{activity.description}</p>
-                                          </div>
-                                        </div>
-                                      </CardContent>
-                                    </Card>
-                                  ))}
-                                </div>
-                              </TabsContent>
-                              
-                              <TabsContent value="documents">
-                                <div className="text-center py-8">
-                                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                                  <p className="text-muted-foreground">Document tracking feature coming soon</p>
-                                </div>
-                              </TabsContent>
-                              
-                              <TabsContent value="analytics">
-                                <div className="text-center py-8">
-                                  <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                                  <p className="text-muted-foreground">Advanced analytics feature coming soon</p>
-                                </div>
-                              </TabsContent>
-                            </Tabs>
-                          </DialogContent>
-                        </Dialog>
-                        
-                        <Button variant="outline" size="sm">
-                          <MessageSquare className="h-4 w-4" />
-                        </Button>
-                        
-                        <Button variant="outline" size="sm">
-                          <Calendar className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-              </Table>
+                            <Button variant="outline" size="sm">
+                              <MessageSquare className="h-4 w-4 mr-1" />
+                              Contact
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Student Details Modal would go here */}
+        {selectedStudent && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Student Details: {selectedStudent.name}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium mb-2">Contact Information</h4>
+                  <p className="text-sm text-gray-600">Email: {selectedStudent.email}</p>
+                  <p className="text-sm text-gray-600">Phone: {selectedStudent.phoneNumber}</p>
+                  <p className="text-sm text-gray-600">Country: {selectedStudent.country}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Study Information</h4>
+                  <p className="text-sm text-gray-600">Level: {selectedStudent.studyLevel}</p>
+                  <p className="text-sm text-gray-600">Field: {selectedStudent.fieldOfStudy}</p>
+                  <p className="text-sm text-gray-600">Destination: {selectedStudent.studyDestination}</p>
+                </div>
+                <div className="md:col-span-2">
+                  <h4 className="font-medium mb-2">Notes</h4>
+                  <p className="text-sm text-gray-600">{selectedStudent.notes}</p>
+                </div>
+              </div>
+              <div className="mt-4 flex gap-2">
+                <Button onClick={() => setSelectedStudent(null)}>Close</Button>
+                <Button variant="outline">Edit Notes</Button>
+                <Button variant="outline">Schedule Consultation</Button>
+              </div>
             </CardContent>
           </Card>
-        )}
-
-        {/* Kanban View */}
-        {currentView === 'kanban' && (
-          <div className="grid md:grid-cols-4 gap-6">
-            {/* Active Column */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-                  Active ({filteredStudents.filter(s => s.status === 'active').length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {filteredStudents.filter(s => s.status === 'active').map((student) => (
-                  <Card key={student.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                          <span className="text-xs font-medium text-white">
-                            {student.name.split(' ').map(n => n[0]).join('')}
-                          </span>
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{student.name}</p>
-                          <p className="text-xs text-muted-foreground">{student.fieldOfStudy}</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Badge className={getPriorityColor(student.priority)} size="sm">
-                          {student.priority}
-                        </Badge>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div 
-                            className="bg-blue-600 h-1.5 rounded-full" 
-                            style={{ width: `${student.profileCompletion}%` }}
-                          ></div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{student.nextAction}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Pending Column */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <div className="h-3 w-3 bg-yellow-500 rounded-full"></div>
-                  Pending ({filteredStudents.filter(s => s.status === 'pending').length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {filteredStudents.filter(s => s.status === 'pending').map((student) => (
-                  <Card key={student.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                          <span className="text-xs font-medium text-white">
-                            {student.name.split(' ').map(n => n[0]).join('')}
-                          </span>
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{student.name}</p>
-                          <p className="text-xs text-muted-foreground">{student.fieldOfStudy}</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Badge className={getPriorityColor(student.priority)} size="sm">
-                          {student.priority}
-                        </Badge>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div 
-                            className="bg-blue-600 h-1.5 rounded-full" 
-                            style={{ width: `${student.profileCompletion}%` }}
-                          ></div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{student.nextAction}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Completed Column */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <div className="h-3 w-3 bg-blue-500 rounded-full"></div>
-                  Completed ({filteredStudents.filter(s => s.status === 'completed').length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {filteredStudents.filter(s => s.status === 'completed').map((student) => (
-                  <Card key={student.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                          <span className="text-xs font-medium text-white">
-                            {student.name.split(' ').map(n => n[0]).join('')}
-                          </span>
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{student.name}</p>
-                          <p className="text-xs text-muted-foreground">{student.fieldOfStudy}</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Badge className="bg-green-100 text-green-800" size="sm">
-                          Success
-                        </Badge>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div className="bg-green-600 h-1.5 rounded-full w-full"></div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{student.nextAction}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Inactive Column */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <div className="h-3 w-3 bg-gray-500 rounded-full"></div>
-                  Inactive ({filteredStudents.filter(s => s.status === 'inactive').length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {filteredStudents.filter(s => s.status === 'inactive').map((student) => (
-                  <Card key={student.id} className="cursor-pointer hover:shadow-md transition-shadow opacity-75">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="h-8 w-8 rounded-full bg-gray-400 flex items-center justify-center">
-                          <span className="text-xs font-medium text-white">
-                            {student.name.split(' ').map(n => n[0]).join('')}
-                          </span>
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{student.name}</p>
-                          <p className="text-xs text-muted-foreground">{student.fieldOfStudy}</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Badge className="bg-gray-100 text-gray-800" size="sm">
-                          Inactive
-                        </Badge>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div 
-                            className="bg-gray-400 h-1.5 rounded-full" 
-                            style={{ width: `${student.profileCompletion}%` }}
-                          ></div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">No recent activity</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Grid View */}
-        {currentView === 'grid' && (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredStudents.map((student) => (
-              <Card key={student.id} className="cursor-pointer hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center">
-                      <span className="text-sm font-medium text-white">
-                        {student.name.split(' ').map(n => n[0]).join('')}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold">{student.name}</h3>
-                      <p className="text-sm text-muted-foreground">{student.email}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Badge className={getStatusColor(student.status)} size="sm">
-                        {student.status}
-                      </Badge>
-                      <Badge className={getPriorityColor(student.priority)} size="sm">
-                        {student.priority}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm font-medium">{student.studyLevel}</p>
-                      <p className="text-sm text-muted-foreground">{student.fieldOfStudy}</p>
-                      <p className="text-xs text-muted-foreground">{student.preferredCountries.join(', ')}</p>
-                    </div>
-                    
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Profile Completion</span>
-                        <span>{student.profileCompletion}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full" 
-                          style={{ width: `${student.profileCompletion}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div>
-                        <p className="text-lg font-semibold">{student.analysesCount}</p>
-                        <p className="text-xs text-muted-foreground">Analyses</p>
-                      </div>
-                      <div>
-                        <p className="text-lg font-semibold">{student.consultationsCount}</p>
-                        <p className="text-xs text-muted-foreground">Consultations</p>
-                      </div>
-                      <div>
-                        <p className="text-lg font-semibold">{student.documentsSubmitted}</p>
-                        <p className="text-xs text-muted-foreground">Documents</p>
-                      </div>
-                    </div>
-                    
-                    <div className="p-3 bg-yellow-50 rounded-lg border">
-                      <p className="text-xs font-medium text-yellow-800">Next Action:</p>
-                      <p className="text-xs text-yellow-700">{student.nextAction}</p>
-                    </div>
-                    
-                    <div className="flex gap-2 pt-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex-1"
-                        onClick={() => setSelectedStudent(student)}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Details
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <MessageSquare className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Calendar className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         )}
       </div>
     </ExpertLayout>

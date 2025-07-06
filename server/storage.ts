@@ -2,6 +2,7 @@ import {
   users, analyses, appointments, professionalApplications, updates, userUpdateViews,
   documentTemplates, documentChecklists, enrollmentAnalyses, documentCategories, documentTypes,
   analysisFeedback, offerLetterAnalyses, assessments, universities, universityMatches,
+  studyAbroadExperts, studentExpertAssignments,
   type User, type InsertUser, type Analysis, type InsertAnalysis, 
   type Appointment, type InsertAppointment, type LoginUser,
   type ProfessionalApplication, type InsertProfessionalApplication,
@@ -2264,6 +2265,314 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error deleting academic document analysis:", error);
       throw error;
+    }
+  }
+
+  // Student-Expert Assignment System Methods
+  async getExpertAssignedStudents(expertId: number): Promise<any[]> {
+    try {
+      const assignments = await db
+        .select({
+          assignmentId: studentExpertAssignments.id,
+          studentId: studentExpertAssignments.studentId,
+          status: studentExpertAssignments.status,
+          priority: studentExpertAssignments.priority,
+          assignedAt: studentExpertAssignments.assignedAt,
+          student: {
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            phoneNumber: users.phoneNumber,
+            country: users.country,
+            studyDestination: users.studyDestination,
+            leadCategory: users.leadCategory,
+            studentStage: users.studentStage,
+          }
+        })
+        .from(studentExpertAssignments)
+        .innerJoin(users, eq(studentExpertAssignments.studentId, users.id))
+        .where(eq(studentExpertAssignments.expertId, expertId));
+
+      return assignments.map(a => ({
+        id: a.assignmentId,
+        studentId: a.studentId,
+        status: a.status,
+        priority: a.priority,
+        assignedAt: a.assignedAt,
+        student: a.student
+      }));
+    } catch (error) {
+      console.error("Error fetching expert assigned students:", error);
+      return [];
+    }
+  }
+
+  async getExpertRecentStudents(expertId: number): Promise<any[]> {
+    try {
+      const recentAssignments = await db
+        .select({
+          assignmentId: studentExpertAssignments.id,
+          studentId: studentExpertAssignments.studentId,
+          status: studentExpertAssignments.status,
+          priority: studentExpertAssignments.priority,
+          assignedAt: studentExpertAssignments.assignedAt,
+          lastContactDate: studentExpertAssignments.lastContactDate,
+          student: {
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            phoneNumber: users.phoneNumber,
+            country: users.country,
+            studyDestination: users.studyDestination,
+            leadCategory: users.leadCategory,
+            studentStage: users.studentStage,
+          }
+        })
+        .from(studentExpertAssignments)
+        .innerJoin(users, eq(studentExpertAssignments.studentId, users.id))
+        .where(eq(studentExpertAssignments.expertId, expertId))
+        .orderBy(desc(studentExpertAssignments.assignedAt))
+        .limit(5);
+
+      return recentAssignments.map(a => ({
+        id: a.assignmentId,
+        studentId: a.studentId,
+        status: a.status,
+        priority: a.priority,
+        assignedAt: a.assignedAt,
+        lastContactDate: a.lastContactDate,
+        student: a.student
+      }));
+    } catch (error) {
+      console.error("Error fetching expert recent students:", error);
+      return [];
+    }
+  }
+
+  async getExpertPendingConsultations(expertId: number): Promise<any[]> {
+    try {
+      // For now, return mock data until we implement consultation system
+      return [
+        {
+          id: 1,
+          studentId: 1,
+          studentName: "John Doe",
+          date: new Date(),
+          type: "visa_guidance",
+          status: "pending"
+        }
+      ];
+    } catch (error) {
+      console.error("Error fetching expert pending consultations:", error);
+      return [];
+    }
+  }
+
+  async getExpertStudentsWithFiltering(expertId: number, filters: {
+    search?: string;
+    status?: string;
+    priority?: string;
+    page: number;
+    limit: number;
+  }): Promise<{ students: any[], total: number }> {
+    try {
+      const offset = (filters.page - 1) * filters.limit;
+      
+      let query = db
+        .select({
+          assignmentId: studentExpertAssignments.id,
+          studentId: studentExpertAssignments.studentId,
+          status: studentExpertAssignments.status,
+          priority: studentExpertAssignments.priority,
+          assignedAt: studentExpertAssignments.assignedAt,
+          lastContactDate: studentExpertAssignments.lastContactDate,
+          progressNotes: studentExpertAssignments.progressNotes,
+          student: {
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            phoneNumber: users.phoneNumber,
+            country: users.country,
+            studyDestination: users.studyDestination,
+            leadCategory: users.leadCategory,
+            studentStage: users.studentStage,
+          }
+        })
+        .from(studentExpertAssignments)
+        .innerJoin(users, eq(studentExpertAssignments.studentId, users.id))
+        .where(eq(studentExpertAssignments.expertId, expertId));
+
+      // Apply filters
+      const conditions = [eq(studentExpertAssignments.expertId, expertId)];
+      
+      if (filters.search) {
+        conditions.push(
+          or(
+            sql`LOWER(${users.firstName}) LIKE ${`%${filters.search.toLowerCase()}%`}`,
+            sql`LOWER(${users.lastName}) LIKE ${`%${filters.search.toLowerCase()}%`}`,
+            sql`LOWER(${users.email}) LIKE ${`%${filters.search.toLowerCase()}%`}`
+          )!
+        );
+      }
+      
+      if (filters.status) {
+        conditions.push(eq(studentExpertAssignments.status, filters.status));
+      }
+      
+      if (filters.priority) {
+        conditions.push(eq(studentExpertAssignments.priority, filters.priority));
+      }
+
+      const students = await db
+        .select({
+          assignmentId: studentExpertAssignments.id,
+          studentId: studentExpertAssignments.studentId,
+          status: studentExpertAssignments.status,
+          priority: studentExpertAssignments.priority,
+          assignedAt: studentExpertAssignments.assignedAt,
+          lastContactDate: studentExpertAssignments.lastContactDate,
+          progressNotes: studentExpertAssignments.progressNotes,
+          student: {
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            phoneNumber: users.phoneNumber,
+            country: users.country,
+            studyDestination: users.studyDestination,
+            leadCategory: users.leadCategory,
+            studentStage: users.studentStage,
+          }
+        })
+        .from(studentExpertAssignments)
+        .innerJoin(users, eq(studentExpertAssignments.studentId, users.id))
+        .where(and(...conditions))
+        .orderBy(desc(studentExpertAssignments.assignedAt))
+        .limit(filters.limit)
+        .offset(offset);
+
+      // Get total count for pagination
+      const totalResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(studentExpertAssignments)
+        .innerJoin(users, eq(studentExpertAssignments.studentId, users.id))
+        .where(and(...conditions));
+
+      const total = totalResult[0]?.count || 0;
+
+      return {
+        students: students.map(s => ({
+          id: s.assignmentId,
+          studentId: s.studentId,
+          status: s.status,
+          priority: s.priority,
+          assignedAt: s.assignedAt,
+          lastContactDate: s.lastContactDate,
+          progressNotes: s.progressNotes,
+          student: s.student
+        })),
+        total
+      };
+    } catch (error) {
+      console.error("Error fetching expert students with filtering:", error);
+      return { students: [], total: 0 };
+    }
+  }
+
+  async createStudentExpertAssignment(data: {
+    studentId: number;
+    expertId: number;
+    assignedBy: number;
+    priority: string;
+    assignmentReason?: string;
+    assignmentType: string;
+    status: string;
+  }): Promise<any> {
+    try {
+      const [assignment] = await db
+        .insert(studentExpertAssignments)
+        .values({
+          studentId: data.studentId,
+          expertId: data.expertId,
+          assignedBy: data.assignedBy,
+          assignmentType: data.assignmentType,
+          assignmentReason: data.assignmentReason,
+          priority: data.priority,
+          status: data.status,
+          assignedAt: new Date(),
+        })
+        .returning();
+
+      return assignment;
+    } catch (error) {
+      console.error("Error creating student expert assignment:", error);
+      throw error;
+    }
+  }
+
+  async getUnassignedStudents(): Promise<any[]> {
+    try {
+      // Get all users with role 'user' who don't have active expert assignments
+      const unassigned = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          phoneNumber: users.phoneNumber,
+          country: users.country,
+          studyDestination: users.studyDestination,
+          leadCategory: users.leadCategory,
+          studentStage: users.studentStage,
+          createdAt: users.createdAt
+        })
+        .from(users)
+        .leftJoin(
+          studentExpertAssignments, 
+          and(
+            eq(studentExpertAssignments.studentId, users.id),
+            eq(studentExpertAssignments.status, 'active')
+          )
+        )
+        .where(
+          and(
+            eq(users.role, 'user'),
+            isNull(studentExpertAssignments.id)
+          )
+        )
+        .orderBy(desc(users.createdAt));
+
+      return unassigned;
+    } catch (error) {
+      console.error("Error fetching unassigned students:", error);
+      return [];
+    }
+  }
+
+  async getAvailableExperts(): Promise<any[]> {
+    try {
+      // Get all users with role 'expert'
+      const experts = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+          role: users.role,
+          status: users.status,
+          createdAt: users.createdAt
+        })
+        .from(users)
+        .where(eq(users.role, 'expert'))
+        .orderBy(users.firstName);
+
+      return experts;
+    } catch (error) {
+      console.error("Error fetching available experts:", error);
+      return [];
     }
   }
 }
