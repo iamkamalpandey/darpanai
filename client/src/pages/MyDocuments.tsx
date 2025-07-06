@@ -184,7 +184,7 @@ export default function MyDocuments() {
     try {
       console.log('Starting download for document:', doc.id);
       
-      const response = await fetch(`/api/document-management/documents/${doc.id}/download`);
+      const response = await fetch(`/api/documents/documents/${doc.id}/download`);
       console.log('Download response status:', response.status);
       console.log('Download response headers:', Object.fromEntries(response.headers.entries()));
       
