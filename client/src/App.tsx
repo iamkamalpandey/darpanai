@@ -15,9 +15,7 @@ import Home from "@/pages/Home";
 import Landing from "@/pages/Landing";
 import SimplifiedAuth from "@/components/SimplifiedAuth";
 
-// Expert-focused redesigned components
-const ExpertLanding = lazy(() => import("@/pages/ExpertLanding"));
-const ExpertDashboard = lazy(() => import("@/pages/ExpertDashboard"));
+// New redesigned components
 const NewHome = lazy(() => import("@/pages/NewHome"));
 const StudentAIDashboard = lazy(() => import("@/pages/StudentAIDashboard"));
 const PublicLanding = lazy(() => import("@/pages/PublicLanding"));
@@ -115,6 +113,7 @@ const CulturalAdaptationChallenges = lazy(() => import("@/pages/CulturalAdaptati
 const UnifiedApplicationManagement = lazy(() => import("@/pages/UnifiedApplicationManagement"));
 const ApplicationManagementHub = lazy(() => import("@/pages/ApplicationManagementHub"));
 const MyDocuments = lazy(() => import("@/pages/MyDocuments"));
+const ExpertDashboard = lazy(() => import("@/pages/ExpertDashboard"));
 const AdminExpertManagement = lazy(() => import("@/pages/AdminExpertManagement"));
 const AdminStudentManagement = lazy(() => import("@/pages/AdminStudentManagement"));
 const StudentManagement = lazy(() => import("@/pages/expert/StudentManagement"));
@@ -148,18 +147,16 @@ function Router() {
     }
     
     if (user) {
-      // Regular users see the expert-focused landing for consultation workflow
       return (
         <Suspense fallback={<LoadingFallback />}>
-          <ExpertLanding />
+          <StudentAIDashboard />
         </Suspense>
       );
     }
     
-    // Non-authenticated users see expert-focused landing
     return (
       <Suspense fallback={<LoadingFallback />}>
-        <ExpertLanding />
+        <PublicLanding />
       </Suspense>
     );
   }

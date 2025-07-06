@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { useLocation } from 'wouter';
 import { ExpertLayout } from '@/components/ExpertLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -93,14 +92,12 @@ interface StudentActivity {
 export default function StudentManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [assignmentFilter, setAssignmentFilter] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
-  const [currentView, setCurrentView] = useState<'list' | 'kanban' | 'grid'>('list');
 
   // Fetch students assigned to expert
   const { data: students = [], isLoading: studentsLoading } = useQuery<Student[]>({
@@ -314,58 +311,20 @@ export default function StudentManagement() {
   return (
     <ExpertLayout>
       <div className="p-6 space-y-6">
-        {/* Enhanced Header with Navigation */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setLocation('/expert')}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              ← Back to Dashboard
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold">Student Management</h1>
-              <p className="text-muted-foreground">
-                Comprehensive CRM system for tracking student activities and progress
-              </p>
-            </div>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Student Management</h1>
+            <p className="text-muted-foreground">
+              Comprehensive CRM system for tracking student activities and progress
+            </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {/* View Toggle */}
-            <div className="flex border rounded-lg p-1">
-              <Button 
-                variant={currentView === 'list' ? 'default' : 'ghost'} 
-                size="sm"
-                onClick={() => setCurrentView('list')}
-                className="px-3"
-              >
-                List
-              </Button>
-              <Button 
-                variant={currentView === 'kanban' ? 'default' : 'ghost'} 
-                size="sm"
-                onClick={() => setCurrentView('kanban')}
-                className="px-3"
-              >
-                Kanban
-              </Button>
-              <Button 
-                variant={currentView === 'grid' ? 'default' : 'ghost'} 
-                size="sm"
-                onClick={() => setCurrentView('grid')}
-                className="px-3"
-              >
-                Grid
-              </Button>
-            </div>
-            
-            <Button variant="outline" size="sm">
+          <div className="flex gap-2">
+            <Button variant="outline">
               <Download className="h-4 w-4 mr-2" />
               Export CSV
             </Button>
-            <Button size="sm">
+            <Button>
               <Users className="h-4 w-4 mr-2" />
               Add Student
             </Button>
@@ -480,22 +439,16 @@ export default function StudentManagement() {
           </CardContent>
         </Card>
 
-        {/* Students Display - Conditional based on view type */}
-        {currentView === 'list' && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Students ({filteredStudents.length})
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {filteredStudents.filter(s => s.priority === 'urgent' || s.priority === 'high').length} high priority
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
+        {/* Students Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Students ({filteredStudents.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Student</TableHead>
@@ -769,266 +722,9 @@ export default function StudentManagement() {
                   </TableRow>
                 ))}
               </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Kanban View */}
-        {currentView === 'kanban' && (
-          <div className="grid md:grid-cols-4 gap-6">
-            {/* Active Column */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-                  Active ({filteredStudents.filter(s => s.status === 'active').length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {filteredStudents.filter(s => s.status === 'active').map((student) => (
-                  <Card key={student.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                          <span className="text-xs font-medium text-white">
-                            {student.name.split(' ').map(n => n[0]).join('')}
-                          </span>
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{student.name}</p>
-                          <p className="text-xs text-muted-foreground">{student.fieldOfStudy}</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Badge className={getPriorityColor(student.priority)} size="sm">
-                          {student.priority}
-                        </Badge>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div 
-                            className="bg-blue-600 h-1.5 rounded-full" 
-                            style={{ width: `${student.profileCompletion}%` }}
-                          ></div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{student.nextAction}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Pending Column */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <div className="h-3 w-3 bg-yellow-500 rounded-full"></div>
-                  Pending ({filteredStudents.filter(s => s.status === 'pending').length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {filteredStudents.filter(s => s.status === 'pending').map((student) => (
-                  <Card key={student.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                          <span className="text-xs font-medium text-white">
-                            {student.name.split(' ').map(n => n[0]).join('')}
-                          </span>
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{student.name}</p>
-                          <p className="text-xs text-muted-foreground">{student.fieldOfStudy}</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Badge className={getPriorityColor(student.priority)} size="sm">
-                          {student.priority}
-                        </Badge>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div 
-                            className="bg-blue-600 h-1.5 rounded-full" 
-                            style={{ width: `${student.profileCompletion}%` }}
-                          ></div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{student.nextAction}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Completed Column */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <div className="h-3 w-3 bg-blue-500 rounded-full"></div>
-                  Completed ({filteredStudents.filter(s => s.status === 'completed').length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {filteredStudents.filter(s => s.status === 'completed').map((student) => (
-                  <Card key={student.id} className="cursor-pointer hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
-                          <span className="text-xs font-medium text-white">
-                            {student.name.split(' ').map(n => n[0]).join('')}
-                          </span>
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{student.name}</p>
-                          <p className="text-xs text-muted-foreground">{student.fieldOfStudy}</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Badge className="bg-green-100 text-green-800" size="sm">
-                          Success
-                        </Badge>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div className="bg-green-600 h-1.5 rounded-full w-full"></div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{student.nextAction}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Inactive Column */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <div className="h-3 w-3 bg-gray-500 rounded-full"></div>
-                  Inactive ({filteredStudents.filter(s => s.status === 'inactive').length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {filteredStudents.filter(s => s.status === 'inactive').map((student) => (
-                  <Card key={student.id} className="cursor-pointer hover:shadow-md transition-shadow opacity-75">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="h-8 w-8 rounded-full bg-gray-400 flex items-center justify-center">
-                          <span className="text-xs font-medium text-white">
-                            {student.name.split(' ').map(n => n[0]).join('')}
-                          </span>
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{student.name}</p>
-                          <p className="text-xs text-muted-foreground">{student.fieldOfStudy}</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Badge className="bg-gray-100 text-gray-800" size="sm">
-                          Inactive
-                        </Badge>
-                        <div className="w-full bg-gray-200 rounded-full h-1.5">
-                          <div 
-                            className="bg-gray-400 h-1.5 rounded-full" 
-                            style={{ width: `${student.profileCompletion}%` }}
-                          ></div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">No recent activity</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Grid View */}
-        {currentView === 'grid' && (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredStudents.map((student) => (
-              <Card key={student.id} className="cursor-pointer hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center">
-                      <span className="text-sm font-medium text-white">
-                        {student.name.split(' ').map(n => n[0]).join('')}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold">{student.name}</h3>
-                      <p className="text-sm text-muted-foreground">{student.email}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Badge className={getStatusColor(student.status)} size="sm">
-                        {student.status}
-                      </Badge>
-                      <Badge className={getPriorityColor(student.priority)} size="sm">
-                        {student.priority}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm font-medium">{student.studyLevel}</p>
-                      <p className="text-sm text-muted-foreground">{student.fieldOfStudy}</p>
-                      <p className="text-xs text-muted-foreground">{student.preferredCountries.join(', ')}</p>
-                    </div>
-                    
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>Profile Completion</span>
-                        <span>{student.profileCompletion}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full" 
-                          style={{ width: `${student.profileCompletion}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div>
-                        <p className="text-lg font-semibold">{student.analysesCount}</p>
-                        <p className="text-xs text-muted-foreground">Analyses</p>
-                      </div>
-                      <div>
-                        <p className="text-lg font-semibold">{student.consultationsCount}</p>
-                        <p className="text-xs text-muted-foreground">Consultations</p>
-                      </div>
-                      <div>
-                        <p className="text-lg font-semibold">{student.documentsSubmitted}</p>
-                        <p className="text-xs text-muted-foreground">Documents</p>
-                      </div>
-                    </div>
-                    
-                    <div className="p-3 bg-yellow-50 rounded-lg border">
-                      <p className="text-xs font-medium text-yellow-800">Next Action:</p>
-                      <p className="text-xs text-yellow-700">{student.nextAction}</p>
-                    </div>
-                    
-                    <div className="flex gap-2 pt-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex-1"
-                        onClick={() => setSelectedStudent(student)}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Details
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <MessageSquare className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Calendar className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     </ExpertLayout>
   );
