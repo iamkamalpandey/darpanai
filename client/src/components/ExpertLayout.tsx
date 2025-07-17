@@ -77,13 +77,18 @@ export function ExpertLayout({ children }: ExpertLayoutProps) {
 
   const expertSidebarItems = [
     { icon: <BarChart3 size={20} />, label: 'Dashboard', href: '/expert' },
+    
+    // Student Management
     { icon: <Users size={20} />, label: 'Student Management', href: '/expert/students' },
     { icon: <Calendar size={20} />, label: 'Consultations', href: '/expert/consultations' },
     { icon: <MessageSquare size={20} />, label: 'Messages', href: '/expert/messages' },
+    
+    // Document Management
     { icon: <FileText size={20} />, label: 'Document Review', href: '/expert/documents' },
     { icon: <Target size={20} />, label: 'Progress Tracking', href: '/expert/progress' },
-    { icon: <Award size={20} />, label: 'Cultural Adaptation', href: '/expert/cultural-adaptation' },
-    { icon: <BarChart3 size={20} />, label: 'Analytics & Reports', href: '/expert/analytics' },
+    
+    // Analytics & Tools
+    { icon: <Activity size={20} />, label: 'Analytics & Reports', href: '/expert/analytics' },
     { 
       icon: <FolderOpen size={20} />, 
       label: 'Resources & Tools', 
@@ -96,6 +101,8 @@ export function ExpertLayout({ children }: ExpertLayoutProps) {
         { icon: <ClipboardCheck size={18} />, label: 'Checklists', href: '/expert/checklists' },
       ]
     },
+    
+    // Settings
     { icon: <Settings size={20} />, label: 'Profile & Settings', href: '/expert/settings' },
   ];
 

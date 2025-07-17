@@ -85,17 +85,23 @@ function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   const sidebarItems = [
-    // Priority 1: Core user actions
+    // Core Features
     { icon: <Home size={20} />, label: 'Dashboard', href: '/' },
     { icon: <Brain size={20} />, label: 'EduCounsel AI', href: '/educounsel-ai' },
     { icon: <Calendar size={20} />, label: 'Consultation Booking', href: '/consultations' },
-    { icon: <FileText size={20} />, label: 'Study Abroad Hub', href: '/study-abroad-hub' },
+    
+    // Document Management
     { icon: <FolderOpen size={20} />, label: 'My Documents', href: '/my-documents' },
-    { icon: <MessageSquare size={20} />, label: 'Communication Center', href: '/communication-center' },
-    { icon: <FileSearch size={20} />, label: 'Document Intelligence Hub', href: '/document-intelligence-hub' },
-    { icon: <Zap size={20} />, label: 'Eligibility Quick Scan', href: '/eligibility-quick-scan' },
+    { icon: <FileText size={20} />, label: 'My Analysis', href: '/my-analysis' },
+    
+    // Analysis Tools
+    { icon: <Shield size={20} />, label: 'Visa Analysis', href: '/visa-analysis' },
+    { icon: <FileCheck size={20} />, label: 'COE Analysis', href: '/coe-analysis' },
+    { icon: <GraduationCap size={20} />, label: 'Offer Letter Analysis', href: '/offer-letter-analysis' },
+    
+    // Scholarships & Opportunities
     { icon: <Award size={20} />, label: 'Scholarship Hub', href: '/scholarship-hub' },
-    { icon: <Globe size={20} />, label: 'Cultural Adaptation Challenges', href: '/cultural-adaptation-challenges' },
+    { icon: <Zap size={20} />, label: 'Eligibility Quick Scan', href: '/eligibility-quick-scan' },
     
     // Resources
     { 

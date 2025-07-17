@@ -20,7 +20,8 @@ import {
   MessageSquare,
   Brain,
   UserCheck,
-  Target
+  Target,
+  Award
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Footer } from '@/components/Footer';
@@ -75,17 +76,23 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   const adminSidebarItems = [
     { icon: <BarChart3 size={20} />, label: 'Dashboard', href: '/admin' },
+    
+    // User Management
     { icon: <Users size={20} />, label: 'User Management', href: '/admin/users' },
     { icon: <Target size={20} />, label: 'Student Management', href: '/admin/student-management' },
     { icon: <UserCheck size={20} />, label: 'Expert Management', href: '/admin/expert-management' },
+    
+    // Content Management
     { icon: <FileText size={20} />, label: 'Analysis Reports', href: '/admin/analyses' },
     { icon: <FileCheck size={20} />, label: 'Information Reports', href: '/admin/information-reports' },
-    { icon: <MessageSquare size={20} />, label: 'User Feedback', href: '/admin/feedback' },
+    { icon: <Award size={20} />, label: 'Scholarship Management', href: '/admin/scholarships' },
+    
+    // Operations
     { icon: <Calendar size={20} />, label: 'Appointments', href: '/admin/appointments' },
-    { icon: <Briefcase size={20} />, label: 'Professional Applications', href: '/admin/professional-applications' },
-    { icon: <Brain size={20} />, label: 'Application Management Hub', href: '/admin/unified-applications' },
+    { icon: <MessageSquare size={20} />, label: 'User Feedback', href: '/admin/feedback' },
     { icon: <Bell size={20} />, label: 'Updates & Notifications', href: '/admin/updates' },
-    { icon: <FileText size={20} />, label: 'Scholarship Management', href: '/admin/scholarships' },
+    
+    // Resources
     { 
       icon: <FolderOpen size={20} />, 
       label: 'Resources Management', 
@@ -95,6 +102,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         { icon: <ClipboardCheck size={18} />, label: 'Document Checklists', href: '/admin/document-checklists' },
       ]
     },
+    
+    // System
     { icon: <Settings size={20} />, label: 'System Settings', href: '/admin/settings' },
   ];
 

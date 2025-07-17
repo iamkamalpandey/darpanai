@@ -15,107 +15,60 @@ import Home from "@/pages/Home";
 import Landing from "@/pages/Landing";
 import SimplifiedAuth from "@/components/SimplifiedAuth";
 
-// New redesigned components
-const NewHome = lazy(() => import("@/pages/NewHome"));
+// Core Components
 const StudentAIDashboard = lazy(() => import("@/pages/StudentAIDashboard"));
 const PublicLanding = lazy(() => import("@/pages/PublicLanding"));
-const EducationLanding = lazy(() => import("@/pages/EducationLanding"));
-const DashboardDemo = lazy(() => import("@/pages/DashboardDemo"));
 
-// Lazy load heavy components for better initial performance
-const VisaAnalyzer = lazy(() => import("@/pages/VisaAnalyzer"));
-const AnalysisHistory = lazy(() => import("@/pages/AnalysisHistory"));
+// Analysis Components
 const AnalysisHub = lazy(() => import("@/pages/AnalysisHub"));
-const MyAnalysis = lazy(() => import("@/pages/MyAnalysis"));
 const VisaRejectionAnalysis = lazy(() => import("@/pages/VisaRejectionAnalysis"));
-const EnrollmentAnalysis = lazy(() => import("@/pages/EnrollmentAnalysis"));
 const CoEAnalysis = lazy(() => import("@/pages/CoEAnalysis"));
 const COEAnalysisView = lazy(() => import("@/pages/COEAnalysisView"));
-const OfferLetterAnalysis = lazy(() => import("@/pages/OfferLetterAnalysis"));
-const OfferLetterAnalysisView = lazy(() => import("@/pages/OfferLetterAnalysisView_comprehensive"));
 const ComprehensiveOfferLetterAnalysis = lazy(() => import("@/pages/ComprehensiveOfferLetterAnalysisSimplified"));
 const OfferLetterAnalysisDisplay = lazy(() => import("@/pages/OfferLetterAnalysisDisplay"));
-const VisaAnalysisView = lazy(() => import("@/pages/VisaAnalysisView"));
-const ScholarshipResearch = lazy(() => import("@/pages/ScholarshipResearch"));
-const AIScholarshipAnalysis = lazy(() => import("@/pages/AIScholarshipAnalysis"));
-const ScholarshipDetailsPage = lazy(() => import("@/pages/ScholarshipDetailsPage"));
-const ScholarshipDetailsPageFixed = lazy(() => import("@/pages/ScholarshipDetailsPageFixed"));
-const ScholarshipHub = lazy(() => import("@/pages/ScholarshipHub"));
+
+// Scholarship Components
 const ScholarshipHubNew = lazy(() => import("@/pages/ScholarshipHubNew"));
-const UserScholarshipDetails = lazy(() => import("@/pages/ScholarshipDetails"));
-const ScholarshipCollectionNew = lazy(() => import("@/pages/ScholarshipCollectionNew"));
-const ScholarshipRecommendations = lazy(() => import("@/pages/ScholarshipRecommendations"));
-const ScholarshipRecommendationsNew = lazy(() => import("@/pages/ScholarshipRecommendationsNew"));
-const GamifiedProgress = lazy(() => import("@/pages/GamifiedProgress"));
-const UserVisaAnalysisView = lazy(() => import("@/pages/UserVisaAnalysisView"));
-const EnrollmentAnalysisResults = lazy(() => import("@/pages/EnrollmentAnalysisResults"));
-const VisaAnalysisResults = lazy(() => import("@/pages/VisaAnalysisResults"));
+const ScholarshipDetailsPageFixed = lazy(() => import("@/pages/ScholarshipDetailsPageFixed"));
+
+// Core Pages
 const ConsultationsPage = lazy(() => import("@/pages/consultations"));
 const UpdatesPage = lazy(() => import("@/pages/updates"));
 const DocumentTemplates = lazy(() => import("@/pages/document-templates"));
 const DocumentChecklist = lazy(() => import("@/pages/document-checklist"));
-const AssessmentPage = lazy(() => import("@/pages/AssessmentPage"));
-const SimpleAssessment = lazy(() => import("@/components/SimpleAssessment"));
-const AdvancedAssessmentPage = lazy(() => import("@/pages/AdvancedAssessmentPage"));
-const CvAnalysis = lazy(() => import("@/pages/CvAnalysis"));
-const AcademicDocumentAnalysis = lazy(() => import("@/pages/AcademicDocumentAnalysis"));
-const SimpleTranscriptAnalysis = lazy(() => import("@/pages/SimpleTranscriptAnalysis"));
-const AcademicDocumentDetails = lazy(() => import("@/pages/AcademicDocumentDetails"));
-const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
-const AdminAnalyses = lazy(() => import("@/pages/admin-analyses"));
-const ScholarshipManagement = lazy(() => import("@/pages/admin/ScholarshipManagement"));
-const ScholarshipCreate = lazy(() => import("@/pages/admin/ScholarshipCreate"));
-const ScholarshipDetails = lazy(() => import("@/pages/admin/ScholarshipDetails"));
-const ScholarshipDetailsRedesign = lazy(() => import("@/pages/admin/ScholarshipDetailsRedesign"));
-const ScholarshipEdit = lazy(() => import("@/pages/admin/ScholarshipEdit"));
-const AdminAppointments = lazy(() => import("@/pages/admin-appointments"));
-const AdminUsers = lazy(() => import("@/pages/admin-users"));
-const AdminProfessionalApplications = lazy(() => import("@/pages/admin-professional-applications"));
-const AdminApplicationManagement = lazy(() => import("@/pages/AdminApplicationManagement"));
-const SmartApplicationManagement = lazy(() => import("@/pages/SmartApplicationManagement"));
-const ModernApplicationHub = lazy(() => import("@/pages/ModernApplicationHub"));
-const ModernAdminApplicationManagement = lazy(() => import("@/pages/admin/ModernAdminApplicationManagement"));
-const AdminUpdates = lazy(() => import("@/pages/admin-updates"));
-const AdminSettings = lazy(() => import("@/pages/admin-settings"));
-const AdminDocumentTemplates = lazy(() => import("@/pages/admin-document-templates"));
-const AdminDocumentChecklists = lazy(() => import("@/pages/admin-document-checklists"));
-const AdminFeedback = lazy(() => import("@/pages/admin-feedback"));
-const AdminOfferLetterAnalysisView = lazy(() => import("@/pages/AdminOfferLetterAnalysisView"));
-const AdminInformationReports = lazy(() => import("@/pages/admin/InformationReports"));
-const AdminOfferLetterDetails = lazy(() => import("@/pages/admin/AdminOfferLetterDetails"));
-const AdminCoeDetails = lazy(() => import("@/pages/admin/CoeDetailsNew"));
-const StudyDestinationSuggestions = lazy(() => import("@/pages/StudyDestinationSuggestions"));
-const DestinationSuggestionDetail = lazy(() => import("@/pages/DestinationSuggestionDetail"));
-const PersonalizedDestinationAnalysis = lazy(() => import("@/pages/PersonalizedDestinationAnalysis"));
-const EnhancedUserProfile = lazy(() => import("@/pages/EnhancedUserProfile"));
+const EduCounselAI = lazy(() => import("@/pages/EduCounselAI"));
+const EligibilityQuickScan = lazy(() => import("@/pages/EligibilityQuickScan"));
+const MyDocuments = lazy(() => import("@/pages/MyDocuments"));
+// Profile and Information Components
 const ProfileEdit = lazy(() => import("@/pages/ProfileEdit"));
-const ProfilePageRedesign = lazy(() => import("@/components/ProfilePageRedesign"));
 const OfferLetterInfo = lazy(() => import("@/pages/OfferLetterInfo"));
 const OfferLetterDetails = lazy(() => import("@/pages/OfferLetterDetails"));
 const CoeInformation = lazy(() => import("@/pages/CoeInformation"));
 const CoeDetails = lazy(() => import("@/pages/CoeDetailsNew"));
 const UserCoeDetails = lazy(() => import("@/pages/UserCoeDetails"));
-const AdminOfferLetterInfo = lazy(() => import("@/pages/admin/AdminOfferLetterInfo"));
-const UserAdminCoeDetails = lazy(() => import("@/pages/UserAdminCoeDetails"));
 
-const MyWatchlist = lazy(() => import("@/pages/MyWatchlist"));
-const EduCounselAI = lazy(() => import("@/pages/EduCounselAI"));
-const EligibilityQuickScan = lazy(() => import("@/pages/EligibilityQuickScan"));
-const GamifiedLearningPath = lazy(() => import("@/pages/GamifiedLearningPathSimple"));
-const StudentApplicationSystem = lazy(() => import("@/pages/StudentApplicationSystem"));
-const ProfileBasedApplication = lazy(() => import("@/pages/ProfileBasedApplication"));
-const SmartApplicationTracker = lazy(() => import("@/pages/SmartApplicationTracker"));
-const CommunicationCenter = lazy(() => import("@/pages/CommunicationCenter"));
-const DocumentIntelligenceHub = lazy(() => import("@/pages/DocumentIntelligenceHub"));
-const StudyAbroadHub = lazy(() => import("@/pages/StudyAbroadHub"));
-const ScholarshipResearchHub = lazy(() => import("@/pages/ScholarshipResearchHub"));
-const CulturalAdaptationChallenges = lazy(() => import("@/pages/CulturalAdaptationChallenges"));
-const UnifiedApplicationManagement = lazy(() => import("@/pages/UnifiedApplicationManagement"));
-const ApplicationManagementHub = lazy(() => import("@/pages/ApplicationManagementHub"));
-const MyDocuments = lazy(() => import("@/pages/MyDocuments"));
-const ExpertDashboard = lazy(() => import("@/pages/ExpertDashboard"));
+// Admin Components
+const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
+const AdminAnalyses = lazy(() => import("@/pages/admin-analyses"));
+const AdminAppointments = lazy(() => import("@/pages/admin-appointments"));
+const AdminUsers = lazy(() => import("@/pages/admin-users"));
+const AdminUpdates = lazy(() => import("@/pages/admin-updates"));
+const AdminSettings = lazy(() => import("@/pages/admin-settings"));
+const AdminDocumentTemplates = lazy(() => import("@/pages/admin-document-templates"));
+const AdminDocumentChecklists = lazy(() => import("@/pages/admin-document-checklists"));
+const AdminFeedback = lazy(() => import("@/pages/admin-feedback"));
+const AdminInformationReports = lazy(() => import("@/pages/admin/InformationReports"));
 const AdminExpertManagement = lazy(() => import("@/pages/AdminExpertManagement"));
 const AdminStudentManagement = lazy(() => import("@/pages/AdminStudentManagement"));
+
+// Scholarship Management
+const ScholarshipManagement = lazy(() => import("@/pages/admin/ScholarshipManagement"));
+const ScholarshipDetails = lazy(() => import("@/pages/admin/ScholarshipDetails"));
+const ScholarshipCreate = lazy(() => import("@/pages/admin/ScholarshipCreate"));
+const ScholarshipEdit = lazy(() => import("@/pages/admin/ScholarshipEdit"));
+
+// Expert Components
+const ExpertDashboard = lazy(() => import("@/pages/ExpertDashboard"));
 const StudentManagement = lazy(() => import("@/pages/expert/StudentManagement"));
 
 // Loading fallback component
@@ -170,12 +123,7 @@ function Router() {
       {/* Home Route - Shows Landing for guests, Dashboard for authenticated users */}
       <Route path="/" component={HomePage} />
       
-      {/* Dashboard Demo Route */}
-      <Route path="/dashboard-demo">
-        <Suspense fallback={<LoadingFallback />}>
-          <DashboardDemo />
-        </Suspense>
-      </Route>
+
       
       {/* User Routes - Only accessible by regular users */}
       <Route path="/my-analysis">
@@ -189,13 +137,6 @@ function Router() {
         <UserProtectedRoute path="/visa-analysis" component={() => (
           <Suspense fallback={<LoadingFallback />}>
             <VisaRejectionAnalysis />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/enrollment-analysis">
-        <UserProtectedRoute path="/enrollment-analysis" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <EnrollmentAnalysis />
           </Suspense>
         )} />
       </Route>
@@ -229,20 +170,7 @@ function Router() {
           )} />
         )}
       </Route>
-      <Route path="/cv-analysis">
-        <UserProtectedRoute path="/cv-analysis" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <CvAnalysis />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/academic-document-analysis">
-        <UserProtectedRoute path="/academic-document-analysis" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <SimpleTranscriptAnalysis />
-          </Suspense>
-        )} />
-      </Route>
+
       <Route path="/educounsel-ai">
         <UserProtectedRoute path="/educounsel-ai" component={() => (
           <Suspense fallback={<LoadingFallback />}>
@@ -258,46 +186,11 @@ function Router() {
         )} />
       </Route>
       
-      {/* Unified Hub Routes */}
-      <Route path="/study-abroad-hub">
-        <UserProtectedRoute path="/study-abroad-hub" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <StudyAbroadHub />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/document-intelligence-hub">
-        <UserProtectedRoute path="/document-intelligence-hub" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <DocumentIntelligenceHub />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/application-hub">
-        <UserProtectedRoute path="/application-hub" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <ModernApplicationHub />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/scholarship-research-hub">
-        <UserProtectedRoute path="/scholarship-research-hub" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <ScholarshipResearchHub />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/academic-document-details/:id">
-        <UserProtectedRoute path="/academic-document-details/:id" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <AcademicDocumentDetails />
-          </Suspense>
-        )} />
-      </Route>
+      {/* Core User Routes */}
       <Route path="/scholarship-research">
         <UserProtectedRoute path="/scholarship-research" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <ScholarshipResearch />
+            <ScholarshipHubNew />
           </Suspense>
         )} />
       </Route>
@@ -311,13 +204,6 @@ function Router() {
           )} />
         )}
       </Route>
-      <Route path="/scholarship-matching">
-        <UserProtectedRoute path="/scholarship-matching" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <AIScholarshipAnalysis />
-          </Suspense>
-        )} />
-      </Route>
       <Route path="/scholarship-hub">
         <UserProtectedRoute path="/scholarship-hub" component={() => (
           <Suspense fallback={<LoadingFallback />}>
@@ -325,43 +211,14 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      <Route path="/scholarship-recommendations">
-        <UserProtectedRoute path="/scholarship-recommendations" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <ScholarshipRecommendationsNew />
-          </Suspense>
-        )} />
-      </Route>
       <Route path="/scholarship-details/:id">
         {(params) => (
           <UserProtectedRoute path="/scholarship-details/:id" component={() => (
             <Suspense fallback={<LoadingFallback />}>
-              <UserScholarshipDetails params={params} />
+              <ScholarshipDetailsPageFixed params={params} />
             </Suspense>
           )} />
         )}
-      </Route>
-      <Route path="/my-scholarships">
-        <UserProtectedRoute path="/my-scholarships" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <ScholarshipCollectionNew />
-          </Suspense>
-        )} />
-      </Route>
-
-      <Route path="/my-watchlist">
-        <UserProtectedRoute path="/my-watchlist" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <MyWatchlist />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/student-applications">
-        <UserProtectedRoute path="/student-applications" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <StudentApplicationSystem />
-          </Suspense>
-        )} />
       </Route>
       <Route path="/profile-based-application">
         <UserProtectedRoute path="/profile-based-application" component={() => (
