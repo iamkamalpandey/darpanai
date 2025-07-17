@@ -7,6 +7,12 @@ import advancedDarpanRoutes from "./advancedDarpanRoutes";
 import assessmentRoutes from "./assessmentRoutes";
 import { setupVite, serveStatic, log } from "./vite";
 import { pool } from "./db";
+import { 
+  configureSecurityMiddleware, 
+  validateEnvironment, 
+  errorHandler, 
+  isDatabaseSecure 
+} from "./security";
 
 // Enhanced logging function with error level support
 function logWithLevel(message: string, level: 'info' | 'error' = 'info', source = "express") {
@@ -26,14 +32,20 @@ function logWithLevel(message: string, level: 'info' | 'error' = 'info', source 
 
 const app = express();
 
+// Validate environment variables and apply security
+validateEnvironment();
+
+// Configure security middleware FIRST
+configureSecurityMiddleware(app);
+
 // Enable compression for all responses to reduce bandwidth
 app.use(compression({
   level: 9, // Maximum compression for better performance
   threshold: 512, // Compress responses larger than 512 bytes
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -333,13 +345,7 @@ process.on('unhandledRejection', (reason, promise) => {
     logWithLevel('✓ Database schema simplified - university initialization skipped');
     
     // Step 5: Setup error handling middleware
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-      
-      logWithLevel(`Error: ${status} - ${message}`, 'error');
-      res.status(status).json({ message });
-    });
+    app.use(errorHandler);
     
     // Step 6: Setup Vite in development or static serving in production
     logWithLevel('Setting up client serving...');

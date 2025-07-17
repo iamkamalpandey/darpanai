@@ -1258,6 +1258,7 @@ export class DatabaseStorage implements IStorage {
           fileName: processedData.fileName || '',
           fileSize: processedData.fileSize || 0,
           documentText: processedData.documentText || '',
+          originalText: processedData.originalText || processedData.documentText || '',
           analysisResults: processedData.analysisResults,
           gptAnalysisResults: processedData.gptAnalysisResults,
           claudeAnalysisResults: processedData.claudeAnalysisResults,
