@@ -1,0 +1,593 @@
+-- Comprehensive Academic Institution Database Schema for AI Training
+-- Multi-country support with normalized design
+
+-- =============================================
+-- REFERENCE/LOOKUP TABLES
+-- =============================================
+
+-- Countries table (reusable from scholarship schema)
+CREATE TABLE countries (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    code VARCHAR(3) NOT NULL UNIQUE, -- ISO 3166-1 alpha-3
+    region VARCHAR(50),
+    continent VARCHAR(30),
+    currency_code VARCHAR(3),
+    education_system VARCHAR(50), -- e.g., 'American', 'British', 'European', 'Asian'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- States/Provinces/Regions within countries
+CREATE TABLE states_provinces (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    code VARCHAR(10), -- State/province code
+    country_id INT NOT NULL,
+    type ENUM('State', 'Province', 'Territory', 'Region', 'Canton', 'Prefecture') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (country_id) REFERENCES countries(id),
+    UNIQUE KEY unique_state_country (name, country_id)
+);
+
+-- Cities
+CREATE TABLE cities (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    state_province_id INT,
+    country_id INT NOT NULL,
+    latitude DECIMAL(10, 8),
+    longitude DECIMAL(11, 8),
+    population INT,
+    is_capital BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (state_province_id) REFERENCES states_provinces(id),
+    FOREIGN KEY (country_id) REFERENCES countries(id),
+    INDEX idx_location (latitude, longitude)
+);
+
+-- Institution types
+CREATE TABLE institution_types (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    type_name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    typical_duration_years INT, -- Typical program duration
+    level_order INT, -- 1=Community College, 2=College, 3=University, 4=Research University
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Academic disciplines/fields
+CREATE TABLE academic_disciplines (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    discipline_name VARCHAR(100) NOT NULL,
+    parent_discipline_id INT,
+    code VARCHAR(20), -- e.g., CIP code, JACS code
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (parent_discipline_id) REFERENCES academic_disciplines(id)
+);
+
+-- Degree levels
+CREATE TABLE degree_levels (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    level_name VARCHAR(50) NOT NULL UNIQUE,
+    level_order INT NOT NULL,
+    typical_duration_years INT,
+    description TEXT,
+    international_equivalent VARCHAR(100), -- e.g., 'Bachelor = Licence (France)'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Accreditation bodies
+CREATE TABLE accreditation_bodies (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(200) NOT NULL,
+    acronym VARCHAR(20),
+    country_id INT,
+    type ENUM('National', 'Regional', 'Professional', 'International') NOT NULL,
+    website VARCHAR(255),
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (country_id) REFERENCES countries(id)
+);
+
+-- Language codes
+CREATE TABLE languages (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    language_name VARCHAR(50) NOT NULL,
+    code VARCHAR(5) NOT NULL UNIQUE, -- ISO 639-1 or 639-2
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================
+-- MAIN INSTITUTION TABLE
+-- =============================================
+
+CREATE TABLE institutions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    local_name VARCHAR(255), -- Name in local language
+    common_name VARCHAR(255), -- Popular/abbreviated name
+    institution_type_id INT NOT NULL,
+    
+    -- Location Information
+    country_id INT NOT NULL,
+    state_province_id INT,
+    city_id INT,
+    address_line1 VARCHAR(255),
+    address_line2 VARCHAR(255),
+    postal_code VARCHAR(20),
+    
+    -- Contact Information
+    website VARCHAR(255),
+    email VARCHAR(100),
+    phone VARCHAR(20),
+    fax VARCHAR(20),
+    
+    -- Academic Information
+    founded_year INT,
+    academic_calendar ENUM('Semester', 'Quarter', 'Trimester', 'Annual', 'Other') DEFAULT 'Semester',
+    primary_language_id INT,
+    
+    -- Institutional Characteristics
+    ownership_type ENUM('Public', 'Private Non-Profit', 'Private For-Profit', 'Government') NOT NULL,
+    religious_affiliation VARCHAR(100),
+    coeducational BOOLEAN DEFAULT TRUE,
+    
+    -- Size and Capacity
+    total_enrollment INT,
+    undergraduate_enrollment INT,
+    graduate_enrollment INT,
+    international_student_count INT,
+    faculty_count INT,
+    staff_count INT,
+    
+    -- Financial Information
+    annual_tuition_domestic_min DECIMAL(12,2),
+    annual_tuition_domestic_max DECIMAL(12,2),
+    annual_tuition_international_min DECIMAL(12,2),
+    annual_tuition_international_max DECIMAL(12,2),
+    currency_code VARCHAR(3),
+    
+    -- Rankings and Recognition
+    world_rank INT,
+    national_rank INT,
+    research_classification VARCHAR(100),
+    
+    -- Campus Information
+    campus_size_acres DECIMAL(10,2),
+    campus_setting ENUM('Urban', 'Suburban', 'Rural', 'Online') DEFAULT 'Urban',
+    housing_available BOOLEAN DEFAULT TRUE,
+    
+    -- Online/Distance Learning
+    online_programs_available BOOLEAN DEFAULT FALSE,
+    distance_learning_available BOOLEAN DEFAULT FALSE,
+    
+    -- Status and Metadata
+    status ENUM('Active', 'Inactive', 'Merged', 'Closed', 'Suspended') DEFAULT 'Active',
+    is_verified BOOLEAN DEFAULT FALSE,
+    verification_date DATE,
+    data_quality_score DECIMAL(3,2), -- For AI training quality assessment
+    
+    -- Timestamps
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    last_verified_at TIMESTAMP,
+    
+    -- Indexes for performance
+    INDEX idx_country (country_id),
+    INDEX idx_type (institution_type_id),
+    INDEX idx_name (name),
+    INDEX idx_enrollment (total_enrollment),
+    INDEX idx_tuition (annual_tuition_domestic_min, annual_tuition_domestic_max),
+    INDEX idx_status (status),
+    INDEX idx_location (country_id, state_province_id, city_id),
+    
+    -- Foreign Keys
+    FOREIGN KEY (institution_type_id) REFERENCES institution_types(id),
+    FOREIGN KEY (country_id) REFERENCES countries(id),
+    FOREIGN KEY (state_province_id) REFERENCES states_provinces(id),
+    FOREIGN KEY (city_id) REFERENCES cities(id),
+    FOREIGN KEY (primary_language_id) REFERENCES languages(id)
+);
+
+-- =============================================
+-- ACADEMIC PROGRAMS AND OFFERINGS
+-- =============================================
+
+-- Academic programs offered by institutions
+CREATE TABLE academic_programs (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    institution_id INT NOT NULL,
+    program_name VARCHAR(255) NOT NULL,
+    discipline_id INT NOT NULL,
+    degree_level_id INT NOT NULL,
+    
+    -- Program Details
+    duration_years DECIMAL(3,1),
+    duration_months INT,
+    credits_required INT,
+    program_code VARCHAR(20),
+    
+    -- Admission Requirements
+    min_gpa DECIMAL(3,2),
+    standardized_test_required VARCHAR(100), -- SAT, ACT, GRE, GMAT, etc.
+    min_test_score INT,
+    language_test_required VARCHAR(20), -- TOEFL, IELTS, etc.
+    min_language_score INT,
+    
+    -- Program Characteristics
+    is_online BOOLEAN DEFAULT FALSE,
+    is_part_time BOOLEAN DEFAULT FALSE,
+    is_accelerated BOOLEAN DEFAULT FALSE,
+    internship_required BOOLEAN DEFAULT FALSE,
+    thesis_required BOOLEAN DEFAULT FALSE,
+    
+    -- Financial Information
+    tuition_per_year DECIMAL(12,2),
+    fees_per_year DECIMAL(12,2),
+    
+    -- Capacity and Enrollment
+    max_enrollment INT,
+    current_enrollment INT,
+    acceptance_rate DECIMAL(5,2), -- Percentage
+    
+    -- Status
+    status ENUM('Active', 'Inactive', 'Suspended', 'Under Review') DEFAULT 'Active',
+    accreditation_status ENUM('Accredited', 'Candidacy', 'Not Accredited', 'Under Review') DEFAULT 'Not Accredited',
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (institution_id) REFERENCES institutions(id) ON DELETE CASCADE,
+    FOREIGN KEY (discipline_id) REFERENCES academic_disciplines(id),
+    FOREIGN KEY (degree_level_id) REFERENCES degree_levels(id),
+    
+    INDEX idx_institution (institution_id),
+    INDEX idx_discipline (discipline_id),
+    INDEX idx_degree_level (degree_level_id),
+    INDEX idx_tuition (tuition_per_year)
+);
+
+-- =============================================
+-- RELATIONSHIP TABLES
+-- =============================================
+
+-- Institution accreditations (many-to-many)
+CREATE TABLE institution_accreditations (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    institution_id INT NOT NULL,
+    accreditation_body_id INT NOT NULL,
+    accreditation_date DATE,
+    expiration_date DATE,
+    status ENUM('Active', 'Expired', 'Suspended', 'Under Review') DEFAULT 'Active',
+    accreditation_level ENUM('Institutional', 'Program', 'Specialized') NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (institution_id) REFERENCES institutions(id) ON DELETE CASCADE,
+    FOREIGN KEY (accreditation_body_id) REFERENCES accreditation_bodies(id),
+    UNIQUE KEY unique_institution_accreditor (institution_id, accreditation_body_id)
+);
+
+-- Institution languages (many-to-many)
+CREATE TABLE institution_languages (
+    institution_id INT,
+    language_id INT,
+    is_primary BOOLEAN DEFAULT FALSE,
+    instruction_available BOOLEAN DEFAULT TRUE,
+    support_services_available BOOLEAN DEFAULT FALSE,
+    PRIMARY KEY (institution_id, language_id),
+    FOREIGN KEY (institution_id) REFERENCES institutions(id) ON DELETE CASCADE,
+    FOREIGN KEY (language_id) REFERENCES languages(id)
+);
+
+-- Institution partnerships/affiliations
+CREATE TABLE institution_partnerships (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    institution_id INT NOT NULL,
+    partner_institution_id INT NOT NULL,
+    partnership_type ENUM('Sister Institution', 'Exchange Program', 'Joint Degree', 'Research Collaboration', 'Consortium') NOT NULL,
+    start_date DATE,
+    end_date DATE,
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (institution_id) REFERENCES institutions(id) ON DELETE CASCADE,
+    FOREIGN KEY (partner_institution_id) REFERENCES institutions(id) ON DELETE CASCADE,
+    CHECK (institution_id != partner_institution_id)
+);
+
+-- Institution specializations/strengths
+CREATE TABLE institution_specializations (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    institution_id INT NOT NULL,
+    discipline_id INT NOT NULL,
+    specialization_level ENUM('Excellent', 'Very Good', 'Good', 'Average') NOT NULL,
+    ranking_position INT,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (institution_id) REFERENCES institutions(id) ON DELETE CASCADE,
+    FOREIGN KEY (discipline_id) REFERENCES academic_disciplines(id)
+);
+
+-- =============================================
+-- FACILITIES AND SERVICES
+-- =============================================
+
+-- Campus facilities
+CREATE TABLE campus_facilities (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    institution_id INT NOT NULL,
+    facility_type ENUM('Library', 'Laboratory', 'Sports Complex', 'Student Center', 'Dormitory', 'Research Center', 'Medical Center', 'Other') NOT NULL,
+    facility_name VARCHAR(255),
+    capacity INT,
+    description TEXT,
+    is_available BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (institution_id) REFERENCES institutions(id) ON DELETE CASCADE
+);
+
+-- Student services
+CREATE TABLE student_services (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    institution_id INT NOT NULL,
+    service_type ENUM('Career Services', 'Counseling', 'Health Services', 'Financial Aid', 'International Student Services', 'Disability Services', 'Academic Support', 'Other') NOT NULL,
+    service_name VARCHAR(255),
+    description TEXT,
+    is_available BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (institution_id) REFERENCES institutions(id) ON DELETE CASCADE
+);
+
+-- =============================================
+-- ADMISSIONS AND STATISTICS
+-- =============================================
+
+-- Application requirements by institution
+CREATE TABLE admission_requirements (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    institution_id INT NOT NULL,
+    degree_level_id INT NOT NULL,
+    requirement_type ENUM('GPA', 'Standardized Test', 'Language Test', 'Essay', 'Portfolio', 'Interview', 'Work Experience', 'Other') NOT NULL,
+    requirement_name VARCHAR(255),
+    is_required BOOLEAN DEFAULT TRUE,
+    minimum_value VARCHAR(50),
+    maximum_value VARCHAR(50),
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (institution_id) REFERENCES institutions(id) ON DELETE CASCADE,
+    FOREIGN KEY (degree_level_id) REFERENCES degree_levels(id)
+);
+
+-- Annual statistics for institutions
+CREATE TABLE institution_statistics (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    institution_id INT NOT NULL,
+    academic_year VARCHAR(9), -- e.g., '2023-2024'
+    
+    -- Enrollment Statistics
+    total_applications INT,
+    total_admissions INT,
+    total_enrollment INT,
+    international_enrollment INT,
+    graduation_rate DECIMAL(5,2),
+    retention_rate DECIMAL(5,2),
+    
+    -- Financial Statistics
+    average_tuition DECIMAL(12,2),
+    average_financial_aid DECIMAL(12,2),
+    
+    -- Academic Statistics
+    student_faculty_ratio DECIMAL(5,2),
+    average_class_size INT,
+    
+    -- Employment Statistics
+    employment_rate_6months DECIMAL(5,2),
+    average_starting_salary DECIMAL(12,2),
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (institution_id) REFERENCES institutions(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_institution_year (institution_id, academic_year)
+);
+
+-- =============================================
+-- RESEARCH AND PUBLICATIONS
+-- =============================================
+
+-- Research centers and institutes
+CREATE TABLE research_centers (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    institution_id INT NOT NULL,
+    center_name VARCHAR(255) NOT NULL,
+    discipline_id INT,
+    established_year INT,
+    funding_amount DECIMAL(15,2),
+    staff_count INT,
+    description TEXT,
+    website VARCHAR(255),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (institution_id) REFERENCES institutions(id) ON DELETE CASCADE,
+    FOREIGN KEY (discipline_id) REFERENCES academic_disciplines(id)
+);
+
+-- =============================================
+-- SAMPLE DATA INSERTION
+-- =============================================
+
+-- Insert sample countries
+INSERT INTO countries (name, code, region, continent, currency_code, education_system) VALUES
+('United States', 'USA', 'North America', 'North America', 'USD', 'American'),
+('United Kingdom', 'GBR', 'Western Europe', 'Europe', 'GBP', 'British'),
+('Canada', 'CAN', 'North America', 'North America', 'CAD', 'American'),
+('Australia', 'AUS', 'Oceania', 'Oceania', 'AUD', 'British'),
+('Germany', 'DEU', 'Western Europe', 'Europe', 'EUR', 'European'),
+('France', 'FRA', 'Western Europe', 'Europe', 'EUR', 'European'),
+('Japan', 'JPN', 'East Asia', 'Asia', 'JPY', 'Asian'),
+('China', 'CHN', 'East Asia', 'Asia', 'CNY', 'Asian'),
+('India', 'IND', 'South Asia', 'Asia', 'INR', 'British'),
+('Brazil', 'BRA', 'South America', 'South America', 'BRL', 'European');
+
+-- Insert institution types
+INSERT INTO institution_types (type_name, description, typical_duration_years, level_order) VALUES
+('Community College', 'Two-year institutions offering associate degrees', 2, 1),
+('Liberal Arts College', 'Four-year institutions focusing on undergraduate education', 4, 2),
+('University', 'Comprehensive institutions offering undergraduate and graduate programs', 4, 3),
+('Research University', 'Universities with extensive research programs and doctoral degrees', 4, 4),
+('Technical Institute', 'Specialized institutions focusing on technical and vocational training', 2, 1),
+('Professional School', 'Specialized schools for professional degrees (Medicine, Law, etc.)', 3, 3),
+('Graduate School', 'Institutions focusing primarily on graduate education', 2, 4),
+('Online University', 'Institutions offering primarily online education', 4, 2);
+
+-- Insert degree levels
+INSERT INTO degree_levels (level_name, level_order, typical_duration_years, description) VALUES
+('Certificate', 1, 1, 'Short-term certification programs'),
+('Associate Degree', 2, 2, 'Two-year undergraduate degree'),
+('Bachelor\'s Degree', 3, 4, 'Four-year undergraduate degree'),
+('Master\'s Degree', 4, 2, 'Graduate degree'),
+('Doctoral Degree', 5, 4, 'PhD or equivalent research degree'),
+('Professional Degree', 6, 3, 'Professional degrees like MD, JD, etc.'),
+('Postdoctoral', 7, 2, 'Post-doctoral research programs');
+
+-- Insert sample languages
+INSERT INTO languages (language_name, code) VALUES
+('English', 'en'),
+('Spanish', 'es'),
+('French', 'fr'),
+('German', 'de'),
+('Mandarin Chinese', 'zh'),
+('Japanese', 'ja'),
+('Arabic', 'ar'),
+('Portuguese', 'pt'),
+('Russian', 'ru'),
+('Hindi', 'hi');
+
+-- Insert sample academic disciplines
+INSERT INTO academic_disciplines (discipline_name, parent_discipline_id, code, description) VALUES
+('Engineering', NULL, 'ENG', 'Engineering and applied sciences'),
+('Computer Science', 1, 'CS', 'Computer science and information technology'),
+('Mechanical Engineering', 1, 'ME', 'Mechanical engineering discipline'),
+('Business Administration', NULL, 'BUS', 'Business and management studies'),
+('Medicine', NULL, 'MED', 'Medical and health sciences'),
+('Liberal Arts', NULL, 'LA', 'Liberal arts and humanities'),
+('Natural Sciences', NULL, 'SCI', 'Natural and physical sciences'),
+('Social Sciences', NULL, 'SOC', 'Social science disciplines'),
+('Education', NULL, 'EDU', 'Education and teaching'),
+('Fine Arts', NULL, 'ART', 'Creative and performing arts');
+
+-- Insert sample accreditation bodies
+INSERT INTO accreditation_bodies (name, acronym, country_id, type, description) VALUES
+('Higher Learning Commission', 'HLC', 1, 'Regional', 'Regional accreditor for the North Central region of the US'),
+('Middle States Commission on Higher Education', 'MSCHE', 1, 'Regional', 'Regional accreditor for the Middle States region'),
+('Quality Assurance Agency', 'QAA', 2, 'National', 'UK higher education quality assurance'),
+('Australian Qualifications Framework', 'AQF', 4, 'National', 'Australian education qualifications framework'),
+('AACSB International', 'AACSB', 1, 'Professional', 'Business school accreditation'),
+('ABET', 'ABET', 1, 'Professional', 'Engineering and technology accreditation');
+
+-- =============================================
+-- VIEWS FOR COMMON QUERIES
+-- =============================================
+
+-- Comprehensive institution view
+CREATE VIEW institution_detailed_view AS
+SELECT 
+    i.id,
+    i.name,
+    i.local_name,
+    i.common_name,
+    it.type_name as institution_type,
+    c.name as country,
+    c.code as country_code,
+    sp.name as state_province,
+    ct.name as city,
+    i.founded_year,
+    i.ownership_type,
+    i.total_enrollment,
+    i.faculty_count,
+    i.annual_tuition_domestic_min,
+    i.annual_tuition_domestic_max,
+    i.currency_code,
+    i.world_rank,
+    i.national_rank,
+    i.campus_setting,
+    i.website,
+    i.status,
+    i.is_verified,
+    l.language_name as primary_language,
+    i.created_at,
+    i.updated_at
+FROM institutions i
+JOIN institution_types it ON i.institution_type_id = it.id
+JOIN countries c ON i.country_id = c.id
+LEFT JOIN states_provinces sp ON i.state_province_id = sp.id
+LEFT JOIN cities ct ON i.city_id = ct.id
+LEFT JOIN languages l ON i.primary_language_id = l.id
+WHERE i.status = 'Active';
+
+-- Program offerings view
+CREATE VIEW program_offerings_view AS
+SELECT 
+    ap.id,
+    ap.program_name,
+    i.name as institution_name,
+    i.country_id,
+    c.name as country,
+    ad.discipline_name,
+    dl.level_name as degree_level,
+    ap.duration_years,
+    ap.tuition_per_year,
+    ap.acceptance_rate,
+    ap.is_online,
+    ap.status,
+    ap.accreditation_status
+FROM academic_programs ap
+JOIN institutions i ON ap.institution_id = i.id
+JOIN countries c ON i.country_id = c.id
+JOIN academic_disciplines ad ON ap.discipline_id = ad.id
+JOIN degree_levels dl ON ap.degree_level_id = dl.id
+WHERE ap.status = 'Active' AND i.status = 'Active';
+
+-- =============================================
+-- PERFORMANCE OPTIMIZATION
+-- =============================================
+
+-- Additional indexes for complex queries
+CREATE INDEX idx_institutions_country_type ON institutions(country_id, institution_type_id);
+CREATE INDEX idx_institutions_enrollment_range ON institutions(total_enrollment);
+CREATE INDEX idx_programs_institution_discipline ON academic_programs(institution_id, discipline_id);
+CREATE INDEX idx_programs_tuition_range ON academic_programs(tuition_per_year);
+CREATE INDEX idx_accreditations_status ON institution_accreditations(status, expiration_date);
+
+-- Full-text search indexes
+ALTER TABLE institutions ADD FULLTEXT(name, local_name, common_name);
+ALTER TABLE academic_programs ADD FULLTEXT(program_name);
+ALTER TABLE academic_disciplines ADD FULLTEXT(discipline_name, description);
+
+-- =============================================
+-- TRIGGERS FOR DATA INTEGRITY
+-- =============================================
+
+-- Update institution statistics when enrollment changes
+DELIMITER //
+CREATE TRIGGER update_institution_modified 
+BEFORE UPDATE ON institutions 
+FOR EACH ROW 
+BEGIN 
+    SET NEW.updated_at = CURRENT_TIMESTAMP;
+END//
+DELIMITER ;
+
+-- Ensure program duration is reasonable
+DELIMITER //
+CREATE TRIGGER validate_program_duration 
+BEFORE INSERT ON academic_programs 
+FOR EACH ROW 
+BEGIN 
+    IF NEW.duration_years < 0.5 OR NEW.duration_years > 10 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Program duration must be between 0.5 and 10 years';
+    END IF;
+END//
+DELIMITER ;

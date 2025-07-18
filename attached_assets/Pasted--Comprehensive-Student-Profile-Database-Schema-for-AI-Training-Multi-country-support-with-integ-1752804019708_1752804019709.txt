@@ -1,0 +1,1178 @@
+-- Comprehensive Student Profile Database Schema for AI Training
+-- Multi-country support with integration to institutions and courses
+
+-- =============================================
+-- REFERENCE/LOOKUP TABLES
+-- =============================================
+
+-- Reuse existing tables from institution and course schemas
+-- Countries, institutions, academic_disciplines, degree_levels, languages, courses
+
+-- Student status types
+CREATE TABLE student_status_types (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    status_name VARCHAR(50) NOT NULL UNIQUE,
+    status_code VARCHAR(20) NOT NULL UNIQUE, -- e.g., 'ACTIVE', 'INACTIVE', 'GRADUATED'
+    description TEXT,
+    is_enrolled BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Learning styles and preferences
+CREATE TABLE learning_styles (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    style_name VARCHAR(50) NOT NULL UNIQUE,
+    description TEXT,
+    characteristics TEXT,
+    recommended_strategies TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Student types/categories
+CREATE TABLE student_types (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    type_name VARCHAR(50) NOT NULL UNIQUE, -- e.g., 'Full-time', 'Part-time', 'Distance', 'Exchange'
+    description TEXT,
+    typical_credit_load_min INT,
+    typical_credit_load_max INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Disability types and accommodations
+CREATE TABLE disability_types (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    disability_category VARCHAR(100) NOT NULL,
+    description TEXT,
+    common_accommodations TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Financial aid types
+CREATE TABLE financial_aid_types (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    aid_type VARCHAR(100) NOT NULL UNIQUE, -- e.g., 'Scholarship', 'Grant', 'Loan', 'Work-Study'
+    description TEXT,
+    is_need_based BOOLEAN DEFAULT FALSE,
+    is_merit_based BOOLEAN DEFAULT FALSE,
+    requires_repayment BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Career interests/fields
+CREATE TABLE career_fields (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    field_name VARCHAR(100) NOT NULL UNIQUE,
+    parent_field_id INT,
+    description TEXT,
+    growth_outlook VARCHAR(50), -- e.g., 'High Growth', 'Stable', 'Declining'
+    median_salary DECIMAL(10,2),
+    currency_code VARCHAR(3),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (parent_field_id) REFERENCES career_fields(id)
+);
+
+-- Skills taxonomy
+CREATE TABLE skills (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    skill_name VARCHAR(100) NOT NULL UNIQUE,
+    skill_category VARCHAR(50), -- e.g., 'Technical', 'Soft', 'Language', 'Leadership'
+    description TEXT,
+    is_technical BOOLEAN DEFAULT FALSE,
+    industry_relevance TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================
+-- MAIN STUDENT PROFILE TABLE
+-- =============================================
+
+CREATE TABLE students (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    
+    -- Basic Identity Information
+    student_id VARCHAR(50) NOT NULL UNIQUE, -- Institution-specific ID
+    first_name VARCHAR(100) NOT NULL,
+    middle_name VARCHAR(100),
+    last_name VARCHAR(100) NOT NULL,
+    preferred_name VARCHAR(100),
+    email VARCHAR(255) NOT NULL UNIQUE,
+    alternate_email VARCHAR(255),
+    phone VARCHAR(20),
+    alternate_phone VARCHAR(20),
+    
+    -- Personal Information
+    date_of_birth DATE,
+    gender ENUM('Male', 'Female', 'Non-binary', 'Prefer not to say', 'Other'),
+    nationality_id INT,
+    citizenship_id INT,
+    primary_language_id INT,
+    
+    -- Address Information
+    permanent_address TEXT,
+    permanent_city VARCHAR(100),
+    permanent_state VARCHAR(100),
+    permanent_country_id INT,
+    permanent_postal_code VARCHAR(20),
+    current_address TEXT,
+    current_city VARCHAR(100),
+    current_state VARCHAR(100),
+    current_country_id INT,
+    current_postal_code VARCHAR(20),
+    
+    -- Academic Information
+    primary_institution_id INT NOT NULL,
+    student_type_id INT NOT NULL,
+    status_id INT NOT NULL,
+    enrollment_date DATE,
+    expected_graduation_date DATE,
+    actual_graduation_date DATE,
+    
+    -- Academic Standing
+    current_gpa DECIMAL(4,3),
+    cumulative_gpa DECIMAL(4,3),
+    total_credits_earned DECIMAL(6,2),
+    total_credits_attempted DECIMAL(6,2),
+    current_semester_credits DECIMAL(5,2),
+    academic_standing VARCHAR(50), -- e.g., 'Good Standing', 'Probation', 'Suspension'
+    
+    -- Learning Profile
+    learning_style_id INT,
+    preferred_study_time ENUM('Morning', 'Afternoon', 'Evening', 'Night', 'Flexible'),
+    preferred_learning_pace ENUM('Fast', 'Moderate', 'Slow', 'Self-paced'),
+    technology_proficiency ENUM('Beginner', 'Intermediate', 'Advanced', 'Expert'),
+    
+    -- Goals and Interests
+    career_goal TEXT,
+    academic_interests TEXT,
+    personal_statement TEXT,
+    
+    -- Support and Accommodation
+    has_disabilities BOOLEAN DEFAULT FALSE,
+    accommodation_needed BOOLEAN DEFAULT FALSE,
+    accommodation_details TEXT,
+    
+    -- Financial Information
+    financial_aid_recipient BOOLEAN DEFAULT FALSE,
+    work_study_eligible BOOLEAN DEFAULT FALSE,
+    estimated_family_contribution DECIMAL(10,2),
+    
+    -- Contact Preferences
+    preferred_contact_method ENUM('Email', 'Phone', 'Text', 'Mail', 'In-person'),
+    email_notifications BOOLEAN DEFAULT TRUE,
+    sms_notifications BOOLEAN DEFAULT FALSE,
+    
+    -- Emergency Contact
+    emergency_contact_name VARCHAR(255),
+    emergency_contact_relationship VARCHAR(50),
+    emergency_contact_phone VARCHAR(20),
+    emergency_contact_email VARCHAR(255),
+    
+    -- Privacy and Consent
+    photo_consent BOOLEAN DEFAULT FALSE,
+    directory_consent BOOLEAN DEFAULT TRUE,
+    research_consent BOOLEAN DEFAULT FALSE,
+    marketing_consent BOOLEAN DEFAULT FALSE,
+    
+    -- System Information
+    account_created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_login_at TIMESTAMP,
+    profile_completion_percentage DECIMAL(5,2),
+    data_quality_score DECIMAL(3,2), -- For AI training
+    
+    -- Status and Metadata
+    is_active BOOLEAN DEFAULT TRUE,
+    is_verified BOOLEAN DEFAULT FALSE,
+    verification_date DATE,
+    notes TEXT, -- Administrative notes
+    
+    -- Timestamps
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Indexes
+    INDEX idx_student_id (student_id),
+    INDEX idx_email (email),
+    INDEX idx_institution (primary_institution_id),
+    INDEX idx_status (status_id),
+    INDEX idx_gpa (cumulative_gpa),
+    INDEX idx_graduation (expected_graduation_date),
+    INDEX idx_active (is_active),
+    
+    -- Foreign Keys
+    FOREIGN KEY (nationality_id) REFERENCES countries(id),
+    FOREIGN KEY (citizenship_id) REFERENCES countries(id),
+    FOREIGN KEY (primary_language_id) REFERENCES languages(id),
+    FOREIGN KEY (permanent_country_id) REFERENCES countries(id),
+    FOREIGN KEY (current_country_id) REFERENCES countries(id),
+    FOREIGN KEY (primary_institution_id) REFERENCES institutions(id),
+    FOREIGN KEY (student_type_id) REFERENCES student_types(id),
+    FOREIGN KEY (status_id) REFERENCES student_status_types(id),
+    FOREIGN KEY (learning_style_id) REFERENCES learning_styles(id)
+);
+
+-- =============================================
+-- ACADEMIC PROGRAMS AND MAJORS
+-- =============================================
+
+-- Student program enrollment
+CREATE TABLE student_programs (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    program_id INT NOT NULL, -- Links to academic_programs
+    program_type ENUM('Major', 'Minor', 'Concentration', 'Certificate', 'Double Major') NOT NULL,
+    enrollment_date DATE NOT NULL,
+    completion_date DATE,
+    expected_completion_date DATE,
+    is_primary BOOLEAN DEFAULT FALSE,
+    status ENUM('Active', 'Completed', 'Dropped', 'Suspended', 'On Hold') DEFAULT 'Active',
+    completion_percentage DECIMAL(5,2),
+    requirements_met DECIMAL(5,2), -- Percentage of requirements completed
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (program_id) REFERENCES academic_programs(id),
+    UNIQUE KEY unique_student_program (student_id, program_id, program_type)
+);
+
+-- Academic advisors assignment
+CREATE TABLE student_advisors (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    advisor_name VARCHAR(255) NOT NULL,
+    advisor_email VARCHAR(255),
+    advisor_type ENUM('Academic', 'Faculty', 'Career', 'Financial', 'Personal') NOT NULL,
+    department VARCHAR(100),
+    assignment_date DATE NOT NULL,
+    end_date DATE,
+    is_primary BOOLEAN DEFAULT FALSE,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+);
+
+-- =============================================
+-- COURSE ENROLLMENT AND ACADEMIC HISTORY
+-- =============================================
+
+-- Student course enrollments
+CREATE TABLE student_enrollments (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    course_id INT NOT NULL,
+    section_id INT,
+    enrollment_date DATE NOT NULL,
+    enrollment_status ENUM('Enrolled', 'Waitlisted', 'Dropped', 'Withdrawn', 'Completed', 'Audit') DEFAULT 'Enrolled',
+    
+    -- Academic Term
+    academic_year VARCHAR(9), -- e.g., '2023-2024'
+    semester VARCHAR(20),
+    
+    -- Grade Information
+    final_grade VARCHAR(10),
+    final_percentage DECIMAL(5,2),
+    grade_points DECIMAL(4,2),
+    credit_hours DECIMAL(3,1),
+    is_transfer_credit BOOLEAN DEFAULT FALSE,
+    
+    -- Completion Information
+    completion_date DATE,
+    completion_status ENUM('Completed', 'Incomplete', 'Withdrawn', 'Failed', 'In Progress') DEFAULT 'In Progress',
+    
+    -- Performance Metrics
+    attendance_rate DECIMAL(5,2),
+    participation_score DECIMAL(5,2),
+    effort_rating DECIMAL(3,2), -- 1-5 scale
+    
+    -- Course Feedback
+    course_rating DECIMAL(3,2), -- Student's rating of the course
+    difficulty_rating DECIMAL(3,2),
+    workload_rating DECIMAL(3,2),
+    instructor_rating DECIMAL(3,2),
+    would_recommend BOOLEAN,
+    
+    -- Academic Impact
+    contributed_to_gpa BOOLEAN DEFAULT TRUE,
+    repeat_attempt_number INT DEFAULT 1,
+    is_retake BOOLEAN DEFAULT FALSE,
+    
+    -- Notes and Comments
+    instructor_comments TEXT,
+    student_notes TEXT,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Foreign Keys
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES courses(id),
+    FOREIGN KEY (section_id) REFERENCES course_sections(id),
+    
+    -- Indexes
+    INDEX idx_student_semester (student_id, academic_year, semester),
+    INDEX idx_course_grade (course_id, final_grade),
+    INDEX idx_completion_status (completion_status),
+    
+    -- Constraints
+    UNIQUE KEY unique_student_course_semester (student_id, course_id, academic_year, semester),
+    CHECK (final_percentage >= 0 AND final_percentage <= 100),
+    CHECK (grade_points >= 0),
+    CHECK (credit_hours >= 0)
+);
+
+-- Individual assignment/assessment grades
+CREATE TABLE student_assessment_grades (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    enrollment_id INT NOT NULL,
+    assessment_id INT NOT NULL, -- Links to course_assessments
+    score_earned DECIMAL(8,2),
+    score_possible DECIMAL(8,2),
+    percentage DECIMAL(5,2),
+    grade VARCHAR(10),
+    submission_date TIMESTAMP,
+    graded_date TIMESTAMP,
+    late_submission BOOLEAN DEFAULT FALSE,
+    late_penalty DECIMAL(5,2),
+    extra_credit BOOLEAN DEFAULT FALSE,
+    feedback TEXT,
+    rubric_scores TEXT, -- JSON with rubric criterion scores
+    attempts_used INT DEFAULT 1,
+    max_attempts INT DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (enrollment_id) REFERENCES student_enrollments(id) ON DELETE CASCADE,
+    FOREIGN KEY (assessment_id) REFERENCES course_assessments(id),
+    INDEX idx_enrollment_assessment (enrollment_id, assessment_id),
+    UNIQUE KEY unique_enrollment_assessment (enrollment_id, assessment_id)
+);
+
+-- =============================================
+-- STUDENT SKILLS AND COMPETENCIES
+-- =============================================
+
+-- Student skills tracking
+CREATE TABLE student_skills (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    skill_id INT NOT NULL,
+    proficiency_level ENUM('Beginner', 'Intermediate', 'Advanced', 'Expert') NOT NULL,
+    self_assessed BOOLEAN DEFAULT TRUE,
+    verified_by VARCHAR(255), -- Who verified this skill
+    verification_date DATE,
+    source_type ENUM('Course', 'Project', 'Work Experience', 'Certification', 'Self-Study') NOT NULL,
+    source_reference VARCHAR(255), -- Reference to course, project, etc.
+    evidence_url VARCHAR(500),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (skill_id) REFERENCES skills(id),
+    UNIQUE KEY unique_student_skill (student_id, skill_id)
+);
+
+-- Student certifications and achievements
+CREATE TABLE student_certifications (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    certification_name VARCHAR(255) NOT NULL,
+    certifying_organization VARCHAR(255),
+    certification_date DATE,
+    expiration_date DATE,
+    credential_id VARCHAR(100),
+    verification_url VARCHAR(500),
+    score_achieved VARCHAR(50),
+    is_verified BOOLEAN DEFAULT FALSE,
+    related_course_id INT, -- If earned through a course
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (related_course_id) REFERENCES courses(id)
+);
+
+-- =============================================
+-- STUDENT ACTIVITIES AND INVOLVEMENT
+-- =============================================
+
+-- Extracurricular activities
+CREATE TABLE student_activities (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    activity_type ENUM('Club', 'Sport', 'Organization', 'Volunteer', 'Research', 'Work', 'Leadership', 'Arts', 'Other') NOT NULL,
+    activity_name VARCHAR(255) NOT NULL,
+    description TEXT,
+    role_title VARCHAR(100),
+    start_date DATE,
+    end_date DATE,
+    is_current BOOLEAN DEFAULT TRUE,
+    hours_per_week DECIMAL(4,1),
+    skills_gained TEXT,
+    achievements TEXT,
+    supervisor_contact VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+);
+
+-- Student research projects
+CREATE TABLE student_research (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    project_title VARCHAR(255) NOT NULL,
+    research_area VARCHAR(100),
+    faculty_advisor VARCHAR(255),
+    start_date DATE,
+    end_date DATE,
+    is_ongoing BOOLEAN DEFAULT TRUE,
+    funding_source VARCHAR(255),
+    funding_amount DECIMAL(10,2),
+    project_description TEXT,
+    methodology TEXT,
+    findings TEXT,
+    publications TEXT,
+    presentations TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+);
+
+-- =============================================
+-- STUDENT SUPPORT AND SERVICES
+-- =============================================
+
+-- Student disabilities and accommodations
+CREATE TABLE student_disabilities (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    disability_type_id INT NOT NULL,
+    documentation_date DATE,
+    accommodation_start_date DATE,
+    accommodation_end_date DATE,
+    specific_accommodations TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    review_date DATE,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (disability_type_id) REFERENCES disability_types(id)
+);
+
+-- Student support services usage
+CREATE TABLE student_support_services (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    service_type ENUM('Tutoring', 'Counseling', 'Career Services', 'Academic Support', 'Financial Aid', 'Health Services', 'Library', 'IT Support', 'Other') NOT NULL,
+    service_provider VARCHAR(255),
+    service_date DATE,
+    duration_minutes INT,
+    outcome TEXT,
+    follow_up_needed BOOLEAN DEFAULT FALSE,
+    satisfaction_rating DECIMAL(3,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+);
+
+-- =============================================
+-- FINANCIAL INFORMATION
+-- =============================================
+
+-- Student financial aid
+CREATE TABLE student_financial_aid (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    aid_type_id INT NOT NULL,
+    academic_year VARCHAR(9),
+    award_amount DECIMAL(10,2),
+    disbursed_amount DECIMAL(10,2),
+    currency_code VARCHAR(3),
+    award_date DATE,
+    disbursement_date DATE,
+    conditions TEXT,
+    renewal_eligible BOOLEAN DEFAULT FALSE,
+    gpa_requirement DECIMAL(4,3),
+    credit_requirement INT,
+    status ENUM('Awarded', 'Accepted', 'Declined', 'Disbursed', 'Cancelled') DEFAULT 'Awarded',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (aid_type_id) REFERENCES financial_aid_types(id)
+);
+
+-- Student payments and billing
+CREATE TABLE student_payments (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    payment_type ENUM('Tuition', 'Fees', 'Housing', 'Meal Plan', 'Books', 'Other') NOT NULL,
+    amount_due DECIMAL(10,2),
+    amount_paid DECIMAL(10,2),
+    currency_code VARCHAR(3),
+    due_date DATE,
+    payment_date DATE,
+    payment_method VARCHAR(50),
+    transaction_id VARCHAR(100),
+    late_fee DECIMAL(8,2),
+    status ENUM('Pending', 'Paid', 'Overdue', 'Cancelled', 'Refunded') DEFAULT 'Pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+);
+
+-- =============================================
+-- STUDENT ANALYTICS AND INSIGHTS
+-- =============================================
+
+-- Student learning analytics
+CREATE TABLE student_learning_analytics (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    academic_year VARCHAR(9),
+    semester VARCHAR(20),
+    
+    -- Academic Performance
+    semester_gpa DECIMAL(4,3),
+    credits_attempted DECIMAL(5,2),
+    credits_earned DECIMAL(5,2),
+    completion_rate DECIMAL(5,2),
+    
+    -- Engagement Metrics
+    course_attendance_avg DECIMAL(5,2),
+    assignment_submission_rate DECIMAL(5,2),
+    participation_score_avg DECIMAL(5,2),
+    library_usage_hours INT,
+    online_platform_hours INT,
+    
+    -- Learning Patterns
+    preferred_study_days VARCHAR(20), -- e.g., 'Weekdays', 'Weekends', 'Mixed'
+    peak_performance_time VARCHAR(20), -- e.g., 'Morning', 'Evening'
+    average_study_session_minutes INT,
+    
+    -- Risk Indicators
+    at_risk_score DECIMAL(5,2), -- 0-100 scale
+    early_alert_flags TEXT, -- JSON array of alert types
+    intervention_recommended BOOLEAN DEFAULT FALSE,
+    
+    -- Support Usage
+    tutoring_hours INT,
+    advisor_meetings INT,
+    support_services_used INT,
+    
+    -- Predictions
+    predicted_graduation_date DATE,
+    predicted_final_gpa DECIMAL(4,3),
+    career_readiness_score DECIMAL(5,2),
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_student_semester (student_id, academic_year, semester)
+);
+
+-- Student career readiness tracking
+CREATE TABLE student_career_readiness (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    student_id INT NOT NULL,
+    assessment_date DATE,
+    
+    -- Career Interests
+    primary_career_field_id INT,
+    secondary_career_field_id INT,
+    career_certainty_level ENUM('Very Uncertain', 'Uncertain', 'Somewhat Certain', 'Certain', 'Very Certain'),
+    
+    -- Skill Assessments
+    technical_skills_score DECIMAL(5,2),
+    soft_skills_score DECIMAL(5,2),
+    leadership_skills_score DECIMAL(5,2),
+    communication_skills_score DECIMAL(5,2),
+    
+    -- Experience
+    internship_completed BOOLEAN DEFAULT FALSE,
+    work_experience_months INT,
+    volunteer_hours INT,
+    project_portfolio_count INT,
+    
+    -- Job Search Readiness
+    resume_quality_score DECIMAL(5,2),
+    interview_skills_score DECIMAL(5,2),
+    networking_activity_score DECIMAL(5,2),
+    
+    -- Overall Readiness
+    overall_readiness_score DECIMAL(5,2),
+    improvement_areas TEXT,
+    recommended_actions TEXT,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (primary_career_field_id) REFERENCES career_fields(id),
+    FOREIGN KEY (secondary_career_field_id) REFERENCES career_fields(id)
+);
+
+-- =============================================
+-- SAMPLE DATA INSERTION
+-- =============================================
+
+-- Insert student status types
+INSERT INTO student_status_types (status_name, status_code, description, is_enrolled, is_active) VALUES
+('Active', 'ACTIVE', 'Currently enrolled and attending', TRUE, TRUE),
+('Graduated', 'GRAD', 'Successfully completed program', FALSE, FALSE),
+('Withdrawn', 'WITHDRAWN', 'Voluntarily left the program', FALSE, FALSE),
+('Suspended', 'SUSPENDED', 'Temporarily not allowed to attend', FALSE, FALSE),
+('On Leave', 'LEAVE', 'Temporarily not attending', FALSE, TRUE),
+('Transferred', 'TRANSFER', 'Moved to another institution', FALSE, FALSE),
+('Probation', 'PROBATION', 'Academic probation status', TRUE, TRUE),
+('Incomplete', 'INCOMPLETE', 'Has incomplete coursework', TRUE, TRUE);
+
+-- Insert learning styles
+INSERT INTO learning_styles (style_name, description, characteristics) VALUES
+('Visual', 'Learn best through visual aids and demonstrations', 'Prefer charts, diagrams, mind maps, and visual presentations'),
+('Auditory', 'Learn best through listening and discussion', 'Prefer lectures, discussions, and audio materials'),
+('Kinesthetic', 'Learn best through hands-on activities', 'Prefer practical exercises, labs, and physical activities'),
+('Reading/Writing', 'Learn best through text-based materials', 'Prefer reading, writing, and text-based assignments'),
+('Multimodal', 'Learn effectively through multiple approaches', 'Adapt to various learning methods and environments');
+
+-- Insert student types
+INSERT INTO student_types (type_name, description, typical_credit_load_min, typical_credit_load_max) VALUES
+('Full-time', 'Traditional full-time student', 12, 18),
+('Part-time', 'Student taking reduced course load', 3, 11),
+('Distance Learning', 'Student studying remotely', 6, 15),
+('Exchange', 'International exchange student', 12, 18),
+('Graduate', 'Graduate degree student', 6, 12),
+('Continuing Education', 'Adult learner returning to education', 3, 9),
+('Dual Enrollment', 'High school student taking college courses', 3, 9),
+('Audit', 'Non-degree seeking student', 1, 6);
+
+-- Insert disability types
+INSERT INTO disability_types (disability_category, description, common_accommodations) VALUES
+('Learning Disability', 'Conditions affecting learning processes', 'Extended time, alternative testing, note-taking assistance'),
+('Physical Disability', 'Mobility or physical impairments', 'Accessible seating, assistive technology, modified assignments'),
+('Sensory Disability', 'Visual or hearing impairments', 'Sign language interpreters, braille materials, audio equipment'),
+('Psychological Disability', 'Mental health conditions', 'Flexible attendance, stress management, counseling services'),
+('Chronic Illness', 'Ongoing health conditions', 'Flexible scheduling, absence accommodations, health support'),
+('Temporary Disability', 'Short-term impairments', 'Temporary accommodations, modified participation'),
+('Cognitive Disability', 'Intellectual or cognitive impairments', 'Simplified instructions, additional support, modified assessments');
+
+-- Insert financial aid types
+INSERT INTO financial_aid_types (aid_type, description, is_need_based, is_merit_based, requires_repayment) VALUES
+('Pell Grant', 'Federal need-based grant', TRUE, FALSE, FALSE),
+('Merit Scholarship', 'Academic achievement scholarship', FALSE, TRUE, FALSE),
+('Need-based Grant', 'Institutional need-based aid', TRUE, FALSE, FALSE),
+('Student Loan', 'Federal or private loan', FALSE, FALSE, TRUE),
+('Work-Study', 'Federal work-study program', TRUE, FALSE, FALSE),
+('Athletic Scholarship', 'Sports-based scholarship', FALSE, TRUE, FALSE),
+('Research Assistantship', 'Graduate research funding', FALSE, TRUE, FALSE),
+('Teaching Assistantship', 'Graduate teaching funding', FALSE, TRUE, FALSE);
+
+-- Insert career fields
+INSERT INTO career_fields (field_name, description, growth_outlook, median_salary, currency_code) VALUES
+('Information Technology', 'Computer and technology careers', 'High Growth', 75000, 'USD'),
+('Healthcare', 'Medical and health services', 'High Growth', 65000, 'USD'),
+('Engineering', 'Engineering and technical fields', 'Moderate Growth', 80000, 'USD'),
+('Education', 'Teaching and educational services', 'Stable', 50000, 'USD'),
+('Business', 'Business and management careers', 'Moderate Growth', 60000, 'USD'),
+('Arts and Design', 'Creative and artistic fields', 'Stable', 45000, 'USD'),
+('Science Research', 'Research and laboratory work', 'Moderate Growth', 70000, 'USD'),
+('Social Services', 'Human services and social work', 'High Growth', 45000, 'USD');
+
+-- Insert skills
+INSERT INTO skills (skill_name, skill_category, description, is_technical) VALUES
+('Programming', 'Technical', 'Software programming and coding', TRUE),
+('Data Analysis', 'Technical', 'Statistical analysis and data interpretation', TRUE),
+('Communication', 'Soft', 'Written and verbal communication skills', FALSE),
+('Leadership', 'Soft', 'Team leadership and management', FALSE),
+('Project Management', 'Technical', 'Planning and managing projects', TRUE),
+('Critical Thinking', 'Soft', 'Analytical and problem-solving abilities', FALSE),
+('Public Speaking', 'Soft', 'Presentation and speaking skills', FALSE),
+('Research Methods', 'Technical', 'Research design and methodology', TRUE),
+('Teamwork', 'Soft', 'Collaboration and team participation', FALSE),
+('Time Management', 'Soft', 'Organizing and prioritizing tasks', FALSE);
+
+-- =============================================
+-- VIEWS FOR COMMON QUERIES
+-- =============================================
+
+-- Comprehensive student profile view
+CREATE VIEW student_profile_view AS
+SELECT 
+    s.id,
+    s.student_id,
+    CONCAT(s.first_name, ' ', s.last_name) as full_name,
+    s.email,
+    s.phone,
+    i.name as institution_name,
+    st.type_name as student_type,
+    ss.status_name as student_status,
+    s.cumulative_gpa,
+    s.total_credits_earned,
+    s.expected_graduation_date,
+    s.academic_standing,
+    ls.style_name as learning_style,
+    s.created_at,
+    s.updated_at
+FROM students s
+JOIN institutions i ON s.primary_institution_id = i.id
+JOIN student_types st ON s.student_type_id = st.id
+JOIN student_status_types ss ON s.status_id = ss.id
+LEFT JOIN learning_styles ls ON s.learning_style_id = ls.id
+WHERE s.is_active = TRUE;
+
+-- Student academic performance view
+CREATE VIEW student_performance_view AS
+SELECT 
+    s.id,
+    s.student_id,
+    CONCAT(s.first_name, ' ', s.last_name) as full_name,
+    s.cumulative_gpa,
+    COUNT(se.id) as total_courses,
+    AVG(se.final_percentage) as avg_course_percentage,
+    SUM(CASE WHEN se.completion_status = 'Completed' THEN 1 ELSE 0 END) as completed_courses,
+    SUM(CASE WHEN se.final_grade IN ('A', 'A-', 'B+', 'B') THEN 1 ELSE 0 END) as high_grade_courses,
+    AVG(se.course_rating) as avg_course_rating,
+    s.academic_standing
+FROM students s
+LEFT JOIN student_enrollments se ON s.id = se.student_id
+GROUP BY s.id, s.student_id, s.first_name, s.last_name, s.cumulative_gpa, s.academic_standing;
+
+-- Student financial summary view
+CREATE VIEW student_financial_summary AS
+SELECT 
+    s.id,
+    s.student_id,
+    CONCAT(s.first_name, ' ', s.last_name) as full_name,
+    s.financial_aid_recipient,
+    COALESCE(SUM(sfa.award_amount), 0) as total_financial_aid,
+    COALESCE(SUM(sp.amount_due), 0) as total_charges,
+    COALESCE(SUM(sp.amount_paid), 0) as total_payments,
+    COALESCE(SUM(sp.amount_due - sp.amount_paid), 0) as outstanding_balance
+FROM students s
+LEFT JOIN student_financial_aid sfa ON s.id = sfa.student_id
+LEFT JOIN student_payments sp ON s.id = sp.student_id
+GROUP BY s.id, s.student_id, s.first_name, s.last_name, s.financial_aid_recipient;
+
+-- Student engagement metrics view
+CREATE VIEW student_engagement_view AS
+SELECT 
+    s.id,
+    s.student_id,
+    CONCAT(s.first_name, ' ', s.last_name) as full_name,
+    AVG(se.attendance_rate) as avg_attendance,
+    AVG(se.participation_score) as avg_participation,
+    COUNT(sa.id) as total_activities,
+    COUNT(sr.id) as research_projects,
+    COUNT(sss.id) as support_services_used,
+    s.last_login_at
+FROM students s
+LEFT JOIN student_enrollments se ON s.id = se.student_id
+LEFT JOIN student_activities sa ON s.id = sa.student_id
+LEFT JOIN student_research sr ON s.id = sr.student_id
+LEFT JOIN student_support_services sss ON s.id = sss.student_id
+GROUP BY s.id, s.student_id, s.first_name, s.last_name, s.last_login_at;
+
+-- =============================================
+-- PERFORMANCE OPTIMIZATION
+-- =============================================
+
+-- Additional indexes for complex queries
+CREATE INDEX idx_students_institution_status ON students(primary_institution_id, status_id);
+CREATE INDEX idx_students_gpa_credits ON students(cumulative_gpa, total_credits_earned);
+CREATE INDEX idx_students_graduation_date ON students(expected_graduation_date, actual_graduation_date);
+CREATE INDEX idx_enrollments_student_year ON student_enrollments(student_id, academic_year, semester);
+CREATE INDEX idx_enrollments_course_grade ON student_enrollments(course_id, final_grade);
+CREATE INDEX idx_enrollments_completion ON student_enrollments(completion_status, completion_date);
+CREATE INDEX idx_analytics_student_semester ON student_learning_analytics(student_id, academic_year, semester);
+CREATE INDEX idx_analytics_risk_score ON student_learning_analytics(at_risk_score);
+CREATE INDEX idx_financial_aid_student_year ON student_financial_aid(student_id, academic_year);
+
+-- Full-text search indexes
+ALTER TABLE students ADD FULLTEXT(first_name, last_name, email);
+ALTER TABLE student_activities ADD FULLTEXT(activity_name, description);
+ALTER TABLE student_research ADD FULLTEXT(project_title, research_area, project_description);
+
+-- =============================================
+-- TRIGGERS FOR DATA INTEGRITY
+-- =============================================
+
+-- Update student modified timestamp
+DELIMITER //
+CREATE TRIGGER update_student_modified 
+BEFORE UPDATE ON students 
+FOR EACH ROW 
+BEGIN 
+    SET NEW.updated_at = CURRENT_TIMESTAMP;
+END//
+DELIMITER ;
+
+-- Update student GPA when enrollment grades change
+DELIMITER //
+CREATE TRIGGER update_student_gpa_on_enrollment
+AFTER UPDATE ON student_enrollments
+FOR EACH ROW
+BEGIN
+    DECLARE new_gpa DECIMAL(4,3);
+    DECLARE total_credits DECIMAL(6,2);
+    
+    -- Calculate new GPA
+    SELECT 
+        COALESCE(SUM(grade_points * credit_hours) / NULLIF(SUM(credit_hours), 0), 0),
+        COALESCE(SUM(credit_hours), 0)
+    INTO new_gpa, total_credits
+    FROM student_enrollments 
+    WHERE student_id = NEW.student_id 
+    AND completion_status = 'Completed'
+    AND contributed_to_gpa = TRUE;
+    
+    -- Update student record
+    UPDATE students 
+    SET cumulative_gpa = new_gpa,
+        total_credits_earned = total_credits,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = NEW.student_id;
+END//
+DELIMITER ;
+
+-- Validate enrollment capacity
+DELIMITER //
+CREATE TRIGGER validate_enrollment_capacity
+BEFORE INSERT ON student_enrollments
+FOR EACH ROW
+BEGIN
+    DECLARE current_enrollment INT;
+    DECLARE max_capacity INT;
+    
+    -- Get current enrollment and capacity
+    SELECT 
+        COUNT(*), 
+        COALESCE(cs.max_enrollment, c.max_enrollment)
+    INTO current_enrollment, max_capacity
+    FROM student_enrollments se
+    JOIN courses c ON se.course_id = c.id
+    LEFT JOIN course_sections cs ON se.section_id = cs.id
+    WHERE se.course_id = NEW.course_id 
+    AND (NEW.section_id IS NULL OR se.section_id = NEW.section_id)
+    AND se.enrollment_status IN ('Enrolled', 'Waitlisted')
+    GROUP BY c.id, cs.id;
+    
+    -- Check if over capacity
+    IF current_enrollment >= max_capacity THEN
+        SET NEW.enrollment_status = 'Waitlisted';
+    END IF;
+END//
+DELIMITER ;
+
+-- Update profile completion percentage
+DELIMITER //
+CREATE TRIGGER update_profile_completion
+BEFORE UPDATE ON students
+FOR EACH ROW
+BEGIN
+    DECLARE completion_score DECIMAL(5,2) DEFAULT 0;
+    
+    -- Calculate completion percentage based on filled fields
+    SET completion_score = 
+        (CASE WHEN NEW.first_name IS NOT NULL AND NEW.first_name != '' THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.last_name IS NOT NULL AND NEW.last_name != '' THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.email IS NOT NULL AND NEW.email != '' THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.phone IS NOT NULL AND NEW.phone != '' THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.date_of_birth IS NOT NULL THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.gender IS NOT NULL THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.permanent_address IS NOT NULL AND NEW.permanent_address != '' THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.current_address IS NOT NULL AND NEW.current_address != '' THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.learning_style_id IS NOT NULL THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.career_goal IS NOT NULL AND NEW.career_goal != '' THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.academic_interests IS NOT NULL AND NEW.academic_interests != '' THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.personal_statement IS NOT NULL AND NEW.personal_statement != '' THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.emergency_contact_name IS NOT NULL AND NEW.emergency_contact_name != '' THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.emergency_contact_phone IS NOT NULL AND NEW.emergency_contact_phone != '' THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.preferred_contact_method IS NOT NULL THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.preferred_study_time IS NOT NULL THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.preferred_learning_pace IS NOT NULL THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.technology_proficiency IS NOT NULL THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.primary_language_id IS NOT NULL THEN 5 ELSE 0 END) +
+        (CASE WHEN NEW.nationality_id IS NOT NULL THEN 5 ELSE 0 END);
+    
+    SET NEW.profile_completion_percentage = completion_score;
+END//
+DELIMITER ;
+
+-- =============================================
+-- STORED PROCEDURES FOR COMMON OPERATIONS
+-- =============================================
+
+-- Calculate student at-risk score
+DELIMITER //
+CREATE PROCEDURE CalculateAtRiskScore(IN student_id_param INT)
+BEGIN
+    DECLARE risk_score DECIMAL(5,2) DEFAULT 0;
+    DECLARE gpa_score DECIMAL(5,2) DEFAULT 0;
+    DECLARE attendance_score DECIMAL(5,2) DEFAULT 0;
+    DECLARE engagement_score DECIMAL(5,2) DEFAULT 0;
+    DECLARE financial_score DECIMAL(5,2) DEFAULT 0;
+    DECLARE current_gpa DECIMAL(4,3);
+    DECLARE avg_attendance DECIMAL(5,2);
+    DECLARE support_usage INT;
+    DECLARE outstanding_balance DECIMAL(10,2);
+    
+    -- Get current GPA
+    SELECT cumulative_gpa INTO current_gpa 
+    FROM students WHERE id = student_id_param;
+    
+    -- Calculate GPA risk component (0-25 points)
+    SET gpa_score = CASE 
+        WHEN current_gpa >= 3.5 THEN 0
+        WHEN current_gpa >= 3.0 THEN 5
+        WHEN current_gpa >= 2.5 THEN 10
+        WHEN current_gpa >= 2.0 THEN 15
+        ELSE 25
+    END;
+    
+    -- Get average attendance
+    SELECT AVG(attendance_rate) INTO avg_attendance
+    FROM student_enrollments 
+    WHERE student_id = student_id_param 
+    AND enrollment_status = 'Enrolled';
+    
+    -- Calculate attendance risk component (0-25 points)
+    SET attendance_score = CASE 
+        WHEN avg_attendance >= 90 THEN 0
+        WHEN avg_attendance >= 80 THEN 5
+        WHEN avg_attendance >= 70 THEN 10
+        WHEN avg_attendance >= 60 THEN 15
+        ELSE 25
+    END;
+    
+    -- Get support service usage
+    SELECT COUNT(*) INTO support_usage
+    FROM student_support_services
+    WHERE student_id = student_id_param
+    AND service_date >= DATE_SUB(CURRENT_DATE, INTERVAL 6 MONTH);
+    
+    -- Calculate engagement risk component (0-25 points)
+    SET engagement_score = CASE 
+        WHEN support_usage = 0 THEN 0
+        WHEN support_usage <= 2 THEN 5
+        WHEN support_usage <= 5 THEN 10
+        WHEN support_usage <= 8 THEN 15
+        ELSE 25
+    END;
+    
+    -- Get outstanding balance
+    SELECT COALESCE(SUM(amount_due - amount_paid), 0) INTO outstanding_balance
+    FROM student_payments
+    WHERE student_id = student_id_param
+    AND status IN ('Pending', 'Overdue');
+    
+    -- Calculate financial risk component (0-25 points)
+    SET financial_score = CASE 
+        WHEN outstanding_balance = 0 THEN 0
+        WHEN outstanding_balance <= 1000 THEN 5
+        WHEN outstanding_balance <= 5000 THEN 10
+        WHEN outstanding_balance <= 10000 THEN 15
+        ELSE 25
+    END;
+    
+    -- Calculate total risk score
+    SET risk_score = gpa_score + attendance_score + engagement_score + financial_score;
+    
+    -- Insert or update analytics record
+    INSERT INTO student_learning_analytics (
+        student_id, 
+        academic_year, 
+        semester, 
+        at_risk_score,
+        intervention_recommended
+    ) VALUES (
+        student_id_param,
+        YEAR(CURRENT_DATE),
+        CASE 
+            WHEN MONTH(CURRENT_DATE) BETWEEN 1 AND 5 THEN 'Spring'
+            WHEN MONTH(CURRENT_DATE) BETWEEN 6 AND 8 THEN 'Summer'
+            ELSE 'Fall'
+        END,
+        risk_score,
+        risk_score >= 50
+    )
+    ON DUPLICATE KEY UPDATE
+        at_risk_score = risk_score,
+        intervention_recommended = risk_score >= 50;
+    
+END//
+DELIMITER ;
+
+-- Generate student transcript
+DELIMITER //
+CREATE PROCEDURE GenerateTranscript(IN student_id_param INT)
+BEGIN
+    SELECT 
+        se.academic_year,
+        se.semester,
+        c.course_code,
+        c.title as course_title,
+        se.credit_hours,
+        se.final_grade,
+        se.grade_points,
+        i.name as institution_name
+    FROM student_enrollments se
+    JOIN courses c ON se.course_id = c.id
+    JOIN institutions i ON c.institution_id = i.id
+    WHERE se.student_id = student_id_param
+    AND se.completion_status = 'Completed'
+    AND se.contributed_to_gpa = TRUE
+    ORDER BY se.academic_year, se.semester, c.course_code;
+    
+    -- Also return summary statistics
+    SELECT 
+        COUNT(*) as total_courses,
+        SUM(se.credit_hours) as total_credits,
+        AVG(se.grade_points) as cumulative_gpa,
+        SUM(CASE WHEN se.final_grade IN ('A', 'A-') THEN 1 ELSE 0 END) as a_grades,
+        SUM(CASE WHEN se.final_grade IN ('B+', 'B', 'B-') THEN 1 ELSE 0 END) as b_grades,
+        SUM(CASE WHEN se.final_grade IN ('C+', 'C', 'C-') THEN 1 ELSE 0 END) as c_grades,
+        SUM(CASE WHEN se.final_grade IN ('D+', 'D', 'D-') THEN 1 ELSE 0 END) as d_grades,
+        SUM(CASE WHEN se.final_grade = 'F' THEN 1 ELSE 0 END) as f_grades
+    FROM student_enrollments se
+    WHERE se.student_id = student_id_param
+    AND se.completion_status = 'Completed'
+    AND se.contributed_to_gpa = TRUE;
+END//
+DELIMITER ;
+
+-- =============================================
+-- DATA QUALITY AND VALIDATION FUNCTIONS
+-- =============================================
+
+-- Function to calculate data quality score
+DELIMITER //
+CREATE FUNCTION CalculateDataQualityScore(student_id_param INT) 
+RETURNS DECIMAL(3,2)
+READS SQL DATA
+DETERMINISTIC
+BEGIN
+    DECLARE quality_score DECIMAL(3,2) DEFAULT 0;
+    DECLARE completeness_score DECIMAL(3,2) DEFAULT 0;
+    DECLARE consistency_score DECIMAL(3,2) DEFAULT 0;
+    DECLARE accuracy_score DECIMAL(3,2) DEFAULT 0;
+    
+    -- Completeness score (40% of total)
+    SELECT profile_completion_percentage INTO completeness_score
+    FROM students WHERE id = student_id_param;
+    
+    -- Consistency score (30% of total)
+    -- Check for data inconsistencies
+    SET consistency_score = 100;
+    
+    -- Reduce score for inconsistent data
+    IF EXISTS (
+        SELECT 1 FROM students 
+        WHERE id = student_id_param 
+        AND expected_graduation_date < enrollment_date
+    ) THEN
+        SET consistency_score = consistency_score - 20;
+    END IF;
+    
+    -- Accuracy score (30% of total)
+    -- Base accuracy on verification status
+    SELECT 
+        CASE 
+            WHEN is_verified = TRUE THEN 100
+            WHEN verification_date IS NOT NULL THEN 80
+            ELSE 60
+        END INTO accuracy_score
+    FROM students WHERE id = student_id_param;
+    
+    -- Calculate weighted average
+    SET quality_score = (
+        (completeness_score * 0.4) + 
+        (consistency_score * 0.3) + 
+        (accuracy_score * 0.3)
+    ) / 100;
+    
+    RETURN quality_score;
+END//
+DELIMITER ;
+
+-- =============================================
+-- REPORTING AND ANALYTICS PROCEDURES
+-- =============================================
+
+-- Student cohort analysis
+DELIMITER //
+CREATE PROCEDURE StudentCohortAnalysis(IN cohort_year INT)
+BEGIN
+    SELECT 
+        ss.status_name,
+        COUNT(*) as student_count,
+        AVG(s.cumulative_gpa) as avg_gpa,
+        AVG(s.total_credits_earned) as avg_credits,
+        COUNT(CASE WHEN s.actual_graduation_date IS NOT NULL THEN 1 END) as graduated_count,
+        COUNT(CASE WHEN s.academic_standing = 'Probation' THEN 1 END) as probation_count
+    FROM students s
+    JOIN student_status_types ss ON s.status_id = ss.id
+    WHERE YEAR(s.enrollment_date) = cohort_year
+    GROUP BY ss.status_name
+    ORDER BY student_count DESC;
+END//
+DELIMITER ;
+
+-- Student retention analysis
+DELIMITER //
+CREATE PROCEDURE StudentRetentionAnalysis(IN start_year INT, IN end_year INT)
+BEGIN
+    SELECT 
+        YEAR(s.enrollment_date) as cohort_year,
+        COUNT(*) as total_enrolled,
+        COUNT(CASE WHEN s.status_id IN (1, 7, 8) THEN 1 END) as still_active,
+        COUNT(CASE WHEN s.actual_graduation_date IS NOT NULL THEN 1 END) as graduated,
+        COUNT(CASE WHEN s.status_id IN (3, 4, 6) THEN 1 END) as dropped_out,
+        ROUND(COUNT(CASE WHEN s.status_id IN (1, 7, 8) THEN 1 END) * 100.0 / COUNT(*), 2) as retention_rate,
+        ROUND(COUNT(CASE WHEN s.actual_graduation_date IS NOT NULL THEN 1 END) * 100.0 / COUNT(*), 2) as graduation_rate
+    FROM students s
+    WHERE YEAR(s.enrollment_date) BETWEEN start_year AND end_year
+    GROUP BY YEAR(s.enrollment_date)
+    ORDER BY cohort_year;
+END//
+DELIMITER ;
+
+DELIMITER ;
+
+-- =============================================
+-- FINAL NOTES AND DOCUMENTATION
+-- =============================================
+
+/*
+This comprehensive student profile database schema provides:
+
+1. CORE STUDENT INFORMATION:
+   - Complete personal and contact information
+   - Academic status and institutional affiliation
+   - Learning preferences and accessibility needs
+
+2. ACADEMIC TRACKING:
+   - Course enrollments and grades
+   - Academic programs and progress
+   - Skills and competencies development
+   - Learning analytics and performance metrics
+
+3. STUDENT SUPPORT:
+   - Financial aid and payment tracking
+   - Support services usage
+   - Disability accommodations
+   - Advisory relationships
+
+4. ENGAGEMENT AND ACTIVITIES:
+   - Extracurricular activities
+   - Research projects
+   - Career readiness assessment
+   - Professional development
+
+5. ANALYTICS AND INSIGHTS:
+   - At-risk identification
+   - Learning pattern analysis
+   - Predictive modeling support
+   - Data quality assessment
+
+6. INTEGRATION POINTS:
+   - Links to institution and course schemas
+   - Support for multi-institutional transfers
+   - Career field and industry connections
+   - Professional certification pathways
+
+The schema is designed to support:
+- AI training with comprehensive student data
+- Predictive analytics for student success
+- Personalized learning recommendations
+- Early intervention systems
+- Career guidance and planning
+- Institutional research and reporting
+
+All tables include appropriate indexes, constraints, and triggers
+to maintain data integrity and optimize query performance.
+*/

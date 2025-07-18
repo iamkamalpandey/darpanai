@@ -1,10 +1,15 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp, primaryKey, uniqueIndex, varchar, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp, primaryKey, uniqueIndex, varchar, decimal, date } from "drizzle-orm/pg-core";
 export * from "./offerLetterSchema";
 export * from "./coeSchema";
 export * from "./scholarshipSchema";
 export * from "./cvAnalysisSchema";
 export * from "./academicDocumentSchema";
 export * from "./institutionSchema";
+// New comprehensive schemas
+export * from "./newInstitutionSchema";
+export * from "./newScholarshipSchema";
+export * from "./newCourseSchema";
+export * from "./newStudentSchema";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";

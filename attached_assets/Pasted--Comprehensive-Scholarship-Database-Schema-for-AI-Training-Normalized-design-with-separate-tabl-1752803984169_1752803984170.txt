@@ -1,0 +1,337 @@
+-- Comprehensive Scholarship Database Schema for AI Training
+-- Normalized design with separate tables for reusable components
+
+-- =============================================
+-- REFERENCE/LOOKUP TABLES
+-- =============================================
+
+-- Countries table
+CREATE TABLE countries (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    code VARCHAR(3) NOT NULL UNIQUE, -- ISO 3166-1 alpha-3
+    region VARCHAR(50),
+    continent VARCHAR(30),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Education levels
+CREATE TABLE education_levels (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    level_name VARCHAR(50) NOT NULL UNIQUE, -- e.g., Undergraduate, Graduate, PhD, High School
+    level_order INT NOT NULL, -- 1=High School, 2=Associate, 3=Bachelor, 4=Master, 5=PhD
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Fields of study
+CREATE TABLE fields_of_study (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    field_name VARCHAR(100) NOT NULL,
+    parent_field_id INT, -- For hierarchical categorization
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (parent_field_id) REFERENCES fields_of_study(id)
+);
+
+-- Institutions/Organizations
+CREATE TABLE institutions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    type ENUM('University', 'College', 'Government', 'Non-Profit', 'Private Foundation', 'Corporate', 'International Organization') NOT NULL,
+    country_id INT,
+    website VARCHAR(255),
+    description TEXT,
+    is_verified BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (country_id) REFERENCES countries(id)
+);
+
+-- Scholarship categories
+CREATE TABLE scholarship_categories (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    category_name VARCHAR(100) NOT NULL UNIQUE, -- e.g., Merit-based, Need-based, Athletic, Minority, etc.
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Application requirements types
+CREATE TABLE requirement_types (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    requirement_name VARCHAR(100) NOT NULL UNIQUE, -- e.g., Essay, GPA, Test Score, Portfolio, etc.
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =============================================
+-- MAIN SCHOLARSHIP TABLE
+-- =============================================
+
+CREATE TABLE scholarships (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    provider_institution_id INT NOT NULL,
+    
+    -- Financial Information
+    award_amount_min DECIMAL(12,2),
+    award_amount_max DECIMAL(12,2),
+    currency_code VARCHAR(3) DEFAULT 'USD',
+    total_awards_available INT,
+    is_renewable BOOLEAN DEFAULT FALSE,
+    renewal_duration_years INT,
+    
+    -- Eligibility Criteria
+    min_gpa DECIMAL(3,2),
+    max_gpa DECIMAL(3,2),
+    min_age INT,
+    max_age INT,
+    gender_requirement ENUM('Male', 'Female', 'Non-Binary', 'Any') DEFAULT 'Any',
+    
+    -- Academic Requirements
+    education_level_id INT,
+    specific_major_required BOOLEAN DEFAULT FALSE,
+    
+    -- Geographic Eligibility
+    residence_country_required INT, -- Must be resident of this country
+    study_country_required INT, -- Must study in this country
+    
+    -- Application Information
+    application_deadline DATE,
+    application_opens DATE,
+    application_fee DECIMAL(8,2) DEFAULT 0.00,
+    application_url VARCHAR(500),
+    contact_email VARCHAR(100),
+    contact_phone VARCHAR(20),
+    
+    -- Status and Metadata
+    status ENUM('Active', 'Inactive', 'Suspended', 'Expired') DEFAULT 'Active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    last_verified_at TIMESTAMP,
+    
+    -- Indexes for performance
+    INDEX idx_deadline (application_deadline),
+    INDEX idx_amount (award_amount_min, award_amount_max),
+    INDEX idx_status (status),
+    INDEX idx_education_level (education_level_id),
+    
+    -- Foreign Keys
+    FOREIGN KEY (provider_institution_id) REFERENCES institutions(id),
+    FOREIGN KEY (education_level_id) REFERENCES education_levels(id),
+    FOREIGN KEY (residence_country_required) REFERENCES countries(id),
+    FOREIGN KEY (study_country_required) REFERENCES countries(id)
+);
+
+-- =============================================
+-- JUNCTION/RELATIONSHIP TABLES
+-- =============================================
+
+-- Scholarship categories mapping (many-to-many)
+CREATE TABLE scholarship_category_mapping (
+    scholarship_id INT,
+    category_id INT,
+    PRIMARY KEY (scholarship_id, category_id),
+    FOREIGN KEY (scholarship_id) REFERENCES scholarships(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES scholarship_categories(id)
+);
+
+-- Eligible fields of study (many-to-many)
+CREATE TABLE scholarship_eligible_fields (
+    scholarship_id INT,
+    field_id INT,
+    PRIMARY KEY (scholarship_id, field_id),
+    FOREIGN KEY (scholarship_id) REFERENCES scholarships(id) ON DELETE CASCADE,
+    FOREIGN KEY (field_id) REFERENCES fields_of_study(id)
+);
+
+-- Eligible countries for applicants (many-to-many)
+CREATE TABLE scholarship_eligible_countries (
+    scholarship_id INT,
+    country_id INT,
+    PRIMARY KEY (scholarship_id, country_id),
+    FOREIGN KEY (scholarship_id) REFERENCES scholarships(id) ON DELETE CASCADE,
+    FOREIGN KEY (country_id) REFERENCES countries(id)
+);
+
+-- Target demographics (many-to-many)
+CREATE TABLE scholarship_target_demographics (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    scholarship_id INT,
+    demographic_type ENUM('Ethnicity', 'Religion', 'Disability', 'Military', 'First Generation', 'Low Income', 'Other') NOT NULL,
+    demographic_value VARCHAR(100) NOT NULL,
+    FOREIGN KEY (scholarship_id) REFERENCES scholarships(id) ON DELETE CASCADE
+);
+
+-- Application requirements (many-to-many)
+CREATE TABLE scholarship_requirements (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    scholarship_id INT,
+    requirement_type_id INT,
+    requirement_details TEXT,
+    is_mandatory BOOLEAN DEFAULT TRUE,
+    min_value VARCHAR(50), -- For numeric requirements like GPA, test scores
+    max_value VARCHAR(50),
+    FOREIGN KEY (scholarship_id) REFERENCES scholarships(id) ON DELETE CASCADE,
+    FOREIGN KEY (requirement_type_id) REFERENCES requirement_types(id)
+);
+
+-- =============================================
+-- ADDITIONAL FEATURE TABLES
+-- =============================================
+
+-- Scholarship tags for better categorization
+CREATE TABLE scholarship_tags (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    tag_name VARCHAR(50) NOT NULL UNIQUE,
+    color_code VARCHAR(7), -- Hex color for UI
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Scholarship tag mapping
+CREATE TABLE scholarship_tag_mapping (
+    scholarship_id INT,
+    tag_id INT,
+    PRIMARY KEY (scholarship_id, tag_id),
+    FOREIGN KEY (scholarship_id) REFERENCES scholarships(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES scholarship_tags(id)
+);
+
+-- Document requirements
+CREATE TABLE scholarship_documents (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    scholarship_id INT,
+    document_type ENUM('Transcript', 'Essay', 'Letter of Recommendation', 'Portfolio', 'Resume', 'Financial Statement', 'Other') NOT NULL,
+    document_name VARCHAR(255),
+    description TEXT,
+    is_required BOOLEAN DEFAULT TRUE,
+    file_format_accepted VARCHAR(100), -- e.g., PDF, DOC, DOCX
+    max_file_size_mb INT,
+    FOREIGN KEY (scholarship_id) REFERENCES scholarships(id) ON DELETE CASCADE
+);
+
+-- Scholarship reviews/ratings (for quality assessment)
+CREATE TABLE scholarship_reviews (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    scholarship_id INT,
+    reviewer_type ENUM('Admin', 'Student', 'Counselor', 'AI_Validator') NOT NULL,
+    rating INT CHECK (rating >= 1 AND rating <= 5),
+    review_text TEXT,
+    data_quality_score DECIMAL(3,2), -- For AI training quality assessment
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (scholarship_id) REFERENCES scholarships(id) ON DELETE CASCADE
+);
+
+-- =============================================
+-- SAMPLE DATA INSERTION
+-- =============================================
+
+-- Insert sample countries
+INSERT INTO countries (name, code, region, continent) VALUES
+('United States', 'USA', 'North America', 'North America'),
+('United Kingdom', 'GBR', 'Western Europe', 'Europe'),
+('Canada', 'CAN', 'North America', 'North America'),
+('Australia', 'AUS', 'Oceania', 'Oceania'),
+('Germany', 'DEU', 'Western Europe', 'Europe'),
+('Japan', 'JPN', 'East Asia', 'Asia'),
+('India', 'IND', 'South Asia', 'Asia'),
+('Brazil', 'BRA', 'South America', 'South America'),
+('China', 'CHN', 'East Asia', 'Asia'),
+('France', 'FRA', 'Western Europe', 'Europe');
+
+-- Insert education levels
+INSERT INTO education_levels (level_name, level_order, description) VALUES
+('High School', 1, 'Secondary education completion'),
+('Associate Degree', 2, 'Two-year undergraduate degree'),
+('Bachelor\'s Degree', 3, 'Four-year undergraduate degree'),
+('Master\'s Degree', 4, 'Graduate degree'),
+('Doctoral Degree', 5, 'PhD or equivalent doctoral degree'),
+('Professional Degree', 6, 'Professional degrees like MD, JD, etc.');
+
+-- Insert scholarship categories
+INSERT INTO scholarship_categories (category_name, description) VALUES
+('Merit-based', 'Based on academic achievement'),
+('Need-based', 'Based on financial need'),
+('Athletic', 'For sports achievements'),
+('Minority', 'For underrepresented groups'),
+('Field-specific', 'For specific fields of study'),
+('Geographic', 'For students from specific regions'),
+('Corporate', 'Sponsored by corporations'),
+('Government', 'Government-funded scholarships');
+
+-- Insert requirement types
+INSERT INTO requirement_types (requirement_name, description) VALUES
+('GPA Requirement', 'Minimum grade point average'),
+('Standardized Test Score', 'SAT, ACT, GRE, GMAT, etc.'),
+('Essay', 'Written essay requirement'),
+('Letter of Recommendation', 'Reference letters'),
+('Portfolio', 'Work samples or portfolio'),
+('Interview', 'Personal interview requirement'),
+('Community Service', 'Volunteer work requirement'),
+('Financial Documentation', 'Proof of financial need');
+
+-- Insert sample fields of study
+INSERT INTO fields_of_study (field_name, parent_field_id, description) VALUES
+('Engineering', NULL, 'Engineering disciplines'),
+('Computer Science', 1, 'Computer science and programming'),
+('Business', NULL, 'Business and management'),
+('Medicine', NULL, 'Medical and health sciences'),
+('Arts', NULL, 'Creative and performing arts'),
+('Sciences', NULL, 'Natural and physical sciences'),
+('Social Sciences', NULL, 'Social science disciplines'),
+('Education', NULL, 'Education and teaching');
+
+-- =============================================
+-- VIEWS FOR COMMON QUERIES
+-- =============================================
+
+-- Comprehensive scholarship view with all related information
+CREATE VIEW scholarship_detailed_view AS
+SELECT 
+    s.id,
+    s.title,
+    s.description,
+    i.name as provider_name,
+    i.type as provider_type,
+    c1.name as provider_country,
+    s.award_amount_min,
+    s.award_amount_max,
+    s.currency_code,
+    s.total_awards_available,
+    s.application_deadline,
+    s.application_opens,
+    s.status,
+    el.level_name as education_level,
+    c2.name as residence_country_required,
+    c3.name as study_country_required,
+    s.min_gpa,
+    s.max_gpa,
+    s.is_renewable,
+    s.created_at,
+    s.updated_at
+FROM scholarships s
+JOIN institutions i ON s.provider_institution_id = i.id
+LEFT JOIN countries c1 ON i.country_id = c1.id
+LEFT JOIN education_levels el ON s.education_level_id = el.id
+LEFT JOIN countries c2 ON s.residence_country_required = c2.id
+LEFT JOIN countries c3 ON s.study_country_required = c3.id
+WHERE s.status = 'Active';
+
+-- =============================================
+-- PERFORMANCE OPTIMIZATION
+-- =============================================
+
+-- Additional indexes for common queries
+CREATE INDEX idx_scholarships_provider ON scholarships(provider_institution_id);
+CREATE INDEX idx_scholarships_amount_range ON scholarships(award_amount_min, award_amount_max);
+CREATE INDEX idx_scholarships_deadline_status ON scholarships(application_deadline, status);
+CREATE INDEX idx_institutions_country ON institutions(country_id);
+CREATE INDEX idx_institutions_type ON institutions(type);
+
+-- Full-text search indexes for better search capabilities
+ALTER TABLE scholarships ADD FULLTEXT(title, description);
+ALTER TABLE institutions ADD FULLTEXT(name, description);
+ALTER TABLE fields_of_study ADD FULLTEXT(field_name, description);
