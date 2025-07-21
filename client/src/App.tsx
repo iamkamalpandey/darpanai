@@ -17,6 +17,7 @@ import SimplifiedAuth from "@/components/SimplifiedAuth";
 
 // Core Components
 const StudentAIDashboard = lazy(() => import("@/pages/StudentAIDashboard"));
+const UnifiedDashboard = lazy(() => import("@/pages/UnifiedDashboard"));
 const PublicLanding = lazy(() => import("@/pages/PublicLanding"));
 
 // Analysis Components
@@ -122,6 +123,15 @@ function Router() {
       
       {/* Home Route - Shows Landing for guests, Dashboard for authenticated users */}
       <Route path="/" component={HomePage} />
+      
+      {/* Unified Dashboard Route - Accessible by authenticated users */}
+      <Route path="/unified-dashboard">
+        <UserProtectedRoute path="/unified-dashboard" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <UnifiedDashboard />
+          </Suspense>
+        )} />
+      </Route>
       
 
       

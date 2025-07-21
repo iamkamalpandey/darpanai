@@ -5,6 +5,7 @@ import { setupOfferLetterRoutes } from "./offerLetterRoutesNew";
 import coeRoutes from "./coeRoutes";
 import advancedDarpanRoutes from "./advancedDarpanRoutes";
 import assessmentRoutes from "./assessmentRoutes";
+import unifiedDashboardRoutes from "./unifiedDashboardRoutes";
 import { setupVite, serveStatic, log } from "./vite";
 import { pool } from "./db";
 import { 
@@ -340,6 +341,11 @@ process.on('unhandledRejection', (reason, promise) => {
     const eligibilityQuickScanRoutes = await import('./eligibilityQuickScanRoutes');
     app.use('/api/eligibility', eligibilityQuickScanRoutes.default);
     logWithLevel('✓ Eligibility Quick Scan routes registered successfully');
+    
+    // Register unified dashboard routes
+    const { setupUnifiedDashboardRoutes } = await import('./unifiedDashboardRoutes');
+    setupUnifiedDashboardRoutes(app);
+    logWithLevel('✓ Unified Dashboard routes registered successfully');
     
     // Skip university initialization to prevent schema conflicts
     logWithLevel('✓ Database schema simplified - university initialization skipped');
