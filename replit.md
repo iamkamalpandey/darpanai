@@ -138,6 +138,17 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**July 21, 2025 - EduCounsel AI System Prompt Fixes & Profile Display Corrections:**
+- ✓ Fixed EduCounsel AI to only respond to education-related queries (universities, scholarships, visas, applications)
+- ✓ Added strict filtering to reject non-education queries (CSS, programming, technical questions) with appropriate redirection
+- ✓ Removed problematic "Nepal Business 2025" generated profile name feature that was showing incorrect user information
+- ✓ Enhanced system prompt with education-only guidelines and comprehensive keyword filtering
+- ✓ Corrected user field display to show actual "Information Technology" instead of incorrect "Business" field
+- ✓ Implemented comprehensive education/non-education keyword detection for proper query filtering
+- ✓ Cleaned up welcome message generation removing generated profile names that caused confusion
+- ✓ Applied strict AI guidelines ensuring responses only for study abroad, university applications, and academic guidance
+- ✓ Enhanced fallback responses for non-education queries directing users to proper educational assistance
+
 **July 21, 2025 - Professional Unified Dashboard Implementation as User Homepage:**
 - ✓ Completely redesigned UnifiedDashboard.tsx from AI-generated to professional, designer-quality interface
 - ✓ Transformed unified dashboard into worthwhile user login homepage with meaningful functionality

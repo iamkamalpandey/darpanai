@@ -153,31 +153,16 @@ export default function EduCounselAI() {
     const name = profile.firstName || profile.username || 'Student';
     const completionPercentage = completion?.completionPercentage || 0;
     
-    // Generate profile-based name for personalization
-    const profileName = generateProfileName(profile);
-    
-    // Create personalized, non-templated welcome message
-    const welcomeContent = createPersonalizedWelcome(name, profile, completionPercentage, profileName);
+    // Create personalized, clean welcome message without generated profile names
+    const welcomeContent = createPersonalizedWelcome(name, profile, completionPercentage);
     
     return welcomeContent;
   };
 
-  const generateProfileName = (profile: UserProfile) => {
-    const field = profile.fieldOfStudy || 'Academic';
-    const year = new Date().getFullYear();
-    
-    // Generate concise profile names for cost efficiency
-    if (profile.nationality && field !== 'Academic') {
-      return `${profile.nationality} ${field} ${year}`;
-    } else if (field !== 'Academic') {
-      return `${field} Student ${year}`;
-    } else {
-      return `Student Profile ${year}`;
-    }
-  };
 
-  const createPersonalizedWelcome = (name: string, profile: UserProfile, completionPercentage: number, profileName: string) => {
-    // Optimized welcome message for cost efficiency while maintaining personalization
+
+  const createPersonalizedWelcome = (name: string, profile: UserProfile, completionPercentage: number) => {
+    // Clean welcome message without generated profile names
     const hasCountries = profile.preferredCountries && profile.preferredCountries.length > 0;
     const hasField = profile.fieldOfStudy;
     
@@ -201,9 +186,6 @@ export default function EduCounselAI() {
     // Core services (concise)
     welcomeText += `\n\nI help with: universities, scholarships, applications, visas, and career planning.`;
     welcomeText += `\n\nWhat would you like to explore today?`;
-    
-    // Simplified identifier
-    welcomeText += `\n\n*${profileName}*`;
     
     return welcomeText;
   };
