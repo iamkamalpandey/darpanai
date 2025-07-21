@@ -92,16 +92,21 @@ export function setupAuth(app: Express): (req: Request, res: Response, next: Nex
   });
 
   // Session middleware configuration
+  const sessionSecret = process.env.SESSION_SECRET;
+  if (!sessionSecret || sessionSecret === 'visa-analyzer-secret' || sessionSecret.length < 32) {
+    throw new Error('SESSION_SECRET environment variable must be set and at least 32 characters long for security');
+  }
+
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || 'visa-analyzer-secret',
+    secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
     store: sessionStore,
     cookie: {
-      secure: false, // Set to false for development to ensure cookies work
+      secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      sameSite: 'lax' // Allow cross-site requests for proper session handling
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
     }
   };
 

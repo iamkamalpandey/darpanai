@@ -176,7 +176,7 @@ export const validateInput = (schema: z.ZodSchema) => {
 
 // Session configuration
 export const sessionConfig = {
-  secret: process.env.SESSION_SECRET || 'your-super-secret-session-key-change-in-production',
+  secret: process.env.SESSION_SECRET as string,
   resave: false,
   saveUninitialized: false,
   cookie: {
