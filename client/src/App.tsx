@@ -103,7 +103,7 @@ function Router() {
     if (user) {
       return (
         <Suspense fallback={<LoadingFallback />}>
-          <StudentAIDashboard />
+          <UnifiedDashboard />
         </Suspense>
       );
     }
