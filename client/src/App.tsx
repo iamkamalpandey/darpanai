@@ -63,6 +63,7 @@ const AdminFeedback = lazy(() => import("@/pages/admin-feedback"));
 const AdminInformationReports = lazy(() => import("@/pages/admin/InformationReports"));
 const AdminExpertManagement = lazy(() => import("@/pages/AdminExpertManagement"));
 const AdminStudentManagement = lazy(() => import("@/pages/AdminStudentManagement"));
+const OfferLetterDetailsAdmin = lazy(() => import("@/pages/admin/OfferLetterDetailsAdmin"));
 
 // Scholarship Management
 const ScholarshipManagement = lazy(() => import("@/pages/admin/ScholarshipManagement"));
@@ -456,7 +457,13 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      {/* Removed broken route: /admin/offer-letter-info */}
+      <Route path="/admin/offer-letter-details/:id">
+        <AdminProtectedRoute path="/admin/offer-letter-details/:id" component={() => (
+          <Suspense fallback={<LoadingFallback />}>
+            <OfferLetterDetailsAdmin />
+          </Suspense>
+        )} />
+      </Route>
       <Route path="/admin/coe-analysis/:id">
         <AdminProtectedRoute path="/admin/coe-analysis/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
