@@ -1,38 +1,53 @@
-# Visa Rejection Analyzer - Complete Documentation
+# Darpan Education - AI-Powered International Student Platform
 
-A comprehensive web application that analyzes visa rejection letters using AI to provide detailed insights, recommendations, and consultation booking services.
+A comprehensive AI-powered educational platform designed to help students, experts, and administrators navigate international education opportunities. The unified platform features role-based dashboards with document analysis, scholarship matching, application management, and expert consultation services.
 
 ## 🚀 Features
 
-### For Regular Users
-- **Document Analysis**: Upload PDF, JPG, or PNG rejection letters for AI-powered analysis
-- **Smart Insights**: Get detailed rejection reasons, recommendations, and next steps
-- **Usage Limits**: 3 free analyses per user account
-- **Analysis History**: View all previous analyses and results
-- **Consultation Booking**: Schedule appointments with visa experts
-- **Usage Tracking**: Monitor remaining analysis quota
+### For Students
+- **Document Intelligence**: AI-powered analysis of visa documents, COE certificates, and offer letters
+- **Scholarship Research**: Advanced AI matching system with 24 comprehensive database tables
+- **Application Management**: Smart application tracker with expert consultation integration
+- **Academic Document Analysis**: Multi-AI processing with Google Cloud Vision, OpenAI, and Anthropic
+- **Study Abroad Guidance**: Personalized recommendations based on comprehensive student profiles
+- **Expert Consultation**: Direct booking and messaging with study abroad experts
+- **Profile Management**: Comprehensive educational profiles with completion tracking
+
+### For Study Abroad Experts
+- **Student Management**: Comprehensive CRM with lead categorization and assignment tracking
+- **Consultation Services**: Appointment scheduling with integrated messaging system
+- **Document Review**: Access to student documents with analysis results
+- **Progress Tracking**: Student journey monitoring with success probability scoring
+- **Analytics Dashboard**: Expert-specific performance metrics and student success rates
+- **Resource Library**: Document templates, country guides, and university database access
 
 ### For Administrators
-- **User Management**: View all users, their analysis counts, and account details
-- **Quota Management**: Grant additional analyses to individual users
-- **System Monitoring**: Track usage statistics and user activity
-- **User Details**: Access comprehensive user profiles and analysis history
-- **Appointment Management**: View and manage consultation bookings
+- **Multi-Role Management**: Admin, expert, and student user management with role-based permissions
+- **System Analytics**: Comprehensive platform usage statistics and performance monitoring
+- **Database Management**: 24-table normalized database with multi-country support
+- **Content Management**: Scholarship database, institution management, and system configuration
+- **Expert Assignment**: Automated and manual student-expert matching based on specializations
+- **Platform Oversight**: Complete system control with audit trails and security monitoring
 
 ## 🔐 User Roles & Access Control
 
-### Regular Users (`user` role)
-- Access to visa analysis dashboard
-- Limited to 3 analyses by default
-- Can book consultations
-- Cannot access admin functionality
+### Students (`user` role)
+- Access to comprehensive student dashboard with AI-powered tools
+- Document analysis, scholarship research, and application management
+- Expert consultation booking and messaging system
+- Profile-based personalized recommendations and guidance
+
+### Study Abroad Experts (`expert` role)
+- Specialized expert dashboard for student management
+- Access to assigned students with comprehensive CRM functionality
+- Document review capabilities and consultation scheduling
+- Progress tracking with analytics and performance metrics
 
 ### System Administrators (`admin` role)
-- Full system access and control
-- User management capabilities
-- Unlimited analysis quota
-- Separate admin interface
-- Cannot access user dashboard (role separation)
+- Full platform oversight with multi-role user management
+- Database administration for 24-table comprehensive schema
+- Expert assignment and student-expert relationship management
+- System analytics, content management, and platform configuration
 
 ## 📋 Admin Access Management
 
@@ -78,16 +93,24 @@ Use the existing admin account:
 ## 🛠️ Installation & Setup
 
 ### Prerequisites
-- Node.js 18+ 
-- PostgreSQL database
-- OpenAI API key
+- Node.js 20+ (configured in Replit)
+- PostgreSQL 16 database (configured in Replit)
+- Multi-AI API keys (OpenAI, Anthropic, DeepSeek)
+- Google Cloud Vision API (optional)
+- SendGrid API (optional for email)
 
 ### Environment Variables
-Create a `.env` file with:
+Required environment variables:
 ```env
-DATABASE_URL=your_postgresql_connection_string
+DATABASE_URL=postgresql_connection_string
 OPENAI_API_KEY=your_openai_api_key
-SESSION_SECRET=your_session_secret
+ANTHROPIC_API_KEY=your_anthropic_api_key
+DEEPSEEK_API_KEY=your_deepseek_api_key
+SESSION_SECRET=secure_random_session_secret
+GOOGLE_CLOUD_VISION_API_KEY=optional_google_vision_key
+SENDGRID_API_KEY=optional_sendgrid_key
+FROM_EMAIL=optional_from_email
+FRONTEND_URL=your_domain_url
 ```
 
 ### Installation Steps
@@ -310,6 +333,38 @@ For technical support or admin access requests:
 
 ---
 
-**Last Updated**: June 2025  
-**Version**: 1.0.0  
+---
+
+## 🤖 EduCounsel AI System Prompt
+
+The EduCounsel AI uses the following system prompt for personalized educational guidance:
+
+```
+You are Darpan Intelligence, an international education advisor. Provide concise, personalized guidance.
+
+STUDENT: [Student Name] | [Field of Study] | [Preferred Countries]
+SCHOLARSHIPS: [Relevant scholarships if available]
+
+GUIDELINES:
+- Be concise yet comprehensive (max 100 words)
+- Personalize using student profile
+- Cover: academics, costs, career prospects, cultural fit
+- Reference available scholarships when relevant
+- Suggest actionable next steps
+- Maintain professional counseling standards
+
+Respond naturally and helpfully.
+```
+
+### AI Features:
+- **Triple AI Fallback**: DeepSeek → OpenAI GPT-4o-mini → Anthropic Claude
+- **Cost Optimization**: Response caching, rate limiting, smart database queries
+- **Conversation Memory**: Context-aware responses using recent message history
+- **Profile Integration**: Personalized responses based on student profile data
+- **Database Context**: Real-time scholarship and country data integration
+
+---
+
+**Last Updated**: July 2025  
+**Version**: 2.0.0 - Comprehensive Multi-Role Platform  
 **License**: Private Use Only

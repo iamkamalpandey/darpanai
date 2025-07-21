@@ -138,6 +138,17 @@ FRONTEND_URL=your_domain_url
 
 ## Recent Changes
 
+**July 21, 2025 - Comprehensive README Update & EduCounsel AI Documentation:**
+- ✓ Completely updated README.md to reflect current Darpan Education platform architecture
+- ✓ Documented comprehensive multi-role system: Students, Study Abroad Experts, and Administrators
+- ✓ Added detailed feature descriptions for all three user types with role-based functionality
+- ✓ Updated technical architecture section reflecting 24-table database structure and multi-AI integration
+- ✓ Documented EduCounsel AI system prompt with complete guidelines and personalization features
+- ✓ Added AI features documentation: triple fallback system, cost optimization, conversation memory
+- ✓ Updated environment variables section for multi-AI setup (OpenAI, Anthropic, DeepSeek, Google Vision)
+- ✓ Refreshed installation prerequisites and database schema documentation
+- ✓ Applied current platform branding and version information (v2.0.0 Comprehensive Multi-Role Platform)
+
 **July 21, 2025 - Project Cleanup & Documentation File Removal:**
 - ✓ Removed all unnecessary documentation files including SECURITY_AUDIT_REPORT.md, ADMIN_GUIDE.md, BUSINESS_STRATEGY_2025.md
 - ✓ Cleaned up temporary files: test files, authentication cookies, debug scripts, and development logs
