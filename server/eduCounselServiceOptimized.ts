@@ -99,6 +99,20 @@ export async function processEduCounselChatOptimized(request: EduCounselRequest)
       };
     }
     
+    // EDUCATION QUERY FILTER - Only handle education-related queries
+    const isEducationQuery = isEducationRelated(message);
+    if (!isEducationQuery) {
+      return {
+        response: "I'm Darpan Intelligence, your international education advisor. I can help with study abroad planning, university applications, scholarships, visa guidance, and academic programs.\n\nWhat would you like to know about studying internationally?",
+        specialist: 'Darpan Intelligence',
+        actionButtons: [{
+          type: 'book_consultation' as const,
+          label: 'Speak with Education Counselor',
+          description: 'Get personalized study abroad guidance'
+        }]
+      };
+    }
+
     // Handle simple queries without AI processing to save costs
     if (isSimpleQuery(message)) {
       const simpleResponse = getSimpleResponse(message, userProfile);
@@ -355,13 +369,15 @@ async function generateContextualAIResponse(message: string, userProfile: UserPr
     }
 
     // Optimized system prompt for cost efficiency while maintaining quality
-    const systemPrompt = `You are Darpan Intelligence, an international education advisor. Provide concise, personalized guidance.
+    const systemPrompt = `You are Darpan Intelligence, an international education advisor. ONLY respond to education-related queries about studying abroad, universities, applications, scholarships, visas, or academic programs.
 
 ${conversationContext}
-STUDENT: ${userProfile.firstName || 'Student'} | ${userProfile.fieldOfStudy || 'exploring options'} | ${userProfile.preferredCountries?.join(', ') || 'global'}
+STUDENT: ${userProfile.firstName || 'Student'} | ${userProfile.fieldOfStudy || 'Information Technology'} | ${userProfile.preferredCountries?.join(', ') || 'global'}
 ${scholarships.length > 0 ? `SCHOLARSHIPS: ${scholarships.slice(0, 2).map(s => `${s.name} (${s.targetCountries?.[0]})`).join(', ')}` : ''}
 
-GUIDELINES:
+STRICT GUIDELINES:
+- ONLY respond to education/study abroad queries
+- If query is NOT about education: "I'm your international education advisor. I help with study abroad planning, university applications, scholarships, and visa guidance. What can I help you with regarding your international education?"
 - Be concise yet comprehensive (max 100 words)
 - Personalize using student profile
 - Cover: academics, costs, career prospects, cultural fit
@@ -369,7 +385,7 @@ GUIDELINES:
 - Suggest actionable next steps
 - Maintain professional counseling standards
 
-Respond naturally and helpfully.`;
+Respond naturally and helpfully ONLY for education queries.`;
 
     console.log('🔍 Generating AI response with context for message:', message);
     console.log('📊 Database context:', { scholarshipsFound: scholarships.length, countriesFound: relevantCountries.length });
@@ -466,7 +482,8 @@ Respond naturally and helpfully.`;
     // Concise profile feedback for cost efficiency
     let profileFeedback = '';
     if (profileContext && profileContext !== 'basic profile information') {
-      profileFeedback = `\n\n💡 Personalized for your ${userProfile.fieldOfStudy || 'academic'} background. [Edit profile](/profile) to adjust.`;
+      const userField = userProfile.fieldOfStudy || 'Information Technology';
+      profileFeedback = `\n\n💡 Personalized for your ${userField} background. [Edit profile](/profile) to adjust.`;
     }
 
     const finalResponse = content + profileFeedback;
@@ -686,4 +703,61 @@ function extractFieldFromContext(message: string, conversationHistory: ChatMessa
   }
   
   return undefined;
+}
+
+/**
+ * Check if the message is education-related
+ */
+function isEducationRelated(message: string): boolean {
+  const messageLower = message.toLowerCase();
+  
+  // Education keywords that indicate a valid query
+  const educationKeywords = [
+    'university', 'college', 'study', 'studying', 'education', 'academic', 'school',
+    'degree', 'bachelor', 'master', 'phd', 'doctorate', 'diploma', 'certificate',
+    'course', 'program', 'major', 'subject', 'admission', 'application', 'apply',
+    'scholarship', 'funding', 'tuition', 'fee', 'cost', 'budget', 'financial aid',
+    'visa', 'immigration', 'international student', 'student visa', 'study abroad',
+    'abroad', 'country', 'destination', 'australia', 'canada', 'usa', 'uk', 'germany',
+    'requirements', 'eligibility', 'gpa', 'ielts', 'toefl', 'exam', 'test',
+    'career', 'job', 'employment', 'work permit', 'internship', 'graduate',
+    'research', 'thesis', 'dissertation', 'professor', 'faculty', 'campus'
+  ];
+  
+  // Check if message contains any education-related keywords
+  const hasEducationKeywords = educationKeywords.some(keyword => messageLower.includes(keyword));
+  
+  // Non-education keywords that indicate technical/programming queries
+  const nonEducationKeywords = [
+    'css', 'html', 'javascript', 'python', 'code', 'programming', 'developer',
+    'software', 'button', 'click', 'function', 'variable', 'array', 'loop',
+    'database', 'sql', 'api', 'json', 'xml', 'server', 'client', 'frontend',
+    'backend', 'framework', 'library', 'algorithm', 'debug', 'error', 'bug',
+    'syntax', 'compile', 'execute', 'git', 'github', 'version control',
+    'train', 'training data', 'machine learning', 'ai model', 'dataset'
+  ];
+  
+  // Check if message contains programming/technical keywords
+  const hasTechnicalKeywords = nonEducationKeywords.some(keyword => messageLower.includes(keyword));
+  
+  // If it has technical keywords but no education context, reject
+  if (hasTechnicalKeywords && !hasEducationKeywords) {
+    return false;
+  }
+  
+  // If it has education keywords, accept
+  if (hasEducationKeywords) {
+    return true;
+  }
+  
+  // For general greetings or unclear queries, accept (they might lead to education discussion)
+  const greetings = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening'];
+  const isGreeting = greetings.some(greeting => messageLower.includes(greeting));
+  
+  if (isGreeting) {
+    return true;
+  }
+  
+  // Default: if unclear and no technical keywords, give benefit of doubt
+  return !hasTechnicalKeywords;
 }
