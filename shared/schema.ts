@@ -1,15 +1,19 @@
 import { pgTable, text, serial, integer, boolean, jsonb, timestamp, primaryKey, uniqueIndex, varchar, decimal, date } from "drizzle-orm/pg-core";
 export * from "./offerLetterSchema";
 export * from "./coeSchema";
-export * from "./scholarshipSchema";
 export * from "./cvAnalysisSchema";
 export * from "./academicDocumentSchema";
-export * from "./institutionSchema";
 // New comprehensive schemas
 export * from "./newInstitutionSchema";
 export * from "./newScholarshipSchema";
 export * from "./newCourseSchema";
 export * from "./newStudentSchema";
+// Legacy scholarship schema conflicts - using explicit imports then re-exporting
+import { scholarships } from "./scholarshipSchema";
+// import { institutions } from "./institutionSchema";
+
+// Re-export for backward compatibility (remove institutions to avoid conflict)
+export { scholarships };
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -249,7 +253,7 @@ export const messages = pgTable("messages", {
 });
 
 // Study Abroad Expert Profiles - Complete expert management system
-export const studyAbroadExperts = pgTable("study_abroad_experts", {
+export const studyAbroadExperts: any = pgTable("study_abroad_experts", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id), // Links to users table
   expertType: text("expert_type").notNull(), // 'counselor', 'documentation_expert', 'visa_expert'
@@ -428,7 +432,7 @@ export const consultationBookings = pgTable("consultation_bookings", {
 });
 
 // Enhanced User Model with User Types
-export const users = pgTable("users", {
+export const users: any = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
@@ -2211,8 +2215,8 @@ export const insertConsultationBookingSchema = createInsertSchema(consultationBo
 export type CountryWorkflow = typeof countryWorkflows.$inferSelect;
 export type InsertCountryWorkflow = z.infer<typeof insertCountryWorkflowSchema>;
 
-export type ApplicationChecklistItem = typeof applicationChecklistItems.$inferSelect;
-export type InsertApplicationChecklistItem = z.infer<typeof insertChecklistItemSchema>;
+// export type ApplicationChecklistItem = typeof applicationChecklistItems.$inferSelect;
+// export type InsertApplicationChecklistItem = z.infer<typeof insertChecklistItemSchema>;
 
 export type UserApplication = typeof userApplications.$inferSelect;
 export type InsertUserApplication = z.infer<typeof insertUserApplicationSchema>;

@@ -1,5 +1,5 @@
 import { db } from './db';
-import { institutions, programs, programFees } from '@shared/schema';
+import { institutions } from '../shared/institutionSchema';
 import { eq, and, like, desc, asc, inArray } from 'drizzle-orm';
 
 export interface InstitutionRecommendation {
