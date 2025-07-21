@@ -368,24 +368,36 @@ async function generateContextualAIResponse(message: string, userProfile: UserPr
       ).join('\n')}\n`;
     }
 
-    // Optimized system prompt for cost efficiency while maintaining quality
-    const systemPrompt = `You are Darpan Intelligence, an international education advisor. ONLY respond to education-related queries about studying abroad, universities, applications, scholarships, visas, or academic programs.
+    // Friendly education counselor system prompt
+    const systemPrompt = `You are a friendly, helpful education counselor who genuinely cares about students' success. Your role is to solve users' questions and guide them toward study abroad opportunities when they show genuine interest in applying.
 
 ${conversationContext}
 STUDENT: ${userProfile.firstName || 'Student'} | ${userProfile.fieldOfStudy || 'Information Technology'} | ${userProfile.preferredCountries?.join(', ') || 'global'}
 ${scholarships.length > 0 ? `SCHOLARSHIPS: ${scholarships.slice(0, 2).map(s => `${s.name} (${s.targetCountries?.[0]})`).join(', ')}` : ''}
 
-STRICT GUIDELINES:
-- ONLY respond to education/study abroad queries
-- If query is NOT about education: "I'm your international education advisor. I help with study abroad planning, university applications, scholarships, and visa guidance. What can I help you with regarding your international education?"
-- Be concise yet comprehensive (max 100 words)
-- Personalize using student profile
-- Cover: academics, costs, career prospects, cultural fit
-- Reference available scholarships when relevant
-- Suggest actionable next steps
-- Maintain professional counseling standards
+COMMUNICATION STYLE:
+- Be warm, friendly, and conversational like a caring counselor
+- Use natural, helpful language - not robotic or overly professional
+- Show genuine interest in helping students achieve their dreams
+- Ask follow-up questions to understand their needs better
+- Share enthusiasm about study abroad opportunities
 
-Respond naturally and helpfully ONLY for education queries.`;
+INTENT DETECTION FOR APPLICATIONS:
+- Only suggest applications when users show CLEAR INTENT to study abroad
+- Look for keywords like: "I want to study", "I'm planning to apply", "I need help with application", "I'm interested in studying in [country]"
+- If they're just asking general questions, provide helpful information first
+- Build rapport and trust before suggesting application steps
+
+RESPONSE GUIDELINES:
+- Answer their question thoroughly and helpfully first
+- If they show study abroad intent, offer consultation booking and application assistance
+- For general education questions, be informative without being pushy
+- Keep responses conversational (100-150 words)
+- Always end with a helpful follow-up question or offer
+
+STRICT RULE: Only respond to education-related topics. For non-education queries, redirect: "I'm here to help with your education journey! What would you like to know about studying abroad, universities, or scholarships?"
+
+Be a genuine, caring counselor who builds trust through helpful advice.`;
 
     console.log('🔍 Generating AI response with context for message:', message);
     console.log('📊 Database context:', { scholarshipsFound: scholarships.length, countriesFound: relevantCountries.length });
@@ -456,27 +468,40 @@ Respond naturally and helpfully ONLY for education queries.`;
     const actionButtons: ActionButton[] = [];
     const messageLower = message.toLowerCase();
     
-    // Check if user is showing interest in applying or ready to proceed
-    const showingApplicationInterest = messageLower.includes('ready') || 
-                                       messageLower.includes('want to') || 
-                                       messageLower.includes('should i apply') ||
-                                       messageLower.includes('apply') ||
-                                       messageLower.includes('interested') ||
-                                       scholarships.length > 0; // If we found relevant scholarships
+    // Enhanced intent detection for study abroad applications (not general queries)
+    const showingStudyAbroadIntent = (
+      (messageLower.includes('want to study') || 
+       messageLower.includes('planning to study') ||
+       messageLower.includes('interested in studying') ||
+       messageLower.includes('apply for') ||
+       messageLower.includes('application for') ||
+       messageLower.includes('help me apply') ||
+       messageLower.includes('ready to apply') ||
+       messageLower.includes('how do i apply')) &&
+      (messageLower.includes('abroad') || 
+       messageLower.includes('australia') ||
+       messageLower.includes('canada') ||
+       messageLower.includes('usa') ||
+       messageLower.includes('uk') ||
+       messageLower.includes('germany') ||
+       messageLower.includes('university') ||
+       messageLower.includes('masters') ||
+       messageLower.includes('bachelors'))
+    );
     
-    if (showingApplicationInterest) {
+    if (showingStudyAbroadIntent) {
       actionButtons.push({
         type: 'apply_now',
-        label: 'Start Application',
-        description: 'Begin your university application process'
+        label: 'Let\'s Start Your Application!',
+        description: 'I\'ll guide you through the application process step by step'
       });
     }
     
-    // Always offer consultation as an option
+    // Always offer consultation as a friendly option
     actionButtons.push({
       type: 'book_consultation',
-      label: 'Speak with Counselor',
-      description: 'Get personalized guidance from education expert'
+      label: 'Talk to a Counselor',
+      description: 'Get personalized guidance from our education experts'
     });
     
     // Remove profile feedback to prevent showing incorrect user information
