@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Link } from 'wouter';
+import DashboardLayout from '@/components/DashboardLayout';
 import { 
   BookOpen, 
   TrendingUp, 
@@ -61,26 +62,27 @@ export default function UnifiedDashboard() {
   }
 
   return (
-    <div className="space-y-6 p-6 lg:p-8">
-      {/* Welcome Section */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {user?.firstName || user?.username}
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Continue your international education journey
-          </p>
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Welcome Section */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Welcome back, {user?.firstName || user?.username}
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Continue your international education journey
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={user?.profileImage} />
+              <AvatarFallback className="bg-blue-100 text-blue-700">
+                {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+          </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={user?.profileImage} />
-            <AvatarFallback className="bg-blue-100 text-blue-700">
-              {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-        </div>
-      </div>
 
       {/* Progress Overview */}
       <Card>
@@ -299,6 +301,7 @@ export default function UnifiedDashboard() {
           </Card>
         </Link>
       </div>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
