@@ -159,6 +159,28 @@ export default function AdminDashboard() {
     },
   });
 
+  // Update user role mutation
+  const updateUserRoleMutation = useMutation({
+    mutationFn: async ({ userId, role }: { userId: number; role: string }) => {
+      const response = await apiRequest("PATCH", `/api/admin/users/${userId}/role`, { role });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "User role updated successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update user role",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Export users data mutation
   const exportUsersMutation = useMutation({
     mutationFn: async () => {
@@ -518,9 +540,25 @@ export default function AdminDashboard() {
                       </TableCell>
                       <TableCell>{user.email || 'N/A'}</TableCell>
                       <TableCell>
-                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                          {user.role}
-                        </Badge>
+                        <Select
+                          key={`role-${user.id}-${user.role}`}
+                          value={user.role || 'user'}
+                          onValueChange={(role) => {
+                            if (role && user.id) {
+                              updateUserRoleMutation.mutate({ userId: user.id, role });
+                            }
+                          }}
+                          disabled={updateUserRoleMutation.isPending}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="user">User</SelectItem>
+                            <SelectItem value="expert">Expert</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell>
                         <Select

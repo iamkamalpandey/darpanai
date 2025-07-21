@@ -904,7 +904,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = parseInt(req.params.id);
       const { role } = req.body;
 
-      if (isNaN(userId) || !role || !['user', 'admin'].includes(role)) {
+      if (isNaN(userId) || !role || !['user', 'expert', 'admin'].includes(role)) {
         return res.status(400).json({ error: 'Invalid user ID or role value' });
       }
 
