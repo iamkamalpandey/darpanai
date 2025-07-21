@@ -479,12 +479,8 @@ Respond naturally and helpfully ONLY for education queries.`;
       description: 'Get personalized guidance from education expert'
     });
     
-    // Concise profile feedback for cost efficiency
+    // Remove profile feedback to prevent showing incorrect user information
     let profileFeedback = '';
-    if (profileContext && profileContext !== 'basic profile information') {
-      const userField = userProfile.fieldOfStudy || 'Information Technology';
-      profileFeedback = `\n\n💡 Personalized for your ${userField} background. [Edit profile](/profile) to adjust.`;
-    }
 
     const finalResponse = content + profileFeedback;
     
