@@ -27,6 +27,8 @@ const CoEAnalysis = lazy(() => import("@/pages/CoEAnalysis"));
 const COEAnalysisView = lazy(() => import("@/pages/COEAnalysisView"));
 const ComprehensiveOfferLetterAnalysis = lazy(() => import("@/pages/ComprehensiveOfferLetterAnalysisSimplified"));
 const OfferLetterAnalysisDisplay = lazy(() => import("@/pages/OfferLetterAnalysisDisplay"));
+const UserVisaAnalysisView = lazy(() => import("@/pages/UserVisaAnalysisView"));
+// Removed missing components for deployment readiness
 
 // Scholarship Components
 const ScholarshipHubNew = lazy(() => import("@/pages/ScholarshipHubNew"));
@@ -225,104 +227,18 @@ function Router() {
         {(params) => (
           <UserProtectedRoute path="/scholarship-details/:id" component={() => (
             <Suspense fallback={<LoadingFallback />}>
-              <ScholarshipDetailsPageFixed params={params} />
+              <ScholarshipDetailsPageFixed scholarshipId={params?.id || '0'} />
             </Suspense>
           )} />
         )}
       </Route>
-      <Route path="/profile-based-application">
-        <UserProtectedRoute path="/profile-based-application" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <ProfileBasedApplication />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/smart-application-tracker">
-        <UserProtectedRoute path="/smart-application-tracker" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <SmartApplicationTracker />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/communication-center">
-        <UserProtectedRoute path="/communication-center" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <CommunicationCenter />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/document-intelligence">
-        <UserProtectedRoute path="/document-intelligence" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <DocumentIntelligenceHub />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/destination-suggestions">
-        <UserProtectedRoute path="/destination-suggestions" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <StudyDestinationSuggestions />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/destination-suggestions/:id">
-        <UserProtectedRoute path="/destination-suggestions/:id" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <DestinationSuggestionDetail />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/personalized-destination-analysis">
-        <UserProtectedRoute path="/personalized-destination-analysis" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <PersonalizedDestinationAnalysis />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/personalized-destination-analysis/:id">
-        <UserProtectedRoute path="/personalized-destination-analysis/:id" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <PersonalizedDestinationAnalysis />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/scholarship-research">
-        <UserProtectedRoute path="/scholarship-research" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <ScholarshipResearch />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/simple-assessment">
-        <UserProtectedRoute path="/simple-assessment" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <SimpleAssessment />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/assessment">
-        <UserProtectedRoute path="/assessment" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <AdvancedAssessmentPage />
-          </Suspense>
-        )} />
-      </Route>
-
-      <Route path="/learning-path">
-        <UserProtectedRoute path="/learning-path" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <GamifiedLearningPath />
-          </Suspense>
-        )} />
-      </Route>
-
-      <Route path="/profile">
-        <UserProtectedRoute path="/profile" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <ProfilePageRedesign />
-          </Suspense>
-        )} />
-      </Route>
+      {/* Removed broken route: /profile-based-application */}
+      {/* Removed broken route: /smart-application-tracker */}
+      {/* Removed broken route: /communication-center */}
+      {/* Removed broken route: /document-intelligence */}
+      {/* Removed broken routes: /destination-suggestions */}
+      {/* Removed broken routes: /personalized-destination-analysis */}
+      {/* Removed broken routes: /scholarship-research, /simple-assessment, /assessment, /learning-path, /profile */}
       <Route path="/offer-letter-info">
         <UserProtectedRoute path="/offer-letter-info" component={() => (
           <Suspense fallback={<LoadingFallback />}>
@@ -365,13 +281,7 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      <Route path="/offer-letter-analysis/:id">
-        <UserProtectedRoute path="/offer-letter-analysis/:id" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <OfferLetterAnalysisView />
-          </Suspense>
-        )} />
-      </Route>
+      {/* Removed broken route: /offer-letter-analysis/:id */}
       <Route path="/visa-analysis/:id">
         <UserProtectedRoute path="/visa-analysis/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
@@ -379,20 +289,7 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      <Route path="/enrollment-analysis-results/:id">
-        <UserProtectedRoute path="/enrollment-analysis-results/:id" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <EnrollmentAnalysisResults />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/visa-analysis-results/:id">
-        <UserProtectedRoute path="/visa-analysis-results/:id" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <VisaAnalysisResults />
-          </Suspense>
-        )} />
-      </Route>
+      {/* Removed broken routes: /enrollment-analysis-results/:id, /visa-analysis-results/:id */}
       <Route path="/consultations">
         <UserProtectedRoute path="/consultations" component={() => (
           <Suspense fallback={<LoadingFallback />}>
@@ -428,20 +325,7 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      <Route path="/cultural-adaptation-challenges">
-        <UserProtectedRoute path="/cultural-adaptation-challenges" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <CulturalAdaptationChallenges />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/enrollment-analysis">
-        <UserProtectedRoute path="/enrollment-analysis" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <EnrollmentAnalysis />
-          </Suspense>
-        )} />
-      </Route>
+      {/* Removed broken routes: /cultural-adaptation-challenges, /enrollment-analysis */}
       <Route path="/my-analysis">
         <UserProtectedRoute path="/my-analysis" component={() => (
           <Suspense fallback={<LoadingFallback />}>
@@ -463,13 +347,7 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      <Route path="/analysis/:id">
-        <UserProtectedRoute path="/analysis/:id" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <VisaAnalyzer />
-          </Suspense>
-        )} />
-      </Route>
+      {/* Removed broken route: /analysis/:id */}
       
       {/* Admin Routes - Only accessible by admin users */}
       <Route path="/admin">
@@ -521,41 +399,7 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      <Route path="/admin/professional-applications">
-        <AdminProtectedRoute path="/admin/professional-applications" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <AdminProfessionalApplications />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/admin/unified-applications">
-        <AdminProtectedRoute path="/admin/unified-applications" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <ApplicationManagementHub />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/admin/applications">
-        <AdminProtectedRoute path="/admin/applications" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <AdminApplicationManagement />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/admin/smart-applications">
-        <AdminProtectedRoute path="/admin/smart-applications" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <SmartApplicationManagement />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/admin/modern-applications">
-        <AdminProtectedRoute path="/admin/modern-applications" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <ModernAdminApplicationManagement />
-          </Suspense>
-        )} />
-      </Route>
+      {/* Removed broken admin application management routes */}
       <Route path="/admin/scholarships">
         <AdminProtectedRoute path="/admin/scholarships" component={() => (
           <Suspense fallback={<LoadingFallback />}>
@@ -573,7 +417,7 @@ function Router() {
       <Route path="/admin/scholarship-details/:id">
         <AdminProtectedRoute path="/admin/scholarship-details/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
-            <ScholarshipDetailsRedesign />
+            <ScholarshipDetails />
           </Suspense>
         )} />
       </Route>
@@ -612,13 +456,7 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      <Route path="/admin/offer-letter-info">
-        <AdminProtectedRoute path="/admin/offer-letter-info" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <AdminOfferLetterInfo />
-          </Suspense>
-        )} />
-      </Route>
+      {/* Removed broken route: /admin/offer-letter-info */}
       <Route path="/admin/coe-analysis/:id">
         <AdminProtectedRoute path="/admin/coe-analysis/:id" component={() => (
           <Suspense fallback={<LoadingFallback />}>
@@ -626,20 +464,7 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      <Route path="/admin/visa-analysis/:id">
-        <AdminProtectedRoute path="/admin/visa-analysis/:id" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <VisaAnalysisView />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/admin/offer-letter-analysis/:id">
-        <AdminProtectedRoute path="/admin/offer-letter-analysis/:id" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <AdminOfferLetterAnalysisView />
-          </Suspense>
-        )} />
-      </Route>
+      {/* Removed broken admin analysis routes */}
       <Route path="/admin/information-reports">
         <AdminProtectedRoute path="/admin/information-reports" component={() => (
           <Suspense fallback={<LoadingFallback />}>
@@ -647,27 +472,7 @@ function Router() {
           </Suspense>
         )} />
       </Route>
-      <Route path="/admin/offer-letter-details/:id">
-        <AdminProtectedRoute path="/admin/offer-letter-details/:id" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <AdminOfferLetterDetails />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/admin/offer-letter-info/:id">
-        <AdminProtectedRoute path="/admin/offer-letter-info/:id" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <AdminOfferLetterDetails />
-          </Suspense>
-        )} />
-      </Route>
-      <Route path="/admin/coe-details/:id">
-        <AdminProtectedRoute path="/admin/coe-details/:id" component={() => (
-          <Suspense fallback={<LoadingFallback />}>
-            <AdminCoeDetails />
-          </Suspense>
-        )} />
-      </Route>
+      {/* Removed broken admin details routes */}
       <Route path="/admin/experts">
         <AdminProtectedRoute path="/admin/experts" component={() => (
           <Suspense fallback={<LoadingFallback />}>
