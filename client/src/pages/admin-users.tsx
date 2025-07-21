@@ -111,7 +111,7 @@ const createUserSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   phoneNumber: z.string().min(1, "Phone number is required"),
-  role: z.enum(["user", "admin"]),
+  role: z.enum(["user", "expert", "admin"]),
   status: z.enum(["active", "suspended", "inactive"]),
   maxAnalyses: z.number().min(0).default(3),
   userType: z.enum(["student", "agent", "other"]).optional(),
@@ -553,7 +553,12 @@ export default function AdminUsers() {
   };
 
   const getRoleBadgeVariant = (role: string) => {
-    return role === "admin" ? "destructive" : "secondary";
+    switch (role) {
+      case "admin": return "destructive";
+      case "expert": return "default"; 
+      case "user": return "secondary";
+      default: return "outline";
+    }
   };
 
   if (isLoading) {
@@ -623,6 +628,7 @@ export default function AdminUsers() {
                   <SelectContent>
                     <SelectItem value="all">All Roles</SelectItem>
                     <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="expert">Expert</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
@@ -1137,6 +1143,7 @@ export default function AdminUsers() {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="user">User</SelectItem>
+                            <SelectItem value="expert">Expert</SelectItem>
                             <SelectItem value="admin">Admin</SelectItem>
                           </SelectContent>
                         </Select>
@@ -1696,6 +1703,7 @@ export default function AdminUsers() {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="user">User</SelectItem>
+                            <SelectItem value="expert">Expert</SelectItem>
                             <SelectItem value="admin">Admin</SelectItem>
                           </SelectContent>
                         </Select>
@@ -2387,6 +2395,7 @@ export default function AdminUsers() {
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="user">User</SelectItem>
+                                  <SelectItem value="expert">Expert</SelectItem>
                                   <SelectItem value="admin">Admin</SelectItem>
                                 </SelectContent>
                               </Select>
